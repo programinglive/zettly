@@ -14,7 +14,6 @@ export default function Create({ tags }) {
         title: '',
         description: '',
         tag_ids: [],
-        new_tags: [],
     });
 
     const handleSubmit = (e) => {
@@ -24,11 +23,6 @@ export default function Create({ tags }) {
 
     const handleTagsChange = (tagIds) => {
         setData('tag_ids', tagIds);
-    };
-
-    const handleNewTag = (newTag) => {
-        const updatedNewTags = [...data.new_tags, newTag];
-        setData('new_tags', updatedNewTags);
     };
 
     return (
@@ -90,7 +84,6 @@ export default function Create({ tags }) {
                                     availableTags={tags}
                                     selectedTagIds={data.tag_ids}
                                     onTagsChange={handleTagsChange}
-                                    onNewTag={handleNewTag}
                                 />
                             </div>
 

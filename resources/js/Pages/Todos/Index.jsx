@@ -1,13 +1,13 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CheckCircle, Circle, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { CheckCircle, Circle, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
 
-export default function Index({ todos, filter }) {
+export default function Index({ todos, tags, filter, selectedTag }) {
     const toggleForm = useForm();
 
     const handleToggle = (todo) => {
@@ -38,24 +38,65 @@ export default function Index({ todos, filter }) {
                 </div>
 
                 {/* Filters */}
-                <div className="flex space-x-2">
-                    {[
-                        { key: null, label: 'All' },
-                        { key: 'pending', label: 'Pending' },
-                        { key: 'completed', label: 'Completed' },
-                    ].map(({ key, label }) => (
-                        <Link
-                            key={key || 'all'}
-                            href={key ? `/todos?filter=${key}` : '/todos'}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                                filter === key
-                                    ? 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                            }`}
-                        >
-                            {label}
-                        </Link>
-                    ))}
+                <div className="space-y-4">
+                    {/* Status Filters */}
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            { key: null, label: 'All' },
+                            { key: 'pending', label: 'Pending' },
+                            { key: 'completed', label: 'Completed' },
+                        ].map(({ key, label }) => (
+                            <Link
+                                key={key || 'all'}
+                                href={key ? `/todos?filter=${key}${selectedTag ? `&tag=${selectedTag}` : ''}` : `/todos${selectedTag ? `?tag=${selectedTag}` : ''}`}
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    filter === key
+                                        ? 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                }`}
+                            >
+                                {label}
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* Tag Filters */}
+                    {tags && tags.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Filter by Tag
+                                </label>
+                                {selectedTag && (
+                                    <Link
+                                        href={filter ? `/todos?filter=${filter}` : '/todos'}
+                                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                    >
+                                        Clear filter
+                                    </Link>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {tags.map(tag => (
+                                    <Link
+                                        key={tag.id}
+                                        href={`/todos?${filter ? `filter=${filter}&` : ''}tag=${tag.id}`}
+                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                                            selectedTag == tag.id
+                                                ? 'text-white ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800'
+                                                : 'text-white hover:opacity-80'
+                                        }`}
+                                        style={{ backgroundColor: tag.color }}
+                                    >
+                                        {tag.name}
+                                        {selectedTag == tag.id && (
+                                            <X className="w-3 h-3 ml-1" />
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Todos List */}

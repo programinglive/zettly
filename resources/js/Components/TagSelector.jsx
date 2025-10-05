@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
-import TagBadge from './TagBadge';
+import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { router } from '@inertiajs/react';
 
 export default function TagSelector({ availableTags, selectedTagIds, onTagsChange, className = '' }) {
     const [isCreating, setIsCreating] = useState(false);
     const [newTagName, setNewTagName] = useState('');
     const [newTagColor, setNewTagColor] = useState('#3B82F6');
+    const [isCreatingTag, setIsCreatingTag] = useState(false);
 
     const selectedTags = availableTags.filter(tag => selectedTagIds.includes(tag.id));
     const availableTagsForSelection = availableTags.filter(tag => !selectedTagIds.includes(tag.id));
@@ -20,25 +21,41 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
         onTagsChange(newSelectedIds);
     };
 
-    const handleCreateTag = () => {
-        if (newTagName.trim()) {
-            const newTag = {
-                name: newTagName.trim(),
-                color: newTagColor,
-                isNew: true // Mark as new for the parent component to handle
-            };
+    const handleCreateTag = async () => {
+        if (newTagName.trim() && !isCreatingTag) {
+            setIsCreatingTag(true);
+            
+            try {
+                const response = await fetch('/tags', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({
+                        name: newTagName.trim(),
+                        color: newTagColor,
+                    }),
+                });
 
-            // Add to selected tags temporarily
-            onTagsChange([...selectedTagIds, `new_${Date.now()}`]);
-
-            // Reset form
-            setNewTagName('');
-            setNewTagColor('#3B82F6');
-            setIsCreating(false);
-
-            // Pass the new tag data to parent
-            if (onNewTag) {
-                onNewTag(newTag);
+                if (response.ok) {
+                    const newTag = await response.json();
+                    
+                    // Add the new tag to selected tags
+                    onTagsChange([...selectedTagIds, newTag.id]);
+                    
+                    // Reset form
+                    setNewTagName('');
+                    setNewTagColor('#3B82F6');
+                    setIsCreating(false);
+                    
+                    // Refresh the page to get updated tags list
+                    router.reload({ only: ['tags'] });
+                }
+            } catch (error) {
+                console.error('Error creating tag:', error);
+            } finally {
+                setIsCreatingTag(false);
             }
         }
     };
@@ -60,12 +77,20 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
             {selectedTags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {selectedTags.map(tag => (
-                        <TagBadge
+                        <span
                             key={tag.id}
-                            tag={tag}
-                            removable={true}
-                            onRemove={() => handleTagToggle(tag.id)}
-                        />
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                            style={{ backgroundColor: tag.color }}
+                        >
+                            {tag.name}
+                            <button
+                                type="button"
+                                onClick={() => handleTagToggle(tag.id)}
+                                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-black hover:bg-opacity-20 transition-colors"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
                     ))}
                 </div>
             )}
@@ -173,10 +198,10 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                                 type="button"
                                 size="sm"
                                 onClick={handleCreateTag}
-                                disabled={!newTagName.trim()}
+                                disabled={!newTagName.trim() || isCreatingTag}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                             >
-                                Create Tag
+                                {isCreatingTag ? 'Creating...' : 'Create Tag'}
                             </Button>
                         </div>
                     </div>

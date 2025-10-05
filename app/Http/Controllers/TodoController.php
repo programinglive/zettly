@@ -28,11 +28,21 @@ class TodoController extends Controller
             }
         }
 
+        // Filter by tag
+        if ($request->has('tag') && $request->tag) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->where('tags.id', $request->tag);
+            });
+        }
+
         $todos = $query->latest()->get();
+        $tags = Tag::forUser(auth()->id())->get();
 
         return Inertia::render('Todos/Index', [
             'todos' => $todos,
+            'tags' => $tags,
             'filter' => $request->get('filter'),
+            'selectedTag' => $request->get('tag'),
         ]);
     }
 
@@ -60,38 +70,21 @@ class TodoController extends Controller
             'description' => 'nullable|string',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
-            'new_tags' => 'nullable|array',
-            'new_tags.*.name' => 'required|string|max:50',
-            'new_tags.*.color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
         ]);
 
         $validated['user_id'] = auth()->id();
 
         $todo = Todo::create($validated);
 
-        // Handle existing tags
+        // Handle tags
         if (isset($validated['tag_ids']) && !empty($validated['tag_ids'])) {
-            $todo->tags()->attach($validated['tag_ids']);
-        }
-
-        // Handle new tags
-        if (isset($validated['new_tags']) && !empty($validated['new_tags'])) {
-            $tagIds = [];
-            foreach ($validated['new_tags'] as $tagData) {
-                $tag = Tag::firstOrCreate(
-                    [
-                        'user_id' => auth()->id(),
-                        'name' => $tagData['name']
-                    ],
-                    [
-                        'color' => $tagData['color']
-                    ]
-                );
-                $tagIds[] = $tag->id;
-            }
-            if (!empty($tagIds)) {
-                $todo->tags()->attach($tagIds);
-            }
+            // Filter tags to ensure they belong to the authenticated user
+            $userTagIds = Tag::whereIn('id', $validated['tag_ids'])
+                ->where('user_id', auth()->id())
+                ->pluck('id')
+                ->toArray();
+            
+            $todo->tags()->attach($userTagIds);
         }
 
         return redirect()->route('todos.index')
