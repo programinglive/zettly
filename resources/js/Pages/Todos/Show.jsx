@@ -6,6 +6,7 @@ import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, Calendar, User } from 'lu
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
+import TagBadge from '../../Components/TagBadge';
 
 export default function Show({ todo }) {
     const { delete: destroy } = useForm();
@@ -93,6 +94,18 @@ export default function Show({ todo }) {
                                     <div className="text-center py-8">
                                         <div className="text-gray-400 dark:text-gray-600 text-4xl mb-2">📝</div>
                                         <p className="text-gray-500 dark:text-gray-400">No description provided</p>
+                                    </div>
+                                )}
+
+                                {/* Tags */}
+                                {todo.tags && todo.tags.length > 0 && (
+                                    <div className="mt-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Tags</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {todo.tags.map(tag => (
+                                                <TagBadge key={tag.id} tag={tag} />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>

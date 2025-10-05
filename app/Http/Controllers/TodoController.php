@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Todo::where('user_id', auth()->id())->with('user');
+        $query = Todo::where('user_id', auth()->id())->with(['user', 'tags']);
 
         if ($request->has('filter')) {
             switch ($request->filter) {
@@ -41,9 +42,11 @@ class TodoController extends Controller
     public function create()
     {
         $users = User::all();
+        $tags = Tag::forUser(auth()->id())->get();
 
         return Inertia::render('Todos/Create', [
             'users' => $users,
+            'tags' => $tags,
         ]);
     }
 
@@ -55,11 +58,41 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
+            'new_tags' => 'nullable|array',
+            'new_tags.*.name' => 'required|string|max:50',
+            'new_tags.*.color' => 'required|string|regex:/^#[0-9A-F]{6}$/i',
         ]);
 
         $validated['user_id'] = auth()->id();
 
-        Todo::create($validated);
+        $todo = Todo::create($validated);
+
+        // Handle existing tags
+        if (isset($validated['tag_ids']) && !empty($validated['tag_ids'])) {
+            $todo->tags()->attach($validated['tag_ids']);
+        }
+
+        // Handle new tags
+        if (isset($validated['new_tags']) && !empty($validated['new_tags'])) {
+            $tagIds = [];
+            foreach ($validated['new_tags'] as $tagData) {
+                $tag = Tag::firstOrCreate(
+                    [
+                        'user_id' => auth()->id(),
+                        'name' => $tagData['name']
+                    ],
+                    [
+                        'color' => $tagData['color']
+                    ]
+                );
+                $tagIds[] = $tag->id;
+            }
+            if (!empty($tagIds)) {
+                $todo->tags()->attach($tagIds);
+            }
+        }
 
         return redirect()->route('todos.index')
             ->with('success', 'Todo created successfully!');
@@ -71,7 +104,7 @@ class TodoController extends Controller
     public function show(Todo $todo)
     {
         return Inertia::render('Todos/Show', [
-            'todo' => $todo->load('user'),
+            'todo' => $todo->load(['user', 'tags']),
         ]);
     }
 
@@ -80,8 +113,12 @@ class TodoController extends Controller
      */
     public function edit(Todo $todo)
     {
+        $tags = Tag::forUser(auth()->id())->get();
+        $todo->load('tags');
+
         return Inertia::render('Todos/Edit', [
-            'todo' => $todo->load('user'),
+            'todo' => $todo,
+            'tags' => $tags,
         ]);
     }
 
@@ -94,6 +131,8 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_completed' => 'boolean',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
 
         if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
@@ -103,6 +142,9 @@ class TodoController extends Controller
         }
 
         $todo->update($validated);
+
+        // Sync tags
+        $todo->tags()->sync($validated['tag_ids'] ?? []);
 
         return redirect()->route('todos.index')
             ->with('success', 'Todo updated successfully!');

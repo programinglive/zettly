@@ -5,6 +5,7 @@ import { CheckCircle, Circle, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
+import TagBadge from '../../Components/TagBadge';
 
 export default function Index({ todos, filter }) {
     const toggleForm = useForm();
@@ -112,6 +113,15 @@ export default function Index({ todos, filter }) {
                                                 : todo.description
                                             }
                                         </p>
+                                    )}
+
+                                    {/* Tags */}
+                                    {todo.tags && todo.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {todo.tags.map(tag => (
+                                                <TagBadge key={tag.id} tag={tag} />
+                                            ))}
+                                        </div>
                                     )}
 
                                     {/* Completion timestamp */}

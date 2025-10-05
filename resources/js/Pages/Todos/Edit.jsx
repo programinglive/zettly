@@ -8,19 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import { Input } from '../../Components/ui/input';
 import { Textarea } from '../../Components/ui/textarea';
 import { Checkbox } from '../../Components/ui/checkbox';
+import TagSelector from '../../Components/TagSelector';
 
-
-
-export default function Edit({ todo }) {
+export default function Edit({ todo, tags }) {
     const { data, setData, put, processing, errors } = useForm({
         title: todo.title,
         description: todo.description || '',
         is_completed: todo.is_completed,
+        tag_ids: todo.tags.map(tag => tag.id),
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         put(`/todos/${todo.id}`);
+    };
+
+    const handleTagsChange = (tagIds) => {
+        setData('tag_ids', tagIds);
     };
 
     return (
@@ -72,6 +76,17 @@ export default function Edit({ todo }) {
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tags
+                                </label>
+                                <TagSelector
+                                    availableTags={tags}
+                                    selectedTagIds={data.tag_ids}
+                                    onTagsChange={handleTagsChange}
+                                />
                             </div>
 
                             <div className="flex items-center space-x-2">
