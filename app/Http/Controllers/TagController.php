@@ -13,8 +13,11 @@ class TagController extends Controller
      */
     public function index(): JsonResponse
     {
-        $tags = Tag::forUser(auth()->id())->latest()->get();
-        
+        $tags = Tag::forUser(auth()->id())
+            ->withCount('todos')
+            ->latest()
+            ->get();
+
         return response()->json($tags);
     }
 
