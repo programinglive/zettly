@@ -9,13 +9,15 @@ import { Input } from '../../Components/ui/input';
 import { Textarea } from '../../Components/ui/textarea';
 import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
+import TodoSelector from '../../Components/TodoSelector';
 
-export default function Edit({ todo, tags }) {
+export default function Edit({ todo, tags, todos }) {
     const { data, setData, put, processing, errors } = useForm({
-        title: todo.title,
+        title: todo.title || '',
         description: todo.description || '',
-        is_completed: todo.is_completed,
-        tag_ids: todo.tags.map(tag => tag.id),
+        is_completed: todo.is_completed || false,
+        tag_ids: todo.tags?.map(tag => tag.id) || [],
+        related_todo_ids: todo.relatedTodos?.map(t => t.id) || [],
     });
 
     const handleSubmit = (e) => {
@@ -25,6 +27,10 @@ export default function Edit({ todo, tags }) {
 
     const handleTagsChange = (tagIds) => {
         setData('tag_ids', tagIds);
+    };
+
+    const handleTodosChange = (todoIds) => {
+        setData('related_todo_ids', todoIds);
     };
 
     return (
@@ -88,6 +94,20 @@ export default function Edit({ todo, tags }) {
                                     onTagsChange={handleTagsChange}
                                 />
                             </div>
+
+                            {todos && todos.length > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Link to Other Todos
+                                    </label>
+                                    <TodoSelector
+                                        availableTodos={todos}
+                                        selectedTodoIds={data.related_todo_ids}
+                                        selectedTodosData={todo.relatedTodos || []}
+                                        onTodosChange={handleTodosChange}
+                                    />
+                                </div>
+                            )}
 
                             <div className="flex items-center space-x-2">
                                 <Checkbox

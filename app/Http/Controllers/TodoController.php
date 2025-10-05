@@ -7,6 +7,7 @@ use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class TodoController extends Controller
 {
@@ -35,28 +36,27 @@ class TodoController extends Controller
             });
         }
 
-        $todos = $query->latest()->get();
+        $todos = $query->with(['tags', 'relatedTodos', 'linkedByTodos'])->latest()->get();
         $tags = Tag::forUser(auth()->id())->get();
 
         return Inertia::render('Todos/Index', [
             'todos' => $todos,
             'tags' => $tags,
-            'filter' => $request->get('filter'),
             'selectedTag' => $request->get('tag'),
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new todo.
      */
     public function create()
     {
-        $users = User::all();
         $tags = Tag::forUser(auth()->id())->get();
+        $todos = Todo::where('user_id', auth()->id())->latest()->get(['id', 'title', 'is_completed']);
 
         return Inertia::render('Todos/Create', [
-            'users' => $users,
             'tags' => $tags,
+            'todos' => $todos,
         ]);
     }
 
@@ -70,6 +70,8 @@ class TodoController extends Controller
             'description' => 'nullable|string',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
+            'related_todo_ids' => 'nullable|array',
+            'related_todo_ids.*' => 'exists:todos,id',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -87,31 +89,77 @@ class TodoController extends Controller
             $todo->tags()->attach($userTagIds);
         }
 
+        // Handle related todos
+        if (isset($validated['related_todo_ids']) && !empty($validated['related_todo_ids'])) {
+            // Filter todos to ensure they belong to the authenticated user
+            $userTodoIds = Todo::whereIn('id', $validated['related_todo_ids'])
+                ->where('user_id', auth()->id())
+                ->pluck('id')
+                ->toArray();
+            
+            foreach ($userTodoIds as $relatedTodoId) {
+                $todo->relatedTodos()->attach($relatedTodoId, ['relationship_type' => 'related']);
+            }
+        }
+
         return redirect()->route('todos.index')
             ->with('success', 'Todo created successfully!');
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified todo.
      */
     public function show(Todo $todo)
     {
+        // Ensure user owns the todo
+        if ($todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Eager load related todos and tags
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos']);
+
+        // Get available todos for linking (exclude current todo and already linked todos)
+        $linkedTodoIds = $todo->relatedTodos->pluck('id')
+            ->merge($todo->linkedByTodos->pluck('id'))
+            ->unique()
+            ->toArray();
+
+        $availableTodos = Todo::where('user_id', auth()->id())
+            ->where('id', '!=', $todo->id)
+            ->whereNotIn('id', $linkedTodoIds)
+            ->latest()
+            ->get();
+
         return Inertia::render('Todos/Show', [
-            'todo' => $todo->load(['user', 'tags']),
+            'todo' => $todo,
+            'availableTodos' => $availableTodos,
         ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified todo.
      */
     public function edit(Todo $todo)
     {
+        // Ensure user owns the todo
+        if ($todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $tags = Tag::forUser(auth()->id())->get();
-        $todo->load('tags');
+        $todos = Todo::where('user_id', auth()->id())
+            ->where('id', '!=', $todo->id)
+            ->latest()
+            ->get(['id', 'title', 'is_completed']);
+
+        // Load existing relationships
+        $todo->load(['tags', 'relatedTodos']);
 
         return Inertia::render('Todos/Edit', [
             'todo' => $todo,
             'tags' => $tags,
+            'todos' => $todos,
         ]);
     }
 
@@ -126,6 +174,8 @@ class TodoController extends Controller
             'is_completed' => 'boolean',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
+            'related_todo_ids' => 'nullable|array',
+            'related_todo_ids.*' => 'exists:todos,id',
         ]);
 
         if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
@@ -138,6 +188,22 @@ class TodoController extends Controller
 
         // Sync tags
         $todo->tags()->sync($validated['tag_ids'] ?? []);
+
+        // Sync related todos
+        if (isset($validated['related_todo_ids'])) {
+            // Filter todos to ensure they belong to the authenticated user
+            $userTodoIds = Todo::whereIn('id', $validated['related_todo_ids'])
+                ->where('user_id', auth()->id())
+                ->pluck('id')
+                ->toArray();
+            
+            // Sync with default relationship type
+            $syncData = [];
+            foreach ($userTodoIds as $relatedTodoId) {
+                $syncData[$relatedTodoId] = ['relationship_type' => 'related'];
+            }
+            $todo->relatedTodos()->sync($syncData);
+        }
 
         return redirect()->route('todos.index')
             ->with('success', 'Todo updated successfully!');
@@ -155,16 +221,73 @@ class TodoController extends Controller
     }
 
     /**
-     * Toggle the completion status of a todo.
+     * Link this todo to another todo.
      */
-    public function toggle(Todo $todo)
+    public function link(Request $request, Todo $todo)
     {
-        $todo->update([
-            'is_completed' => ! $todo->is_completed,
-            'completed_at' => ! $todo->is_completed ? now() : null,
+        $validated = $request->validate([
+            'related_todo_id' => 'required|exists:todos,id',
+            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by'
         ]);
 
-        return redirect()->route('todos.index')
-            ->with('success', 'Todo status updated!');
+        // Prevent self-linking
+        if ($todo->id == $validated['related_todo_id']) {
+            return response()->json(['message' => 'Cannot link todo to itself'], 422);
+        }
+
+        // Check if user owns both todos
+        $relatedTodo = Todo::find($validated['related_todo_id']);
+        if ($todo->user_id !== auth()->id() || $relatedTodo->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Create or update the relationship
+        $todo->relatedTodos()->syncWithoutDetaching([
+            $validated['related_todo_id'] => [
+                'relationship_type' => $validated['relationship_type']
+            ]
+        ]);
+
+        // JSON for API, redirect for web/Inertia
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Todos linked successfully']);
+        }
+
+        return redirect()->back()->with('success', 'Todos linked successfully');
+    }
+
+    /**
+     * Unlink this todo from another todo.
+     */
+    public function unlink(Request $request, Todo $todo)
+    {
+        $validated = $request->validate([
+            'related_todo_id' => 'required|exists:todos,id',
+            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by'
+        ]);
+
+        // Check if user owns both todos
+        $relatedTodo = Todo::find($validated['related_todo_id']);
+        if ($todo->user_id !== auth()->id() || $relatedTodo->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Remove the relationship from both directions (force via DB to avoid relation cache issues)
+        DB::table('todo_relationships')
+            ->where('todo_id', $todo->id)
+            ->where('related_todo_id', $validated['related_todo_id'])
+            ->delete();
+
+        DB::table('todo_relationships')
+            ->where('todo_id', $validated['related_todo_id'])
+            ->where('related_todo_id', $todo->id)
+            ->delete();
+
+        // JSON for API, redirect for web/Inertia
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Todos unlinked successfully']);
+        }
+
+        return redirect()->back()->with('success', 'Todos unlinked successfully');
     }
 }

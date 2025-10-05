@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import { Input } from '../../Components/ui/input';
 import { Textarea } from '../../Components/ui/textarea';
 import TagSelector from '../../Components/TagSelector';
+import TodoSelector from '../../Components/TodoSelector';
 
-export default function Create({ tags }) {
+export default function Create({ tags, todos }) {
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
         tag_ids: [],
+        related_todo_ids: [],
     });
 
     const handleSubmit = (e) => {
@@ -23,6 +25,10 @@ export default function Create({ tags }) {
 
     const handleTagsChange = (tagIds) => {
         setData('tag_ids', tagIds);
+    };
+
+    const handleTodosChange = (todoIds) => {
+        setData('related_todo_ids', todoIds);
     };
 
     return (
@@ -86,6 +92,19 @@ export default function Create({ tags }) {
                                     onTagsChange={handleTagsChange}
                                 />
                             </div>
+
+                            {todos && todos.length > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Link to Other Todos
+                                    </label>
+                                    <TodoSelector
+                                        availableTodos={todos}
+                                        selectedTodoIds={data.related_todo_ids}
+                                        onTodosChange={handleTodosChange}
+                                    />
+                                </div>
+                            )}
 
                             <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <Link href="/todos">

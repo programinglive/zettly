@@ -37,6 +37,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
+    Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
+    Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
 
     // Tag management routes
     Route::get('/tags', [TagController::class, 'index'])->name('tags.index');

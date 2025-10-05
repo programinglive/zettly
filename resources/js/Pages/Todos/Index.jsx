@@ -180,14 +180,27 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                         </p>
                                     )}
 
-                                    {/* Tags */}
-                                    {todo.tags && todo.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {todo.tags.map(tag => (
-                                                <TagBadge key={tag.id} tag={tag} />
-                                            ))}
-                                        </div>
-                                    )}
+                                    {/* Tags and Links Info */}
+                                    <div className="space-y-3 mb-4">
+                                        {/* Tags */}
+                                        {todo.tags && todo.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {todo.tags.map(tag => (
+                                                    <TagBadge key={tag.id} tag={tag} />
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Linked Todos Count */}
+                                        {((todo.relatedTodos && todo.relatedTodos.length > 0) || (todo.linkedByTodos && todo.linkedByTodos.length > 0)) && (
+                                            <div className="flex items-center text-xs text-indigo-600 dark:text-indigo-400">
+                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                </svg>
+                                                {((todo.relatedTodos?.length || 0) + (todo.linkedByTodos?.length || 0))} linked todo{((todo.relatedTodos?.length || 0) + (todo.linkedByTodos?.length || 0)) !== 1 ? 's' : ''}
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* Completion timestamp */}
                                     {todo.is_completed && todo.completed_at && (

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, Calendar, User } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -8,10 +7,13 @@ import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
+import TodoLinkManager from '../../Components/TodoLinkManager';
 
-export default function Show({ todo }) {
+export default function Show({ todo, availableTodos }) {
     const { delete: destroy } = useForm();
     const toggleForm = useForm();
+    const linkForm = useForm();
+    const unlinkForm = useForm();
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -31,6 +33,34 @@ export default function Show({ todo }) {
 
     const handleDeleteCancel = () => {
         setShowDeleteModal(false);
+    };
+
+    const handleLink = async (todoId, relatedTodoId, relationshipType) => {
+        router.post(`/todos/${todoId}/link`, {
+            related_todo_id: relatedTodoId,
+            relationship_type: relationshipType,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                window.location.reload();
+            }
+        });
+    };
+
+    const handleUnlink = async (todoId, relatedTodoId, relationshipType) => {
+        console.log('Unlinking:', { todoId, relatedTodoId, relationshipType });
+        router.post(`/todos/${todoId}/unlink`, {
+            related_todo_id: relatedTodoId,
+            relationship_type: relationshipType,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                window.location.reload();
+            },
+            onError: (errors) => {
+                console.error('Unlink error:', errors);
+            }
+        });
     };
 
     return (
@@ -119,6 +149,16 @@ export default function Show({ todo }) {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Linked Todos */}
+                                <div className="mt-6">
+                                    <TodoLinkManager
+                                        todo={todo}
+                                        availableTodos={availableTodos}
+                                        onLink={handleLink}
+                                        onUnlink={handleUnlink}
+                                    />
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
