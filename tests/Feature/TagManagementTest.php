@@ -19,7 +19,9 @@ class TagManagementTest extends TestCase
             'color' => '#EF4444'
         ]);
 
-        $response = $this->actingAs($user)->get('/tags');
+        $response = $this->actingAs($user)
+            ->withHeader('Accept', 'application/json')
+            ->get('/tags');
 
         $response->assertStatus(200);
         $response->assertJsonCount(1);

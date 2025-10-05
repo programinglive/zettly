@@ -53,7 +53,7 @@ export default function Developer() {
                                 method: 'POST',
                                 path: '/todos',
                                 summary: 'Create todo',
-                                description: 'Create a new todo. Send `title` (required) and `description` (optional) in the JSON body.'
+                                description: 'Create a new todo. Send `title` (required), `description` (optional), and `tag_ids` (array of tag IDs) in the JSON body.'
                             },
                             {
                                 method: 'GET',
@@ -65,7 +65,7 @@ export default function Developer() {
                                 method: 'PUT',
                                 path: '/todos/{id}',
                                 summary: 'Update todo',
-                                description: 'Update todo fields. Accepts `title`, `description`, and `is_completed`.'
+                                description: 'Update todo fields. Accepts `title`, `description`, `is_completed`, and `tag_ids`.'
                             },
                             {
                                 method: 'DELETE',
@@ -86,6 +86,59 @@ export default function Developer() {
                             >
                                 <header className="flex items-center justify-between mb-3">
                                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                        {method}
+                                    </span>
+                                    <code className="font-mono text-sm text-gray-900 dark:text-gray-100">{path}</code>
+                                </header>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{summary}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">{description}</p>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Tags API */}
+                <section className="space-y-6">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Tags API</h2>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        {[
+                            {
+                                method: 'GET',
+                                path: '/tags',
+                                summary: 'List tags',
+                                description: 'Retrieve all tags for the authenticated user with todo count.'
+                            },
+                            {
+                                method: 'POST',
+                                path: '/tags',
+                                summary: 'Create tag',
+                                description: 'Create a new tag. Send `name` (required, max 50 chars) and `color` (required, hex format #RRGGBB) in the JSON body.'
+                            },
+                            {
+                                method: 'PUT',
+                                path: '/tags/{id}',
+                                summary: 'Update tag',
+                                description: 'Update tag fields. Accepts `name` and `color` (hex format #RRGGBB).'
+                            },
+                            {
+                                method: 'DELETE',
+                                path: '/tags/{id}',
+                                summary: 'Delete tag',
+                                description: 'Remove a tag. This will also remove the tag from all associated todos.'
+                            },
+                            {
+                                method: 'GET',
+                                path: '/tags/search',
+                                summary: 'Search tags',
+                                description: 'Search tags by name. Send query parameter `q` for search term.'
+                            }
+                        ].map(({ method, path, summary, description }) => (
+                            <article
+                                key={`${method}-${path}`}
+                                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow"
+                            >
+                                <header className="flex items-center justify-between mb-3">
+                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
                                         {method}
                                     </span>
                                     <code className="font-mono text-sm text-gray-900 dark:text-gray-100">{path}</code>

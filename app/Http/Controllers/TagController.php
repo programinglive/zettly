@@ -5,20 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TagController extends Controller
 {
     /**
      * Display a listing of the user's tags.
      */
-    public function index(): JsonResponse
+    public function index(Request $request)
     {
         $tags = Tag::forUser(auth()->id())
             ->withCount('todos')
             ->latest()
             ->get();
 
-        return response()->json($tags);
+        // Return JSON for API requests
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($tags);
+        }
+
+        // Return Inertia view for web requests
+        return Inertia::render('Tags/Index', [
+            'tags' => $tags
+        ]);
     }
 
     /**
