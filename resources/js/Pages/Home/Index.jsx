@@ -24,7 +24,7 @@ export default function Index({ message }) {
 
                     {/* CTA for non-authenticated users */}
                     {!auth?.user && (
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-8 mb-8 border border-blue-200 dark:border-blue-800">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-8 mb-8 border border-gray-200 dark:border-gray-600">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                                 Start organizing your tasks today!
                             </h2>
@@ -33,7 +33,7 @@ export default function Index({ message }) {
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                                 <Link href="/login">
-                                    <button className="w-full sm:w-auto inline-flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+                                    <button className="w-full sm:w-auto inline-flex items-center px-8 py-3 bg-black text-white rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-100">
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                         </svg>
@@ -41,7 +41,7 @@ export default function Index({ message }) {
                                     </button>
                                 </Link>
                                 <Link href="/register">
-                                    <button className="w-full sm:w-auto inline-flex items-center px-8 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <button className="w-full sm:w-auto inline-flex items-center px-8 py-3 bg-black text-white border-2 border-black rounded-lg text-lg font-semibold hover:bg-gray-800 hover:border-gray-800 transition-colors dark:bg-white dark:text-black dark:border-white dark:hover:bg-gray-100 dark:hover:border-gray-100">
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                         </svg>
@@ -54,7 +54,7 @@ export default function Index({ message }) {
 
                     {/* CTA for authenticated users */}
                     {auth?.user && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-8 mb-8 border border-green-200 dark:border-green-800">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-8 mb-8 border border-gray-200 dark:border-gray-600">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                                 Welcome back, {auth.user.name}!
                             </h2>
@@ -62,7 +62,7 @@ export default function Index({ message }) {
                                 Ready to tackle your tasks? Let's get organized!
                             </p>
                             <Link href="/todos">
-                                <button className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">
+                                <button className="inline-flex items-center px-8 py-3 bg-black text-white rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-100">
                                     <CheckSquare className="w-5 h-5 mr-2" />
                                     View My Todos
                                     <ArrowRight className="w-5 h-5 ml-2" />
