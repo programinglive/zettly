@@ -93,7 +93,7 @@ export default function Edit({ todo, tags }) {
                                 <Checkbox
                                     id="is_completed"
                                     checked={data.is_completed}
-                                    onCheckedChange={(checked) => setData('is_completed', !!checked)}
+                                    onChange={(e) => setData('is_completed', e.target.checked)}
                                     className="border-gray-300 dark:border-gray-600"
                                 />
                                 <label

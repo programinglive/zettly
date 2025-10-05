@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
 
@@ -6,12 +6,36 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
+import ConfirmationModal from '../../Components/ConfirmationModal';
 
 export default function Index({ todos, tags, filter, selectedTag }) {
     const toggleForm = useForm();
+    const deleteForm = useForm();
+
+    // Confirmation modal state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [todoToDelete, setTodoToDelete] = useState(null);
 
     const handleToggle = (todo) => {
         toggleForm.post(`/todos/${todo.id}/toggle`);
+    };
+
+    const handleDeleteClick = (todo) => {
+        setTodoToDelete(todo);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (todoToDelete) {
+            deleteForm.delete(`/todos/${todoToDelete.id}`);
+            setShowDeleteModal(false);
+            setTodoToDelete(null);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteModal(false);
+        setTodoToDelete(null);
     };
 
     const getFilteredTodos = () => {
@@ -187,6 +211,12 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                                 Edit
                                             </button>
                                         </Link>
+                                        <button
+                                            onClick={() => handleDeleteClick(todo)}
+                                            className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -208,6 +238,18 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Todo"
+                message={`Are you sure you want to delete "${todoToDelete?.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                confirmButtonVariant="destructive"
+                isLoading={deleteForm.processing}
+            />
         </AppLayout>
     );
 }

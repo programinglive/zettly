@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, Calendar, User } from 'lucide-react';
 
@@ -7,19 +7,30 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
+import ConfirmationModal from '../../Components/ConfirmationModal';
 
 export default function Show({ todo }) {
     const { delete: destroy } = useForm();
     const toggleForm = useForm();
 
+    // Confirmation modal state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
     const handleToggle = () => {
         toggleForm.post(`/todos/${todo.id}/toggle`);
     };
 
-    const handleDelete = () => {
-        if (confirm('Are you sure you want to delete this todo?')) {
-            destroy(`/todos/${todo.id}`);
-        }
+    const handleDeleteClick = () => {
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        destroy(`/todos/${todo.id}`);
+        setShowDeleteModal(false);
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteModal(false);
     };
 
     return (
@@ -43,7 +54,7 @@ export default function Show({ todo }) {
                                 Edit
                             </Button>
                         </Link>
-                        <Button variant="destructive" onClick={handleDelete} className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
+                        <Button variant="destructive" onClick={handleDeleteClick} className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                         </Button>
@@ -230,7 +241,7 @@ export default function Show({ todo }) {
                                         Edit Todo
                                     </Button>
                                 </Link>
-                                <Button variant="destructive" onClick={handleDelete} className="w-full bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
+                                <Button variant="destructive" onClick={handleDeleteClick} className="w-full bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete Todo
                                 </Button>
@@ -239,6 +250,18 @@ export default function Show({ todo }) {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Todo"
+                message={`Are you sure you want to delete "${todo.title}"? This action cannot be undone.`}
+                confirmText="Delete Todo"
+                confirmButtonVariant="destructive"
+                isLoading={destroy.processing}
+            />
         </AppLayout>
     );
 }

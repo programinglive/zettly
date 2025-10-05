@@ -3,12 +3,17 @@ import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { router } from '@inertiajs/react';
+import ConfirmationModal from './ConfirmationModal';
 
 export default function TagSelector({ availableTags, selectedTagIds, onTagsChange, className = '' }) {
     const [isCreating, setIsCreating] = useState(false);
     const [newTagName, setNewTagName] = useState('');
     const [newTagColor, setNewTagColor] = useState('#3B82F6');
     const [isCreatingTag, setIsCreatingTag] = useState(false);
+
+    // Confirmation modal state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [tagToDelete, setTagToDelete] = useState(null);
 
     const selectedTags = availableTags.filter(tag => selectedTagIds.includes(tag.id));
     const availableTagsForSelection = availableTags.filter(tag => !selectedTagIds.includes(tag.id));
@@ -19,6 +24,44 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
             : [...selectedTagIds, tagId];
 
         onTagsChange(newSelectedIds);
+    };
+
+    const handleTagRemoveClick = (tag) => {
+        setTagToDelete(tag);
+        setShowDeleteModal(true);
+    };
+
+    const handleTagRemoveConfirm = async () => {
+        if (tagToDelete) {
+            try {
+                const response = await fetch(`/tags/${tagToDelete.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                });
+
+                if (response.ok) {
+                    // Remove tag from selected tags
+                    const newSelectedIds = selectedTagIds.filter(id => id !== tagToDelete.id);
+                    onTagsChange(newSelectedIds);
+
+                    // Refresh the page to get updated tags list
+                    router.reload({ only: ['tags'] });
+                }
+            } catch (error) {
+                console.error('Error deleting tag:', error);
+            } finally {
+                setShowDeleteModal(false);
+                setTagToDelete(null);
+            }
+        }
+    };
+
+    const handleTagRemoveCancel = () => {
+        setShowDeleteModal(false);
+        setTagToDelete(null);
     };
 
     const handleCreateTag = async () => {
@@ -79,17 +122,12 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                     {selectedTags.map(tag => (
                         <span
                             key={tag.id}
-                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white cursor-pointer hover:opacity-80 transition-opacity"
                             style={{ backgroundColor: tag.color }}
+                            onClick={() => handleTagRemoveClick(tag)}
                         >
                             {tag.name}
-                            <button
-                                type="button"
-                                onClick={() => handleTagToggle(tag.id)}
-                                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-black hover:bg-opacity-20 transition-colors"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
+                            <X className="w-3 h-3 ml-1" />
                         </span>
                     ))}
                 </div>
