@@ -1,10 +1,11 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { CheckSquare, Plus, ArrowRight } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 
 export default function Index({ message }) {
+    const { auth } = usePage().props;
     return (
         <AppLayout title="Home">
             <div className="max-w-4xl mx-auto">
@@ -49,13 +50,28 @@ export default function Index({ message }) {
                     <p className="text-gray-600 mb-6">
                         Create your first todo and start organizing your tasks!
                     </p>
-                    <Link href="/todos">
-                        <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-lg font-medium hover:bg-indigo-500 transition-colors">
-                            <CheckSquare className="w-5 h-5 mr-2" />
-                            View My Todos
-                            <ArrowRight className="w-5 h-5 ml-2" />
-                        </button>
-                    </Link>
+                    {auth?.user ? (
+                        <Link href="/todos">
+                            <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-lg font-medium hover:bg-indigo-500">
+                                <CheckSquare className="w-5 h-5 mr-2" />
+                                View My Todos
+                                <ArrowRight className="w-5 h-5 ml-2" />
+                            </button>
+                        </Link>
+                    ) : (
+                        <div className="space-x-4">
+                            <Link href="/login">
+                                <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-lg font-medium hover:bg-indigo-500">
+                                    Get Started - Login
+                                </button>
+                            </Link>
+                            <Link href="/register">
+                                <button className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-md text-lg font-medium hover:bg-gray-500">
+                                    Create Account
+                                </button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </AppLayout>

@@ -14,7 +14,7 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Todo::with('user');
+        $query = Todo::where('user_id', auth()->id())->with('user');
 
         if ($request->has('filter')) {
             switch ($request->filter) {

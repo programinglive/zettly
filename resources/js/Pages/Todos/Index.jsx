@@ -48,8 +48,8 @@ export default function Index({ todos, filter }) {
                             href={key ? `/todos?filter=${key}` : '/todos'}
                             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                 filter === key
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                             {label}
@@ -59,91 +59,104 @@ export default function Index({ todos, filter }) {
 
                 {/* Todos List */}
                 {filteredTodos.length > 0 ? (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredTodos.map((todo) => (
-                            <Card key={todo.id} className={todo.is_completed ? 'opacity-75' : ''}>
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between">
-                                        <CardTitle className={`text-lg ${todo.is_completed ? 'line-through text-muted-foreground' : ''}`}>
-                                            {todo.title}
-                                        </CardTitle>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleToggle(todo)}
-                                            className="p-1 h-8 w-8"
-                                        >
-                                            {todo.is_completed ? (
-                                                <CheckCircle className="w-5 h-5 text-green-500" />
-                                            ) : (
-                                                <Circle className="w-5 h-5" />
-                                            )}
-                                        </Button>
+                            <div key={todo.id} className="group bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 overflow-hidden">
+                                <div className="p-6">
+                                    {/* Header with status and priority */}
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => handleToggle(todo)}
+                                                className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                                                    todo.is_completed
+                                                        ? 'bg-green-500 border-green-500 text-white'
+                                                        : 'border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                                                }`}
+                                            >
+                                                {todo.is_completed ? (
+                                                    <CheckCircle className="w-5 h-5" />
+                                                ) : (
+                                                    <Circle className="w-5 h-5" />
+                                                )}
+                                            </button>
+                                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                todo.is_completed
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-orange-100 text-orange-800'
+                                            }`}>
+                                                {todo.is_completed ? 'Completed' : 'Pending'}
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {new Date(todo.created_at).toLocaleDateString()}
+                                        </div>
                                     </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
+
+                                    {/* Title */}
+                                    <h3 className={`text-lg font-semibold mb-2 transition-colors ${
+                                        todo.is_completed
+                                            ? 'text-gray-500 line-through'
+                                            : 'text-gray-900 group-hover:text-indigo-600'
+                                    }`}>
+                                        {todo.title}
+                                    </h3>
+
+                                    {/* Description */}
                                     {todo.description && (
-                                        <p className="text-sm text-muted-foreground">
-                                            {todo.description}
+                                        <p className={`text-sm mb-4 leading-relaxed ${
+                                            todo.is_completed ? 'text-gray-400' : 'text-gray-600'
+                                        }`}>
+                                            {todo.description.length > 120
+                                                ? `${todo.description.substring(0, 120)}...`
+                                                : todo.description
+                                            }
                                         </p>
                                     )}
 
-                                    <div className="text-xs text-muted-foreground space-y-1">
-                                        <div>Created: {new Date(todo.created_at).toLocaleDateString()}</div>
-                                        {todo.is_completed && todo.completed_at && (
-                                            <div className="text-green-600">
-                                                ✓ Completed: {new Date(todo.completed_at).toLocaleDateString()}
-                                            </div>
-                                        )}
-                                    </div>
+                                    {/* Completion timestamp */}
+                                    {todo.is_completed && todo.completed_at && (
+                                        <div className="flex items-center text-xs text-green-600 mb-4">
+                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                            Completed {new Date(todo.completed_at).toLocaleDateString()}
+                                        </div>
+                                    )}
+                                </div>
 
-                                    <div className="flex space-x-2 pt-2">
-                                        <Link href={`/todos/${todo.id}`}>
-                                            <Button variant="outline" size="sm">
-                                                <Eye className="w-4 h-4 mr-1" />
+                                {/* Actions */}
+                                <div className="px-6 pb-6">
+                                    <div className="flex space-x-2">
+                                        <Link href={`/todos/${todo.id}`} className="flex-1">
+                                            <button className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-colors">
+                                                <Eye className="w-4 h-4 mr-2" />
                                                 View
-                                            </Button>
+                                            </button>
                                         </Link>
-                                        <Link href={`/todos/${todo.id}/edit`}>
-                                            <Button variant="outline" size="sm">
-                                                <Edit className="w-4 h-4 mr-1" />
+                                        <Link href={`/todos/${todo.id}/edit`} className="flex-1">
+                                            <button className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-colors">
+                                                <Edit className="w-4 h-4 mr-2" />
                                                 Edit
-                                            </Button>
+                                            </button>
                                         </Link>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-destructive hover:text-destructive"
-                                            onClick={() => {
-                                                if (confirm('Are you sure you want to delete this todo?')) {
-                                                    // Handle delete
-                                                }
-                                            }}
-                                        >
-                                            <Trash2 className="w-4 h-4 mr-1" />
-                                            Delete
-                                        </Button>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ) : (
-                    <Card>
-                        <CardContent className="text-center py-12">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 text-center py-12">
                             <div className="text-6xl mb-4">📝</div>
-                            <h3 className="text-lg font-medium text-foreground mb-2">No todos yet</h3>
-                            <p className="text-muted-foreground mb-6">
-                                Get started by creating your first todo item.
-                            </p>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No todos yet</h3>
+                            <p className="text-gray-500 mb-6">Get started by creating your first todo item.</p>
                             <Link href="/todos/create">
-                                <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md font-semibold text-white text-sm uppercase tracking-widest hover:bg-indigo-500">
+                                    <Plus className="w-5 h-5 mr-2" />
                                     Create Your First Todo
-                                </Button>
+                                </button>
                             </Link>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
             </div>
         </AppLayout>

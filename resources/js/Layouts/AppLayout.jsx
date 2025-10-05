@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
 
 export default function AppLayout({ children, title }) {
-    const { flash } = usePage().props;
+    const { auth, flash } = usePage().props;
 
     return (
         <>
@@ -34,12 +34,40 @@ export default function AppLayout({ children, title }) {
                                 </h1>
                             </div>
                             <div className="flex items-center space-x-4">
-                                <a
-                                    href="/todos/create"
-                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-500"
-                                >
-                                    ➕ New Todo
-                                </a>
+                                {auth?.user ? (
+                                    <>
+                                        <span className="text-sm text-gray-700">
+                                            Welcome, {auth.user.name}!
+                                        </span>
+                                        <a
+                                            href="/dashboard"
+                                            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-500"
+                                        >
+                                            My Todos
+                                        </a>
+                                        <a
+                                            href="/logout"
+                                            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-500"
+                                        >
+                                            Logout
+                                        </a>
+                                    </>
+                                ) : (
+                                    <>
+                                        <a
+                                            href="/login"
+                                            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-500"
+                                        >
+                                            Login
+                                        </a>
+                                        <a
+                                            href="/register"
+                                            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-500"
+                                        >
+                                            Register
+                                        </a>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
