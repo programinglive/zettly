@@ -26,12 +26,12 @@ export default function Edit({ todo }) {
     return (
         <AppLayout title={`Edit ${todo.title}`}>
             <div className="max-w-2xl mx-auto">
-                <Card>
+                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-2xl">Edit Todo</CardTitle>
+                            <CardTitle className="text-2xl text-gray-900 dark:text-white">Edit Todo</CardTitle>
                             <Link href="/todos">
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
                                     Back to Todos
                                 </Button>
@@ -41,8 +41,8 @@ export default function Edit({ todo }) {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label htmlFor="title" className="text-sm font-medium text-foreground">
-                                    Title <span className="text-destructive">*</span>
+                                <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Title <span className="text-red-500">*</span>
                                 </label>
                                 <Input
                                     id="title"
@@ -50,15 +50,15 @@ export default function Edit({ todo }) {
                                     placeholder="Enter todo title..."
                                     value={data.title}
                                     onChange={(e) => setData('title', e.target.value)}
-                                    className={errors.title ? 'border-destructive' : ''}
+                                    className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${errors.title ? 'border-red-500' : ''}`}
                                 />
                                 {errors.title && (
-                                    <p className="text-sm text-destructive">{errors.title}</p>
+                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.title}</p>
                                 )}
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="description" className="text-sm font-medium text-foreground">
+                                <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
                                 <Textarea
@@ -67,10 +67,10 @@ export default function Edit({ todo }) {
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
                                     rows={4}
-                                    className={errors.description ? 'border-destructive' : ''}
+                                    className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${errors.description ? 'border-red-500' : ''}`}
                                 />
                                 {errors.description && (
-                                    <p className="text-sm text-destructive">{errors.description}</p>
+                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
                             </div>
 
@@ -79,22 +79,23 @@ export default function Edit({ todo }) {
                                     id="is_completed"
                                     checked={data.is_completed}
                                     onCheckedChange={(checked) => setData('is_completed', !!checked)}
+                                    className="border-gray-300 dark:border-gray-600"
                                 />
                                 <label
                                     htmlFor="is_completed"
-                                    className="text-sm font-medium text-foreground cursor-pointer"
+                                    className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
                                 >
                                     Mark as completed
                                 </label>
                             </div>
 
-                            <div className="flex items-center justify-end space-x-4 pt-4 border-t">
+                            <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <Link href="/todos">
-                                    <Button type="button" variant="outline">
+                                    <Button type="button" variant="outline" className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         Cancel
                                     </Button>
                                 </Link>
-                                <Button type="submit" disabled={processing}>
+                                <Button type="submit" disabled={processing} className="bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white">
                                     {processing ? 'Updating...' : 'Update Todo'}
                                 </Button>
                             </div>
