@@ -4,7 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { ModeToggle } from '../Components/mode-toggle';
 
 export default function AppLayout({ children, title }) {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, url } = usePage().props;
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [desktopMenuOpen, setDesktopMenuOpen] = React.useState(false);
 
@@ -89,20 +89,7 @@ export default function AppLayout({ children, title }) {
                                             )}
                                         </div>
                                     </div>
-                                ) : (
-                                    <>
-                                        <Link href="/login">
-                                            <button className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-500">
-                                                Login
-                                            </button>
-                                        </Link>
-                                        <Link href="/register">
-                                            <button className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-500">
-                                                Register
-                                            </button>
-                                        </Link>
-                                    </>
-                                )}
+                                ) : null}
                             </div>
 
                             {/* Mobile Navigation */}
@@ -157,9 +144,6 @@ export default function AppLayout({ children, title }) {
                                                 <div className="py-1">
                                                     <Link href="/login" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                         Login
-                                                    </Link>
-                                                    <Link href="/register" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                        Register
                                                     </Link>
                                                 </div>
                                             </div>
