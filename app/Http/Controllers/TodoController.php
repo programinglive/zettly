@@ -55,8 +55,9 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'user_id' => 'required|exists:users,id',
         ]);
+
+        $validated['user_id'] = auth()->id();
 
         Todo::create($validated);
 

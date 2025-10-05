@@ -8,11 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import { Input } from '../../Components/ui/input';
 import { Textarea } from '../../Components/ui/textarea';
 
-export default function Create({ users }) {
+export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
-        user_id: '',
     });
 
     const handleSubmit = (e) => {
@@ -68,28 +67,6 @@ export default function Create({ users }) {
                                 />
                                 {errors.description && (
                                     <p className="text-sm text-destructive">{errors.description}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label htmlFor="user_id" className="text-sm font-medium text-foreground">
-                                    Assign to User <span className="text-destructive">*</span>
-                                </label>
-                                <select
-                                    id="user_id"
-                                    value={data.user_id}
-                                    onChange={(e) => setData('user_id', e.target.value)}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="">Select a user...</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name} ({user.email})
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.user_id && (
-                                    <p className="text-sm text-destructive">{errors.user_id}</p>
                                 )}
                             </div>
 
