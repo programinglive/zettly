@@ -7,7 +7,7 @@ export default function Footer() {
     return (
         <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16" role="contentinfo">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid gap-10 md:grid-cols-4 text-sm text-gray-600 dark:text-gray-300">
+                <div className="grid gap-10 md:grid-cols-5 text-sm text-gray-600 dark:text-gray-300">
                     <section aria-labelledby="footer-brand" className="md:col-span-2 space-y-3">
                         <div className="flex items-center space-x-2" id="footer-brand">
                             <span className="text-2xl" aria-hidden>📝</span>
@@ -32,6 +32,14 @@ export default function Footer() {
                             <li><Link href="/dashboard" className="hover:text-gray-900 dark:hover:text-white">Dashboard</Link></li>
                             <li><Link href="/todos" className="hover:text-gray-900 dark:hover:text-white">My Todos</Link></li>
                             <li><Link href="/developer" className="hover:text-gray-900 dark:hover:text-white">Todo API Docs</Link></li>
+                        </ul>
+                    </nav>
+
+                    <nav aria-labelledby="footer-legal">
+                        <h2 id="footer-legal" className="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">Legal</h2>
+                        <ul className="mt-4 space-y-2">
+                            <li><Link href="/legal/terms" className="hover:text-gray-900 dark:hover:text-white">Terms of Service</Link></li>
+                            <li><Link href="/legal/privacy" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</Link></li>
                         </ul>
                     </nav>
 
