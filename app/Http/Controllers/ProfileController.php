@@ -60,4 +60,37 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    /**
+     * Create a new API token for the user.
+     */
+    public function createToken(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $token = $request->user()->createToken($request->name);
+
+        return back()->with([
+            'token' => $token->plainTextToken,
+            'success' => 'API token created successfully!',
+        ]);
+    }
+
+    /**
+     * Delete the specified API token.
+     */
+    public function deleteToken(Request $request, $tokenId)
+    {
+        $token = $request->user()->tokens()->find($tokenId);
+
+        if (!$token) {
+            return back()->withErrors(['token' => 'Token not found.']);
+        }
+
+        $token->delete();
+
+        return back()->with('success', 'API token deleted successfully!');
+    }
 }
