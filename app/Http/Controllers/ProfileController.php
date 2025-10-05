@@ -21,6 +21,8 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'new_token' => session('new_token'),
+            'tokens' => $request->user()->tokens()->orderBy('created_at', 'desc')->get(),
         ]);
     }
 
@@ -73,7 +75,12 @@ class ProfileController extends Controller
         $token = $request->user()->createToken($request->name);
 
         return back()->with([
-            'token' => $token->plainTextToken,
+            'new_token' => [
+                'id' => $token->accessToken->id,
+                'name' => $request->name,
+                'plain_text_token' => $token->plainTextToken,
+                'created_at' => now()->toISOString(),
+            ],
             'success' => 'API token created successfully!',
         ]);
     }
