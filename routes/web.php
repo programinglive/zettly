@@ -23,7 +23,7 @@ Route::get('/legal/privacy', function () {
 })->name('legal.privacy');
 
 Route::get('/dashboard', function () {
-    $todos = auth()->user()->todos()->latest()->take(5)->get();
+    $todos = auth()->user()->todos()->with('tags')->latest()->take(5)->get();
     return Inertia::render('Dashboard', [
         'todos' => $todos,
         'stats' => [

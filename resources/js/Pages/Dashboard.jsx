@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight } from 'lucide-react';
 
 import AppLayout from '../Layouts/AppLayout';
+import TagBadge from '../Components/TagBadge';
 
 export default function Dashboard({ todos, stats }) {
     const toggleForm = useForm();
@@ -98,6 +99,13 @@ export default function Dashboard({ todos, stats }) {
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-md">
                                                         {todo.description}
                                                     </p>
+                                                )}
+                                                {todo.tags && todo.tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-2">
+                                                        {todo.tags.map(tag => (
+                                                            <TagBadge key={tag.id} tag={tag} />
+                                                        ))}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
