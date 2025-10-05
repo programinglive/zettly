@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -11,14 +11,31 @@ import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
 
-export default function Edit({ todo, tags, todos }) {
+export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
+    // Build initial linked ids from both directions (supports camelCase and snake_case)
+    const relatedList = (todo.relatedTodos || todo.related_todos || []);
+    const linkedByList = (todo.linkedByTodos || todo.linked_by_todos || []);
+    const initialLinkedIds = Array.from(new Set([
+        ...relatedList.map(t => t.id),
+        ...linkedByList.map(t => t.id),
+    ]));
+
     const { data, setData, put, processing, errors } = useForm({
         title: todo.title || '',
         description: todo.description || '',
         is_completed: todo.is_completed || false,
-        tag_ids: todo.tags?.map(tag => tag.id) || [],
-        related_todo_ids: todo.relatedTodos?.map(t => t.id) || [],
+        tag_ids: (todo.tags || []).map(tag => tag.id),
+        related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
     });
+
+    // Keep selection in sync if server props change (navigating back to edit, linking elsewhere, etc.)
+    useEffect(() => {
+        const nextIds = (linkedTodoIds && linkedTodoIds.length)
+            ? linkedTodoIds
+            : initialLinkedIds;
+        setData(prev => ({ ...prev, related_todo_ids: nextIds }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(linkedTodoIds), JSON.stringify(initialLinkedIds)]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -103,7 +120,12 @@ export default function Edit({ todo, tags, todos }) {
                                     <TodoSelector
                                         availableTodos={todos}
                                         selectedTodoIds={data.related_todo_ids}
-                                        selectedTodosData={todo.relatedTodos || []}
+                                        selectedTodosData={(selectedLinkedTodos && selectedLinkedTodos.length) ? selectedLinkedTodos : (() => {
+                                            const merge = [...relatedList, ...linkedByList];
+                                            const map = new Map();
+                                            merge.forEach(t => map.set(t.id, t));
+                                            return Array.from(map.values());
+                                        })()}
                                         onTodosChange={handleTodosChange}
                                     />
                                 </div>

@@ -151,15 +151,32 @@ class TodoController extends Controller
         $todos = Todo::where('user_id', auth()->id())
             ->where('id', '!=', $todo->id)
             ->latest()
-            ->get(['id', 'title', 'is_completed']);
+            ->get(['id', 'title', 'description', 'is_completed']);
 
-        // Load existing relationships
-        $todo->load(['tags', 'relatedTodos']);
+        // Load existing relationships (both directions)
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos']);
+
+        // Build selected linked todos + ids for the form
+        $selectedLinkedTodos = $todo->relatedTodos
+            ->merge($todo->linkedByTodos)
+            ->unique('id')
+            ->values()
+            ->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'title' => $t->title,
+                    'description' => $t->description,
+                    'is_completed' => (bool) $t->is_completed,
+                ];
+            });
+        $linkedTodoIds = $selectedLinkedTodos->pluck('id');
 
         return Inertia::render('Todos/Edit', [
             'todo' => $todo,
             'tags' => $tags,
             'todos' => $todos,
+            'linkedTodoIds' => $linkedTodoIds,
+            'selectedLinkedTodos' => $selectedLinkedTodos,
         ]);
     }
 

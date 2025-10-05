@@ -79,7 +79,7 @@ export default function TodoSelector({
 
                     <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
                         <div className="divide-y divide-gray-200 dark:divide-gray-600">
-                            {availableTodosForSelection.slice(0, 10).map(todo => (
+                            {availableTodosForSelection.map(todo => (
                                 <button
                                     key={todo.id}
                                     type="button"
