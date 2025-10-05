@@ -12,47 +12,47 @@ export default function Index({ message }) {
                 {/* Hero Section */}
                 <div className="text-center mb-12">
                     <div className="text-6xl mb-6">📝</div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-4xl font-bold text-emerald-800 dark:text-emerald-200 mb-4">
                         Welcome to Todo App
                     </h1>
-                    <p className="text-xl text-gray-600 mb-8">
+                    <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
                         {message}
                     </p>
-                    <p className="text-lg text-gray-500 mb-8">
+                    <p className="text-lg text-gray-500 dark:text-gray-400 mb-8">
                         A modern, beautiful todo application built with React, Inertia.js, and shadcn/ui
                     </p>
                 </div>
 
                 {/* Features */}
                 <div className="grid md:grid-cols-3 gap-8 mb-12">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <div className="text-3xl mb-4">✅</div>
-                        <h3 className="text-xl font-semibold mb-2">Complete Tasks</h3>
-                        <p className="text-gray-600">Mark tasks as complete with a single click</p>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-emerald-200 dark:border-emerald-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-200">
+                        <div className="text-3xl mb-4 text-emerald-600 dark:text-emerald-400">✅</div>
+                        <h3 className="text-xl font-semibold mb-2 text-emerald-800 dark:text-emerald-300">Complete Tasks</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Mark tasks as complete with a single click</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <div className="text-3xl mb-4">📝</div>
-                        <h3 className="text-xl font-semibold mb-2">Organize Tasks</h3>
-                        <p className="text-gray-600">Create, edit, and delete tasks with ease</p>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-emerald-200 dark:border-emerald-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-200">
+                        <div className="text-3xl mb-4 text-emerald-600 dark:text-emerald-400">📝</div>
+                        <h3 className="text-xl font-semibold mb-2 text-emerald-800 dark:text-emerald-300">Organize Tasks</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Create, edit, and delete tasks with ease</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <div className="text-3xl mb-4">🎨</div>
-                        <h3 className="text-xl font-semibold mb-2">Beautiful UI</h3>
-                        <p className="text-gray-600">Modern interface with shadcn/ui components</p>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-emerald-200 dark:border-emerald-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-200">
+                        <div className="text-3xl mb-4 text-emerald-600 dark:text-emerald-400">🎨</div>
+                        <h3 className="text-xl font-semibold mb-2 text-emerald-800 dark:text-emerald-300">Beautiful UI</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Modern interface with shadcn/ui components</p>
                     </div>
                 </div>
 
                 {/* CTA Section */}
-                <div className="text-center bg-gray-50 p-8 rounded-lg">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <div className="text-center bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-gray-800 dark:via-emerald-900/30 dark:to-gray-900 p-8 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-lg">
+                    <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-300 mb-4">
                         Ready to get started?
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-emerald-700 dark:text-emerald-200 mb-6">
                         Create your first todo and start organizing your tasks!
                     </p>
                     {auth?.user ? (
                         <Link href="/todos">
-                            <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-lg font-medium hover:bg-indigo-500">
+                            <button className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-md text-lg font-medium hover:bg-emerald-700">
                                 <CheckSquare className="w-5 h-5 mr-2" />
                                 View My Todos
                                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -61,7 +61,7 @@ export default function Index({ message }) {
                     ) : (
                         <div className="space-x-4">
                             <Link href="/login">
-                                <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-lg font-medium hover:bg-indigo-500">
+                                <button className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-md text-lg font-medium hover:bg-emerald-700">
                                     Get Started - Login
                                 </button>
                             </Link>
