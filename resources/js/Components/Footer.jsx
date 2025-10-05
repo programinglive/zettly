@@ -7,7 +7,7 @@ export default function Footer() {
     return (
         <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16" role="contentinfo">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid gap-10 md:grid-cols-5 text-sm text-gray-600 dark:text-gray-300">
+                <div className="grid gap-10 md:grid-cols-4 text-sm text-gray-600 dark:text-gray-300">
                     <section aria-labelledby="footer-brand" className="md:col-span-2 space-y-3">
                         <div className="flex items-center space-x-2" id="footer-brand">
                             <span className="text-2xl" aria-hidden>📝</span>
@@ -42,28 +42,14 @@ export default function Footer() {
                             <li><Link href="/legal/privacy" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</Link></li>
                         </ul>
                     </nav>
-
-                    <section aria-labelledby="footer-api" className="space-y-3">
-                        <h2 id="footer-api" className="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">Todo API</h2>
-                        <p>
-                            Secure, token-based endpoints for CRUD operations:
-                        </p>
-                        <ul className="space-y-1 font-mono text-xs text-gray-500 dark:text-gray-400">
-                            <li>GET /api/todos</li>
-                            <li>POST /api/todos</li>
-                            <li>PUT /api/todos/&lbrace;id&rbrace;</li>
-                            <li>PATCH /api/todos/&lbrace;id&rbrace;/toggle</li>
-                            <li>DELETE /api/todos/&lbrace;id&rbrace;</li>
-                        </ul>
-                    </section>
                 </div>
 
                 <div className="mt-12 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 dark:text-gray-400 gap-2">
                     <p>© {year} Todo App. All rights reserved.</p>
                     <p>
                         Have questions? Email{' '}
-                        <a href="mailto:dev@todoapp.test" className="text-blue-600 dark:text-blue-400 hover:underline">
-                            dev@todoapp.test
+                        <a href="mailto:mahatma.mahardhika@programinglive.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+                            mahatma.mahardhika@programinglive.com
                         </a>
                     </p>
                 </div>
