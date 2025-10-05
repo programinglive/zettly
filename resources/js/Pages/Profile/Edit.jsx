@@ -97,7 +97,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
     return (
         <AppLayout title="Profile">
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
@@ -105,7 +105,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                         <p className="text-gray-600 dark:text-gray-400">Manage your account information and preferences.</p>
                     </div>
                     <Link href="/dashboard">
-                        <Button variant="outline" className="border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900/20">
+                        <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900/20">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Dashboard
                         </Button>
@@ -157,7 +157,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     )}
                                 </div>
 
-                                <Button type="submit" disabled={processing} className="w-full bg-gray-900 hover:bg-gray-800">
+                                <Button type="submit" disabled={processing} className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
                                     {processing ? 'Updating...' : 'Update Profile'}
                                 </Button>
                             </form>
@@ -225,7 +225,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     )}
                                 </div>
 
-                                <Button type="submit" disabled={passwordForm.processing} className="w-full bg-gray-900 hover:bg-gray-800">
+                                <Button type="submit" disabled={passwordForm.processing} className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
                                     {passwordForm.processing ? 'Updating...' : 'Update Password'}
                                 </Button>
                             </form>
@@ -284,8 +284,8 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                     </CardHeader>
                     <CardContent>
                         {/* Create New Token */}
-                        <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                            <h4 className="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-3">
+                        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
                                 Create New API Token
                             </h4>
                             <form onSubmit={handleTokenSubmit} className="flex gap-3">
@@ -297,7 +297,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                                     disabled={tokenForm.processing}
                                 />
-                                <Button type="submit" disabled={tokenForm.processing} className="bg-gray-900 hover:bg-gray-800">
+                                <Button type="submit" disabled={tokenForm.processing} className="bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
                                     <Plus className="w-4 h-4 mr-2" />
                                     {tokenForm.processing ? 'Creating...' : 'Create Token'}
                                 </Button>
@@ -318,7 +318,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         variant="outline"
                                         size="sm"
                                         onClick={() => copyToClipboard(new_token.plain_text_token)}
-                                        className="text-blue-600 hover:text-blue-800"
+                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                     >
                                         <Copy className="w-4 h-4 mr-2" />
                                         Copy
@@ -359,7 +359,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => toggleTokenVisibility(token.id)}
-                                                        className="text-gray-600 hover:text-gray-800"
+                                                        className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                                     >
                                                         {visibleTokens.has(token.id) ? (
                                                             <EyeOff className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => deleteToken(token.id)}
-                                                className="text-red-600 hover:text-red-800 ml-3"
+                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 ml-3"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>

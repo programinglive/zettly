@@ -29,7 +29,7 @@ export default function Index({ todos, filter }) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Todos</h1>
                     <Link href="/todos/create">
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Button className="bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
                             <Plus className="w-4 h-4 mr-2" />
                             New Todo
                         </Button>
@@ -48,7 +48,7 @@ export default function Index({ todos, filter }) {
                             href={key ? `/todos?filter=${key}` : '/todos'}
                             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                 filter === key
-                                    ? 'bg-emerald-600 text-white'
+                                    ? 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                             }`}
                         >
@@ -97,7 +97,7 @@ export default function Index({ todos, filter }) {
                                     <h3 className={`text-lg font-semibold mb-2 transition-colors ${
                                         todo.is_completed
                                             ? 'text-gray-500 dark:text-gray-400 line-through'
-                                            : 'text-gray-900 dark:text-gray-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                                            : 'text-gray-900 dark:text-gray-100 group-hover:text-black dark:group-hover:text-white'
                                     }`}>
                                         {todo.title}
                                     </h3>
@@ -125,7 +125,7 @@ export default function Index({ todos, filter }) {
                                     {/* Actions */}
                                     <div className="flex space-x-2">
                                         <Link href={`/todos/${todo.id}`} className="flex-1">
-                                            <button className={`w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 dark:text-emerald-400 dark:bg-emerald-900/20 dark:border-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:border-emerald-600 transition-colors`}>
+                                            <button className={`w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-black bg-gray-100 border-gray-200 hover:bg-gray-200 hover:border-gray-300 dark:text-white dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:border-gray-500 transition-colors`}>
                                                 <Eye className="w-4 h-4 mr-2" />
                                                 View
                                             </button>
@@ -148,7 +148,7 @@ export default function Index({ todos, filter }) {
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No todos yet</h3>
                             <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by creating your first todo item.</p>
                             <Link href="/todos/create">
-                                <button className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-md font-semibold text-white text-sm uppercase tracking-widest hover:bg-emerald-700">
+                                <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md font-semibold text-white text-sm uppercase tracking-widest hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                     <Plus className="w-5 h-5 mr-2" />
                                     Create Your First Todo
                                 </button>

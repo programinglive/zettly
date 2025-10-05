@@ -23,7 +23,7 @@ export default function Show({ todo }) {
 
     return (
         <AppLayout title={todo.title}>
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center space-x-4">

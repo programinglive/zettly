@@ -25,7 +25,7 @@ export default function Edit({ todo }) {
 
     return (
         <AppLayout title={`Edit ${todo.title}`}>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <CardHeader>
                         <div className="flex items-center justify-between">

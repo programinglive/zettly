@@ -64,7 +64,7 @@ export default function Dashboard({ todos, stats }) {
                                     </button>
                                 </Link>
                                 <Link href="/todos/create">
-                                    <button className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors">
+                                    <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                         <Plus className="w-4 h-4 mr-2" />
                                         New Todo
                                     </button>
@@ -118,7 +118,7 @@ export default function Dashboard({ todos, stats }) {
                                 {todos.length >= 5 && (
                                     <div className="text-center pt-4">
                                         <Link href="/todos">
-                                            <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
+                                            <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                                                 View all todos
                                                 <ArrowRight className="w-4 h-4 ml-2" />
                                             </button>
@@ -132,7 +132,7 @@ export default function Dashboard({ todos, stats }) {
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No todos yet</h3>
                                 <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first todo to get started!</p>
                                 <Link href="/todos/create">
-                                    <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors">
+                                    <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                         <Plus className="w-5 h-5 mr-2" />
                                         Create Your First Todo
                                     </button>
