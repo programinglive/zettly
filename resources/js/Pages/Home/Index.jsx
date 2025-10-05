@@ -115,6 +115,22 @@ export default function Index({ message }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Footer Section */}
+                <div className="mt-16 bg-gray-900 dark:bg-gray-800 text-white rounded-3xl p-8 text-center shadow-xl">
+                    <h2 className="text-2xl font-bold mb-4">Build on top of the Todo API</h2>
+                    <p className="text-gray-200 mb-6">
+                        Leverage secure REST endpoints to list, create, update, and complete todos from your own applications.
+                        Get started in minutes with ready-to-use examples and authentication guidance.
+                    </p>
+                    <Link
+                        href="/developer"
+                        className="inline-flex items-center px-6 py-3 bg-white text-gray-900 font-semibold rounded-full shadow hover:bg-gray-200 transition-colors"
+                    >
+                        Explore the Todo API
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                    </Link>
+                </div>
             </div>
         </AppLayout>
     );

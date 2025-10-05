@@ -9,6 +9,18 @@ use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/developer', function () {
+    return Inertia::render('Developer');
+})->name('developer');
+
+Route::get('/legal/terms', function () {
+    return Inertia::render('Legal/Terms');
+})->name('legal.terms');
+
+Route::get('/legal/privacy', function () {
+    return Inertia::render('Legal/Privacy');
+})->name('legal.privacy');
+
 Route::get('/dashboard', function () {
     $todos = auth()->user()->todos()->latest()->take(5)->get();
     return Inertia::render('Dashboard', [

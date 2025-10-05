@@ -2,9 +2,12 @@ import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 import { ModeToggle } from '../Components/mode-toggle';
+import Footer from '../Components/Footer';
 
 export default function AppLayout({ children, title }) {
-    const { auth, flash, url } = usePage().props;
+    const page = usePage();
+    const { auth, flash } = page.props;
+    const { url } = page;
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [desktopMenuOpen, setDesktopMenuOpen] = React.useState(false);
 
@@ -161,6 +164,8 @@ export default function AppLayout({ children, title }) {
                         {children}
                     </div>
                 </main>
+
+                {url === '/' || url === '/developer' ? <Footer /> : null}
             </div>
         </>
     );
