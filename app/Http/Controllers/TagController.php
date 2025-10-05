@@ -34,7 +34,7 @@ class TagController extends Controller
     /**
      * Store a newly created tag.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50',
@@ -51,17 +51,25 @@ class TagController extends Controller
             ]
         );
 
-        return response()->json($tag, $tag->wasRecentlyCreated ? 201 : 200);
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($tag, $tag->wasRecentlyCreated ? 201 : 200);
+        }
+
+        return redirect()->route('tags.index')
+            ->with('success', 'Tag created successfully!');
     }
 
     /**
      * Update the specified tag.
      */
-    public function update(Request $request, Tag $tag): JsonResponse
+    public function update(Request $request, Tag $tag): JsonResponse|\Illuminate\Http\RedirectResponse
     {
         // Ensure user owns the tag
         if ($tag->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            abort(403);
         }
 
         $validated = $request->validate([
@@ -71,22 +79,35 @@ class TagController extends Controller
 
         $tag->update($validated);
 
-        return response()->json($tag);
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($tag);
+        }
+
+        return redirect()->route('tags.index')
+            ->with('success', 'Tag updated successfully!');
     }
 
     /**
      * Remove the specified tag.
      */
-    public function destroy(Tag $tag): JsonResponse
+    public function destroy(Request $request, Tag $tag): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         // Ensure user owns the tag
         if ($tag->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            abort(403);
         }
 
         $tag->delete();
 
-        return response()->json(['message' => 'Tag deleted successfully']);
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Tag deleted successfully']);
+        }
+
+        return redirect()->route('tags.index')
+            ->with('success', 'Tag deleted successfully!');
     }
 
     /**

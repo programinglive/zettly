@@ -38,6 +38,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
                 });
@@ -73,6 +74,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
                     body: JSON.stringify({

@@ -40,12 +40,8 @@ class TagManagementTest extends TestCase
             'color' => '#10B981'
         ]);
 
-        $response->assertStatus(201);
-        $response->assertJsonFragment([
-            'name' => 'Urgent',
-            'color' => '#10B981',
-            'user_id' => $user->id
-        ]);
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag created successfully!');
         $this->assertDatabaseHas('tags', [
             'user_id' => $user->id,
             'name' => 'Urgent',
@@ -60,7 +56,8 @@ class TagManagementTest extends TestCase
 
         $response = $this->actingAs($user)->delete("/tags/{$tag->id}");
 
-        $response->assertStatus(200);
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag deleted successfully!');
         $this->assertSoftDeleted('tags', ['id' => $tag->id]);
     }
 
