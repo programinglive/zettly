@@ -39,7 +39,7 @@ export default function Register() {
                             id="name"
                             name="name"
                             value={data.name}
-                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:bg-gray-700 dark:text-gray-100"
+                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100"
                             autoComplete="name"
                             isFocused={true}
                             onChange={(e) => setData('name', e.target.value)}
@@ -58,7 +58,7 @@ export default function Register() {
                             type="email"
                             name="email"
                             value={data.email}
-                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:bg-gray-700 dark:text-gray-100"
+                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100"
                             autoComplete="username"
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="Enter your email address"
@@ -76,7 +76,7 @@ export default function Register() {
                             type="password"
                             name="password"
                             value={data.password}
-                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:bg-gray-700 dark:text-gray-100"
+                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100"
                             autoComplete="new-password"
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Choose a strong password"
@@ -98,7 +98,7 @@ export default function Register() {
                             type="password"
                             name="password_confirmation"
                             value={data.password_confirmation}
-                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:bg-gray-700 dark:text-gray-100"
+                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100"
                             autoComplete="new-password"
                             onChange={(e) =>
                                 setData('password_confirmation', e.target.value)
@@ -114,7 +114,7 @@ export default function Register() {
                     </div>
 
                     <div className="pt-4">
-                        <PrimaryButton className="w-full bg-emerald-600 hover:bg-emerald-700 py-3 text-base font-medium" disabled={processing}>
+                        <PrimaryButton className="w-full bg-gray-900 hover:bg-gray-800 py-3 text-base font-medium" disabled={processing}>
                             {processing ? 'Creating account...' : 'Create Account'}
                         </PrimaryButton>
                     </div>
@@ -125,7 +125,7 @@ export default function Register() {
                         Already have an account?{' '}
                         <Link
                             href={route('login')}
-                            className="font-medium text-emerald-600 hover:text-emerald-800 underline focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:text-emerald-400 dark:hover:text-emerald-200"
+                            className="font-medium text-gray-600 hover:text-gray-800 underline focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-200"
                         >
                             Sign in here
                         </Link>

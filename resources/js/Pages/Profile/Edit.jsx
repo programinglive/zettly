@@ -105,7 +105,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                         <p className="text-gray-600 dark:text-gray-400">Manage your account information and preferences.</p>
                     </div>
                     <Link href="/dashboard">
-                        <Button variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20">
+                        <Button variant="outline" className="border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900/20">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Dashboard
                         </Button>
@@ -157,7 +157,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     )}
                                 </div>
 
-                                <Button type="submit" disabled={processing} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                                <Button type="submit" disabled={processing} className="w-full bg-gray-900 hover:bg-gray-800">
                                     {processing ? 'Updating...' : 'Update Profile'}
                                 </Button>
                             </form>
@@ -225,7 +225,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     )}
                                 </div>
 
-                                <Button type="submit" disabled={passwordForm.processing} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                                <Button type="submit" disabled={passwordForm.processing} className="w-full bg-gray-900 hover:bg-gray-800">
                                     {passwordForm.processing ? 'Updating...' : 'Update Password'}
                                 </Button>
                             </form>
@@ -297,7 +297,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                                     disabled={tokenForm.processing}
                                 />
-                                <Button type="submit" disabled={tokenForm.processing} className="bg-emerald-600 hover:bg-emerald-700">
+                                <Button type="submit" disabled={tokenForm.processing} className="bg-gray-900 hover:bg-gray-800">
                                     <Plus className="w-4 h-4 mr-2" />
                                     {tokenForm.processing ? 'Creating...' : 'Create Token'}
                                 </Button>
