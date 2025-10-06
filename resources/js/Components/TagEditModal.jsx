@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-export default function TagEditModal({ isOpen, onClose, tag }) {
+export default function TagEditModal({ isOpen = false, onClose = () => {}, tag = null }) {
     const [error, setError] = useState('');
     
     const { data, setData, put, processing, errors, reset } = useForm({
@@ -14,14 +14,14 @@ export default function TagEditModal({ isOpen, onClose, tag }) {
 
     // Update form data when tag changes
     useEffect(() => {
-        if (tag) {
+        if (tag && typeof tag === 'object') {
             setData({
-                name: tag.name || '',
-                color: tag.color || '#3B82F6',
+                name: (tag.name && typeof tag.name === 'string') ? tag.name : '',
+                color: (tag.color && typeof tag.color === 'string') ? tag.color : '#3B82F6',
             });
             setError('');
         }
-    }, [tag]);
+    }, [tag, setData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -34,10 +34,15 @@ export default function TagEditModal({ isOpen, onClose, tag }) {
                 setError('');
             },
             onError: (errors) => {
-                if (errors.message) {
-                    setError(errors.message);
-                } else if (errors.name) {
-                    setError(errors.name[0]);
+                console.error('Tag update error:', errors);
+                if (errors && typeof errors === 'object') {
+                    if (errors.message) {
+                        setError(errors.message);
+                    } else if (errors.name && Array.isArray(errors.name) && errors.name.length > 0) {
+                        setError(errors.name[0]);
+                    } else {
+                        setError('Failed to update tag. Please try again.');
+                    }
                 } else {
                     setError('Failed to update tag. Please try again.');
                 }
@@ -62,7 +67,9 @@ export default function TagEditModal({ isOpen, onClose, tag }) {
         '#84CC16', // Lime
     ];
 
-    if (!isOpen || !tag) return null;
+    if (!isOpen || !tag) {
+        return <></>;
+    }
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -187,3 +194,6 @@ export default function TagEditModal({ isOpen, onClose, tag }) {
         </div>
     );
 }
+
+// Ensure proper export
+TagEditModal.displayName = 'TagEditModal';
