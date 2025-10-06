@@ -125,10 +125,26 @@ class TagController extends Controller
             'color' => 'nullable|string',
         ]);
 
-        // Generate a random color if none provided
+        // Check if another tag with the same name exists (excluding current tag)
+        $existingTag = Tag::where('user_id', auth()->id())
+            ->where('name', trim($validated['name']))
+            ->where('id', '!=', $tag->id)
+            ->first();
+
+        if ($existingTag) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'A tag with this name already exists',
+                ], 409);
+            }
+
+            return redirect()->route('tags.index')
+                ->with('error', 'A tag with this name already exists!');
+        }
+
+        // Keep existing color if none provided (for updates)
         if (empty($validated['color'])) {
-            $colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#84CC16'];
-            $validated['color'] = $colors[array_rand($colors)];
+            $validated['color'] = $tag->color; // Keep existing color
         }
 
         // Ensure color has # prefix and is valid hex

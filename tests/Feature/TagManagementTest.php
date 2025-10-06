@@ -189,4 +189,155 @@ class TagManagementTest extends TestCase
         $response->assertStatus(404); // Should not find the tag
         $this->assertSoftDeleted('tags', ['id' => $tag->id]); // Tag should still be deleted
     }
+
+    public function test_user_can_update_tag_name_and_color(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Original Name',
+            'color' => '#FF0000',
+        ]);
+
+        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+            'name' => 'Updated Name',
+            'color' => '#00FF00',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag updated successfully!');
+
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'Updated Name',
+            'color' => '#00FF00',
+        ]);
+    }
+
+    public function test_user_can_update_tag_with_only_name(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Original Name',
+            'color' => '#FF0000',
+        ]);
+
+        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+            'name' => 'Updated Name',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag updated successfully!');
+
+        // Should keep original color and update name
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'Updated Name',
+            'color' => '#FF0000', // Original color preserved
+        ]);
+    }
+
+    public function test_user_cannot_update_tag_to_duplicate_name(): void
+    {
+        $user = User::factory()->create();
+        $tag1 = Tag::factory()->for($user)->create(['name' => 'Existing Tag']);
+        $tag2 = Tag::factory()->for($user)->create(['name' => 'Tag to Update']);
+
+        $response = $this->actingAs($user)->put("/tags/{$tag2->id}", [
+            'name' => 'Existing Tag',
+            'color' => '#00FF00',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('error', 'A tag with this name already exists!');
+
+        // Tag should not be updated
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag2->id,
+            'name' => 'Tag to Update', // Original name preserved
+        ]);
+    }
+
+    public function test_user_can_update_tag_to_same_name(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Same Name',
+            'color' => '#FF0000',
+        ]);
+
+        // Should be able to update color while keeping same name
+        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+            'name' => 'Same Name',
+            'color' => '#00FF00',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag updated successfully!');
+
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'Same Name',
+            'color' => '#00FF00',
+        ]);
+    }
+
+    public function test_user_cannot_update_another_users_tag(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $tag = Tag::factory()->for($user2)->create(['name' => 'User 2 Tag']);
+
+        $response = $this->actingAs($user1)->put("/tags/{$tag->id}", [
+            'name' => 'Hacked Name',
+            'color' => '#FF0000',
+        ]);
+
+        $response->assertStatus(403);
+
+        // Tag should not be updated
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'User 2 Tag', // Original name preserved
+        ]);
+    }
+
+    public function test_tag_update_validates_required_name(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create(['name' => 'Original Name']);
+
+        $response = $this->actingAs($user)
+            ->withHeader('Accept', 'application/json')
+            ->put("/tags/{$tag->id}", [
+                'name' => '',
+                'color' => '#FF0000',
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_tag_update_handles_invalid_color_gracefully(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Test Tag',
+            'color' => '#FF0000',
+        ]);
+
+        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+            'name' => 'Updated Tag',
+            'color' => 'invalid-color',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag updated successfully!');
+
+        // Should use default color for invalid input
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'Updated Tag',
+            'color' => '#3B82F6', // Default blue color
+        ]);
+    }
 }
