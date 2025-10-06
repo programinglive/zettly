@@ -45,10 +45,10 @@ class LoginRequest extends FormRequest
 
         // Find user by email or name
         $user = \App\Models\User::where('email', $loginInput)
-                                ->orWhere('name', $loginInput)
-                                ->first();
+            ->orWhere('name', $loginInput)
+            ->first();
 
-        if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $this->string('password')], $this->boolean('remember'))) {
+        if (! $user || ! Auth::attempt(['email' => $user->email, 'password' => $this->string('password')], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

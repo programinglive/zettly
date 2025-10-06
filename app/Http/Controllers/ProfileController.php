@@ -92,7 +92,7 @@ class ProfileController extends Controller
     {
         $token = $request->user()->tokens()->find($tokenId);
 
-        if (!$token) {
+        if (! $token) {
             return back()->withErrors(['token' => 'Token not found.']);
         }
 

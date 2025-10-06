@@ -10,4 +10,16 @@ export default defineConfig({
         }),
         react(),
     ],
+    build: {
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom'],
+                    inertia: ['@inertiajs/react'],
+                    ui: ['lucide-react'],
+                }
+            }
+        }
+    }
 });

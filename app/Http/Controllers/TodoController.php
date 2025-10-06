@@ -6,8 +6,8 @@ use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class TodoController extends Controller
 {
@@ -79,24 +79,24 @@ class TodoController extends Controller
         $todo = Todo::create($validated);
 
         // Handle tags
-        if (isset($validated['tag_ids']) && !empty($validated['tag_ids'])) {
+        if (isset($validated['tag_ids']) && ! empty($validated['tag_ids'])) {
             // Filter tags to ensure they belong to the authenticated user
             $userTagIds = Tag::whereIn('id', $validated['tag_ids'])
                 ->where('user_id', auth()->id())
                 ->pluck('id')
                 ->toArray();
-            
+
             $todo->tags()->attach($userTagIds);
         }
 
         // Handle related todos
-        if (isset($validated['related_todo_ids']) && !empty($validated['related_todo_ids'])) {
+        if (isset($validated['related_todo_ids']) && ! empty($validated['related_todo_ids'])) {
             // Filter todos to ensure they belong to the authenticated user
             $userTodoIds = Todo::whereIn('id', $validated['related_todo_ids'])
                 ->where('user_id', auth()->id())
                 ->pluck('id')
                 ->toArray();
-            
+
             foreach ($userTodoIds as $relatedTodoId) {
                 $todo->relatedTodos()->attach($relatedTodoId, ['relationship_type' => 'related']);
             }
@@ -213,7 +213,7 @@ class TodoController extends Controller
                 ->where('user_id', auth()->id())
                 ->pluck('id')
                 ->toArray();
-            
+
             // Sync with default relationship type
             $syncData = [];
             foreach ($userTodoIds as $relatedTodoId) {
@@ -244,7 +244,7 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'related_todo_id' => 'required|exists:todos,id',
-            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by'
+            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by',
         ]);
 
         // Prevent self-linking
@@ -261,8 +261,8 @@ class TodoController extends Controller
         // Create or update the relationship
         $todo->relatedTodos()->syncWithoutDetaching([
             $validated['related_todo_id'] => [
-                'relationship_type' => $validated['relationship_type']
-            ]
+                'relationship_type' => $validated['relationship_type'],
+            ],
         ]);
 
         // JSON for API, redirect for web/Inertia
@@ -280,7 +280,7 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'related_todo_id' => 'required|exists:todos,id',
-            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by'
+            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by',
         ]);
 
         // Check if user owns both todos

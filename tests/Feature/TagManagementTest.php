@@ -16,7 +16,7 @@ class TagManagementTest extends TestCase
         $user = User::factory()->create();
         $tag = Tag::factory()->for($user)->create([
             'name' => 'Important',
-            'color' => '#EF4444'
+            'color' => '#EF4444',
         ]);
 
         $response = $this->actingAs($user)
@@ -24,10 +24,14 @@ class TagManagementTest extends TestCase
             ->get('/tags');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(1);
+        $response->assertJsonStructure([
+            'tags',
+            'deletedTags',
+        ]);
+        $response->assertJsonCount(1, 'tags');
         $response->assertJsonFragment([
             'name' => 'Important',
-            'color' => '#EF4444'
+            'color' => '#EF4444',
         ]);
     }
 
@@ -37,7 +41,7 @@ class TagManagementTest extends TestCase
 
         $response = $this->actingAs($user)->post('/tags', [
             'name' => 'Urgent',
-            'color' => '#10B981'
+            'color' => '#10B981',
         ]);
 
         $response->assertRedirect('/tags');
@@ -45,7 +49,7 @@ class TagManagementTest extends TestCase
         $this->assertDatabaseHas('tags', [
             'user_id' => $user->id,
             'name' => 'Urgent',
-            'color' => '#10B981'
+            'color' => '#10B981',
         ]);
     }
 
@@ -81,10 +85,108 @@ class TagManagementTest extends TestCase
             ->withHeader('Accept', 'application/json')
             ->post('/tags', [
                 'name' => '',
-                'color' => 'not-a-hex-color'
             ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['name', 'color']);
+        $response->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_tag_creation_handles_invalid_color_gracefully(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/tags', [
+            'name' => 'Test Tag',
+            'color' => 'not-a-hex-color',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag created successfully!');
+
+        // Should use default color when invalid color is provided
+        $this->assertDatabaseHas('tags', [
+            'user_id' => $user->id,
+            'name' => 'Test Tag',
+            'color' => '#3B82F6', // Default blue color
+        ]);
+    }
+
+    public function test_tag_creation_without_color_uses_random_color(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/tags', [
+            'name' => 'No Color Tag',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag created successfully!');
+
+        $tag = Tag::where('user_id', $user->id)->where('name', 'No Color Tag')->first();
+        $this->assertNotNull($tag);
+        $this->assertNotEmpty($tag->color);
+        $this->assertStringStartsWith('#', $tag->color);
+    }
+
+    public function test_duplicate_tag_creation_returns_existing_tag(): void
+    {
+        $user = User::factory()->create();
+
+        // Create initial tag
+        $existingTag = Tag::factory()->for($user)->create([
+            'name' => 'Duplicate Test',
+            'color' => '#FF0000',
+        ]);
+
+        // Try to create duplicate tag
+        $response = $this->actingAs($user)->post('/tags', [
+            'name' => 'Duplicate Test',
+        ]);
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('error', 'A tag with this name already exists!');
+
+        // Should still only have one tag with this name
+        $tagCount = Tag::where('user_id', $user->id)->where('name', 'Duplicate Test')->count();
+        $this->assertEquals(1, $tagCount);
+    }
+
+    public function test_user_can_restore_deleted_tag(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Restore Test',
+            'color' => '#00FF00',
+        ]);
+
+        // Delete the tag
+        $tag->delete();
+        $this->assertSoftDeleted('tags', ['id' => $tag->id]);
+
+        // Restore the tag
+        $response = $this->actingAs($user)->post("/tags/{$tag->id}/restore");
+
+        $response->assertRedirect('/tags');
+        $response->assertSessionHas('success', 'Tag restored successfully!');
+
+        // Tag should be restored
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'name' => 'Restore Test',
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_user_cannot_restore_another_users_tag(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $tag = Tag::factory()->for($user2)->create();
+        $tag->delete();
+
+        $response = $this->actingAs($user1)->post("/tags/{$tag->id}/restore");
+
+        $response->assertStatus(404); // Should not find the tag
+        $this->assertSoftDeleted('tags', ['id' => $tag->id]); // Tag should still be deleted
     }
 }
