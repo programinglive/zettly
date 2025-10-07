@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.3](https://github.com/programinglive/todo/compare/v0.0.2...v0.0.3) (2025-10-07)
+
+
+### 🔧 Maintenance
+
+* fix GitHub Actions workflow YAML syntax ([7b7cf2c](https://github.com/programinglive/todo/commit/7b7cf2cf1c1fd358175e186b5f7275afbc0b92f0))
+
 ### [0.0.2](https://github.com/programinglive/todo/compare/v0.0.1...v0.0.2) (2025-10-07)
 
 
