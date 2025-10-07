@@ -35,7 +35,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
     const handleTagRemoveConfirm = async () => {
         if (tagToDelete) {
             try {
-                const response = await fetch(`/tags/${tagToDelete.id}`, {
+                const response = await fetch(`/api/tags/${tagToDelete.id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
         setError('');
         
         try {
-            const response = await fetch('/tags', {
+            const response = await fetch('/api/tags', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

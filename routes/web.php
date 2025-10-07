@@ -40,13 +40,13 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
 
-    // Tag management routes
-    Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
-    Route::post('/tags', [TagController::class, 'store'])->name('tags.store');
-    Route::put('/tags/{tag}', [TagController::class, 'update'])->name('tags.update');
-    Route::delete('/tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
-    Route::post('/tags/{id}/restore', [TagController::class, 'restore'])->name('tags.restore');
-    Route::get('/tags/search', [TagController::class, 'search'])->name('tags.search');
+    // Tag management routes (web interface)
+    Route::get('/manage/tags', [TagController::class, 'index'])->name('tags.index');
+    Route::post('/manage/tags', [TagController::class, 'store'])->name('tags.store');
+    Route::put('/manage/tags/{tag}', [TagController::class, 'update'])->name('tags.update');
+    Route::delete('/manage/tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+    Route::post('/manage/tags/{id}/restore', [TagController::class, 'restore'])->name('tags.restore');
+    Route::get('/manage/tags/search', [TagController::class, 'search'])->name('tags.search');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -27,7 +27,7 @@ export default function TagEditModal({ isOpen = false, onClose = () => {}, tag =
         e.preventDefault();
         if (!tag) return;
 
-        put(`/tags/${tag.id}`, {
+        put(`/manage/tags/${tag.id}`, {
             onSuccess: () => {
                 onClose();
                 reset();

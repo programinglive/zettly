@@ -21,7 +21,7 @@ class TagManagementTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withHeader('Accept', 'application/json')
-            ->get('/tags');
+            ->get('/manage/tags');
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
@@ -39,12 +39,12 @@ class TagManagementTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/tags', [
+        $response = $this->actingAs($user)->post('/manage/tags', [
             'name' => 'Urgent',
             'color' => '#10B981',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag created successfully!');
         $this->assertDatabaseHas('tags', [
             'user_id' => $user->id,
@@ -58,9 +58,9 @@ class TagManagementTest extends TestCase
         $user = User::factory()->create();
         $tag = Tag::factory()->for($user)->create();
 
-        $response = $this->actingAs($user)->delete("/tags/{$tag->id}");
+        $response = $this->actingAs($user)->delete("/manage/tags/{$tag->id}");
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag deleted successfully!');
         $this->assertSoftDeleted('tags', ['id' => $tag->id]);
     }
@@ -71,7 +71,7 @@ class TagManagementTest extends TestCase
         $user2 = User::factory()->create();
         $tag = Tag::factory()->for($user2)->create();
 
-        $response = $this->actingAs($user1)->delete("/tags/{$tag->id}");
+        $response = $this->actingAs($user1)->delete("/manage/tags/{$tag->id}");
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('tags', ['id' => $tag->id]);
@@ -83,7 +83,7 @@ class TagManagementTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withHeader('Accept', 'application/json')
-            ->post('/tags', [
+            ->post('/manage/tags', [
                 'name' => '',
             ]);
 
@@ -95,12 +95,12 @@ class TagManagementTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/tags', [
+        $response = $this->actingAs($user)->post('/manage/tags', [
             'name' => 'Test Tag',
             'color' => 'not-a-hex-color',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag created successfully!');
 
         // Should use default color when invalid color is provided
@@ -115,11 +115,11 @@ class TagManagementTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/tags', [
+        $response = $this->actingAs($user)->post('/manage/tags', [
             'name' => 'No Color Tag',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag created successfully!');
 
         $tag = Tag::where('user_id', $user->id)->where('name', 'No Color Tag')->first();
@@ -139,11 +139,11 @@ class TagManagementTest extends TestCase
         ]);
 
         // Try to create duplicate tag
-        $response = $this->actingAs($user)->post('/tags', [
+        $response = $this->actingAs($user)->post('/manage/tags', [
             'name' => 'Duplicate Test',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('error', 'A tag with this name already exists!');
 
         // Should still only have one tag with this name
@@ -164,9 +164,9 @@ class TagManagementTest extends TestCase
         $this->assertSoftDeleted('tags', ['id' => $tag->id]);
 
         // Restore the tag
-        $response = $this->actingAs($user)->post("/tags/{$tag->id}/restore");
+        $response = $this->actingAs($user)->post("/manage/tags/{$tag->id}/restore");
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag restored successfully!');
 
         // Tag should be restored
@@ -184,7 +184,7 @@ class TagManagementTest extends TestCase
         $tag = Tag::factory()->for($user2)->create();
         $tag->delete();
 
-        $response = $this->actingAs($user1)->post("/tags/{$tag->id}/restore");
+        $response = $this->actingAs($user1)->post("/manage/tags/{$tag->id}/restore");
 
         $response->assertStatus(404); // Should not find the tag
         $this->assertSoftDeleted('tags', ['id' => $tag->id]); // Tag should still be deleted
@@ -198,12 +198,12 @@ class TagManagementTest extends TestCase
             'color' => '#FF0000',
         ]);
 
-        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+        $response = $this->actingAs($user)->put("/manage/tags/{$tag->id}", [
             'name' => 'Updated Name',
             'color' => '#00FF00',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag updated successfully!');
 
         $this->assertDatabaseHas('tags', [
@@ -221,11 +221,11 @@ class TagManagementTest extends TestCase
             'color' => '#FF0000',
         ]);
 
-        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+        $response = $this->actingAs($user)->put("/manage/tags/{$tag->id}", [
             'name' => 'Updated Name',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag updated successfully!');
 
         // Should keep original color and update name
@@ -242,12 +242,12 @@ class TagManagementTest extends TestCase
         $tag1 = Tag::factory()->for($user)->create(['name' => 'Existing Tag']);
         $tag2 = Tag::factory()->for($user)->create(['name' => 'Tag to Update']);
 
-        $response = $this->actingAs($user)->put("/tags/{$tag2->id}", [
+        $response = $this->actingAs($user)->put("/manage/tags/{$tag2->id}", [
             'name' => 'Existing Tag',
             'color' => '#00FF00',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('error', 'A tag with this name already exists!');
 
         // Tag should not be updated
@@ -266,12 +266,12 @@ class TagManagementTest extends TestCase
         ]);
 
         // Should be able to update color while keeping same name
-        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+        $response = $this->actingAs($user)->put("/manage/tags/{$tag->id}", [
             'name' => 'Same Name',
             'color' => '#00FF00',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag updated successfully!');
 
         $this->assertDatabaseHas('tags', [
@@ -287,7 +287,7 @@ class TagManagementTest extends TestCase
         $user2 = User::factory()->create();
         $tag = Tag::factory()->for($user2)->create(['name' => 'User 2 Tag']);
 
-        $response = $this->actingAs($user1)->put("/tags/{$tag->id}", [
+        $response = $this->actingAs($user1)->put("/manage/tags/{$tag->id}", [
             'name' => 'Hacked Name',
             'color' => '#FF0000',
         ]);
@@ -308,7 +308,7 @@ class TagManagementTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withHeader('Accept', 'application/json')
-            ->put("/tags/{$tag->id}", [
+            ->put("/manage/tags/{$tag->id}", [
                 'name' => '',
                 'color' => '#FF0000',
             ]);
@@ -325,12 +325,12 @@ class TagManagementTest extends TestCase
             'color' => '#FF0000',
         ]);
 
-        $response = $this->actingAs($user)->put("/tags/{$tag->id}", [
+        $response = $this->actingAs($user)->put("/manage/tags/{$tag->id}", [
             'name' => 'Updated Tag',
             'color' => 'invalid-color',
         ]);
 
-        $response->assertRedirect('/tags');
+        $response->assertRedirect('/manage/tags');
         $response->assertSessionHas('success', 'Tag updated successfully!');
 
         // Should use default color for invalid input
