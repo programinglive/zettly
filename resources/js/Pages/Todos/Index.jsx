@@ -39,10 +39,24 @@ export default function Index({ todos, tags, filter, selectedTag }) {
     };
 
     const getFilteredTodos = () => {
-        if (!filter || filter === 'all') return todos;
-        return todos.filter(todo =>
-            filter === 'completed' ? todo.is_completed : !todo.is_completed
-        );
+        let filtered;
+        if (!filter || filter === 'all') {
+            filtered = todos;
+        } else {
+            filtered = todos.filter(todo =>
+                filter === 'completed' ? todo.is_completed : !todo.is_completed
+            );
+        }
+        
+        // Sort todos: pending first, completed last
+        return filtered.sort((a, b) => {
+            if (a.is_completed === b.is_completed) {
+                // If both have same completion status, sort by created_at (newest first)
+                return new Date(b.created_at) - new Date(a.created_at);
+            }
+            // Pending todos (false) come before completed todos (true)
+            return a.is_completed - b.is_completed;
+        });
     };
 
     const filteredTodos = getFilteredTodos();

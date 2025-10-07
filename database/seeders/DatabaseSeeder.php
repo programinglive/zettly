@@ -14,9 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            TodoSeeder::class,
         ]);
-
-        // Create some sample todos
-        \App\Models\Todo::factory(5)->create();
     }
 }
