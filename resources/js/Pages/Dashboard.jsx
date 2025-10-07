@@ -22,7 +22,7 @@ export default function Dashboard({ todos, stats }) {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
                         <div className="flex items-center">
                             <div className="text-2xl mr-4">📝</div>
@@ -47,6 +47,24 @@ export default function Dashboard({ todos, stats }) {
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
                                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pending}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+                        <div className="flex items-center">
+                            <div className="text-2xl mr-4">🚨</div>
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Urgent</p>
+                                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.urgent || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+                        <div className="flex items-center">
+                            <div className="text-2xl mr-4">🔥</div>
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">High</p>
+                                <p className="text-2xl font-bold text-red-500 dark:text-red-300">{stats.high || 0}</p>
                             </div>
                         </div>
                     </div>
@@ -100,13 +118,30 @@ export default function Dashboard({ todos, stats }) {
                                                         {todo.description}
                                                     </p>
                                                 )}
-                                                {todo.tags && todo.tags.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mt-2">
-                                                        {todo.tags.map(tag => (
-                                                            <TagBadge key={tag.id} tag={tag} />
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    {/* Priority Badge */}
+                                                    {todo.priority && (
+                                                        <span
+                                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                                            style={{ 
+                                                                backgroundColor: todo.priority === 'low' ? '#10B981' : 
+                                                                                todo.priority === 'medium' ? '#F59E0B' : 
+                                                                                todo.priority === 'high' ? '#EF4444' : 
+                                                                                todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
+                                                            }}
+                                                        >
+                                                            {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}
+                                                        </span>
+                                                    )}
+                                                    {/* Tags */}
+                                                    {todo.tags && todo.tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {todo.tags.map(tag => (
+                                                                <TagBadge key={tag.id} tag={tag} />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 

@@ -25,7 +25,18 @@ class TodoController extends Controller
                 case 'pending':
                     $query->pending();
                     break;
+                case 'high_priority':
+                    $query->highPriority();
+                    break;
+                case 'low_priority':
+                    $query->lowPriority();
+                    break;
             }
+        }
+
+        // Filter by specific priority if requested
+        if ($request->has('priority')) {
+            $query->byPriority($request->priority);
         }
 
         $todos = $query->latest()->get();
@@ -45,6 +56,7 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'priority' => 'nullable|in:low,medium,high,urgent',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -93,6 +105,7 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'is_completed' => 'boolean',
         ]);
 
@@ -154,6 +167,17 @@ class TodoController extends Controller
             'success' => true,
             'message' => 'Todo status updated!',
             'data' => $todo->fresh(),
+        ]);
+    }
+
+    /**
+     * Get available priority levels.
+     */
+    public function priorities(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => Todo::getPriorityLevels(),
         ]);
     }
 }

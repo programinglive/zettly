@@ -11,10 +11,20 @@ class Todo extends Model
 {
     use HasFactory, SoftDeletes;
 
+    // Priority constants
+    const PRIORITY_LOW = 'low';
+
+    const PRIORITY_MEDIUM = 'medium';
+
+    const PRIORITY_HIGH = 'high';
+
+    const PRIORITY_URGENT = 'urgent';
+
     protected $fillable = [
         'user_id',
         'title',
         'description',
+        'priority',
         'is_completed',
         'completed_at',
     ];
@@ -76,5 +86,47 @@ class Todo extends Model
     public function scopePending($query)
     {
         return $query->where('is_completed', false);
+    }
+
+    public function scopeByPriority($query, $priority)
+    {
+        return $query->where('priority', $priority);
+    }
+
+    public function scopeHighPriority($query)
+    {
+        return $query->whereIn('priority', [self::PRIORITY_HIGH, self::PRIORITY_URGENT]);
+    }
+
+    public function scopeLowPriority($query)
+    {
+        return $query->whereIn('priority', [self::PRIORITY_LOW, self::PRIORITY_MEDIUM]);
+    }
+
+    /**
+     * Get all available priority levels
+     */
+    public static function getPriorityLevels()
+    {
+        return [
+            self::PRIORITY_LOW => 'Low',
+            self::PRIORITY_MEDIUM => 'Medium',
+            self::PRIORITY_HIGH => 'High',
+            self::PRIORITY_URGENT => 'Urgent',
+        ];
+    }
+
+    /**
+     * Get priority color for UI display
+     */
+    public function getPriorityColorAttribute()
+    {
+        return match ($this->priority) {
+            self::PRIORITY_LOW => '#10B981',      // green
+            self::PRIORITY_MEDIUM => '#F59E0B',   // yellow
+            self::PRIORITY_HIGH => '#EF4444',     // red
+            self::PRIORITY_URGENT => '#DC2626',   // dark red
+            default => '#6B7280',                 // gray
+        };
     }
 }

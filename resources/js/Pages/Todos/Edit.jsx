@@ -10,6 +10,7 @@ import { Textarea } from '../../Components/ui/textarea';
 import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
+import PrioritySelector from '../../Components/PrioritySelector';
 
 export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
     // Build initial linked ids from both directions (supports camelCase and snake_case)
@@ -23,6 +24,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
     const { data, setData, put, processing, errors } = useForm({
         title: todo.title || '',
         description: todo.description || '',
+        priority: todo.priority || 'medium',
         is_completed: todo.is_completed || false,
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
@@ -48,6 +50,10 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     const handleTodosChange = (todoIds) => {
         setData('related_todo_ids', todoIds);
+    };
+
+    const handlePriorityChange = (priority) => {
+        setData('priority', priority);
     };
 
     return (
@@ -99,6 +105,17 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Priority
+                                </label>
+                                <PrioritySelector
+                                    selectedPriority={data.priority}
+                                    onPriorityChange={handlePriorityChange}
+                                    error={errors.priority}
+                                />
                             </div>
 
                             <div className="space-y-2">

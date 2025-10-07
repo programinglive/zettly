@@ -101,7 +101,7 @@ export default function Show({ todo, availableTodos }) {
                                         <CardTitle className={`text-2xl ${todo.is_completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                                             {todo.title}
                                         </CardTitle>
-                                        <div className="flex items-center mt-2">
+                                        <div className="flex items-center gap-3 mt-2">
                                             <button
                                                 onClick={handleToggle}
                                                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors ${
@@ -117,6 +117,21 @@ export default function Show({ todo, availableTodos }) {
                                                 )}
                                                 {todo.is_completed ? 'Completed' : 'Pending'}
                                             </button>
+                                            
+                                            {/* Priority Badge */}
+                                            {todo.priority && (
+                                                <span
+                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
+                                                    style={{ 
+                                                        backgroundColor: todo.priority === 'low' ? '#10B981' : 
+                                                                        todo.priority === 'medium' ? '#F59E0B' : 
+                                                                        todo.priority === 'high' ? '#EF4444' : 
+                                                                        todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
+                                                    }}
+                                                >
+                                                    {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)} Priority
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -181,6 +196,24 @@ export default function Show({ todo, availableTodos }) {
                                         {todo.is_completed ? 'Completed' : 'Pending'}
                                     </span>
                                 </div>
+                                
+                                {/* Priority Status */}
+                                {todo.priority && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">Priority</span>
+                                        <span
+                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                            style={{ 
+                                                backgroundColor: todo.priority === 'low' ? '#10B981' : 
+                                                                todo.priority === 'medium' ? '#F59E0B' : 
+                                                                todo.priority === 'high' ? '#EF4444' : 
+                                                                todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
+                                            }}
+                                        >
+                                            {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}
+                                        </span>
+                                    </div>
+                                )}
                                 <Button 
                                     onClick={handleToggle}
                                     className={`w-full ${todo.is_completed ? 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600' : 'bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white'}`}

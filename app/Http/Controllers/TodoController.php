@@ -26,7 +26,18 @@ class TodoController extends Controller
                 case 'pending':
                     $query->pending();
                     break;
+                case 'high_priority':
+                    $query->highPriority();
+                    break;
+                case 'low_priority':
+                    $query->lowPriority();
+                    break;
             }
+        }
+
+        // Filter by specific priority if requested
+        if ($request->has('priority')) {
+            $query->byPriority($request->priority);
         }
 
         // Filter by tag
@@ -36,7 +47,16 @@ class TodoController extends Controller
             });
         }
 
-        $todos = $query->with(['tags', 'relatedTodos', 'linkedByTodos'])->latest()->get();
+        $todos = $query->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->orderByRaw("CASE 
+                WHEN priority = 'urgent' THEN 1 
+                WHEN priority = 'high' THEN 2 
+                WHEN priority = 'medium' THEN 3 
+                WHEN priority = 'low' THEN 4 
+                ELSE 5 END")
+            ->orderBy('is_completed', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
         $tags = Tag::forUser(auth()->id())->get();
 
         return Inertia::render('Todos/Index', [
@@ -68,6 +88,7 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
@@ -188,6 +209,7 @@ class TodoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'is_completed' => 'boolean',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
@@ -251,7 +273,7 @@ class TodoController extends Controller
         }
 
         // Toggle completion status
-        $isCompleted = !$todo->is_completed;
+        $isCompleted = ! $todo->is_completed;
         $completedAt = $isCompleted ? now() : null;
 
         $todo->update([

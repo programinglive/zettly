@@ -37,6 +37,7 @@ class TodoEndpointTest extends TestCase
         $todoData = [
             'title' => 'Test Todo',
             'description' => 'Test Description',
+            'priority' => 'high',
             'user_id' => $user->id,
         ];
 

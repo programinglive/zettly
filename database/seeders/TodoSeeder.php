@@ -32,7 +32,7 @@ class TodoSeeder extends Seeder
 
         // Create some additional todos with specific scenarios
         $firstUser = $users->first();
-        
+
         // Create some completed todos
         Todo::factory()
             ->count(2)

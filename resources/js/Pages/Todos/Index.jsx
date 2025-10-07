@@ -48,10 +48,19 @@ export default function Index({ todos, tags, filter, selectedTag }) {
             );
         }
         
-        // Sort todos: pending first, completed last
+        // Sort todos: pending first, completed last, then by priority
         return filtered.sort((a, b) => {
             if (a.is_completed === b.is_completed) {
-                // If both have same completion status, sort by created_at (newest first)
+                // If both have same completion status, sort by priority first
+                const priorityOrder = { 'urgent': 4, 'high': 3, 'medium': 2, 'low': 1 };
+                const aPriority = priorityOrder[a.priority] || 2;
+                const bPriority = priorityOrder[b.priority] || 2;
+                
+                if (aPriority !== bPriority) {
+                    return bPriority - aPriority; // Higher priority first
+                }
+                
+                // If same priority, sort by created_at (newest first)
                 return new Date(b.created_at) - new Date(a.created_at);
             }
             // Pending todos (false) come before completed todos (true)
@@ -83,6 +92,8 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                             { key: null, label: 'All' },
                             { key: 'pending', label: 'Pending' },
                             { key: 'completed', label: 'Completed' },
+                            { key: 'high_priority', label: 'High Priority' },
+                            { key: 'low_priority', label: 'Low Priority' },
                         ].map(({ key, label }) => (
                             <Link
                                 key={key || 'all'}
@@ -183,14 +194,31 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                                         }
                                                     </p>
                                                 )}
-                                                {/* Tags */}
-                                                {todo.tags && todo.tags.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mt-2">
-                                                        {todo.tags.map(tag => (
-                                                            <TagBadge key={tag.id} tag={tag} />
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                {/* Priority and Tags */}
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    {/* Priority Badge */}
+                                                    {todo.priority && (
+                                                        <span
+                                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                                            style={{ 
+                                                                backgroundColor: todo.priority === 'low' ? '#10B981' : 
+                                                                                todo.priority === 'medium' ? '#F59E0B' : 
+                                                                                todo.priority === 'high' ? '#EF4444' : 
+                                                                                todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
+                                                            }}
+                                                        >
+                                                            {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}
+                                                        </span>
+                                                    )}
+                                                    {/* Tags */}
+                                                    {todo.tags && todo.tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {todo.tags.map(tag => (
+                                                                <TagBadge key={tag.id} tag={tag} />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="text-xs text-gray-500 ml-4">
                                                 {new Date(todo.created_at).toLocaleDateString()}

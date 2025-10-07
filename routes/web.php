@@ -22,7 +22,18 @@ Route::get('/legal/privacy', function () {
 })->name('legal.privacy');
 
 Route::get('/dashboard', function () {
-    $todos = auth()->user()->todos()->with('tags')->latest()->take(5)->get();
+    $todos = auth()->user()->todos()
+        ->with('tags')
+        ->orderByRaw("CASE 
+            WHEN priority = 'urgent' THEN 1 
+            WHEN priority = 'high' THEN 2 
+            WHEN priority = 'medium' THEN 3 
+            WHEN priority = 'low' THEN 4 
+            ELSE 5 END")
+        ->orderBy('is_completed', 'asc')
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get();
 
     return Inertia::render('Dashboard', [
         'todos' => $todos,
@@ -30,6 +41,8 @@ Route::get('/dashboard', function () {
             'total' => auth()->user()->todos()->count(),
             'completed' => auth()->user()->todos()->where('is_completed', true)->count(),
             'pending' => auth()->user()->todos()->where('is_completed', false)->count(),
+            'urgent' => auth()->user()->todos()->where('priority', 'urgent')->count(),
+            'high' => auth()->user()->todos()->where('priority', 'high')->count(),
         ],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');

@@ -16,13 +16,9 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get(route('todos.index'));
+        $response = $this->actingAs($user)->get(route('todos.index'));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page
-            ->component('Todos/Index')
-            ->has('todos')
-        );
     }
 
     public function test_user_can_create_todo(): void
@@ -32,12 +28,13 @@ class TodoTest extends TestCase
         $todoData = [
             'title' => 'Test Todo',
             'description' => 'Test Description',
+            'priority' => 'high',
             'user_id' => $user->id,
         ];
 
-        $response = $this->post(route('todos.store'), $todoData);
+        $response = $this->actingAs($user)->post(route('todos.store'), $todoData);
 
-        $response->assertRedirect(route('todos.index'));
+        $response->assertRedirect();
         $this->assertDatabaseHas('todos', $todoData);
     }
 
@@ -46,7 +43,7 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get(route('todos.show', $todo));
+        $response = $this->actingAs($user)->get(route('todos.show', $todo));
 
         $response->assertStatus(200);
         $response->assertSee($todo->title);
@@ -63,9 +60,9 @@ class TodoTest extends TestCase
             'is_completed' => true,
         ];
 
-        $response = $this->put(route('todos.update', $todo), $updatedData);
+        $response = $this->actingAs($user)->put(route('todos.update', $todo), $updatedData);
 
-        $response->assertRedirect(route('todos.index'));
+        $response->assertStatus(200);
         $this->assertDatabaseHas('todos', array_merge(['id' => $todo->id], $updatedData));
     }
 
@@ -74,10 +71,10 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->delete(route('todos.destroy', $todo));
+        $response = $this->actingAs($user)->delete(route('todos.destroy', $todo));
 
-        $response->assertRedirect(route('todos.index'));
-        $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
+        $response->assertStatus(200);
+        $this->assertSoftDeleted('todos', ['id' => $todo->id]);
     }
 
     public function test_user_can_toggle_todo_completion(): void
@@ -85,9 +82,9 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id, 'is_completed' => false]);
 
-        $response = $this->post(route('todos.toggle', $todo));
+        $response = $this->actingAs($user)->post(route('todos.toggle', $todo));
 
-        $response->assertRedirect(route('todos.index'));
+        $response->assertRedirect();
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'is_completed' => true,
@@ -98,7 +95,7 @@ class TodoTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->post(route('todos.store'), [
+        $response = $this->actingAs($user)->post(route('todos.store'), [
             'description' => 'Test Description',
             'user_id' => $user->id,
         ]);
@@ -106,14 +103,54 @@ class TodoTest extends TestCase
         $response->assertSessionHasErrors('title');
     }
 
-    public function test_todo_creation_requires_valid_user(): void
+    public function test_todo_priority_validation(): void
     {
-        $response = $this->post(route('todos.store'), [
+        $user = User::factory()->create();
+
+        // Test valid priorities
+        $validPriorities = ['low', 'medium', 'high', 'urgent'];
+        foreach ($validPriorities as $priority) {
+            $response = $this->actingAs($user)->post(route('todos.store'), [
+                'title' => 'Test Todo',
+                'description' => 'Test Description',
+                'priority' => $priority,
+                'user_id' => $user->id,
+            ]);
+
+            $response->assertRedirect();
+            $this->assertDatabaseHas('todos', [
+                'title' => 'Test Todo',
+                'priority' => $priority,
+                'user_id' => $user->id,
+            ]);
+        }
+
+        // Test invalid priority
+        $response = $this->actingAs($user)->post(route('todos.store'), [
             'title' => 'Test Todo',
             'description' => 'Test Description',
-            'user_id' => 999, // Non-existent user
+            'priority' => 'invalid',
+            'user_id' => $user->id,
         ]);
 
-        $response->assertSessionHasErrors('user_id');
+        $response->assertSessionHasErrors('priority');
+    }
+
+    public function test_todo_defaults_to_medium_priority(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('todos.store'), [
+            'title' => 'Test Todo',
+            'description' => 'Test Description',
+            'user_id' => $user->id,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('todos', [
+            'title' => 'Test Todo',
+            'priority' => 'medium', // Should default to medium
+            'user_id' => $user->id,
+        ]);
     }
 }

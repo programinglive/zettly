@@ -25,7 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Todo API Routes
     Route::apiResource('todos', TodoController::class);
     Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggle']);
-    
+    Route::get('todos/priorities', [TodoController::class, 'priorities']);
+
     // Tag API Routes
     Route::apiResource('tags', TagController::class)->except(['create', 'edit'])->names([
         'index' => 'api.tags.index',

@@ -9,11 +9,13 @@ import { Input } from '../../Components/ui/input';
 import { Textarea } from '../../Components/ui/textarea';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
+import PrioritySelector from '../../Components/PrioritySelector';
 
 export default function Create({ tags, todos }) {
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
+        priority: 'medium',
         tag_ids: [],
         related_todo_ids: [],
     });
@@ -29,6 +31,10 @@ export default function Create({ tags, todos }) {
 
     const handleTodosChange = (todoIds) => {
         setData('related_todo_ids', todoIds);
+    };
+
+    const handlePriorityChange = (priority) => {
+        setData('priority', priority);
     };
 
     return (
@@ -80,6 +86,17 @@ export default function Create({ tags, todos }) {
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Priority
+                                </label>
+                                <PrioritySelector
+                                    selectedPriority={data.priority}
+                                    onPriorityChange={handlePriorityChange}
+                                    error={errors.priority}
+                                />
                             </div>
 
                             <div className="space-y-2">
