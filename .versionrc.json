@@ -1,0 +1,23 @@
+{
+  "types": [
+    {"type": "feat", "section": "✨ Features"},
+    {"type": "fix", "section": "🐛 Bug Fixes"},
+    {"type": "chore", "section": "🔧 Maintenance", "hidden": false},
+    {"type": "docs", "section": "📚 Documentation", "hidden": false},
+    {"type": "style", "section": "💄 Styling", "hidden": false},
+    {"type": "refactor", "section": "♻️ Code Refactoring", "hidden": false},
+    {"type": "perf", "section": "⚡ Performance", "hidden": false},
+    {"type": "test", "section": "✅ Tests", "hidden": false}
+  ],
+  "commitUrlFormat": "https://github.com/programinglive/todo/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/programinglive/todo/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/programinglive/todo/issues/{{id}}",
+  "userUrlFormat": "https://github.com/{{user}}",
+  "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+  "skip": {
+    "bump": false,
+    "changelog": false,
+    "commit": false,
+    "tag": false
+  }
+}
