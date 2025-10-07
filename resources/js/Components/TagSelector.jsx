@@ -35,11 +35,12 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
     const handleTagRemoveConfirm = async () => {
         if (tagToDelete) {
             try {
-                const response = await fetch(`/api/tags/${tagToDelete.id}`, {
+                const response = await fetch(`/manage/tags/${tagToDelete.id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     },
                 });
@@ -87,11 +88,12 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
         setError('');
         
         try {
-            const response = await fetch('/api/tags', {
+            const response = await fetch('/manage/tags', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: JSON.stringify({
