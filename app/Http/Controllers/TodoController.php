@@ -238,6 +238,40 @@ class TodoController extends Controller
     }
 
     /**
+     * Toggle the completion status of the specified todo.
+     */
+    public function toggle(Request $request, Todo $todo)
+    {
+        // Ensure user owns the todo
+        if ($todo->user_id !== auth()->id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            abort(403);
+        }
+
+        // Toggle completion status
+        $isCompleted = !$todo->is_completed;
+        $completedAt = $isCompleted ? now() : null;
+
+        $todo->update([
+            'is_completed' => $isCompleted,
+            'completed_at' => $completedAt,
+        ]);
+
+        // JSON for API, redirect for web/Inertia
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Todo status updated successfully',
+                'is_completed' => $isCompleted,
+                'completed_at' => $completedAt,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Todo status updated successfully!');
+    }
+
+    /**
      * Link this todo to another todo.
      */
     public function link(Request $request, Todo $todo)
