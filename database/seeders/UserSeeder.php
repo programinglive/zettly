@@ -11,19 +11,31 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\User::factory()->create([
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'john@example.com'],
+            [
+                'name' => 'John Doe',
+                'password' => bcrypt('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        \App\Models\User::factory()->create([
-            'name' => 'Jane Smith',
-            'email' => 'jane@example.com',
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'jane@example.com'],
+            [
+                'name' => 'Jane Smith',
+                'password' => bcrypt('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        \App\Models\User::factory()->create([
-            'name' => 'Bob Johnson',
-            'email' => 'bob@example.com',
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'bob@example.com'],
+            [
+                'name' => 'Bob Johnson',
+                'password' => bcrypt('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
