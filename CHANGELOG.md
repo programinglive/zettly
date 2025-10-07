@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/programinglive/todo/compare/v0.0.5...v0.1.0) (2025-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **priority:** Database schema updated with new priority column
+
+### ✨ Features
+
+* **priority:** implement comprehensive 4-level priority system ([afe52f9](https://github.com/programinglive/todo/commit/afe52f9bc7f5d46c13cacfcf8af75024653afa16))
+
 ### [0.0.5](https://github.com/programinglive/todo/compare/v0.0.4...v0.0.5) (2025-10-07)
 
 
