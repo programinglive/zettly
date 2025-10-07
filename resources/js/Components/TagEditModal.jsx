@@ -177,13 +177,14 @@ export default function TagEditModal({ isOpen = false, onClose = () => {}, tag =
                                 variant="outline"
                                 onClick={handleClose}
                                 disabled={processing}
+                                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={!data.name.trim() || processing}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-700 dark:hover:bg-indigo-800"
                             >
                                 {processing ? 'Updating...' : 'Update Tag'}
                             </Button>

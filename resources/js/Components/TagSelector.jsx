@@ -265,6 +265,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                                     setNewTagColor('#3B82F6');
                                     setError('');
                                 }}
+                                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                                 Cancel
                             </Button>
