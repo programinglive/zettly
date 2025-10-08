@@ -55,10 +55,10 @@ class KanbanDragDropTest extends TestCase
 
         $response->assertStatus(302);
         
-        // Check database was updated
+        // Check database was updated - priority should be null when completed
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'priority' => 'medium',
+            'priority' => null,
             'is_completed' => true,
         ]);
 
@@ -168,5 +168,67 @@ class KanbanDragDropTest extends TestCase
         // Verify the updated todo appears in the correct priority group
         $mediumTodo->refresh();
         $this->assertEquals('high', $mediumTodo->priority);
+    }
+
+    public function test_completed_todo_has_null_priority()
+    {
+        // Create a user and todo with high priority
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'priority' => 'high',
+            'is_completed' => false,
+        ]);
+
+        // Mark as completed (simulating drag to completed column)
+        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
+            'is_completed' => true,
+        ]);
+
+        $response->assertStatus(302);
+        
+        // Check database was updated
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'priority' => null,
+            'is_completed' => true,
+        ]);
+
+        // Check completed_at was set
+        $todo->refresh();
+        $this->assertNotNull($todo->completed_at);
+        $this->assertNull($todo->priority);
+    }
+
+    public function test_uncompleting_todo_restores_default_priority()
+    {
+        // Create a completed todo with null priority
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'priority' => null,
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+
+        // Move back to medium priority (simulating drag from completed to medium-low)
+        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
+            'priority' => 'medium',
+            'is_completed' => false,
+        ]);
+
+        $response->assertStatus(302);
+        
+        // Check database was updated
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'priority' => 'medium',
+            'is_completed' => false,
+        ]);
+
+        // Check completed_at was cleared
+        $todo->refresh();
+        $this->assertNull($todo->completed_at);
+        $this->assertEquals('medium', $todo->priority);
     }
 }

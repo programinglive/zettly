@@ -208,6 +208,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 break;
             case 'completed':
                 newCompleted = true;
+                // When completed, priority becomes irrelevant - set to null
+                newPriority = null;
                 break;
         }
 

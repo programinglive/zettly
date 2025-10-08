@@ -305,15 +305,25 @@ class TodoController extends Controller
         }
 
         $validated = $request->validate([
-            'priority' => 'required|in:low,medium,high,urgent',
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'is_completed' => 'boolean',
         ]);
 
-        $updateData = ['priority' => $validated['priority']];
+        $updateData = [];
+        
+        // Handle priority updates
+        if (array_key_exists('priority', $validated)) {
+            $updateData['priority'] = $validated['priority'];
+        }
         
         if (isset($validated['is_completed'])) {
             $updateData['is_completed'] = $validated['is_completed'];
             $updateData['completed_at'] = $validated['is_completed'] ? now() : null;
+            
+            // When marking as completed, remove priority (set to null)
+            if ($validated['is_completed']) {
+                $updateData['priority'] = null;
+            }
         }
 
         $todo->update($updateData);
@@ -322,7 +332,7 @@ class TodoController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Todo priority updated successfully',
-                'priority' => $validated['priority'],
+                'priority' => $updateData['priority'] ?? $todo->priority,
                 'is_completed' => isset($validated['is_completed']) ? $validated['is_completed'] : $todo->is_completed,
                 'completed_at' => isset($validated['is_completed']) ? ($validated['is_completed'] ? now() : null) : $todo->completed_at,
             ]);
