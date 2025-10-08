@@ -43,14 +43,20 @@ class TodoArchiveTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas('success', 'Successfully archived 2 completed todos');
 
-        // Check that completed todos are soft deleted
-        $this->assertSoftDeleted('todos', ['id' => $completedTodo1->id]);
-        $this->assertSoftDeleted('todos', ['id' => $completedTodo2->id]);
+        // Check that completed todos are archived
+        $this->assertDatabaseHas('todos', [
+            'id' => $completedTodo1->id,
+            'archived' => true,
+        ]);
+        $this->assertDatabaseHas('todos', [
+            'id' => $completedTodo2->id,
+            'archived' => true,
+        ]);
         
         // Check that pending todo is not affected
         $this->assertDatabaseHas('todos', [
             'id' => $pendingTodo->id,
-            'deleted_at' => null,
+            'archived' => false,
         ]);
     }
 
@@ -92,10 +98,13 @@ class TodoArchiveTest extends TestCase
         $response->assertStatus(302);
 
         // Check that only user1's todo is archived
-        $this->assertSoftDeleted('todos', ['id' => $user1CompletedTodo->id]);
+        $this->assertDatabaseHas('todos', [
+            'id' => $user1CompletedTodo->id,
+            'archived' => true,
+        ]);
         $this->assertDatabaseHas('todos', [
             'id' => $user2CompletedTodo->id,
-            'deleted_at' => null,
+            'archived' => false,
         ]);
     }
 
@@ -121,8 +130,8 @@ class TodoArchiveTest extends TestCase
         
         $response->assertStatus(200);
         
-        // Check that only pending todo is returned by querying the database
-        $visibleTodos = $user->todos()->get();
+        // Check that only pending todo is returned by querying the database (excluding archived)
+        $visibleTodos = $user->todos()->notArchived()->get();
         $this->assertCount(1, $visibleTodos);
         $this->assertEquals($pendingTodo->id, $visibleTodos[0]->id);
     }
@@ -169,6 +178,45 @@ class TodoArchiveTest extends TestCase
     public function test_unauthorized_user_cannot_archive_todos()
     {
         $response = $this->post('/todos/archive-completed');
+        
+        $response->assertStatus(302);
+        $response->assertRedirect('/login');
+    }
+
+    public function test_archived_page_shows_only_archived_todos()
+    {
+        $user = User::factory()->create();
+        
+        // Create archived and non-archived todos
+        $archivedTodo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Archived Todo',
+            'is_completed' => true,
+            'archived' => true,
+            'archived_at' => now(),
+        ]);
+        
+        $activeTodo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Active Todo',
+            'is_completed' => false,
+            'archived' => false,
+        ]);
+
+        $response = $this->actingAs($user)->get('/todos/archived');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => 
+            $page->component('Todos/Archived')
+                ->has('todos', 1)
+                ->where('todos.0.id', $archivedTodo->id)
+                ->where('todos.0.title', 'Archived Todo')
+        );
+    }
+
+    public function test_archived_page_requires_authentication()
+    {
+        $response = $this->get('/todos/archived');
         
         $response->assertStatus(302);
         $response->assertRedirect('/login');

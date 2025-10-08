@@ -155,8 +155,14 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         router.post('/todos/archive-completed', {}, {
             preserveScroll: true,
             onSuccess: () => {
-                // Remove completed todos from local state
-                setTodos(prevTodos => prevTodos.filter(todo => !todo.is_completed));
+                // Mark completed todos as archived in local state
+                setTodos(prevTodos => 
+                    prevTodos.map(todo => 
+                        todo.is_completed 
+                            ? { ...todo, archived: true, archived_at: new Date().toISOString() }
+                            : todo
+                    )
+                );
                 setShowArchiveModal(false);
                 setIsArchiving(false);
             },
@@ -274,9 +280,9 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         }
     };
 
-    // Separate todos by status
-    const pendingTodos = todos.filter(todo => !todo.is_completed);
-    const completedTodos = todos.filter(todo => todo.is_completed);
+    // Separate todos by status (exclude archived todos)
+    const pendingTodos = todos.filter(todo => !todo.is_completed && !todo.archived);
+    const completedTodos = todos.filter(todo => todo.is_completed && !todo.archived);
 
     // Group pending todos by priority
     const urgentTodos = pendingTodos.filter(todo => todo.priority === 'urgent');

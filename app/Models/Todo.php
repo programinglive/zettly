@@ -27,11 +27,15 @@ class Todo extends Model
         'priority',
         'is_completed',
         'completed_at',
+        'archived',
+        'archived_at',
     ];
 
     protected $casts = [
         'is_completed' => 'boolean',
         'completed_at' => 'datetime',
+        'archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -101,6 +105,16 @@ class Todo extends Model
     public function scopeLowPriority($query)
     {
         return $query->whereIn('priority', [self::PRIORITY_LOW, self::PRIORITY_MEDIUM]);
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->where('archived', true);
+    }
+
+    public function scopeNotArchived($query)
+    {
+        return $query->where('archived', false);
     }
 
     /**

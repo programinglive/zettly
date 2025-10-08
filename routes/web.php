@@ -23,6 +23,7 @@ Route::get('/legal/privacy', function () {
 
 Route::get('/dashboard', function () {
     $todos = auth()->user()->todos()
+        ->notArchived()
         ->with('tags')
         ->orderBy('is_completed', 'asc')
         ->orderByRaw("CASE 
@@ -48,12 +49,15 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Special routes that need to come before resource routes
+    Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');
+    Route::post('todos/archive-completed', [TodoController::class, 'archiveCompleted'])->name('todos.archive-completed');
+    
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
-    Route::post('todos/archive-completed', [TodoController::class, 'archiveCompleted'])->name('todos.archive-completed');
 
     // Tag management routes (web interface)
     Route::get('/manage/tags', [TagController::class, 'index'])->name('tags.index');

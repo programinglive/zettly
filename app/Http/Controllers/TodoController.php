@@ -16,7 +16,7 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Todo::where('user_id', auth()->id())->with(['user', 'tags']);
+        $query = Todo::where('user_id', auth()->id())->notArchived()->with(['user', 'tags']);
 
         if ($request->has('filter')) {
             switch ($request->filter) {
@@ -414,14 +414,14 @@ class TodoController extends Controller
     }
 
     /**
-     * Archive (soft delete) all completed todos for the authenticated user.
+     * Archive all completed todos for the authenticated user.
      */
     public function archiveCompleted(Request $request)
     {
         $user = auth()->user();
         
-        // Get count of completed todos before archiving
-        $completedCount = $user->todos()->completed()->count();
+        // Get count of completed todos before archiving (exclude already archived)
+        $completedCount = $user->todos()->completed()->notArchived()->count();
         
         if ($completedCount === 0) {
             if ($request->wantsJson() || $request->is('api/*')) {
@@ -430,8 +430,11 @@ class TodoController extends Controller
             return redirect()->back()->with('info', 'No completed todos to archive');
         }
         
-        // Soft delete all completed todos
-        $user->todos()->completed()->delete();
+        // Archive all completed todos
+        $user->todos()->completed()->notArchived()->update([
+            'archived' => true,
+            'archived_at' => now(),
+        ]);
         
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
@@ -441,5 +444,21 @@ class TodoController extends Controller
         }
         
         return redirect()->back()->with('success', "Successfully archived {$completedCount} completed todos");
+    }
+
+    /**
+     * Display archived todos.
+     */
+    public function archived(Request $request)
+    {
+        $archivedTodos = auth()->user()->todos()
+            ->archived()
+            ->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->orderBy('archived_at', 'desc')
+            ->get();
+
+        return Inertia::render('Todos/Archived', [
+            'todos' => $archivedTodos,
+        ]);
     }
 }
