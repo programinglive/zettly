@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
+    Route::post('todos/archive-completed', [TodoController::class, 'archiveCompleted'])->name('todos.archive-completed');
 
     // Tag management routes (web interface)
     Route::get('/manage/tags', [TagController::class, 'index'])->name('tags.index');

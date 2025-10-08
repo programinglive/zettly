@@ -412,4 +412,34 @@ class TodoController extends Controller
 
         return redirect()->back()->with('success', 'Todos unlinked successfully');
     }
+
+    /**
+     * Archive (soft delete) all completed todos for the authenticated user.
+     */
+    public function archiveCompleted(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Get count of completed todos before archiving
+        $completedCount = $user->todos()->completed()->count();
+        
+        if ($completedCount === 0) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'No completed todos to archive'], 200);
+            }
+            return redirect()->back()->with('info', 'No completed todos to archive');
+        }
+        
+        // Soft delete all completed todos
+        $user->todos()->completed()->delete();
+        
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => "Successfully archived {$completedCount} completed todos",
+                'archived_count' => $completedCount
+            ]);
+        }
+        
+        return redirect()->back()->with('success', "Successfully archived {$completedCount} completed todos");
+    }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
-import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical } from 'lucide-react';
+import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
@@ -138,6 +138,22 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     );
     const handleToggle = (todo) => {
         toggleForm.post(`/todos/${todo.id}/toggle`);
+    };
+
+    const handleArchiveCompleted = () => {
+        if (completedTodos.length === 0) {
+            return;
+        }
+        
+        if (confirm(`Archive ${completedTodos.length} completed todos? They will be moved to archive but not permanently deleted.`)) {
+            router.post('/todos/archive-completed', {}, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Remove completed todos from local state
+                    setTodos(prevTodos => prevTodos.filter(todo => !todo.is_completed));
+                }
+            });
+        }
     };
 
     const handleDragStart = (event) => {
@@ -278,9 +294,21 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                             <span className="text-lg">{icon}</span>
                             <h3 className="font-medium text-sm">{title}</h3>
                         </div>
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                            {todos.length}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                                {todos.length}
+                            </span>
+                            {id === 'completed' && todos.length > 0 && (
+                                <button
+                                    onClick={handleArchiveCompleted}
+                                    className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-full transition-colors flex items-center space-x-1"
+                                    title="Archive all completed todos"
+                                >
+                                    <Archive className="w-3 h-3" />
+                                    <span>Archive</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
