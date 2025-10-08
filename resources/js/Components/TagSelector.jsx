@@ -54,7 +54,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                     router.reload({ only: ['tags'] });
                 }
             } catch (error) {
-                console.error('Error deleting tag:', error);
+                // Failed silently; UI will refresh tags later
             } finally {
                 setShowDeleteModal(false);
                 setTagToDelete(null);
@@ -127,7 +127,6 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                 setError(errorData.message || 'Failed to create tag. Please try again.');
             }
         } catch (error) {
-            console.error('Error creating tag:', error);
             setError('Network error. Please check your connection and try again.');
         } finally {
             setIsCreatingTag(false);

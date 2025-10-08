@@ -28,14 +28,13 @@ export default function FileUpload({ todoId, onUploadSuccess, className = '' }) 
                     }
                 },
                 onError: (errors) => {
-                    console.error('Upload failed:', errors);
+                    // Error handling via Inertia
                 },
                 onFinish: () => {
                     setIsUploading(false);
                 }
             });
         } catch (error) {
-            console.error('Upload error:', error);
             setIsUploading(false);
         }
     };

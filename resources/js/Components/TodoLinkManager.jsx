@@ -12,11 +12,7 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
     const [searchTerm, setSearchTerm] = useState('');
     const [isLinking, setIsLinking] = useState(false);
 
-    console.log('TodoLinkManager state:', {
-        showLinkModal,
-        selectedTodo,
-        availableTodos: availableTodos?.length || 0
-    });
+    
 
     const relatedTodos = todo.related_todos || todo.relatedTodos || [];
     const linkedByTodos = todo.linked_by_todos || todo.linkedByTodos || [];
@@ -40,13 +36,11 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
 
         setIsLinking(true);
         try {
-            console.log('Linking todos:', todo.id, selectedTodo.id);
             await onLink(todo.id, selectedTodo.id);
             setShowLinkModal(false);
             setSelectedTodo(null);
             setSearchTerm('');
         } catch (error) {
-            console.error('Error linking todos:', error);
             alert('Error linking todos: ' + error.message);
         } finally {
             setIsLinking(false);
@@ -54,16 +48,14 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
     };
 
     const handleUnlink = async () => {
-        console.log('handleUnlink called with selectedTodo:', selectedTodo);
         if (!selectedTodo) return;
 
         try {
-            console.log('Calling onUnlink with:', todo.id, selectedTodo.id);
             await onUnlink(todo.id, selectedTodo.id);
             setShowUnlinkModal(false);
             setSelectedTodo(null);
         } catch (error) {
-            console.error('Error unlinking todos:', error);
+            // handled by UI
         }
     };
 
@@ -95,7 +87,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                        console.log('Unlink button clicked for:', linkedTodo);
                                         setSelectedTodo(linkedTodo);
                                         setShowUnlinkModal(true);
                                     }}
@@ -123,7 +114,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
             <div>
                 <Button
                     onClick={() => {
-                        console.log('Link Todo button clicked');
                         setShowLinkModal(true);
                     }}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -137,7 +127,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
             <ConfirmationModal
                 isOpen={showLinkModal}
                 onClose={() => {
-                    console.log('Closing link modal');
                     setShowLinkModal(false);
                     setSelectedTodo(null);
                     setSearchTerm('');
@@ -177,7 +166,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                                         key={availableTodo.id}
                                         type="button"
                                         onClick={() => {
-                                            console.log('Selecting todo:', availableTodo);
                                             setSelectedTodo(availableTodo);
                                         }}
                                         className={`w-full text-left p-3 transition-colors ${
@@ -222,12 +210,10 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
             <ConfirmationModal
                 isOpen={showUnlinkModal}
                 onClose={() => {
-                    console.log('Closing unlink modal');
                     setShowUnlinkModal(false);
                     setSelectedTodo(null);
                 }}
                 onConfirm={() => {
-                    console.log('Unlink confirm clicked - about to call handleUnlink');
                     handleUnlink();
                 }}
                 title="Unlink Todo"

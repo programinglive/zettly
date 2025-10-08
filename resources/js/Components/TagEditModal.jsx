@@ -34,7 +34,6 @@ export default function TagEditModal({ isOpen = false, onClose = () => {}, tag =
                 setError('');
             },
             onError: (errors) => {
-                console.error('Tag update error:', errors);
                 if (errors && typeof errors === 'object') {
                     if (errors.message) {
                         setError(errors.message);

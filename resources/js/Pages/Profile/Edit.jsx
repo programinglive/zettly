@@ -80,8 +80,8 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
         navigator.clipboard.writeText(token).then(() => {
             // Show a brief success indicator
             alert('Token copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy token: ', err);
+        }).catch(() => {
+            alert('Failed to copy token. Please copy it manually.');
         });
     };
 

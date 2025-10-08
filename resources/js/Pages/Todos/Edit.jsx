@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -47,37 +47,30 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // If there are new files to upload, use FormData
-        if (attachmentFiles.length > 0) {
-            const formData = new FormData();
-            formData.append('title', data.title);
-            formData.append('description', data.description);
-            formData.append('priority', data.priority);
-            formData.append('is_completed', data.is_completed ? '1' : '0');
-            
-            // Append tag IDs
-            data.tag_ids.forEach((tagId, index) => {
-                formData.append(`tag_ids[${index}]`, tagId);
-            });
-            
-            // Append related todo IDs
-            data.related_todo_ids.forEach((todoId, index) => {
-                formData.append(`related_todo_ids[${index}]`, todoId);
-            });
-            
-            // Append attachment files
-            attachmentFiles.forEach((file, index) => {
-                formData.append(`attachments[${index}]`, file);
-            });
+        // Always send multipart/form-data via POST + _method=PUT
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('title', (data.title || '').trim());
+        formData.append('description', data.description || '');
+        formData.append('priority', data.priority || 'medium');
+        formData.append('is_completed', data.is_completed ? '1' : '0');
 
-            put(`/todos/${todo.id}`, {
-                data: formData,
-                forceFormData: true,
-            });
-        } else {
-            // Regular form submission without files
-            put(`/todos/${todo.id}`);
-        }
+        // Arrays
+        (data.tag_ids || []).forEach((id) => formData.append('tag_ids[]', id));
+        (data.related_todo_ids || []).forEach((id) => formData.append('related_todo_ids[]', id));
+
+        // Files (may be zero and that's fine)
+        attachmentFiles.forEach((file) => formData.append('attachments[]', file));
+
+        router.post(`/todos/${todo.id}`, formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setAttachmentFiles([]);
+            },
+            onError: (errors) => {
+                // Error handling via Inertia
+            }
+        });
     };
 
     const handleAttachmentDeleted = (attachmentId) => {

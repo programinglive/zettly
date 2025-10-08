@@ -250,7 +250,7 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
-            'is_completed' => 'boolean',
+            'is_completed' => 'nullable|in:0,1,true,false',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
@@ -258,6 +258,11 @@ class TodoController extends Controller
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240', // 10MB max per file
         ]);
+
+        // Convert is_completed to boolean
+        if (isset($validated['is_completed'])) {
+            $validated['is_completed'] = in_array($validated['is_completed'], ['1', 1, true, 'true'], true);
+        }
 
         if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
             $validated['completed_at'] = now();

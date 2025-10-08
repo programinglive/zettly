@@ -28,14 +28,13 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                     }
                 },
                 onError: (errors) => {
-                    console.error('Delete failed:', errors);
+                    // Error handling via Inertia
                 },
                 onFinish: () => {
                     setDeletingId(null);
                 }
             });
         } catch (error) {
-            console.error('Delete error:', error);
             setDeletingId(null);
         }
     };
@@ -89,26 +88,34 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                 {attachments.map((attachment) => (
                     <div
                         key={attachment.id}
-                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                         {/* Thumbnail or Icon */}
                         <div className="flex-shrink-0">
-                            {attachment.type === 'image' && attachment.thumbnail_url ? (
+                            {attachment.type === 'image' ? (
                                 <div 
                                     className="relative cursor-pointer group"
                                     onClick={() => openImagePreview(attachment)}
                                 >
                                     <img
-                                        src={attachment.thumbnail_url}
+                                        src={attachment.thumbnail_url || attachment.url}
                                         alt={attachment.original_name}
                                         className="h-12 w-12 object-cover rounded border"
+                                        onError={(e) => {
+                                            // Fallback to file icon if image fails to load
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
                                     />
+                                    <div className="h-12 w-12 items-center justify-center bg-white dark:bg-gray-600 rounded border hidden">
+                                        <Image className="h-5 w-5 text-green-500" />
+                                    </div>
                                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
                                         <Eye className="h-5 w-5 text-white opacity-0 group-hover:opacity-100" />
                                     </div>
                                 </div>
                             ) : (
-                                <div className="h-12 w-12 flex items-center justify-center bg-white rounded border">
+                                <div className="h-12 w-12 flex items-center justify-center bg-white dark:bg-gray-600 rounded border">
                                     {getFileIcon(attachment)}
                                 </div>
                             )}
@@ -116,10 +123,10 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
 
                         {/* File Info */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                                 {attachment.original_name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {formatFileSize(attachment.file_size)} • {attachment.mime_type}
                             </p>
                         </div>

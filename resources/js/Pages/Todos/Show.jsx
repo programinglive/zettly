@@ -50,16 +50,12 @@ export default function Show({ todo, availableTodos }) {
     };
 
     const handleUnlink = async (todoId, relatedTodoId) => {
-        console.log('Unlinking:', { todoId, relatedTodoId });
         router.post(`/todos/${todoId}/unlink`, {
             related_todo_id: relatedTodoId,
         }, {
             preserveScroll: true,
             onSuccess: () => {
                 window.location.reload();
-            },
-            onError: (errors) => {
-                console.error('Unlink error:', errors);
             }
         });
     };

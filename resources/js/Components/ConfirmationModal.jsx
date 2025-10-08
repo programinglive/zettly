@@ -56,7 +56,6 @@ export default function ConfirmationModal({
                         type="button"
                         variant={confirmButtonVariant}
                         onClick={(e) => {
-                            console.log('ConfirmationModal button clicked', { onConfirm, confirmDisabled, isLoading });
                             if (onConfirm) {
                                 onConfirm(e);
                             }

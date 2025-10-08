@@ -26,6 +26,12 @@ class TodoAttachment extends Model
         'file_size' => 'integer',
     ];
 
+    protected $appends = [
+        'url',
+        'thumbnail_url',
+        'formatted_file_size',
+    ];
+
     public function todo(): BelongsTo
     {
         return $this->belongsTo(Todo::class);
