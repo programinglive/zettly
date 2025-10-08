@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.12](https://github.com/programinglive/todo/compare/v0.1.11...v0.1.12) (2025-10-08)
+
+
+### ♻️ Code Refactoring
+
+* remove all console statements and fix ProfileTest for soft deletes ([401a9f6](https://github.com/programinglive/todo/commit/401a9f618f2a29f0272881ee53f0987490c32fd6))
+
 ### [0.1.11](https://github.com/programinglive/todo/compare/v0.1.10...v0.1.11) (2025-10-08)
 
 
