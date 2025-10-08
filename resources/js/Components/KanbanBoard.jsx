@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal';
 import {
     DndContext,
     closestCenter,
@@ -120,6 +121,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const updateForm = useForm();
     const [todos, setTodos] = useState(initialTodos);
     const [activeId, setActiveId] = useState(null);
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [isArchiving, setIsArchiving] = useState(false);
 
     // Sync with prop changes
     useEffect(() => {
@@ -144,16 +147,23 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         if (completedTodos.length === 0) {
             return;
         }
-        
-        if (confirm(`Archive ${completedTodos.length} completed todos? They will be moved to archive but not permanently deleted.`)) {
-            router.post('/todos/archive-completed', {}, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Remove completed todos from local state
-                    setTodos(prevTodos => prevTodos.filter(todo => !todo.is_completed));
-                }
-            });
-        }
+        setShowArchiveModal(true);
+    };
+
+    const confirmArchive = () => {
+        setIsArchiving(true);
+        router.post('/todos/archive-completed', {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Remove completed todos from local state
+                setTodos(prevTodos => prevTodos.filter(todo => !todo.is_completed));
+                setShowArchiveModal(false);
+                setIsArchiving(false);
+            },
+            onError: () => {
+                setIsArchiving(false);
+            }
+        });
     };
 
     const handleDragStart = (event) => {
@@ -422,6 +432,18 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     />
                 ) : null}
             </DragOverlay>
+
+            <ConfirmationModal
+                isOpen={showArchiveModal}
+                onClose={() => setShowArchiveModal(false)}
+                onConfirm={confirmArchive}
+                title="Archive Completed Todos"
+                message={`Archive ${completedTodos.length} completed todos? They will be moved to archive but not permanently deleted.`}
+                confirmText="Archive"
+                cancelText="Cancel"
+                confirmButtonVariant="default"
+                isLoading={isArchiving}
+            />
         </DndContext>
     );
 }
