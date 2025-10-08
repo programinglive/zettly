@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/programinglive/todo/compare/v0.1.1...v0.1.3) (2025-10-08)
+
+
+### ✨ Features
+
+* implement complete drag and drop functionality ([cbb5c81](https://github.com/programinglive/todo/commit/cbb5c810e48a7839dd03193d7bb8c659fefb2e68))
+
 ### [0.1.2](https://github.com/programinglive/todo/compare/v0.1.1...v0.1.2) (2025-10-08)
 
 ### [0.1.1](https://github.com/programinglive/todo/compare/v0.1.0...v0.1.1) (2025-10-08)
