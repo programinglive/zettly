@@ -35,10 +35,9 @@ export default function Show({ todo, availableTodos }) {
         setShowDeleteModal(false);
     };
 
-    const handleLink = async (todoId, relatedTodoId, relationshipType) => {
+    const handleLink = async (todoId, relatedTodoId) => {
         router.post(`/todos/${todoId}/link`, {
             related_todo_id: relatedTodoId,
-            relationship_type: relationshipType,
         }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -47,11 +46,10 @@ export default function Show({ todo, availableTodos }) {
         });
     };
 
-    const handleUnlink = async (todoId, relatedTodoId, relationshipType) => {
-        console.log('Unlinking:', { todoId, relatedTodoId, relationshipType });
+    const handleUnlink = async (todoId, relatedTodoId) => {
+        console.log('Unlinking:', { todoId, relatedTodoId });
         router.post(`/todos/${todoId}/unlink`, {
             related_todo_id: relatedTodoId,
-            relationship_type: relationshipType,
         }, {
             preserveScroll: true,
             onSuccess: () => {

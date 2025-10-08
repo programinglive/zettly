@@ -9,15 +9,13 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [showUnlinkModal, setShowUnlinkModal] = useState(false);
     const [selectedTodo, setSelectedTodo] = useState(null);
-    const [relationshipType, setRelationshipType] = useState('related');
     const [searchTerm, setSearchTerm] = useState('');
     const [isLinking, setIsLinking] = useState(false);
 
     console.log('TodoLinkManager state:', {
         showLinkModal,
         selectedTodo,
-        availableTodos: availableTodos?.length || 0,
-        relationshipType
+        availableTodos: availableTodos?.length || 0
     });
 
     const relatedTodos = todo.related_todos || todo.relatedTodos || [];
@@ -42,8 +40,8 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
 
         setIsLinking(true);
         try {
-            console.log('Linking todos:', todo.id, selectedTodo.id, relationshipType);
-            await onLink(todo.id, selectedTodo.id, relationshipType);
+            console.log('Linking todos:', todo.id, selectedTodo.id);
+            await onLink(todo.id, selectedTodo.id);
             setShowLinkModal(false);
             setSelectedTodo(null);
             setSearchTerm('');
@@ -60,8 +58,8 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
         if (!selectedTodo) return;
 
         try {
-            console.log('Calling onUnlink with:', todo.id, selectedTodo.id, relationshipType);
-            await onUnlink(todo.id, selectedTodo.id, relationshipType);
+            console.log('Calling onUnlink with:', todo.id, selectedTodo.id);
+            await onUnlink(todo.id, selectedTodo.id);
             setShowUnlinkModal(false);
             setSelectedTodo(null);
         } catch (error) {
@@ -69,16 +67,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
         }
     };
 
-    const getRelationshipLabel = (type) => {
-        const labels = {
-            'related': 'Related',
-            'parent': 'Parent',
-            'child': 'Child',
-            'blocks': 'Blocks',
-            'blocked_by': 'Blocked By'
-        };
-        return labels[type] || type;
-    };
 
     return (
         <div className="space-y-4">
@@ -90,39 +78,33 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                 
                 {allLinkedTodos.length > 0 ? (
                     <div className="space-y-2 mb-4">
-                        {allLinkedTodos.map(linkedTodo => {
-                            const relationship = relatedTodos.find(t => t.id === linkedTodo.id);
-                            const linkType = relationship?.pivot?.relationship_type || 'related';
-
-                            return (
-                                <div key={linkedTodo.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <div className="flex-1">
-                                        <Link
-                                            href={`/todos/${linkedTodo.id}`}
-                                            className="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"
-                                        >
-                                            {linkedTodo.title}
-                                        </Link>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            {getRelationshipLabel(linkType)} • {linkedTodo.is_completed ? 'Completed' : 'Pending'}
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            console.log('Unlink button clicked for:', linkedTodo);
-                                            setSelectedTodo(linkedTodo);
-                                            setRelationshipType(linkType);
-                                            setShowUnlinkModal(true);
-                                        }}
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                        {allLinkedTodos.map(linkedTodo => (
+                            <div key={linkedTodo.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div className="flex-1">
+                                    <Link
+                                        href={`/todos/${linkedTodo.id}`}
+                                        className="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"
                                     >
-                                        <UnlinkIcon className="w-4 h-4" />
-                                    </Button>
+                                        {linkedTodo.title}
+                                    </Link>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        {linkedTodo.is_completed ? 'Completed' : 'Pending'}
+                                    </p>
                                 </div>
-                            );
-                        })}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        console.log('Unlink button clicked for:', linkedTodo);
+                                        setSelectedTodo(linkedTodo);
+                                        setShowUnlinkModal(true);
+                                    }}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                                >
+                                    <UnlinkIcon className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
                     </div>
                 ) : (
                     <div className="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
@@ -171,23 +153,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
                         Link "{todo.title}" to another todo
                     </p>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Relationship Type
-                        </label>
-                        <select
-                            value={relationshipType}
-                            onChange={(e) => setRelationshipType(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        >
-                            <option value="related">Related</option>
-                            <option value="parent">Parent</option>
-                            <option value="child">Child</option>
-                            <option value="blocks">Blocks</option>
-                            <option value="blocked_by">Blocked By</option>
-                        </select>
-                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -266,7 +231,7 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                     handleUnlink();
                 }}
                 title="Unlink Todo"
-                message={`Remove the "${relationshipType}" relationship between "${todo.title}" and "${selectedTodo?.title}"?`}
+                message={`Remove the link between "${todo.title}" and "${selectedTodo?.title}"?`}
                 confirmText="Unlink"
                 confirmButtonVariant="destructive"
                 confirmDisabled={false}
