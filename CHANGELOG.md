@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/programinglive/todo/compare/v0.1.5...v0.1.6) (2025-10-08)
+
+
+### ✨ Features
+
+* implement archive functionality for completed todos ([4026504](https://github.com/programinglive/todo/commit/4026504146a19b214a8310a8660fef2789dc6eb8))
+
 ### [0.1.5](https://github.com/programinglive/todo/compare/v0.1.4...v0.1.5) (2025-10-08)
 
 
