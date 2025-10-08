@@ -57,7 +57,6 @@ class Todo extends Model
     public function relatedTodos()
     {
         return $this->belongsToMany(Todo::class, 'todo_relationships', 'todo_id', 'related_todo_id')
-            ->withPivot('relationship_type')
             ->withTimestamps();
     }
 
@@ -67,7 +66,6 @@ class Todo extends Model
     public function linkedByTodos()
     {
         return $this->belongsToMany(Todo::class, 'todo_relationships', 'related_todo_id', 'todo_id')
-            ->withPivot('relationship_type')
             ->withTimestamps();
     }
 

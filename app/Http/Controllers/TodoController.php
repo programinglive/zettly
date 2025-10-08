@@ -118,9 +118,7 @@ class TodoController extends Controller
                 ->pluck('id')
                 ->toArray();
 
-            foreach ($userTodoIds as $relatedTodoId) {
-                $todo->relatedTodos()->attach($relatedTodoId, ['relationship_type' => 'related']);
-            }
+            $todo->relatedTodos()->attach($userTodoIds);
         }
 
         return redirect()->route('todos.index')
@@ -236,12 +234,7 @@ class TodoController extends Controller
                 ->pluck('id')
                 ->toArray();
 
-            // Sync with default relationship type
-            $syncData = [];
-            foreach ($userTodoIds as $relatedTodoId) {
-                $syncData[$relatedTodoId] = ['relationship_type' => 'related'];
-            }
-            $todo->relatedTodos()->sync($syncData);
+            $todo->relatedTodos()->sync($userTodoIds);
         }
 
         return redirect()->route('todos.index')
@@ -349,7 +342,6 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'related_todo_id' => 'required|exists:todos,id',
-            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by',
         ]);
 
         // Prevent self-linking
@@ -363,12 +355,8 @@ class TodoController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Create or update the relationship
-        $todo->relatedTodos()->syncWithoutDetaching([
-            $validated['related_todo_id'] => [
-                'relationship_type' => $validated['relationship_type'],
-            ],
-        ]);
+        // Create the relationship
+        $todo->relatedTodos()->syncWithoutDetaching($validated['related_todo_id']);
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -385,7 +373,6 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'related_todo_id' => 'required|exists:todos,id',
-            'relationship_type' => 'string|in:related,parent,child,blocks,blocked_by',
         ]);
 
         // Check if user owns both todos

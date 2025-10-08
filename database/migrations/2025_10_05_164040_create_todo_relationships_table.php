@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('todo_id')->constrained()->cascadeOnDelete();
             $table->foreignId('related_todo_id')->constrained('todos')->cascadeOnDelete();
-            $table->string('relationship_type')->default('related'); // 'related', 'parent', 'child', 'blocks', 'blocked_by', etc.
             $table->timestamps();
 
-            $table->unique(['todo_id', 'related_todo_id', 'relationship_type']);
-            $table->index(['todo_id', 'relationship_type']);
-            $table->index(['related_todo_id', 'relationship_type']);
+            $table->unique(['todo_id', 'related_todo_id']);
+            $table->index('todo_id');
+            $table->index('related_todo_id');
         });
     }
 
