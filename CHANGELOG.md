@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.8](https://github.com/programinglive/todo/compare/v0.1.7...v0.1.8) (2025-10-08)
+
+
+### ✨ Features
+
+* implement archived flag system and archived todos page ([018e1ed](https://github.com/programinglive/todo/commit/018e1edeee89e28a0b0152b1ba90e27756d2191d))
+
 ### [0.1.7](https://github.com/programinglive/todo/compare/v0.1.6...v0.1.7) (2025-10-08)
 
 
