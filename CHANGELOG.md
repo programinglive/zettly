@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/programinglive/todo/compare/v0.1.6...v0.1.7) (2025-10-08)
+
+
+### ♻️ Code Refactoring
+
+* replace browser confirm with reusable ConfirmationModal ([d603458](https://github.com/programinglive/todo/commit/d6034583cae63712f8bb1425c31e862ececd08f5))
+
 ### [0.1.6](https://github.com/programinglive/todo/compare/v0.1.5...v0.1.6) (2025-10-08)
 
 
