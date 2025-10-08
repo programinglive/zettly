@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/programinglive/todo/compare/v0.1.0...v0.1.1) (2025-10-08)
+
+
+### 📚 Documentation
+
+* update developer portal with priority system documentation ([b6ff5fc](https://github.com/programinglive/todo/commit/b6ff5fc43b9010f1bdf5132646a09212360006c0))
+
+
+### 🐛 Bug Fixes
+
+* resolve dark mode button styling in modals ([1dad25c](https://github.com/programinglive/todo/commit/1dad25c1d1398762a189529cc9e5b5ca66eabebe))
+
 ## [0.1.0](https://github.com/programinglive/todo/compare/v0.0.5...v0.1.0) (2025-10-07)
 
 
