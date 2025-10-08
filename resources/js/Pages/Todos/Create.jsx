@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -10,6 +10,7 @@ import { Textarea } from '../../Components/ui/textarea';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
 import PrioritySelector from '../../Components/PrioritySelector';
+import FormFileUpload from '../../Components/FormFileUpload';
 
 export default function Create({ tags, todos }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -20,9 +21,36 @@ export default function Create({ tags, todos }) {
         related_todo_ids: [],
     });
 
+    const [attachmentFiles, setAttachmentFiles] = useState([]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        post('/todos');
+        
+        // Create FormData to handle file uploads
+        const formData = new FormData();
+        formData.append('title', data.title);
+        formData.append('description', data.description);
+        formData.append('priority', data.priority);
+        
+        // Append tag IDs
+        data.tag_ids.forEach((tagId, index) => {
+            formData.append(`tag_ids[${index}]`, tagId);
+        });
+        
+        // Append related todo IDs
+        data.related_todo_ids.forEach((todoId, index) => {
+            formData.append(`related_todo_ids[${index}]`, todoId);
+        });
+        
+        // Append attachment files
+        attachmentFiles.forEach((file, index) => {
+            formData.append(`attachments[${index}]`, file);
+        });
+
+        post('/todos', {
+            data: formData,
+            forceFormData: true,
+        });
     };
 
     const handleTagsChange = (tagIds) => {
@@ -122,6 +150,16 @@ export default function Create({ tags, todos }) {
                                     />
                                 </div>
                             )}
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Attachments
+                                </label>
+                                <FormFileUpload
+                                    files={attachmentFiles}
+                                    onFilesChange={setAttachmentFiles}
+                                />
+                            </div>
 
                             <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <Link href="/todos">

@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use App\Models\Todo;
+use App\Models\TodoAttachment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 use Inertia\Inertia;
 
 class TodoController extends Controller
@@ -93,6 +97,8 @@ class TodoController extends Controller
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
             'related_todo_ids.*' => 'exists:todos,id',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|max:10240', // 10MB max per file
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -121,6 +127,42 @@ class TodoController extends Controller
             $todo->relatedTodos()->attach($userTodoIds);
         }
 
+        // Handle file attachments
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $mimeType = $file->getMimeType();
+                $fileSize = $file->getSize();
+                
+                // Generate unique filename
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $filePath = "todos/{$todo->id}/attachments/{$fileName}";
+                
+                // Store the file
+                Storage::disk('public')->put($filePath, file_get_contents($file));
+                
+                // Determine file type
+                $type = TodoAttachment::determineType($mimeType);
+                
+                // Generate thumbnail for images
+                $thumbnailPath = null;
+                if ($type === 'image') {
+                    $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+                }
+                
+                // Create attachment record
+                $todo->attachments()->create([
+                    'original_name' => $originalName,
+                    'file_name' => $fileName,
+                    'file_path' => $filePath,
+                    'mime_type' => $mimeType,
+                    'file_size' => $fileSize,
+                    'type' => $type,
+                    'thumbnail_path' => $thumbnailPath,
+                ]);
+            }
+        }
+
         return redirect()->route('todos.index')
             ->with('success', 'Todo created successfully!');
     }
@@ -135,8 +177,8 @@ class TodoController extends Controller
             abort(403);
         }
 
-        // Eager load related todos and tags
-        $todo->load(['tags', 'relatedTodos', 'linkedByTodos']);
+        // Eager load related todos, tags, and attachments
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments']);
 
         // Get available todos for linking (exclude current todo and already linked todos)
         $linkedTodoIds = $todo->relatedTodos->pluck('id')
@@ -173,7 +215,7 @@ class TodoController extends Controller
             ->get(['id', 'title', 'description', 'is_completed']);
 
         // Load existing relationships (both directions)
-        $todo->load(['tags', 'relatedTodos', 'linkedByTodos']);
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments']);
 
         // Build selected linked todos + ids for the form
         $selectedLinkedTodos = $todo->relatedTodos
@@ -213,6 +255,8 @@ class TodoController extends Controller
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
             'related_todo_ids.*' => 'exists:todos,id',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|max:10240', // 10MB max per file
         ]);
 
         if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
@@ -235,6 +279,42 @@ class TodoController extends Controller
                 ->toArray();
 
             $todo->relatedTodos()->sync($userTodoIds);
+        }
+
+        // Handle new file attachments
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $mimeType = $file->getMimeType();
+                $fileSize = $file->getSize();
+                
+                // Generate unique filename
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $filePath = "todos/{$todo->id}/attachments/{$fileName}";
+                
+                // Store the file
+                Storage::disk('public')->put($filePath, file_get_contents($file));
+                
+                // Determine file type
+                $type = TodoAttachment::determineType($mimeType);
+                
+                // Generate thumbnail for images
+                $thumbnailPath = null;
+                if ($type === 'image') {
+                    $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+                }
+                
+                // Create attachment record
+                $todo->attachments()->create([
+                    'original_name' => $originalName,
+                    'file_name' => $fileName,
+                    'file_path' => $filePath,
+                    'mime_type' => $mimeType,
+                    'file_size' => $fileSize,
+                    'type' => $type,
+                    'thumbnail_path' => $thumbnailPath,
+                ]);
+            }
         }
 
         return redirect()->route('todos.index')
@@ -447,5 +527,200 @@ class TodoController extends Controller
         return Inertia::render('Todos/Archived', [
             'todos' => $archivedTodos,
         ]);
+    }
+
+    /**
+     * Upload attachment for a todo.
+     */
+    public function uploadAttachment(Request $request, Todo $todo)
+    {
+        // Ensure user owns the todo
+        if ($todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'file' => 'required|file|max:10240', // 10MB max
+        ]);
+
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $mimeType = $file->getMimeType();
+        $fileSize = $file->getSize();
+        
+        // Generate unique filename
+        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $filePath = "todos/{$todo->id}/attachments/{$fileName}";
+        
+        // Store the file
+        Storage::disk('public')->put($filePath, file_get_contents($file));
+        
+        // Determine file type
+        $type = TodoAttachment::determineType($mimeType);
+        
+        // Generate thumbnail for images
+        $thumbnailPath = null;
+        if ($type === 'image') {
+            $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+        }
+        
+        // Create attachment record
+        $attachment = $todo->attachments()->create([
+            'original_name' => $originalName,
+            'file_name' => $fileName,
+            'file_path' => $filePath,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
+            'type' => $type,
+            'thumbnail_path' => $thumbnailPath,
+        ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'File uploaded successfully',
+                'attachment' => $attachment->load('todo'),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'File uploaded successfully');
+    }
+
+    /**
+     * Delete an attachment.
+     */
+    public function deleteAttachment(TodoAttachment $attachment)
+    {
+        // Ensure user owns the todo
+        if ($attachment->todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Delete files from storage
+        if (Storage::disk('public')->exists($attachment->file_path)) {
+            Storage::disk('public')->delete($attachment->file_path);
+        }
+        
+        if ($attachment->thumbnail_path && Storage::disk('public')->exists($attachment->thumbnail_path)) {
+            Storage::disk('public')->delete($attachment->thumbnail_path);
+        }
+
+        // Delete attachment record
+        $attachment->delete();
+
+        return response()->json(['message' => 'Attachment deleted successfully']);
+    }
+
+    /**
+     * Download an attachment.
+     */
+    public function downloadAttachment(TodoAttachment $attachment)
+    {
+        // Ensure user owns the todo
+        if ($attachment->todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (!Storage::disk('public')->exists($attachment->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        return Storage::disk('public')->download($attachment->file_path, $attachment->original_name);
+    }
+
+    /**
+     * Generate thumbnail for image files.
+     */
+    private function generateThumbnail(string $filePath, int $todoId): ?string
+    {
+        try {
+            $fullPath = Storage::disk('public')->path($filePath);
+            $thumbnailFileName = 'thumb_' . basename($filePath);
+            $thumbnailPath = "todos/{$todoId}/thumbnails/{$thumbnailFileName}";
+            $thumbnailFullPath = Storage::disk('public')->path($thumbnailPath);
+            
+            // Create thumbnails directory if it doesn't exist
+            $thumbnailDir = dirname($thumbnailFullPath);
+            if (!is_dir($thumbnailDir)) {
+                mkdir($thumbnailDir, 0755, true);
+            }
+            
+            // Create thumbnail using intervention/image if available, otherwise use basic PHP
+            if (class_exists('Intervention\Image\Facades\Image')) {
+                $image = Image::make($fullPath);
+                $image->fit(200, 200, function ($constraint) {
+                    $constraint->upsize();
+                });
+                $image->save($thumbnailFullPath);
+            } else {
+                // Fallback to basic thumbnail generation
+                $this->createBasicThumbnail($fullPath, $thumbnailFullPath);
+            }
+            
+            return $thumbnailPath;
+        } catch (\Exception $e) {
+            // If thumbnail generation fails, return null
+            return null;
+        }
+    }
+
+    /**
+     * Basic thumbnail generation without intervention/image.
+     */
+    private function createBasicThumbnail(string $source, string $destination): void
+    {
+        $imageInfo = getimagesize($source);
+        if (!$imageInfo) {
+            return;
+        }
+        
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+        $type = $imageInfo[2];
+        
+        // Calculate new dimensions
+        $newWidth = 200;
+        $newHeight = 200;
+        
+        if ($width > $height) {
+            $newHeight = ($height / $width) * $newWidth;
+        } else {
+            $newWidth = ($width / $height) * $newHeight;
+        }
+        
+        // Create image resource based on type
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $sourceImage = imagecreatefromjpeg($source);
+                break;
+            case IMAGETYPE_PNG:
+                $sourceImage = imagecreatefrompng($source);
+                break;
+            case IMAGETYPE_GIF:
+                $sourceImage = imagecreatefromgif($source);
+                break;
+            default:
+                return;
+        }
+        
+        // Create thumbnail
+        $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        
+        // Save thumbnail
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($thumbnail, $destination, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($thumbnail, $destination);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($thumbnail, $destination);
+                break;
+        }
+        
+        // Clean up
+        imagedestroy($sourceImage);
+        imagedestroy($thumbnail);
     }
 }

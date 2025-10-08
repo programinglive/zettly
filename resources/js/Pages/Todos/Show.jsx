@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
 import TodoLinkManager from '../../Components/TodoLinkManager';
+import FileUpload from '../../Components/FileUpload';
+import AttachmentList from '../../Components/AttachmentList';
 
 export default function Show({ todo, availableTodos }) {
     const { delete: destroy } = useForm();
@@ -17,6 +19,7 @@ export default function Show({ todo, availableTodos }) {
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [attachments, setAttachments] = useState(todo.attachments || []);
 
     const handleToggle = () => {
         toggleForm.post(`/todos/${todo.id}/toggle`);
@@ -59,6 +62,15 @@ export default function Show({ todo, availableTodos }) {
                 console.error('Unlink error:', errors);
             }
         });
+    };
+
+    const handleUploadSuccess = () => {
+        // Reload the page to get updated attachments
+        window.location.reload();
+    };
+
+    const handleAttachmentDeleted = (attachmentId) => {
+        setAttachments(prev => prev.filter(att => att.id !== attachmentId));
     };
 
     return (
@@ -170,6 +182,25 @@ export default function Show({ todo, availableTodos }) {
                                         availableTodos={availableTodos}
                                         onLink={handleLink}
                                         onUnlink={handleUnlink}
+                                    />
+                                </div>
+
+                                {/* Attachments */}
+                                <div className="mt-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Attachments</h3>
+                                    
+                                    {/* File Upload */}
+                                    <div className="mb-4">
+                                        <FileUpload 
+                                            todoId={todo.id}
+                                            onUploadSuccess={handleUploadSuccess}
+                                        />
+                                    </div>
+
+                                    {/* Attachment List */}
+                                    <AttachmentList 
+                                        attachments={attachments}
+                                        onAttachmentDeleted={handleAttachmentDeleted}
                                     />
                                 </div>
                             </CardContent>

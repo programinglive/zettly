@@ -52,6 +52,14 @@ class Todo extends Model
     }
 
     /**
+     * Get the attachments for this todo.
+     */
+    public function attachments()
+    {
+        return $this->hasMany(TodoAttachment::class);
+    }
+
+    /**
      * Get the related todos (todos that this todo is linked to).
      */
     public function relatedTodos()

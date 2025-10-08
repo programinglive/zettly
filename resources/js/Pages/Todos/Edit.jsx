@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -11,6 +11,8 @@ import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
 import PrioritySelector from '../../Components/PrioritySelector';
+import FormFileUpload from '../../Components/FormFileUpload';
+import AttachmentList from '../../Components/AttachmentList';
 
 export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
     // Build initial linked ids from both directions (supports camelCase and snake_case)
@@ -30,6 +32,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
     });
 
+    const [attachmentFiles, setAttachmentFiles] = useState([]);
+    const [existingAttachments, setExistingAttachments] = useState(todo.attachments || []);
+
     // Keep selection in sync if server props change (navigating back to edit, linking elsewhere, etc.)
     useEffect(() => {
         const nextIds = (linkedTodoIds && linkedTodoIds.length)
@@ -41,7 +46,42 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(`/todos/${todo.id}`);
+        
+        // If there are new files to upload, use FormData
+        if (attachmentFiles.length > 0) {
+            const formData = new FormData();
+            formData.append('title', data.title);
+            formData.append('description', data.description);
+            formData.append('priority', data.priority);
+            formData.append('is_completed', data.is_completed ? '1' : '0');
+            
+            // Append tag IDs
+            data.tag_ids.forEach((tagId, index) => {
+                formData.append(`tag_ids[${index}]`, tagId);
+            });
+            
+            // Append related todo IDs
+            data.related_todo_ids.forEach((todoId, index) => {
+                formData.append(`related_todo_ids[${index}]`, todoId);
+            });
+            
+            // Append attachment files
+            attachmentFiles.forEach((file, index) => {
+                formData.append(`attachments[${index}]`, file);
+            });
+
+            put(`/todos/${todo.id}`, {
+                data: formData,
+                forceFormData: true,
+            });
+        } else {
+            // Regular form submission without files
+            put(`/todos/${todo.id}`);
+        }
+    };
+
+    const handleAttachmentDeleted = (attachmentId) => {
+        setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId));
     };
 
     const handleTagsChange = (tagIds) => {
@@ -161,6 +201,30 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                 >
                                     Mark as completed
                                 </label>
+                            </div>
+
+                            {/* Existing Attachments */}
+                            {existingAttachments.length > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Current Attachments
+                                    </label>
+                                    <AttachmentList 
+                                        attachments={existingAttachments}
+                                        onAttachmentDeleted={handleAttachmentDeleted}
+                                    />
+                                </div>
+                            )}
+
+                            {/* New Attachments */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Add New Attachments
+                                </label>
+                                <FormFileUpload
+                                    files={attachmentFiles}
+                                    onFilesChange={setAttachmentFiles}
+                                />
                             </div>
 
                             <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
