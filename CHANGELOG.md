@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.11](https://github.com/programinglive/todo/compare/v0.1.10...v0.1.11) (2025-10-08)
+
+
+### ✨ Features
+
+* add file upload to create and edit forms ([d6457d3](https://github.com/programinglive/todo/commit/d6457d3ded60da5f2e92bbe5c210626a4a8c43c9))
+
 ### [0.1.10](https://github.com/programinglive/todo/compare/v0.1.9...v0.1.10) (2025-10-08)
 
 
