@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/programinglive/todo/compare/v0.1.3...v0.1.4) (2025-10-08)
+
+
+### ♻️ Code Refactoring
+
+* clean up console logs and improve tag display ([9d30ed1](https://github.com/programinglive/todo/commit/9d30ed11a374393c029318c8275885d7f620e713))
+
 ### [0.1.3](https://github.com/programinglive/todo/compare/v0.1.1...v0.1.3) (2025-10-08)
 
 
