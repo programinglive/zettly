@@ -61,7 +61,7 @@ export default function TodoSelector({
             )}
 
             {/* Available Todos */}
-            {availableTodosForSelection.length > 0 && (
+            {availableTodos.filter(todo => !selectedTodoIds.includes(todo.id)).length > 0 && (
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Link to Existing Todos
@@ -77,37 +77,37 @@ export default function TodoSelector({
                         />
                     </div>
 
-                    <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
-                        <div className="divide-y divide-gray-200 dark:divide-gray-600">
-                            {availableTodosForSelection.map(todo => (
-                                <button
-                                    key={todo.id}
-                                    type="button"
-                                    onClick={() => handleTodoToggle(todo.id)}
-                                    className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                >
-                                    <div className="font-medium text-gray-900 dark:text-white">
-                                        {todo.title}
-                                    </div>
-                                    {todo.description && (
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                                            {todo.description}
+                    {availableTodosForSelection.length > 0 ? (
+                        <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
+                            <div className="divide-y divide-gray-200 dark:divide-gray-600">
+                                {availableTodosForSelection.map(todo => (
+                                    <button
+                                        key={todo.id}
+                                        type="button"
+                                        onClick={() => handleTodoToggle(todo.id)}
+                                        className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                        <div className="font-medium text-gray-900 dark:text-white">
+                                            {todo.title}
                                         </div>
-                                    )}
-                                    <div className="text-xs text-gray-400 mt-1">
-                                        {todo.is_completed ? '✓ Completed' : '○ Pending'}
-                                    </div>
-                                </button>
-                            ))}
+                                        {todo.description && (
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                                                {todo.description}
+                                            </div>
+                                        )}
+                                        <div className="text-xs text-gray-400 mt-1">
+                                            {todo.is_completed ? '✓ Completed' : '○ Pending'}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : searchTerm ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4 border border-gray-200 dark:border-gray-600 rounded-md">
+                            No todos match your search
+                        </p>
+                    ) : null}
                 </div>
-            )}
-
-            {availableTodosForSelection.length === 0 && searchTerm && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                    No todos match your search
-                </p>
             )}
         </div>
     );

@@ -48,13 +48,13 @@ class TodoController extends Controller
         }
 
         $todos = $query->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE 
                 WHEN priority = 'urgent' THEN 1 
                 WHEN priority = 'high' THEN 2 
                 WHEN priority = 'medium' THEN 3 
                 WHEN priority = 'low' THEN 4 
                 ELSE 5 END")
-            ->orderBy('is_completed', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
         $tags = Tag::forUser(auth()->id())->get();
@@ -285,12 +285,51 @@ class TodoController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Todo status updated successfully',
-                'is_completed' => $isCompleted,
-                'completed_at' => $completedAt,
+                'is_completed' => ! $todo->is_completed,
+                'completed_at' => ! $todo->is_completed ? now() : null,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Todo status updated successfully!');
+        return redirect()->back()
+            ->with('success', 'Todo status updated successfully!');
+    }
+
+    public function updatePriority(Request $request, Todo $todo)
+    {
+        // Ensure user owns the todo
+        if ($todo->user_id !== auth()->id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'priority' => 'required|in:low,medium,high,urgent',
+            'is_completed' => 'boolean',
+        ]);
+
+        $updateData = ['priority' => $validated['priority']];
+        
+        if (isset($validated['is_completed'])) {
+            $updateData['is_completed'] = $validated['is_completed'];
+            $updateData['completed_at'] = $validated['is_completed'] ? now() : null;
+        }
+
+        $todo->update($updateData);
+
+        // JSON for API, redirect for web/Inertia
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Todo priority updated successfully',
+                'priority' => $validated['priority'],
+                'is_completed' => isset($validated['is_completed']) ? $validated['is_completed'] : $todo->is_completed,
+                'completed_at' => isset($validated['is_completed']) ? ($validated['is_completed'] ? now() : null) : $todo->completed_at,
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', 'Todo priority updated successfully!');
     }
 
     /**

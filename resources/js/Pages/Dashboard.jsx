@@ -4,6 +4,7 @@ import { CheckCircle, Circle, Plus, Eye, ArrowRight } from 'lucide-react';
 
 import AppLayout from '../Layouts/AppLayout';
 import TagBadge from '../Components/TagBadge';
+import KanbanBoard from '../Components/KanbanBoard';
 
 export default function Dashboard({ todos, stats }) {
     const toggleForm = useForm();
@@ -70,120 +71,8 @@ export default function Dashboard({ todos, stats }) {
                     </div>
                 </div>
 
-                {/* Recent Todos */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Todos</h2>
-                            <div className="flex space-x-3">
-                                <Link href="/todos">
-                                    <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        View All
-                                    </button>
-                                </Link>
-                                <Link href="/todos/create">
-                                    <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        New Todo
-                                    </button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="p-6">
-                        {todos.length > 0 ? (
-                            <div className="space-y-4">
-                                {todos.map((todo) => (
-                                    <div key={todo.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors">
-                                        <div className="flex items-center space-x-3 flex-1">
-                                            <button
-                                                onClick={() => handleToggle(todo)}
-                                                className="flex-shrink-0"
-                                            >
-                                                {todo.is_completed ? (
-                                                    <CheckCircle className="w-6 h-6 text-green-500 dark:text-green-400" />
-                                                ) : (
-                                                    <Circle className="w-6 h-6 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400" />
-                                                )}
-                                            </button>
-
-                                            <div className="flex-1">
-                                                <h3 className={`text-sm font-medium ${todo.is_completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                                                    {todo.title}
-                                                </h3>
-                                                {todo.description && (
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-md">
-                                                        {todo.description}
-                                                    </p>
-                                                )}
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    {/* Priority Badge */}
-                                                    {todo.priority && (
-                                                        <span
-                                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                                            style={{ 
-                                                                backgroundColor: todo.priority === 'low' ? '#10B981' : 
-                                                                                todo.priority === 'medium' ? '#F59E0B' : 
-                                                                                todo.priority === 'high' ? '#EF4444' : 
-                                                                                todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
-                                                            }}
-                                                        >
-                                                            {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}
-                                                        </span>
-                                                    )}
-                                                    {/* Tags */}
-                                                    {todo.tags && todo.tags.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {todo.tags.map(tag => (
-                                                                <TagBadge key={tag.id} tag={tag} />
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                {new Date(todo.created_at).toLocaleDateString()}
-                                            </span>
-                                            <Link href={`/todos/${todo.id}`}>
-                                                <button className="inline-flex items-center p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </button>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {todos.length >= 5 && (
-                                    <div className="text-center pt-4">
-                                        <Link href="/todos">
-                                            <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                                                View all todos
-                                                <ArrowRight className="w-4 h-4 ml-2" />
-                                            </button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <div className="text-4xl mb-4">📝</div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No todos yet</h3>
-                                <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first todo to get started!</p>
-                                <Link href="/todos/create">
-                                    <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
-                                        <Plus className="w-5 h-5 mr-2" />
-                                        Create Your First Todo
-                                    </button>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                {/* Kanban Board */}
+                <KanbanBoard todos={todos} />
             </div>
         </AppLayout>
     );

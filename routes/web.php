@@ -24,15 +24,15 @@ Route::get('/legal/privacy', function () {
 Route::get('/dashboard', function () {
     $todos = auth()->user()->todos()
         ->with('tags')
+        ->orderBy('is_completed', 'asc')
         ->orderByRaw("CASE 
             WHEN priority = 'urgent' THEN 1 
             WHEN priority = 'high' THEN 2 
             WHEN priority = 'medium' THEN 3 
             WHEN priority = 'low' THEN 4 
             ELSE 5 END")
-        ->orderBy('is_completed', 'asc')
         ->orderBy('created_at', 'desc')
-        ->take(5)
+        ->take(10)
         ->get();
 
     return Inertia::render('Dashboard', [
@@ -50,6 +50,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
+    Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
 

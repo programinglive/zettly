@@ -16,7 +16,7 @@ class TodoEndpointTest extends TestCase
         $user = User::factory()->create();
         Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get('/todos');
+        $response = $this->actingAs($user)->get('/todos');
 
         $response->assertStatus(200);
         $this->assertStringContainsString('<!DOCTYPE html>', $response->getContent());
@@ -24,7 +24,9 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_create_endpoint_works(): void
     {
-        $response = $this->get('/todos/create');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/todos/create');
 
         $response->assertStatus(200);
         $this->assertStringContainsString('<!DOCTYPE html>', $response->getContent());
@@ -38,13 +40,12 @@ class TodoEndpointTest extends TestCase
             'title' => 'Test Todo',
             'description' => 'Test Description',
             'priority' => 'high',
-            'user_id' => $user->id,
         ];
 
-        $response = $this->post('/todos', $todoData);
+        $response = $this->actingAs($user)->post('/todos', $todoData);
 
-        $response->assertRedirect('/todos');
-        $this->assertDatabaseHas('todos', $todoData);
+        $response->assertStatus(302);
+        $this->assertDatabaseHas('todos', array_merge($todoData, ['user_id' => $user->id]));
     }
 
     public function test_todos_show_endpoint_works(): void
@@ -52,7 +53,7 @@ class TodoEndpointTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get("/todos/{$todo->id}");
+        $response = $this->actingAs($user)->get("/todos/{$todo->id}");
 
         $response->assertStatus(200);
         $this->assertStringContainsString('<!DOCTYPE html>', $response->getContent());
@@ -63,7 +64,7 @@ class TodoEndpointTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->get("/todos/{$todo->id}/edit");
+        $response = $this->actingAs($user)->get("/todos/{$todo->id}/edit");
 
         $response->assertStatus(200);
         $this->assertStringContainsString('<!DOCTYPE html>', $response->getContent());
@@ -80,9 +81,9 @@ class TodoEndpointTest extends TestCase
             'is_completed' => true,
         ];
 
-        $response = $this->put("/todos/{$todo->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/todos/{$todo->id}", $updatedData);
 
-        $response->assertRedirect('/todos');
+        $response->assertStatus(302);
         $this->assertDatabaseHas('todos', array_merge(['id' => $todo->id], $updatedData));
     }
 
@@ -91,10 +92,10 @@ class TodoEndpointTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->delete("/todos/{$todo->id}");
+        $response = $this->actingAs($user)->delete("/todos/{$todo->id}");
 
-        $response->assertRedirect('/todos');
-        $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
+        $response->assertStatus(302);
+        $this->assertSoftDeleted('todos', ['id' => $todo->id]);
     }
 
     public function test_todos_toggle_endpoint_works(): void
@@ -102,9 +103,9 @@ class TodoEndpointTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id, 'is_completed' => false]);
 
-        $response = $this->post("/todos/{$todo->id}/toggle");
+        $response = $this->actingAs($user)->post("/todos/{$todo->id}/toggle");
 
-        $response->assertRedirect('/todos');
+        $response->assertStatus(302);
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'is_completed' => true,
