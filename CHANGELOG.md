@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.5](https://github.com/programinglive/todo/compare/v0.1.4...v0.1.5) (2025-10-08)
+
+
+### ✨ Features
+
+* remove priority when task is completed ([6f15b16](https://github.com/programinglive/todo/commit/6f15b16af04ea546cb66b9ad2b8558289eb4d6e7))
+
 ### [0.1.4](https://github.com/programinglive/todo/compare/v0.1.3...v0.1.4) (2025-10-08)
 
 
