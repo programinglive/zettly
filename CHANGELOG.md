@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.9](https://github.com/programinglive/todo/compare/v0.1.8...v0.1.9) (2025-10-08)
+
+
+### ♻️ Code Refactoring
+
+* remove relationship type from todo relationships ([cae4e31](https://github.com/programinglive/todo/commit/cae4e31e3e972bfdaab96bd65129b76dd6045c50))
+
 ### [0.1.8](https://github.com/programinglive/todo/compare/v0.1.7...v0.1.8) (2025-10-08)
 
 
