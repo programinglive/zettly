@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.13](https://github.com/programinglive/todo/compare/v0.1.12...v0.1.13) (2025-10-09)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** replace browser confirm() with reusable ConfirmationModal for attachments ([560526c](https://github.com/programinglive/todo/commit/560526c5d34fe49a8f888d5535ed3fa717e212dc))
+
 ### [0.1.12](https://github.com/programinglive/todo/compare/v0.1.11...v0.1.12) (2025-10-08)
 
 
