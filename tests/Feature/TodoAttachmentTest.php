@@ -24,7 +24,7 @@ class TodoAttachmentTest extends TestCase
     {
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
-        
+
         $file = UploadedFile::fake()->image('test-image.jpg', 800, 600);
 
         $response = $this->actingAs($user)
@@ -33,7 +33,7 @@ class TodoAttachmentTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('todo_attachments', [
             'todo_id' => $todo->id,
             'original_name' => 'test-image.jpg',
@@ -50,7 +50,7 @@ class TodoAttachmentTest extends TestCase
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $otherUser->id]);
-        
+
         $file = UploadedFile::fake()->image('test-image.jpg');
 
         $response = $this->actingAs($user)
@@ -88,15 +88,29 @@ class TodoAttachmentTest extends TestCase
         $this->assertDatabaseHas('todo_attachments', ['id' => $attachment->id]);
     }
 
+    public function test_delete_attachment_returns_json_message(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create(['user_id' => $user->id]);
+        $attachment = TodoAttachment::factory()->create(['todo_id' => $todo->id]);
+
+        $response = $this->actingAs($user)
+            ->deleteJson("/attachments/{$attachment->id}");
+
+        $response->assertOk();
+        $response->assertJson(['message' => 'Attachment deleted successfully']);
+        $this->assertDatabaseMissing('todo_attachments', ['id' => $attachment->id]);
+    }
+
     public function test_user_can_download_their_attachment(): void
     {
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
-        
+
         // Create a fake file in storage
         $filePath = 'todos/1/attachments/test-file.txt';
         Storage::disk('public')->put($filePath, 'Test file content');
-        
+
         $attachment = TodoAttachment::factory()->create([
             'todo_id' => $todo->id,
             'file_path' => $filePath,
@@ -129,9 +143,8 @@ class TodoAttachmentTest extends TestCase
             ->get("/todos/{$todo->id}");
 
         $response->assertOk();
-        $response->assertInertia(fn ($page) => 
-            $page->has('todo.attachments.0')
-                 ->where('todo.attachments.0.id', $attachment->id)
+        $response->assertInertia(fn ($page) => $page->has('todo.attachments.0')
+            ->where('todo.attachments.0.id', $attachment->id)
         );
     }
 }

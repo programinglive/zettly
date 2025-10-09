@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class TodoAttachment extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'todo_id',
         'original_name',
@@ -51,12 +51,12 @@ class TodoAttachment extends Model
     {
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 
     public function isImage(): bool
@@ -74,7 +74,7 @@ class TodoAttachment extends Model
         if (str_starts_with($mimeType, 'image/')) {
             return 'image';
         }
-        
+
         $documentTypes = [
             'application/pdf',
             'application/msword',
@@ -83,7 +83,7 @@ class TodoAttachment extends Model
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'text/plain',
         ];
-        
+
         return in_array($mimeType, $documentTypes) ? 'document' : 'other';
     }
 }

@@ -290,7 +290,7 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                 title="Delete Tag"
                 message={`Are you sure you want to delete the tag "${tagToDelete?.name}"? This action cannot be undone.`}
                 confirmText="Delete"
-                confirmVariant="destructive"
+                confirmButtonVariant="destructive"
             />
         </div>
     );

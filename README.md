@@ -43,6 +43,7 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
 - ✅ **Smart Sorting** - Todos automatically sorted by priority and completion status
 - ✅ **Tag Management** - Organize todos with customizable colored tags
 - ✅ **Todo Linking** - Create relationships between related todos
+- ✅ **Attachments** - Upload images/documents, preview images, download files, and delete with a confirmation modal
 - ✅ **Dashboard Overview** - Quick stats and priority-based todo insights
 
 ### Priority System
@@ -56,7 +57,12 @@ Todos are automatically sorted by priority on all pages, ensuring urgent and hig
 
 ## Usage
 
-Visit the application in your browser and start managing your todos! The interface is intuitive - create new todos with priority levels, mark them as complete, edit existing ones, and filter by status or priority.
+Visit the application in your browser and start managing your todos! The interface is intuitive:
+
+- Create new todos with priority levels and tags
+- Link related todos together
+- Upload attachments on the todo show page (image preview supported)
+- All destructive actions (e.g., deleting todos, tags, attachments) use a reusable confirmation modal for consistency
 
 ## Release workflow
 

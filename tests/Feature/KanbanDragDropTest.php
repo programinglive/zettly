@@ -28,7 +28,7 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         $response->assertStatus(302); // Should redirect back
-        
+
         // Check database was updated
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
@@ -54,7 +54,7 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         $response->assertStatus(302);
-        
+
         // Check database was updated - priority should be null when completed
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
@@ -84,7 +84,7 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         $response->assertStatus(302);
-        
+
         // Verify the change persisted
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
@@ -115,7 +115,7 @@ class KanbanDragDropTest extends TestCase
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
-        
+
         $todo = Todo::factory()->create([
             'user_id' => $user1->id,
             'priority' => 'medium',
@@ -129,7 +129,7 @@ class KanbanDragDropTest extends TestCase
 
         // Should fail (403 or 404 depending on policy implementation)
         $this->assertTrue(in_array($response->getStatusCode(), [403, 404]));
-        
+
         // Original todo should be unchanged
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
@@ -140,14 +140,14 @@ class KanbanDragDropTest extends TestCase
     public function test_dashboard_shows_updated_priorities()
     {
         $user = User::factory()->create();
-        
+
         // Create todos with different priorities
         $urgentTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'priority' => 'urgent',
             'is_completed' => false,
         ]);
-        
+
         $mediumTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'priority' => 'medium',
@@ -162,9 +162,9 @@ class KanbanDragDropTest extends TestCase
 
         // Visit dashboard and check the todos are in correct columns
         $response = $this->actingAs($user)->get('/dashboard');
-        
+
         $response->assertStatus(200);
-        
+
         // Verify the updated todo appears in the correct priority group
         $mediumTodo->refresh();
         $this->assertEquals('high', $mediumTodo->priority);
@@ -186,7 +186,7 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         $response->assertStatus(302);
-        
+
         // Check database was updated
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
@@ -218,7 +218,7 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         $response->assertStatus(302);
-        
+
         // Check database was updated
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,

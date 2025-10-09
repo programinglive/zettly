@@ -22,7 +22,7 @@ return new class extends Migration
             $table->enum('type', ['image', 'document', 'other'])->default('other');
             $table->string('thumbnail_path')->nullable();
             $table->timestamps();
-            
+
             $table->index(['todo_id', 'type']);
         });
     }

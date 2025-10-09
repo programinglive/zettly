@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Todo;
 use App\Models\TodoAttachment;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,28 +16,29 @@ class TodoAttachmentSeeder extends Seeder
     {
         // Get some existing todos
         $todos = Todo::take(3)->get();
-        
+
         if ($todos->isEmpty()) {
             $this->command->info('No todos found. Please run TodoSeeder first.');
+
             return;
         }
 
         foreach ($todos as $todo) {
             // Create 1-3 sample attachments per todo
             $attachmentCount = rand(1, 3);
-            
+
             for ($i = 0; $i < $attachmentCount; $i++) {
                 // Create sample file content
                 $isImage = rand(0, 1);
-                
+
                 if ($isImage) {
                     // Sample image attachment
-                    $fileName = 'sample-image-' . $i . '.jpg';
+                    $fileName = 'sample-image-'.$i.'.jpg';
                     $filePath = "todos/{$todo->id}/attachments/{$fileName}";
-                    
+
                     // Create a simple placeholder image content (not a real image, just for demo)
                     Storage::disk('public')->put($filePath, 'Sample image content for demo');
-                    
+
                     TodoAttachment::create([
                         'todo_id' => $todo->id,
                         'original_name' => "Sample Image {$i}.jpg",
@@ -51,11 +51,11 @@ class TodoAttachmentSeeder extends Seeder
                     ]);
                 } else {
                     // Sample document attachment
-                    $fileName = 'sample-document-' . $i . '.pdf';
+                    $fileName = 'sample-document-'.$i.'.pdf';
                     $filePath = "todos/{$todo->id}/attachments/{$fileName}";
-                    
+
                     Storage::disk('public')->put($filePath, 'Sample PDF content for demo');
-                    
+
                     TodoAttachment::create([
                         'todo_id' => $todo->id,
                         'original_name' => "Sample Document {$i}.pdf",

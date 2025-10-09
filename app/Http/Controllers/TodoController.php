@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 use Inertia\Inertia;
+use Intervention\Image\Facades\Image;
 
 class TodoController extends Controller
 {
@@ -133,23 +133,23 @@ class TodoController extends Controller
                 $originalName = $file->getClientOriginalName();
                 $mimeType = $file->getMimeType();
                 $fileSize = $file->getSize();
-                
+
                 // Generate unique filename
-                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
                 $filePath = "todos/{$todo->id}/attachments/{$fileName}";
-                
+
                 // Store the file
                 Storage::disk('public')->put($filePath, file_get_contents($file));
-                
+
                 // Determine file type
                 $type = TodoAttachment::determineType($mimeType);
-                
+
                 // Generate thumbnail for images
                 $thumbnailPath = null;
                 if ($type === 'image') {
                     $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
                 }
-                
+
                 // Create attachment record
                 $todo->attachments()->create([
                     'original_name' => $originalName,
@@ -292,23 +292,23 @@ class TodoController extends Controller
                 $originalName = $file->getClientOriginalName();
                 $mimeType = $file->getMimeType();
                 $fileSize = $file->getSize();
-                
+
                 // Generate unique filename
-                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
                 $filePath = "todos/{$todo->id}/attachments/{$fileName}";
-                
+
                 // Store the file
                 Storage::disk('public')->put($filePath, file_get_contents($file));
-                
+
                 // Determine file type
                 $type = TodoAttachment::determineType($mimeType);
-                
+
                 // Generate thumbnail for images
                 $thumbnailPath = null;
                 if ($type === 'image') {
                     $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
                 }
-                
+
                 // Create attachment record
                 $todo->attachments()->create([
                     'original_name' => $originalName,
@@ -388,16 +388,16 @@ class TodoController extends Controller
         ]);
 
         $updateData = [];
-        
+
         // Handle priority updates
         if (array_key_exists('priority', $validated)) {
             $updateData['priority'] = $validated['priority'];
         }
-        
+
         if (isset($validated['is_completed'])) {
             $updateData['is_completed'] = $validated['is_completed'];
             $updateData['completed_at'] = $validated['is_completed'] ? now() : null;
-            
+
             // When marking as completed, remove priority (set to null)
             if ($validated['is_completed']) {
                 $updateData['priority'] = null;
@@ -491,30 +491,31 @@ class TodoController extends Controller
     public function archiveCompleted(Request $request)
     {
         $user = auth()->user();
-        
+
         // Get count of completed todos before archiving (exclude already archived)
         $completedCount = $user->todos()->completed()->notArchived()->count();
-        
+
         if ($completedCount === 0) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'No completed todos to archive'], 200);
             }
+
             return redirect()->back()->with('info', 'No completed todos to archive');
         }
-        
+
         // Archive all completed todos
         $user->todos()->completed()->notArchived()->update([
             'archived' => true,
             'archived_at' => now(),
         ]);
-        
+
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => "Successfully archived {$completedCount} completed todos",
-                'archived_count' => $completedCount
+                'archived_count' => $completedCount,
             ]);
         }
-        
+
         return redirect()->back()->with('success', "Successfully archived {$completedCount} completed todos");
     }
 
@@ -552,23 +553,23 @@ class TodoController extends Controller
         $originalName = $file->getClientOriginalName();
         $mimeType = $file->getMimeType();
         $fileSize = $file->getSize();
-        
+
         // Generate unique filename
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
         $filePath = "todos/{$todo->id}/attachments/{$fileName}";
-        
+
         // Store the file
         Storage::disk('public')->put($filePath, file_get_contents($file));
-        
+
         // Determine file type
         $type = TodoAttachment::determineType($mimeType);
-        
+
         // Generate thumbnail for images
         $thumbnailPath = null;
         if ($type === 'image') {
             $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
         }
-        
+
         // Create attachment record
         $attachment = $todo->attachments()->create([
             'original_name' => $originalName,
@@ -604,7 +605,7 @@ class TodoController extends Controller
         if (Storage::disk('public')->exists($attachment->file_path)) {
             Storage::disk('public')->delete($attachment->file_path);
         }
-        
+
         if ($attachment->thumbnail_path && Storage::disk('public')->exists($attachment->thumbnail_path)) {
             Storage::disk('public')->delete($attachment->thumbnail_path);
         }
@@ -625,7 +626,7 @@ class TodoController extends Controller
             abort(403);
         }
 
-        if (!Storage::disk('public')->exists($attachment->file_path)) {
+        if (! Storage::disk('public')->exists($attachment->file_path)) {
             abort(404, 'File not found');
         }
 
@@ -639,16 +640,16 @@ class TodoController extends Controller
     {
         try {
             $fullPath = Storage::disk('public')->path($filePath);
-            $thumbnailFileName = 'thumb_' . basename($filePath);
+            $thumbnailFileName = 'thumb_'.basename($filePath);
             $thumbnailPath = "todos/{$todoId}/thumbnails/{$thumbnailFileName}";
             $thumbnailFullPath = Storage::disk('public')->path($thumbnailPath);
-            
+
             // Create thumbnails directory if it doesn't exist
             $thumbnailDir = dirname($thumbnailFullPath);
-            if (!is_dir($thumbnailDir)) {
+            if (! is_dir($thumbnailDir)) {
                 mkdir($thumbnailDir, 0755, true);
             }
-            
+
             // Create thumbnail using intervention/image if available, otherwise use basic PHP
             if (class_exists('Intervention\Image\Facades\Image')) {
                 $image = Image::make($fullPath);
@@ -660,7 +661,7 @@ class TodoController extends Controller
                 // Fallback to basic thumbnail generation
                 $this->createBasicThumbnail($fullPath, $thumbnailFullPath);
             }
-            
+
             return $thumbnailPath;
         } catch (\Exception $e) {
             // If thumbnail generation fails, return null
@@ -674,24 +675,24 @@ class TodoController extends Controller
     private function createBasicThumbnail(string $source, string $destination): void
     {
         $imageInfo = getimagesize($source);
-        if (!$imageInfo) {
+        if (! $imageInfo) {
             return;
         }
-        
+
         $width = $imageInfo[0];
         $height = $imageInfo[1];
         $type = $imageInfo[2];
-        
+
         // Calculate new dimensions
         $newWidth = 200;
         $newHeight = 200;
-        
+
         if ($width > $height) {
             $newHeight = ($height / $width) * $newWidth;
         } else {
             $newWidth = ($width / $height) * $newHeight;
         }
-        
+
         // Create image resource based on type
         switch ($type) {
             case IMAGETYPE_JPEG:
@@ -706,11 +707,11 @@ class TodoController extends Controller
             default:
                 return;
         }
-        
+
         // Create thumbnail
         $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
         imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        
+
         // Save thumbnail
         switch ($type) {
             case IMAGETYPE_JPEG:
@@ -723,7 +724,7 @@ class TodoController extends Controller
                 imagegif($thumbnail, $destination);
                 break;
         }
-        
+
         // Clean up
         imagedestroy($sourceImage);
         imagedestroy($thumbnail);

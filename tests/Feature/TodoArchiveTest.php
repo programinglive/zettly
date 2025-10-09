@@ -15,21 +15,21 @@ class TodoArchiveTest extends TestCase
     {
         // Create a user with completed and pending todos
         $user = User::factory()->create();
-        
+
         $completedTodo1 = Todo::factory()->create([
             'user_id' => $user->id,
             'title' => 'Completed Task 1',
             'is_completed' => true,
             'priority' => null,
         ]);
-        
+
         $completedTodo2 = Todo::factory()->create([
             'user_id' => $user->id,
             'title' => 'Completed Task 2',
             'is_completed' => true,
             'priority' => null,
         ]);
-        
+
         $pendingTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'title' => 'Pending Task',
@@ -52,7 +52,7 @@ class TodoArchiveTest extends TestCase
             'id' => $completedTodo2->id,
             'archived' => true,
         ]);
-        
+
         // Check that pending todo is not affected
         $this->assertDatabaseHas('todos', [
             'id' => $pendingTodo->id,
@@ -63,7 +63,7 @@ class TodoArchiveTest extends TestCase
     public function test_archive_with_no_completed_todos()
     {
         $user = User::factory()->create();
-        
+
         // Create only pending todos
         Todo::factory()->create([
             'user_id' => $user->id,
@@ -80,13 +80,13 @@ class TodoArchiveTest extends TestCase
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
-        
+
         // Create completed todos for both users
         $user1CompletedTodo = Todo::factory()->create([
             'user_id' => $user1->id,
             'is_completed' => true,
         ]);
-        
+
         $user2CompletedTodo = Todo::factory()->create([
             'user_id' => $user2->id,
             'is_completed' => true,
@@ -111,12 +111,12 @@ class TodoArchiveTest extends TestCase
     public function test_archived_todos_not_shown_in_dashboard()
     {
         $user = User::factory()->create();
-        
+
         $completedTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'is_completed' => true,
         ]);
-        
+
         $pendingTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'is_completed' => false,
@@ -127,9 +127,9 @@ class TodoArchiveTest extends TestCase
 
         // Visit dashboard
         $response = $this->actingAs($user)->get('/dashboard');
-        
+
         $response->assertStatus(200);
-        
+
         // Check that only pending todo is returned by querying the database (excluding archived)
         $visibleTodos = $user->todos()->notArchived()->get();
         $this->assertCount(1, $visibleTodos);
@@ -139,12 +139,12 @@ class TodoArchiveTest extends TestCase
     public function test_archive_endpoint_returns_json_for_api_requests()
     {
         $user = User::factory()->create();
-        
+
         Todo::factory()->create([
             'user_id' => $user->id,
             'is_completed' => true,
         ]);
-        
+
         Todo::factory()->create([
             'user_id' => $user->id,
             'is_completed' => true,
@@ -178,7 +178,7 @@ class TodoArchiveTest extends TestCase
     public function test_unauthorized_user_cannot_archive_todos()
     {
         $response = $this->post('/todos/archive-completed');
-        
+
         $response->assertStatus(302);
         $response->assertRedirect('/login');
     }
@@ -186,7 +186,7 @@ class TodoArchiveTest extends TestCase
     public function test_archived_page_shows_only_archived_todos()
     {
         $user = User::factory()->create();
-        
+
         // Create archived and non-archived todos
         $archivedTodo = Todo::factory()->create([
             'user_id' => $user->id,
@@ -195,7 +195,7 @@ class TodoArchiveTest extends TestCase
             'archived' => true,
             'archived_at' => now(),
         ]);
-        
+
         $activeTodo = Todo::factory()->create([
             'user_id' => $user->id,
             'title' => 'Active Todo',
@@ -206,18 +206,17 @@ class TodoArchiveTest extends TestCase
         $response = $this->actingAs($user)->get('/todos/archived');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Todos/Archived')
-                ->has('todos', 1)
-                ->where('todos.0.id', $archivedTodo->id)
-                ->where('todos.0.title', 'Archived Todo')
+        $response->assertInertia(fn ($page) => $page->component('Todos/Archived')
+            ->has('todos', 1)
+            ->where('todos.0.id', $archivedTodo->id)
+            ->where('todos.0.title', 'Archived Todo')
         );
     }
 
     public function test_archived_page_requires_authentication()
     {
         $response = $this->get('/todos/archived');
-        
+
         $response->assertStatus(302);
         $response->assertRedirect('/login');
     }

@@ -29,19 +29,19 @@ class TodoAttachmentFactory extends Factory
 
         $mimeType = $this->faker->randomElement(array_keys($mimeTypes));
         $extension = $mimeTypes[$mimeType];
-        $fileName = $this->faker->uuid() . '.' . $extension;
-        $originalName = $this->faker->word() . '.' . $extension;
+        $fileName = $this->faker->uuid().'.'.$extension;
+        $originalName = $this->faker->word().'.'.$extension;
 
         return [
             'todo_id' => Todo::factory(),
             'original_name' => $originalName,
             'file_name' => $fileName,
-            'file_path' => 'todos/1/attachments/' . $fileName,
+            'file_path' => 'todos/1/attachments/'.$fileName,
             'mime_type' => $mimeType,
             'file_size' => $this->faker->numberBetween(1024, 10485760), // 1KB to 10MB
             'type' => TodoAttachment::determineType($mimeType),
-            'thumbnail_path' => str_starts_with($mimeType, 'image/') 
-                ? 'todos/1/thumbnails/thumb_' . $fileName 
+            'thumbnail_path' => str_starts_with($mimeType, 'image/')
+                ? 'todos/1/thumbnails/thumb_'.$fileName
                 : null,
         ];
     }
@@ -54,8 +54,8 @@ class TodoAttachmentFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'mime_type' => 'image/jpeg',
             'type' => 'image',
-            'file_name' => $this->faker->uuid() . '.jpg',
-            'original_name' => $this->faker->word() . '.jpg',
+            'file_name' => $this->faker->uuid().'.jpg',
+            'original_name' => $this->faker->word().'.jpg',
         ]);
     }
 
@@ -67,8 +67,8 @@ class TodoAttachmentFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'mime_type' => 'application/pdf',
             'type' => 'document',
-            'file_name' => $this->faker->uuid() . '.pdf',
-            'original_name' => $this->faker->word() . '.pdf',
+            'file_name' => $this->faker->uuid().'.pdf',
+            'original_name' => $this->faker->word().'.pdf',
             'thumbnail_path' => null,
         ]);
     }

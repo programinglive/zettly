@@ -8,16 +8,23 @@ import {
     Eye,
     X
 } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal';
 
 export default function AttachmentList({ attachments = [], onAttachmentDeleted, className = '' }) {
     const [deletingId, setDeletingId] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [attachmentToDelete, setAttachmentToDelete] = useState(null);
 
-    const handleDelete = async (attachmentId) => {
-        if (!confirm('Are you sure you want to delete this attachment?')) {
-            return;
-        }
+    const openDeleteModal = (attachment) => {
+        setAttachmentToDelete(attachment);
+        setShowDeleteModal(true);
+    };
 
+    const handleDeleteConfirm = async () => {
+        if (!attachmentToDelete) return;
+
+        const attachmentId = attachmentToDelete.id;
         setDeletingId(attachmentId);
 
         try {
@@ -27,7 +34,7 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                         onAttachmentDeleted(attachmentId);
                     }
                 },
-                onError: (errors) => {
+                onError: () => {
                     // Error handling via Inertia
                 },
                 onFinish: () => {
@@ -36,7 +43,15 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
             });
         } catch (error) {
             setDeletingId(null);
+        } finally {
+            setShowDeleteModal(false);
+            setAttachmentToDelete(null);
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteModal(false);
+        setAttachmentToDelete(null);
     };
 
     const handleDownload = (attachment) => {
@@ -142,7 +157,7 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                             </button>
                             
                             <button
-                                onClick={() => handleDelete(attachment.id)}
+                                onClick={() => openDeleteModal(attachment)}
                                 disabled={deletingId === attachment.id}
                                 className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                                 title="Delete"
@@ -183,6 +198,18 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Attachment"
+                message={`Are you sure you want to delete "${attachmentToDelete?.original_name}"? This action cannot be undone.`}
+                confirmText="Delete Attachment"
+                confirmButtonVariant="destructive"
+                isLoading={deletingId !== null}
+            />
         </>
     );
 }
