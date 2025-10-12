@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\TodoAttachment;
+use App\Models\TodoChecklistItem;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,11 +100,28 @@ class TodoController extends Controller
             'related_todo_ids.*' => 'exists:todos,id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240', // 10MB max per file
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*.title' => 'required|string|max:255',
+            'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
+
+        $checklistItems = $validated['checklist_items'] ?? [];
+        unset($validated['checklist_items']);
 
         $validated['user_id'] = auth()->id();
 
         $todo = Todo::create($validated);
+
+        // Handle checklist items
+        if (! empty($checklistItems)) {
+            foreach ($checklistItems as $index => $itemData) {
+                $todo->checklistItems()->create([
+                    'title' => $itemData['title'],
+                    'is_completed' => (bool) ($itemData['is_completed'] ?? false),
+                    'position' => $index,
+                ]);
+            }
+        }
 
         // Handle tags
         if (isset($validated['tag_ids']) && ! empty($validated['tag_ids'])) {
@@ -178,7 +196,7 @@ class TodoController extends Controller
         }
 
         // Eager load related todos, tags, and attachments
-        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments']);
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments', 'checklistItems']);
 
         // Get available todos for linking (exclude current todo and already linked todos)
         $linkedTodoIds = $todo->relatedTodos->pluck('id')
@@ -215,7 +233,7 @@ class TodoController extends Controller
             ->get(['id', 'title', 'description', 'is_completed']);
 
         // Load existing relationships (both directions)
-        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments']);
+        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments', 'checklistItems']);
 
         // Build selected linked todos + ids for the form
         $selectedLinkedTodos = $todo->relatedTodos
@@ -257,6 +275,10 @@ class TodoController extends Controller
             'related_todo_ids.*' => 'exists:todos,id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|max:10240', // 10MB max per file
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*.id' => 'nullable|exists:todo_checklist_items,id',
+            'checklist_items.*.title' => 'required|string|max:255',
+            'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
 
         // Convert is_completed to boolean
@@ -269,6 +291,9 @@ class TodoController extends Controller
         } elseif (isset($validated['is_completed']) && ! $validated['is_completed']) {
             $validated['completed_at'] = null;
         }
+
+        $checklistItems = $validated['checklist_items'] ?? null;
+        unset($validated['checklist_items']);
 
         $todo->update($validated);
 
@@ -284,6 +309,33 @@ class TodoController extends Controller
                 ->toArray();
 
             $todo->relatedTodos()->sync($userTodoIds);
+        }
+
+        if ($checklistItems !== null) {
+            $incomingItems = collect($checklistItems ?? []);
+            $persistedIds = [];
+
+            $incomingItems->each(function ($itemData, $index) use ($todo, &$persistedIds) {
+                $attributes = [
+                    'title' => $itemData['title'],
+                    'is_completed' => (bool) ($itemData['is_completed'] ?? false),
+                    'position' => $index,
+                ];
+
+                if (! empty($itemData['id'])) {
+                    $item = $todo->checklistItems()->where('id', $itemData['id'])->first();
+                    if ($item) {
+                        $item->update($attributes);
+                        $persistedIds[] = $item->id;
+                        return;
+                    }
+                }
+
+                $newItem = $todo->checklistItems()->create($attributes);
+                $persistedIds[] = $newItem->id;
+            });
+
+            $todo->checklistItems()->whereNotIn('id', $persistedIds)->delete();
         }
 
         // Handle new file attachments
@@ -370,6 +422,30 @@ class TodoController extends Controller
 
         return redirect()->back()
             ->with('success', 'Todo status updated successfully!');
+    }
+
+    public function toggleChecklistItem(Request $request, Todo $todo, TodoChecklistItem $checklistItem)
+    {
+        if ($todo->user_id !== auth()->id() || $checklistItem->todo_id !== $todo->id) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            abort(403);
+        }
+
+        $checklistItem->update([
+            'is_completed' => ! $checklistItem->is_completed,
+        ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Checklist item updated successfully',
+                'is_completed' => $checklistItem->is_completed,
+            ]);
+        }
+
+        return redirect()->back();
     }
 
     public function updatePriority(Request $request, Todo $todo)

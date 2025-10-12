@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, Calendar, User } from 'lucide-react';
 
@@ -10,6 +10,7 @@ import ConfirmationModal from '../../Components/ConfirmationModal';
 import TodoLinkManager from '../../Components/TodoLinkManager';
 import FileUpload from '../../Components/FileUpload';
 import AttachmentList from '../../Components/AttachmentList';
+import Checkbox from '../../Components/Checkbox';
 
 export default function Show({ todo, availableTodos }) {
     const { delete: destroy } = useForm();
@@ -20,6 +21,25 @@ export default function Show({ todo, availableTodos }) {
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
+
+    const deriveChecklistItems = () => (todo.checklistItems || todo.checklist_items || []).map((item) => ({
+        id: item.id,
+        title: item.title,
+        is_completed: !!item.is_completed,
+    }));
+
+    const [checklistItems, setChecklistItems] = useState(deriveChecklistItems);
+    const [updatingChecklistIds, setUpdatingChecklistIds] = useState([]);
+
+    useEffect(() => {
+        setChecklistItems(deriveChecklistItems());
+    }, [todo.id, JSON.stringify((todo.checklistItems || todo.checklist_items || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        is_completed: item.is_completed,
+    })))]);
+
+    const completedChecklistCount = checklistItems.filter(item => item.is_completed).length;
 
     const handleToggle = () => {
         toggleForm.post(`/todos/${todo.id}/toggle`);
@@ -69,6 +89,32 @@ export default function Show({ todo, availableTodos }) {
         setAttachments(prev => prev.filter(att => att.id !== attachmentId));
     };
 
+    const handleChecklistToggle = (item) => {
+        if (!item?.id || updatingChecklistIds.includes(item.id)) {
+            return;
+        }
+
+        const previousItems = checklistItems.map(existing => ({ ...existing }));
+        const nextItems = checklistItems.map(existing => existing.id === item.id
+            ? { ...existing, is_completed: !existing.is_completed }
+            : existing
+        );
+
+        setChecklistItems(nextItems);
+        setUpdatingChecklistIds((prev) => [...prev, item.id]);
+
+        router.patch(`/todos/${todo.id}/checklist/${item.id}/toggle`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onError: () => {
+                setChecklistItems(previousItems);
+            },
+            onFinish: () => {
+                setUpdatingChecklistIds((prev) => prev.filter((id) => id !== item.id));
+            },
+        });
+    };
+
     return (
         <AppLayout title={todo.title}>
             <div className="max-w-7xl mx-auto">
@@ -85,12 +131,19 @@ export default function Show({ todo, availableTodos }) {
                     </div>
                     <div className="flex items-center space-x-3">
                         <Link href={`/todos/${todo.id}/edit`}>
-                            <Button variant="outline" className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <Button
+                                variant="outline"
+                                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            >
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit
                             </Button>
                         </Link>
-                        <Button variant="destructive" onClick={handleDeleteClick} className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
+                        <Button
+                            variant="outline"
+                            onClick={handleDeleteClick}
+                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                         </Button>
@@ -156,6 +209,37 @@ export default function Show({ todo, availableTodos }) {
                                     <div className="text-center py-8">
                                         <div className="text-gray-400 dark:text-gray-600 text-4xl mb-2">📝</div>
                                         <p className="text-gray-500 dark:text-gray-400">No description provided</p>
+                                    </div>
+                                )}
+
+                                {checklistItems.length > 0 && (
+                                    <div className="mt-6">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Checklist</h3>
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                {completedChecklistCount} of {checklistItems.length} completed
+                                            </span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {checklistItems.map((item) => (
+                                                <div
+                                                    key={item.id ?? item.title}
+                                                    className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/40"
+                                                >
+                                                    <Checkbox
+                                                        checked={!!item.is_completed}
+                                                        onChange={() => handleChecklistToggle(item)}
+                                                        className="h-5 w-5"
+                                                        disabled={!item.id || updatingChecklistIds.includes(item.id)}
+                                                    />
+                                                    <span
+                                                        className={`text-sm ${item.is_completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
+                                                    >
+                                                        {item.title}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
@@ -239,10 +323,10 @@ export default function Show({ todo, availableTodos }) {
                                         </span>
                                     </div>
                                 )}
-                                <Button 
+                                <Button
                                     onClick={handleToggle}
-                                    className={`w-full ${todo.is_completed ? 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600' : 'bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white'}`}
-                                    variant={todo.is_completed ? "outline" : "default"}
+                                    variant="outline"
+                                    className={`w-full border border-gray-200 dark:border-gray-700 ${todo.is_completed ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' : 'bg-gray-900 text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-gray-300'}`}
                                 >
                                     {todo.is_completed ? (
                                         <>
@@ -334,12 +418,19 @@ export default function Show({ todo, availableTodos }) {
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 <Link href={`/todos/${todo.id}/edit`} className="block">
-                                    <Button variant="outline" className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    >
                                         <Edit className="w-4 h-4 mr-2" />
                                         Edit Todo
                                     </Button>
                                 </Link>
-                                <Button variant="destructive" onClick={handleDeleteClick} className="w-full bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white border-red-600 dark:border-red-700">
+                                <Button
+                                    variant="outline"
+                                    onClick={handleDeleteClick}
+                                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete Todo
                                 </Button>

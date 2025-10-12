@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
+    Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [TodoController::class, 'toggleChecklistItem'])->name('todos.checklist.toggle');
 
     // File attachment routes
     Route::post('todos/{todo}/attachments', [TodoController::class, 'uploadAttachment'])->name('todos.attachments.upload');

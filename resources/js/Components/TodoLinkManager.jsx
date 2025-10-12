@@ -116,7 +116,7 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                     onClick={() => {
                         setShowLinkModal(true);
                     }}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full bg-gray-900 text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
                 >
                     <LinkIcon className="w-4 h-4 mr-2" />
                     Link Todo
@@ -137,6 +137,8 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                 confirmButtonVariant="default"
                 confirmDisabled={!selectedTodo}
                 isLoading={isLinking}
+                cancelButtonClassName="hover:bg-gray-200 dark:hover:bg-gray-600"
+                confirmButtonClassName={`${selectedTodo ? 'bg-gray-900 hover:bg-gray-700 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300' : 'bg-gray-200 text-gray-400 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed'}`}
             >
                 <div className="space-y-4">
                     <p className="text-gray-600 dark:text-gray-300 mb-4">

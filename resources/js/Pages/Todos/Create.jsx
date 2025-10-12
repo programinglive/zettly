@@ -11,6 +11,7 @@ import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
 import PrioritySelector from '../../Components/PrioritySelector';
 import FormFileUpload from '../../Components/FormFileUpload';
+import ChecklistEditor from '../../Components/ChecklistEditor';
 
 export default function Create({ tags, todos }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -19,9 +20,14 @@ export default function Create({ tags, todos }) {
         priority: 'medium',
         tag_ids: [],
         related_todo_ids: [],
+        checklist_items: [],
     });
 
     const [attachmentFiles, setAttachmentFiles] = useState([]);
+
+    const checklistErrors = Object.keys(errors)
+        .filter((key) => key.startsWith('checklist_items'))
+        .map((key) => errors[key]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -42,6 +48,15 @@ export default function Create({ tags, todos }) {
             formData.append(`related_todo_ids[${index}]`, todoId);
         });
         
+        // Append checklist items
+        (data.checklist_items || []).forEach((item, index) => {
+            formData.append(`checklist_items[${index}][title]`, item.title ?? '');
+            formData.append(`checklist_items[${index}][is_completed]`, item.is_completed ? '1' : '0');
+            if (item.id) {
+                formData.append(`checklist_items[${index}][id]`, item.id);
+            }
+        });
+
         // Append attachment files
         attachmentFiles.forEach((file, index) => {
             formData.append(`attachments[${index}]`, file);
@@ -114,6 +129,17 @@ export default function Create({ tags, todos }) {
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Checklist Items
+                                </label>
+                                <ChecklistEditor
+                                    items={data.checklist_items || []}
+                                    onChange={(items) => setData('checklist_items', items)}
+                                    errors={checklistErrors}
+                                />
                             </div>
 
                             <div className="space-y-2">

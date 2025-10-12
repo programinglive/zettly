@@ -23,9 +23,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // API Routes (Protected by Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
     // Todo API Routes
-    Route::apiResource('todos', TodoController::class);
-    Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggle']);
-    Route::get('todos/priorities', [TodoController::class, 'priorities']);
+    Route::apiResource('todos', TodoController::class)->names([
+        'index' => 'api.todos.index',
+        'store' => 'api.todos.store',
+        'show' => 'api.todos.show',
+        'update' => 'api.todos.update',
+        'destroy' => 'api.todos.destroy',
+    ]);
+    Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('api.todos.toggle');
+    Route::get('todos/priorities', [TodoController::class, 'priorities'])->name('api.todos.priorities');
 
     // Tag API Routes
     Route::apiResource('tags', TagController::class)->except(['create', 'edit'])->names([

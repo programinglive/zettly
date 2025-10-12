@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from './ui/button';
+import { cn } from '../utils';
 
 export default function ConfirmationModal({
     isOpen,
@@ -12,7 +13,9 @@ export default function ConfirmationModal({
     confirmButtonVariant = 'destructive',
     isLoading = false,
     children,
-    confirmDisabled = false
+    confirmDisabled = false,
+    cancelButtonClassName = '',
+    confirmButtonClassName = ''
 }) {
     if (!isOpen) return null;
 
@@ -48,7 +51,10 @@ export default function ConfirmationModal({
                         variant="outline"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                        className={cn(
+                            'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600',
+                            cancelButtonClassName
+                        )}
                     >
                         {cancelText}
                     </Button>
@@ -61,6 +67,7 @@ export default function ConfirmationModal({
                             }
                         }}
                         disabled={isLoading || confirmDisabled}
+                        className={cn('min-w-[120px]', confirmButtonClassName)}
                     >
                         {isLoading ? 'Processing...' : confirmText}
                     </Button>

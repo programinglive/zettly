@@ -13,6 +13,7 @@ import TodoSelector from '../../Components/TodoSelector';
 import PrioritySelector from '../../Components/PrioritySelector';
 import FormFileUpload from '../../Components/FormFileUpload';
 import AttachmentList from '../../Components/AttachmentList';
+import ChecklistEditor from '../../Components/ChecklistEditor';
 
 export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
     // Build initial linked ids from both directions (supports camelCase and snake_case)
@@ -30,10 +31,20 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         is_completed: todo.is_completed || false,
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
+        checklist_items: (todo.checklistItems || todo.checklist_items || []).map((item, index) => ({
+            id: item.id ?? null,
+            title: item.title ?? '',
+            is_completed: !!item.is_completed,
+            position: item.position ?? index,
+        })),
     });
 
     const [attachmentFiles, setAttachmentFiles] = useState([]);
     const [existingAttachments, setExistingAttachments] = useState(todo.attachments || []);
+
+    const checklistErrors = Object.keys(errors)
+        .filter((key) => key.startsWith('checklist_items'))
+        .map((key) => errors[key]);
 
     // Keep selection in sync if server props change (navigating back to edit, linking elsewhere, etc.)
     useEffect(() => {
@@ -58,6 +69,15 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         // Arrays
         (data.tag_ids || []).forEach((id) => formData.append('tag_ids[]', id));
         (data.related_todo_ids || []).forEach((id) => formData.append('related_todo_ids[]', id));
+
+        // Checklist items
+        (data.checklist_items || []).forEach((item, index) => {
+            formData.append(`checklist_items[${index}][title]`, item.title ?? '');
+            formData.append(`checklist_items[${index}][is_completed]`, item.is_completed ? '1' : '0');
+            if (item.id) {
+                formData.append(`checklist_items[${index}][id]`, item.id);
+            }
+        });
 
         // Files (may be zero and that's fine)
         attachmentFiles.forEach((file) => formData.append('attachments[]', file));
@@ -138,6 +158,17 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Checklist Items
+                                </label>
+                                <ChecklistEditor
+                                    items={data.checklist_items || []}
+                                    onChange={(items) => setData('checklist_items', items)}
+                                    errors={checklistErrors}
+                                />
                             </div>
 
                             <div className="space-y-2">

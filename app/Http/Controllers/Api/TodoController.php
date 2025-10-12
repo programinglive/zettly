@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Todo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,16 +58,36 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*.title' => 'required|string|max:255',
+            'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
+
+        $checklistItems = $validated['checklist_items'] ?? [];
+        unset($validated['checklist_items']);
 
         $validated['user_id'] = Auth::id();
 
-        $todo = Todo::create($validated);
+        $todo = null;
+
+        DB::transaction(function () use (&$todo, $validated, $checklistItems) {
+            $todo = Todo::create($validated);
+
+            if (! empty($checklistItems)) {
+                foreach ($checklistItems as $index => $itemData) {
+                    $todo->checklistItems()->create([
+                        'title' => $itemData['title'],
+                        'is_completed' => (bool) ($itemData['is_completed'] ?? false),
+                        'position' => $index,
+                    ]);
+                }
+            }
+        });
 
         return response()->json([
             'success' => true,
             'message' => 'Todo created successfully!',
-            'data' => $todo,
+            'data' => $todo->load('checklistItems'),
         ], 201);
     }
 
@@ -106,8 +127,16 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
-            'is_completed' => 'boolean',
+            'is_completed' => 'nullable|boolean',
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*.id' => 'nullable|exists:todo_checklist_items,id',
+            'checklist_items.*.title' => 'required|string|max:255',
+            'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
+
+        if (isset($validated['is_completed'])) {
+            $validated['is_completed'] = (bool) $validated['is_completed'];
+        }
 
         if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
             $validated['completed_at'] = now();
@@ -115,12 +144,44 @@ class TodoController extends Controller
             $validated['completed_at'] = null;
         }
 
-        $todo->update($validated);
+        $checklistItems = $validated['checklist_items'] ?? null;
+        unset($validated['checklist_items']);
+
+        DB::transaction(function () use ($todo, $validated, $checklistItems) {
+            $todo->update($validated);
+
+            if ($checklistItems !== null) {
+                $incomingItems = collect($checklistItems);
+                $persistedIds = [];
+
+                $incomingItems->each(function ($itemData, $index) use ($todo, &$persistedIds) {
+                    $attributes = [
+                        'title' => $itemData['title'],
+                        'is_completed' => (bool) ($itemData['is_completed'] ?? false),
+                        'position' => $index,
+                    ];
+
+                    if (! empty($itemData['id'])) {
+                        $existing = $todo->checklistItems()->where('id', $itemData['id'])->first();
+                        if ($existing) {
+                            $existing->update($attributes);
+                            $persistedIds[] = $existing->id;
+                            return;
+                        }
+                    }
+
+                    $newItem = $todo->checklistItems()->create($attributes);
+                    $persistedIds[] = $newItem->id;
+                });
+
+                $todo->checklistItems()->whereNotIn('id', $persistedIds)->delete();
+            }
+        });
 
         return response()->json([
             'success' => true,
             'message' => 'Todo updated successfully!',
-            'data' => $todo->fresh(),
+            'data' => $todo->fresh('checklistItems'),
         ]);
     }
 
