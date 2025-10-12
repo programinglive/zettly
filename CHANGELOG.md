@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.15](https://github.com/programinglive/todo/compare/v0.1.14...v0.1.15) (2025-10-12)
+
+
+### ✨ Features
+
+* improve checklist ui consistency and dark mode borders ([6a7c878](https://github.com/programinglive/todo/commit/6a7c878ef0562a763ffc08f2308cc4ddf9132a34))
+
 ### [0.1.14](https://github.com/programinglive/todo/compare/v0.1.13...v0.1.14) (2025-10-12)
 
 
