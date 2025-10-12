@@ -72,12 +72,15 @@ export default function Index({ todos, tags, filter, selectedTag }) {
 
     return (
         <AppLayout title="Todos">
-            <div className="space-y-6">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Todos</h1>
-                    <Link href="/todos/create">
-                        <Button className="bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">My Todos</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Plan, prioritize, and complete your work efficiently.</p>
+                    </div>
+                    <Link href="/todos/create" className="w-full sm:w-auto">
+                        <Button className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
                             <Plus className="w-4 h-4 mr-2" />
                             New Todo
                         </Button>
@@ -87,26 +90,28 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                 {/* Filters */}
                 <div className="space-y-4">
                     {/* Status Filters */}
-                    <div className="flex flex-wrap gap-2">
-                        {[
-                            { key: null, label: 'All' },
-                            { key: 'pending', label: 'Pending' },
-                            { key: 'completed', label: 'Completed' },
-                            { key: 'high_priority', label: 'High Priority' },
-                            { key: 'low_priority', label: 'Low Priority' },
-                        ].map(({ key, label }) => (
-                            <Link
-                                key={key || 'all'}
-                                href={key ? `/todos?filter=${key}${selectedTag ? `&tag=${selectedTag}` : ''}` : `/todos${selectedTag ? `?tag=${selectedTag}` : ''}`}
-                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                            {[
+                                { key: null, label: 'All' },
+                                { key: 'pending', label: 'Pending' },
+                                { key: 'completed', label: 'Completed' },
+                                { key: 'high_priority', label: 'High Priority' },
+                                { key: 'low_priority', label: 'Low Priority' },
+                            ].map(({ key, label }) => (
+                                <Link
+                                    key={key || 'all'}
+                                    href={key ? `/todos?filter=${key}${selectedTag ? `&tag=${selectedTag}` : ''}` : `/todos${selectedTag ? `?tag=${selectedTag}` : ''}`}
+                                className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                     filter === key
                                         ? 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 }`}
-                            >
-                                {label}
-                            </Link>
-                        ))}
+                                >
+                                    {label}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Tag Filters */}
@@ -152,65 +157,73 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                 {filteredTodos.length > 0 ? (
                     <div className="space-y-3">
                         {filteredTodos.map((todo) => (
-                            <div key={todo.id} className={`bg-white dark:bg-gray-800 rounded-lg border p-4 hover:shadow-sm transition-all ${
-                                todo.is_completed ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-700'
-                            }`}>
-                                <div className="flex items-start gap-4">
-                                    {/* Checkbox */}
+                            <div
+                                key={todo.id}
+                                className={`group rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/80 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 ${
+                                    todo.is_completed ? 'ring-2 ring-green-100 dark:ring-green-900/40' : ''
+                                }`}
+                            >
+                                <div className="flex items-start gap-3 p-4 sm:p-5">
                                     <button
                                         onClick={() => handleToggle(todo)}
-                                        className={`mt-1 transition-colors ${
+                                        className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
                                             todo.is_completed
-                                                ? 'text-green-600 hover:text-green-700'
-                                                : 'text-gray-400 hover:text-gray-600'
+                                                ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                : 'border-gray-200 bg-white text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800'
                                         }`}
                                         disabled={toggleForm.processing}
                                     >
-                                        {todo.is_completed ? (
-                                            <CheckCircle className="w-5 h-5" />
-                                        ) : (
-                                            <Circle className="w-5 h-5" />
-                                        )}
+                                        {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                                     </button>
 
-                                    {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <h3 className={`font-medium text-base ${
-                                                    todo.is_completed
-                                                        ? 'text-gray-500 dark:text-gray-400 line-through'
-                                                        : 'text-gray-900 dark:text-gray-100'
-                                                }`}>
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                            <div className="min-w-0 space-y-2">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    {todo.priority && (
+                                                        <span
+                                                            className="inline-flex items-center rounded-full bg-gray-900 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white dark:bg-gray-100 dark:text-gray-900"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    todo.priority === 'low'
+                                                                        ? '#10B981'
+                                                                        : todo.priority === 'medium'
+                                                                            ? '#F59E0B'
+                                                                            : todo.priority === 'high'
+                                                                                ? '#EF4444'
+                                                                                : todo.priority === 'urgent'
+                                                                                    ? '#DC2626'
+                                                                                    : '#111827',
+                                                            }}
+                                                        >
+                                                            {todo.priority}
+                                                        </span>
+                                                    )}
+                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                                        {new Date(todo.created_at).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+
+                                                <h3
+                                                    className={`truncate text-lg font-semibold leading-snug ${
+                                                        todo.is_completed
+                                                            ? 'text-gray-400 line-through dark:text-gray-500'
+                                                            : 'text-gray-900 dark:text-gray-100'
+                                                    }`}
+                                                >
                                                     {todo.title}
                                                 </h3>
                                                 {todo.description && (
-                                                    <p className={`text-sm mt-1 ${
-                                                        todo.is_completed ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300'
-                                                    }`}>
-                                                        {todo.description.length > 100
-                                                            ? `${todo.description.substring(0, 100)}...`
-                                                            : todo.description
-                                                        }
+                                                    <p
+                                                        className={`text-sm leading-relaxed text-gray-600 line-clamp-3 dark:text-gray-300 ${
+                                                            todo.is_completed ? 'text-gray-400' : ''
+                                                        }`}
+                                                    >
+                                                        {todo.description}
                                                     </p>
                                                 )}
-                                                {/* Priority and Tags */}
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    {/* Priority Badge */}
-                                                    {todo.priority && (
-                                                        <span
-                                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                                            style={{ 
-                                                                backgroundColor: todo.priority === 'low' ? '#10B981' : 
-                                                                                todo.priority === 'medium' ? '#F59E0B' : 
-                                                                                todo.priority === 'high' ? '#EF4444' : 
-                                                                                todo.priority === 'urgent' ? '#DC2626' : '#6B7280'
-                                                            }}
-                                                        >
-                                                            {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}
-                                                        </span>
-                                                    )}
-                                                    {/* Tags */}
+                                                {/* Tags */}
+                                                <div className="flex flex-wrap items-center gap-2">
                                                     {todo.tags && todo.tags.length > 0 && (
                                                         <div className="flex flex-wrap gap-1">
                                                             {todo.tags.map(tag => (
@@ -220,30 +233,23 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-gray-500 ml-4">
-                                                {new Date(todo.created_at).toLocaleDateString()}
+                                            <div className="flex flex-col items-end gap-3 text-xs text-gray-400">
+                                                <div className="flex gap-2 text-gray-400 dark:text-gray-500">
+                                                    <Link href={`/todos/${todo.id}`} className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                                        <Eye className="w-4 h-4" />
+                                                    </Link>
+                                                    <Link href={`/todos/${todo.id}/edit`} className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                                        <Edit className="w-4 h-4" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDeleteClick(todo)}
+                                                        className="rounded-full p-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-1">
-                                        <Link href={`/todos/${todo.id}`}>
-                                            <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                        </Link>
-                                        <Link href={`/todos/${todo.id}/edit`}>
-                                            <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDeleteClick(todo)}
-                                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
                                     </div>
                                 </div>
                             </div>

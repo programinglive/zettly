@@ -236,4 +236,21 @@ class TodoTest extends TestCase
             'user_id' => $user->id,
         ]);
     }
+
+    public function test_priority_is_normalized_and_color_resolved(): void
+    {
+        $todo = Todo::factory()->create([
+            'priority' => 'HIGH',
+        ]);
+
+        $this->assertSame('high', $todo->priority);
+        $this->assertSame('#EF4444', $todo->priority_color);
+
+        $todo->priority = 'Urgent';
+        $todo->save();
+        $todo->refresh();
+
+        $this->assertSame('urgent', $todo->priority);
+        $this->assertSame('#DC2626', $todo->priority_color);
+    }
 }

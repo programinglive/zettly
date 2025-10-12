@@ -39,6 +39,10 @@ class Todo extends Model
         'archived_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'priority_color',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -129,6 +133,11 @@ class Todo extends Model
         return $query->where('archived', false);
     }
 
+    public function setPriorityAttribute($value): void
+    {
+        $this->attributes['priority'] = $value !== null ? strtolower($value) : null;
+    }
+
     /**
      * Get all available priority levels
      */
@@ -147,7 +156,9 @@ class Todo extends Model
      */
     public function getPriorityColorAttribute()
     {
-        return match ($this->priority) {
+        $priority = $this->priority !== null ? strtolower($this->priority) : null;
+
+        return match ($priority) {
             self::PRIORITY_LOW => '#10B981',      // green
             self::PRIORITY_MEDIUM => '#F59E0B',   // yellow
             self::PRIORITY_HIGH => '#EF4444',     // red

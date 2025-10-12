@@ -97,34 +97,61 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
     return (
         <AppLayout title="Profile">
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Manage your account information and preferences.</p>
-                    </div>
-                    <Link href="/dashboard">
-                        <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900/20">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Dashboard
-                        </Button>
-                    </Link>
-                </div>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pb-12">
+                <Head title="Profile Settings" />
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    {/* Profile Information */}
-                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-200/30 text-slate-900 shadow-lg shadow-slate-200/60 p-6 sm:p-8 space-y-6 dark:border-transparent dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:shadow-xl dark:shadow-slate-900/40 dark:text-white">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2">
+                            <span className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-300">Account</span>
+                            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight text-slate-900 dark:text-white">Profile Settings</h1>
+                            <p className="text-sm text-slate-600 max-w-lg dark:text-slate-300">
+                                Manage your personal information, update security credentials, and control API access from one place.
+                            </p>
+                        </div>
+                        <Link href="/dashboard" className="w-full sm:w-auto">
+                            <Button
+                                variant="outline"
+                                className="w-full rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/30 dark:bg-transparent dark:text-white dark:hover:bg-white/10"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Back to Dashboard
+                            </Button>
+                        </Link>
+                    </div>
+
+                    <div className="grid gap-4 text-xs text-slate-600 sm:grid-cols-3 dark:text-slate-200">
+                        <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                            <p className="uppercase tracking-widest text-slate-500 dark:text-white/70">Member Since</p>
+                            <p className="mt-1 text-sm font-medium text-slate-800 dark:text-white">
+                                {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                            <p className="uppercase tracking-widest text-slate-500 dark:text-white/70">Last Update</p>
+                            <p className="mt-1 text-sm font-medium text-slate-800 dark:text-white">
+                                {new Date(user.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                            <p className="uppercase tracking-widest text-slate-500 dark:text-white/70">Email Status</p>
+                            <p className="mt-1 text-sm font-medium text-slate-800 dark:text-white">{mustVerifyEmail ? 'Verification Required' : 'Verified'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardHeader>
-                            <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                                <User className="w-5 h-5 mr-2" />
+                            <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                <User className="w-5 h-5 mr-2 text-indigo-500" />
                                 Profile Information
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div className="space-y-2">
+                                    <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Name
                                     </label>
                                     <Input
@@ -132,16 +159,14 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         type="text"
                                         value={data.name}
                                         onChange={(e) => setData('name', e.target.value)}
-                                        className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.name ? 'border-red-500' : ''}`}
+                                        className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                                         required
                                     />
-                                    {errors.name && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
-                                    )}
+                                    {errors.name && <p className="text-sm text-red-500 dark:text-red-400">{errors.name}</p>}
                                 </div>
 
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div className="space-y-2">
+                                    <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Email
                                     </label>
                                     <Input
@@ -149,33 +174,30 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         type="email"
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
-                                        className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.email ? 'border-red-500' : ''}`}
+                                        className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                                         required
                                     />
-                                    {errors.email && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
-                                    )}
+                                    {errors.email && <p className="text-sm text-red-500 dark:text-red-400">{errors.email}</p>}
                                 </div>
 
-                                <Button type="submit" disabled={processing} className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
+                                <Button type="submit" disabled={processing} className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white">
                                     {processing ? 'Updating...' : 'Update Profile'}
                                 </Button>
                             </form>
                         </CardContent>
                     </Card>
 
-                    {/* Change Password */}
-                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardHeader>
-                            <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                                <Key className="w-5 h-5 mr-2" />
+                            <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                <Key className="w-5 h-5 mr-2 text-amber-500" />
                                 Change Password
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                                <div>
-                                    <label htmlFor="current_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div className="space-y-2">
+                                    <label htmlFor="current_password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Current Password
                                     </label>
                                     <Input
@@ -183,16 +205,14 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         type="password"
                                         value={passwordForm.data.current_password}
                                         onChange={(e) => passwordForm.setData('current_password', e.target.value)}
-                                        className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${passwordForm.errors.current_password ? 'border-red-500' : ''}`}
+                                        className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.current_password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                                         required
                                     />
-                                    {passwordForm.errors.current_password && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{passwordForm.errors.current_password}</p>
-                                    )}
+                                    {passwordForm.errors.current_password && <p className="text-sm text-red-500 dark:text-red-400">{passwordForm.errors.current_password}</p>}
                                 </div>
 
-                                <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div className="space-y-2">
+                                    <label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         New Password
                                     </label>
                                     <Input
@@ -200,16 +220,14 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         type="password"
                                         value={passwordForm.data.password}
                                         onChange={(e) => passwordForm.setData('password', e.target.value)}
-                                        className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${passwordForm.errors.password ? 'border-red-500' : ''}`}
+                                        className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                                         required
                                     />
-                                    {passwordForm.errors.password && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{passwordForm.errors.password}</p>
-                                    )}
+                                    {passwordForm.errors.password && <p className="text-sm text-red-500 dark:text-red-400">{passwordForm.errors.password}</p>}
                                 </div>
 
-                                <div>
-                                    <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <div className="space-y-2">
+                                    <label htmlFor="password_confirmation" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Confirm New Password
                                     </label>
                                     <Input
@@ -217,15 +235,13 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         type="password"
                                         value={passwordForm.data.password_confirmation}
                                         onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
-                                        className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${passwordForm.errors.password_confirmation ? 'border-red-500' : ''}`}
+                                        className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.password_confirmation ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                                         required
                                     />
-                                    {passwordForm.errors.password_confirmation && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{passwordForm.errors.password_confirmation}</p>
-                                    )}
+                                    {passwordForm.errors.password_confirmation && <p className="text-sm text-red-500 dark:text-red-400">{passwordForm.errors.password_confirmation}</p>}
                                 </div>
 
-                                <Button type="submit" disabled={passwordForm.processing} className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
+                                <Button type="submit" disabled={passwordForm.processing} className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-white">
                                     {passwordForm.processing ? 'Updating...' : 'Update Password'}
                                 </Button>
                             </form>
@@ -233,167 +249,113 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                     </Card>
                 </div>
 
-                {/* Account Information */}
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <CardHeader>
-                        <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                            <Mail className="w-5 h-5 mr-2" />
-                            Account Information
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Account Created
-                                </label>
-                                <p className="text-gray-900 dark:text-white">
-                                    {new Date(user.created_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Last Updated
-                                </label>
-                                <p className="text-gray-900 dark:text-white">
-                                    {new Date(user.updated_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* API Tokens */}
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    <CardHeader>
-                        <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                            <Key className="w-5 h-5 mr-2" />
+                        <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            <Mail className="w-5 h-5 mr-2 text-sky-500" />
                             API Tokens
                         </CardTitle>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Manage your API tokens for accessing the todo API programmatically.
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Generate and manage personal access tokens for integrating with the Todo API.
                         </p>
                     </CardHeader>
-                    <CardContent>
-                        {/* Create New Token */}
-                        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                                Create New API Token
-                            </h4>
-                            <form onSubmit={handleTokenSubmit} className="flex gap-3">
+                    <CardContent className="space-y-6">
+                        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5 space-y-4">
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Create a new token</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Give your token a friendly name, so you remember what it’s used for.</p>
+                            </div>
+                            <form onSubmit={handleTokenSubmit} className="space-y-3 sm:flex sm:items-center sm:space-y-0 sm:space-x-3">
                                 <Input
                                     type="text"
-                                    placeholder="Token name (e.g., 'Mobile App')"
+                                    placeholder="Token name (e.g., Mobile App)"
                                     value={tokenForm.data.name}
                                     onChange={(e) => tokenForm.setData('name', e.target.value)}
-                                    className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                                    className="rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                                     disabled={tokenForm.processing}
                                 />
-                                <Button type="submit" disabled={tokenForm.processing} className="bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
+                                <Button type="submit" disabled={tokenForm.processing} className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white sm:w-auto">
                                     <Plus className="w-4 h-4 mr-2" />
-                                    {tokenForm.processing ? 'Creating...' : 'Create Token'}
+                                    {tokenForm.processing ? 'Creating…' : 'Create Token'}
                                 </Button>
                             </form>
-                            {tokenForm.errors.name && (
-                                <p className="mt-2 text-sm text-red-600 dark:text-red-400">{tokenForm.errors.name}</p>
-                            )}
+                            {tokenForm.errors.name && <p className="text-sm text-red-500 dark:text-red-400">{tokenForm.errors.name}</p>}
                         </div>
 
-                        {/* Display New Token (if just created) */}
                         {new_token && (
-                            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                        New Token Created
-                                    </h4>
+                            <div className="space-y-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-5">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200">New token created</h4>
+                                        <p className="text-xs text-blue-600/80 dark:text-blue-200/80">Copy this token right away—you won’t see it again.</p>
+                                    </div>
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => copyToClipboard(new_token.plain_text_token)}
-                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                        className="border-blue-200 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-800/50"
                                     >
                                         <Copy className="w-4 h-4 mr-2" />
                                         Copy
                                     </Button>
                                 </div>
-                                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded font-mono text-sm text-gray-800 dark:text-gray-200 break-all">
+                                <div className="rounded-lg bg-white/80 p-3 font-mono text-xs text-blue-900 break-all dark:bg-blue-950/40 dark:text-blue-100">
                                     {new_token.plain_text_token}
                                 </div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                                    ⚠️ Copy this token now. You won't be able to see it again!
-                                </p>
                             </div>
                         )}
 
-                        {/* Existing Tokens */}
-                        {tokens && tokens.length > 0 && (
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                                    Your API Tokens
-                                </h4>
-                                <div className="space-y-3">
-                                    {tokens.map((token) => (
-                                        <div key={token.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                        {token.name}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        Created {new Date(token.created_at).toLocaleDateString()}
-                                                    </span>
+                        {tokens && tokens.length > 0 ? (
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Existing tokens</h4>
+                                {tokens.map((token) => (
+                                    <div key={token.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60 p-4">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[180px] sm:max-w-none">{token.name}</span>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400">Created {new Date(token.created_at).toLocaleDateString()}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-mono text-xs text-gray-600 dark:text-gray-300">
-                                                        {token.id}...
-                                                    </span>
+                                                    <span className="font-mono text-xs text-slate-600 dark:text-slate-300">{token.id}…</span>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => toggleTokenVisibility(token.id)}
-                                                        className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
+                                                        className="border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700/60"
                                                     >
-                                                        {visibleTokens.has(token.id) ? (
-                                                            <EyeOff className="w-4 h-4" />
-                                                        ) : (
-                                                            <Eye className="w-4 h-4" />
-                                                        )}
+                                                        {visibleTokens.has(token.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                     </Button>
                                                 </div>
                                                 {visibleTokens.has(token.id) && (
-                                                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded font-mono text-xs text-gray-800 dark:text-gray-200 break-all">
+                                                    <div className="rounded-lg border border-slate-200 bg-white p-2 font-mono text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 break-all">
                                                         {token.plain_text_token || 'Token hidden for security'}
                                                     </div>
                                                 )}
                                             </div>
                                             <Button
+                                                onClick={handleToggle}
                                                 variant="outline"
-                                                size="sm"
-                                                onClick={() => deleteToken(token.id)}
-                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 ml-3"
+                                                className={`w-full rounded-xl border border-slate-200 transition-colors dark:border-slate-700 ${
+                                                    todo.is_completed
+                                                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                                        : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-800 dark:hover:bg-slate-200'
+                                                }`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
+                                                Remove
                                             </Button>
                                         </div>
-                                    ))}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            !new_token && (
+                                <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                                    <Key className="w-10 h-10 mx-auto mb-3 opacity-60" />
+                                    No API tokens yet. Create your first token to start integrating with the API.
                                 </div>
-                            </div>
-                        )}
-
-                        {(!tokens || tokens.length === 0) && !new_token && (
-                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                <Key className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                <p>No API tokens created yet.</p>
-                                <p className="text-sm">Create your first token above to get started with the API.</p>
-                            </div>
+                            )
                         )}
                     </CardContent>
                 </Card>

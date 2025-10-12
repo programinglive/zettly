@@ -22,7 +22,16 @@ Route::get('/legal/privacy', function () {
 })->name('legal.privacy');
 
 Route::get('/dashboard', function () {
-    $todos = auth()->user()->todos()
+    $user = auth()->user();
+
+    $selectedTagIds = collect(request()->input('tags', []))
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->unique()
+        ->values()
+        ->all();
+
+    $todosQuery = $user->todos()
         ->notArchived()
         ->with('tags')
         ->orderBy('is_completed', 'asc')
@@ -32,19 +41,33 @@ Route::get('/dashboard', function () {
             WHEN priority = 'medium' THEN 3 
             WHEN priority = 'low' THEN 4 
             ELSE 5 END")
-        ->orderBy('created_at', 'desc')
+        ->orderBy('created_at', 'desc');
+
+    if (! empty($selectedTagIds)) {
+        $todosQuery->whereHas('tags', function ($query) use ($selectedTagIds) {
+            $query->whereIn('tags.id', $selectedTagIds);
+        });
+    }
+
+    $todos = $todosQuery
         ->take(10)
         ->get();
 
     return Inertia::render('Dashboard', [
         'todos' => $todos,
         'stats' => [
-            'total' => auth()->user()->todos()->count(),
-            'completed' => auth()->user()->todos()->where('is_completed', true)->count(),
-            'pending' => auth()->user()->todos()->where('is_completed', false)->count(),
-            'urgent' => auth()->user()->todos()->where('priority', 'urgent')->count(),
-            'high' => auth()->user()->todos()->where('priority', 'high')->count(),
+            'total' => $user->todos()->count(),
+            'completed' => $user->todos()->where('is_completed', true)->count(),
+            'pending' => $user->todos()->where('is_completed', false)->count(),
+            'urgent' => $user->todos()->where('priority', 'urgent')->count(),
+            'high' => $user->todos()->where('priority', 'high')->count(),
         ],
+        'filters' => [
+            'tags' => $selectedTagIds,
+        ],
+        'availableTags' => $user->tags()
+            ->orderBy('name')
+            ->get(['id', 'name', 'color']),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
