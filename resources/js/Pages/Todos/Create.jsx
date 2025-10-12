@@ -133,17 +133,6 @@ export default function Create({ tags, todos }) {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Checklist Items
-                                </label>
-                                <ChecklistEditor
-                                    items={data.checklist_items || []}
-                                    onChange={(items) => setData('checklist_items', items)}
-                                    errors={checklistErrors}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Priority
                                 </label>
                                 <PrioritySelector
@@ -152,6 +141,12 @@ export default function Create({ tags, todos }) {
                                     error={errors.priority}
                                 />
                             </div>
+
+                            <ChecklistEditor
+                                items={data.checklist_items || []}
+                                onChange={(items) => setData('checklist_items', items)}
+                                errors={checklistErrors}
+                            />
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">

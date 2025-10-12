@@ -327,6 +327,7 @@ class TodoController extends Controller
                     if ($item) {
                         $item->update($attributes);
                         $persistedIds[] = $item->id;
+
                         return;
                     }
                 }
