@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.16](https://github.com/programinglive/todo/compare/v0.1.15...v0.1.16) (2025-10-12)
+
+
+### 🐛 Bug Fixes
+
+* normalize todo priority colors and improve light/dark theme support in show view ([622cb0f](https://github.com/programinglive/todo/commit/622cb0fb3657677ccb14ed298b046e410c850656))
+
 ### [0.1.15](https://github.com/programinglive/todo/compare/v0.1.14...v0.1.15) (2025-10-12)
 
 
