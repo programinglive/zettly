@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.14](https://github.com/programinglive/todo/compare/v0.1.13...v0.1.14) (2025-10-12)
+
+
+### ✨ Features
+
+* **deps:** integrate opcodesio/log-viewer for enhanced log management and publish assets ([13d1e94](https://github.com/programinglive/todo/commit/13d1e9494a0d0617722cd02ccc3f960f0e0c829b))
+* **todo:** sync checklist items in API and web flows ([0037a1c](https://github.com/programinglive/todo/commit/0037a1c02f9e7f77dffb620c34c3fe44a5bcdff1))
+
 ### [0.1.13](https://github.com/programinglive/todo/compare/v0.1.12...v0.1.13) (2025-10-09)
 
 
