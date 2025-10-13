@@ -61,7 +61,7 @@ export default function Dashboard({ todos, stats, filters = { tags: [] }, availa
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
                         <div className="flex items-center">
                             <div className="text-2xl mr-4">📝</div>
@@ -104,6 +104,15 @@ export default function Dashboard({ todos, stats, filters = { tags: [] }, availa
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">High</p>
                                 <p className="text-2xl font-bold text-red-500 dark:text-red-300">{stats.high || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+                        <div className="flex items-center">
+                            <div className="text-2xl mr-4">🗃️</div>
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Archived</p>
+                                <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{stats.archived || 0}</p>
                             </div>
                         </div>
                     </div>

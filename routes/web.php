@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TagController;
@@ -21,55 +22,9 @@ Route::get('/legal/privacy', function () {
     return Inertia::render('Legal/Privacy');
 })->name('legal.privacy');
 
-Route::get('/dashboard', function () {
-    $user = auth()->user();
-
-    $selectedTagIds = collect(request()->input('tags', []))
-        ->filter()
-        ->map(fn ($id) => (int) $id)
-        ->unique()
-        ->values()
-        ->all();
-
-    $todosQuery = $user->todos()
-        ->notArchived()
-        ->with('tags')
-        ->orderBy('is_completed', 'asc')
-        ->orderByRaw("CASE 
-            WHEN priority = 'urgent' THEN 1 
-            WHEN priority = 'high' THEN 2 
-            WHEN priority = 'medium' THEN 3 
-            WHEN priority = 'low' THEN 4 
-            ELSE 5 END")
-        ->orderBy('created_at', 'desc');
-
-    if (! empty($selectedTagIds)) {
-        $todosQuery->whereHas('tags', function ($query) use ($selectedTagIds) {
-            $query->whereIn('tags.id', $selectedTagIds);
-        });
-    }
-
-    $todos = $todosQuery
-        ->take(10)
-        ->get();
-
-    return Inertia::render('Dashboard', [
-        'todos' => $todos,
-        'stats' => [
-            'total' => $user->todos()->count(),
-            'completed' => $user->todos()->where('is_completed', true)->count(),
-            'pending' => $user->todos()->where('is_completed', false)->count(),
-            'urgent' => $user->todos()->where('priority', 'urgent')->count(),
-            'high' => $user->todos()->where('priority', 'high')->count(),
-        ],
-        'filters' => [
-            'tags' => $selectedTagIds,
-        ],
-        'availableTags' => $user->tags()
-            ->orderBy('name')
-            ->get(['id', 'name', 'color']),
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     // Special routes that need to come before resource routes
