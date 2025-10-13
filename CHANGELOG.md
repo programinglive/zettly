@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.17](https://github.com/programinglive/todo/compare/v0.1.16...v0.1.17) (2025-10-13)
+
+
+### ✨ Features
+
+* add comprehensive application icons and favicon support ([5be680d](https://github.com/programinglive/todo/commit/5be680d2a5817884f8a3cf1980427c34f66befcc))
+* refine dashboard metrics and controller ([22a20e1](https://github.com/programinglive/todo/commit/22a20e1749eb15c489bd6cf5eecd4520a4b4c0e3))
+
 ### [0.1.16](https://github.com/programinglive/todo/compare/v0.1.15...v0.1.16) (2025-10-12)
 
 
