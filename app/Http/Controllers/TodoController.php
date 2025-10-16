@@ -8,11 +8,11 @@ use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Intervention\Image\Facades\Image;
 
 class TodoController extends Controller
 {
@@ -21,7 +21,7 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Todo::where('user_id', auth()->id())->notArchived()->with(['user', 'tags']);
+        $query = Todo::where('user_id', Auth::id())->notArchived()->with(['user', 'tags']);
 
         if ($request->has('filter')) {
             switch ($request->filter) {
@@ -62,7 +62,7 @@ class TodoController extends Controller
                 ELSE 5 END")
             ->orderBy('created_at', 'desc')
             ->get();
-        $tags = Tag::forUser(auth()->id())->get();
+        $tags = Tag::forUser(Auth::id())->get();
 
         return Inertia::render('Todos/Index', [
             'todos' => $todos,
@@ -76,8 +76,8 @@ class TodoController extends Controller
      */
     public function create()
     {
-        $tags = Tag::forUser(auth()->id())->get();
-        $todos = Todo::where('user_id', auth()->id())->latest()->get(['id', 'title', 'is_completed']);
+        $tags = Tag::forUser(Auth::id())->get();
+        $todos = Todo::where('user_id', Auth::id())->latest()->get(['id', 'title', 'is_completed']);
 
         return Inertia::render('Todos/Create', [
             'tags' => $tags,
@@ -108,7 +108,7 @@ class TodoController extends Controller
         $checklistItems = $validated['checklist_items'] ?? [];
         unset($validated['checklist_items']);
 
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = Auth::id();
 
         $todo = Todo::create($validated);
 
@@ -127,7 +127,7 @@ class TodoController extends Controller
         if (isset($validated['tag_ids']) && ! empty($validated['tag_ids'])) {
             // Filter tags to ensure they belong to the authenticated user
             $userTagIds = Tag::whereIn('id', $validated['tag_ids'])
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->pluck('id')
                 ->toArray();
 
@@ -138,7 +138,7 @@ class TodoController extends Controller
         if (isset($validated['related_todo_ids']) && ! empty($validated['related_todo_ids'])) {
             // Filter todos to ensure they belong to the authenticated user
             $userTodoIds = Todo::whereIn('id', $validated['related_todo_ids'])
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->pluck('id')
                 ->toArray();
 
@@ -191,7 +191,7 @@ class TodoController extends Controller
     public function show(Todo $todo)
     {
         // Ensure user owns the todo
-        if ($todo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -204,7 +204,7 @@ class TodoController extends Controller
             ->unique()
             ->toArray();
 
-        $availableTodos = Todo::where('user_id', auth()->id())
+        $availableTodos = Todo::where('user_id', Auth::id())
             ->where('id', '!=', $todo->id)
             ->whereNotIn('id', $linkedTodoIds)
             ->latest()
@@ -222,12 +222,12 @@ class TodoController extends Controller
     public function edit(Todo $todo)
     {
         // Ensure user owns the todo
-        if ($todo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id()) {
             abort(403);
         }
 
-        $tags = Tag::forUser(auth()->id())->get();
-        $todos = Todo::where('user_id', auth()->id())
+        $tags = Tag::forUser(Auth::id())->get();
+        $todos = Todo::where('user_id', Auth::id())
             ->where('id', '!=', $todo->id)
             ->latest()
             ->get(['id', 'title', 'description', 'is_completed']);
@@ -304,7 +304,7 @@ class TodoController extends Controller
         if (isset($validated['related_todo_ids'])) {
             // Filter todos to ensure they belong to the authenticated user
             $userTodoIds = Todo::whereIn('id', $validated['related_todo_ids'])
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->pluck('id')
                 ->toArray();
 
@@ -396,7 +396,7 @@ class TodoController extends Controller
     public function toggle(Request $request, Todo $todo)
     {
         // Ensure user owns the todo
-        if ($todo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id()) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -427,7 +427,7 @@ class TodoController extends Controller
 
     public function toggleChecklistItem(Request $request, Todo $todo, TodoChecklistItem $checklistItem)
     {
-        if ($todo->user_id !== auth()->id() || $checklistItem->todo_id !== $todo->id) {
+        if ($todo->user_id !== Auth::id() || $checklistItem->todo_id !== $todo->id) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -452,7 +452,7 @@ class TodoController extends Controller
     public function updatePriority(Request $request, Todo $todo)
     {
         // Ensure user owns the todo
-        if ($todo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id()) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -513,7 +513,7 @@ class TodoController extends Controller
 
         // Check if user owns both todos
         $relatedTodo = Todo::find($validated['related_todo_id']);
-        if ($todo->user_id !== auth()->id() || $relatedTodo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id() || $relatedTodo->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -539,7 +539,7 @@ class TodoController extends Controller
 
         // Check if user owns both todos
         $relatedTodo = Todo::find($validated['related_todo_id']);
-        if ($todo->user_id !== auth()->id() || $relatedTodo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id() || $relatedTodo->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -567,7 +567,7 @@ class TodoController extends Controller
      */
     public function archiveCompleted(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Get count of completed todos before archiving (exclude already archived)
         $completedCount = $user->todos()->completed()->notArchived()->count();
@@ -601,7 +601,7 @@ class TodoController extends Controller
      */
     public function archived(Request $request)
     {
-        $archivedTodos = auth()->user()->todos()
+        $archivedTodos = Auth::user()->todos()
             ->archived()
             ->with(['tags', 'relatedTodos', 'linkedByTodos'])
             ->orderBy('archived_at', 'desc')
@@ -618,7 +618,7 @@ class TodoController extends Controller
     public function uploadAttachment(Request $request, Todo $todo)
     {
         // Ensure user owns the todo
-        if ($todo->user_id !== auth()->id()) {
+        if ($todo->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -674,7 +674,7 @@ class TodoController extends Controller
     public function deleteAttachment(TodoAttachment $attachment)
     {
         // Ensure user owns the todo
-        if ($attachment->todo->user_id !== auth()->id()) {
+        if ($attachment->todo->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -699,7 +699,7 @@ class TodoController extends Controller
     public function downloadAttachment(TodoAttachment $attachment)
     {
         // Ensure user owns the todo
-        if ($attachment->todo->user_id !== auth()->id()) {
+        if ($attachment->todo->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -707,7 +707,9 @@ class TodoController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('public')->download($attachment->file_path, $attachment->original_name);
+        $filePath = Storage::disk('public')->path($attachment->file_path);
+
+        return response()->download($filePath, $attachment->original_name);
     }
 
     /**
@@ -728,8 +730,9 @@ class TodoController extends Controller
             }
 
             // Create thumbnail using intervention/image if available, otherwise use basic PHP
-            if (class_exists('Intervention\Image\Facades\Image')) {
-                $image = Image::make($fullPath);
+            $imageClass = 'Intervention\\Image\\ImageManagerStatic';
+            if (class_exists($imageClass)) {
+                $image = $imageClass::make($fullPath);
                 $image->fit(200, 200, function ($constraint) {
                     $constraint->upsize();
                 });

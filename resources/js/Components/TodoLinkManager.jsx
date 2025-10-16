@@ -5,20 +5,18 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import ConfirmationModal from './ConfirmationModal';
 
-export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink }) {
+export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink, linkedTodos }) {
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [showUnlinkModal, setShowUnlinkModal] = useState(false);
     const [selectedTodo, setSelectedTodo] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLinking, setIsLinking] = useState(false);
 
-    
-
     const relatedTodos = todo.related_todos || todo.relatedTodos || [];
     const linkedByTodos = todo.linked_by_todos || todo.linkedByTodos || [];
 
-    const allLinkedTodos = [...relatedTodos, ...linkedByTodos].filter((todo, index, self) =>
-        index === self.findIndex(t => t.id === todo.id)
+    const allLinkedTodos = (linkedTodos ?? [...relatedTodos, ...linkedByTodos]).filter((todoItem, index, self) =>
+        todoItem?.id && index === self.findIndex(t => t?.id === todoItem.id)
     );
 
     const filteredAvailableTodos = availableTodos.filter(availableTodo =>
@@ -64,10 +62,6 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
         <div className="space-y-4">
             {/* Current Links Section - Always Show */}
             <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    Linked Todos {allLinkedTodos.length > 0 && `(${allLinkedTodos.length})`}
-                </h3>
-                
                 {allLinkedTodos.length > 0 ? (
                     <div className="space-y-2 mb-4">
                         {allLinkedTodos.map(linkedTodo => (
