@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "google-gemini-php/laravel": "^2.0",
+        "google/apiclient": "2.15",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.31",
         "laravel/framework": "^12.0",

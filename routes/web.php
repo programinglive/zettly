@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TagController;
@@ -58,6 +59,11 @@ Route::middleware('auth')->group(function () {
     // API Token Management
     Route::post('/tokens', [ProfileController::class, 'createToken'])->name('tokens.create');
     Route::delete('/tokens/{token}', [ProfileController::class, 'deleteToken'])->name('tokens.delete');
+
+    // Gemini demo routes
+    Route::get('/gemini-test', [GeminiTestController::class, 'test'])->name('gemini.test');
+    Route::get('/gemini/chat', fn () => Inertia::render('Gemini/Chat'))->name('gemini.chat.page');
+    Route::post('/gemini/chat', [GeminiTestController::class, 'chat'])->name('gemini.chat');
 });
 
 require __DIR__.'/auth.php';

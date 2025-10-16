@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { CheckSquare, Plus, ArrowRight } from 'lucide-react';
+import { CheckSquare, Plus, ArrowRight, LayoutDashboard } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 
@@ -61,13 +61,22 @@ export default function Index({ message }) {
                             <p className="text-gray-600 dark:text-gray-300 mb-6">
                                 Ready to tackle your tasks? Let's get organized!
                             </p>
-                            <Link href="/todos">
-                                <button className="inline-flex items-center px-8 py-3 bg-black text-white rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-100">
-                                    <CheckSquare className="w-5 h-5 mr-2" />
-                                    View My Todos
-                                    <ArrowRight className="w-5 h-5 ml-2" />
-                                </button>
-                            </Link>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                                <Link href="/todos">
+                                    <button className="inline-flex items-center px-8 py-3 bg-black text-white rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-100">
+                                        <CheckSquare className="w-5 h-5 mr-2" />
+                                        View My Todos
+                                        <ArrowRight className="w-5 h-5 ml-2" />
+                                    </button>
+                                </Link>
+                                <Link href="/dashboard">
+                                    <button className="inline-flex items-center px-8 py-3 bg-white text-gray-900 rounded-lg text-lg font-semibold border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors shadow-lg dark:bg-gray-900 dark:text-white dark:border-gray-700 dark:hover:bg-gray-800">
+                                        <LayoutDashboard className="w-5 h-5 mr-2" />
+                                        Dashboard
+                                        <ArrowRight className="w-5 h-5 ml-2" />
+                                    </button>
+                                </Link>
+                            </div>
                         </div>
                     )}
                 </div>

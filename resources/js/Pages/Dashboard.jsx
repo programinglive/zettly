@@ -5,7 +5,12 @@ import { Filter } from 'lucide-react';
 import AppLayout from '../Layouts/AppLayout';
 import KanbanBoard from '../Components/KanbanBoard';
 
-export default function Dashboard({ todos, stats, filters = { tags: [] }, availableTags = [] }) {
+export default function Dashboard({
+    todos = [],
+    stats = { total: 0, completed: 0, pending: 0, urgent: 0, high: 0, archived: 0 },
+    filters = { tags: [] },
+    availableTags = [],
+}) {
     const selectedTagIds = useMemo(
         () => (filters?.tags ?? []).map((id) => Number(id)).filter((id) => !Number.isNaN(id)),
         [filters]
