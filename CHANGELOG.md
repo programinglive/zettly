@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.18](https://github.com/programinglive/todo/compare/v0.1.17...v0.1.18) (2025-10-16)
+
+
+### ✨ Features
+
+* add gemini api and improve todo linking ([042fb72](https://github.com/programinglive/todo/commit/042fb7209c7e6bf8f51e3ff31aaf237d7a8028b4))
+* integrate Gemini AI for chat functionality ([aa649e9](https://github.com/programinglive/todo/commit/aa649e917e11ff7298e3f87d917f412cc5233278))
+
 ### [0.1.17](https://github.com/programinglive/todo/compare/v0.1.16...v0.1.17) (2025-10-13)
 
 
