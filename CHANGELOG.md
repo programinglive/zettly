@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.20](https://github.com/programinglive/todo/compare/v0.1.19...v0.1.20) (2025-10-18)
+
+
+### ✨ Features
+
+* **todos:** add note mode support ([fc51bf7](https://github.com/programinglive/todo/commit/fc51bf7e5a1effa8a0c4ae2cc777d70ef1c81123))
+
 ### [0.1.19](https://github.com/programinglive/todo/compare/v0.1.18...v0.1.19) (2025-10-18)
 
 ### [0.1.18](https://github.com/programinglive/todo/compare/v0.1.17...v0.1.18) (2025-10-16)
