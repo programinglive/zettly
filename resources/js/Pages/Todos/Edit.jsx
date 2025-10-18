@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -24,10 +24,12 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         ...linkedByList.map(t => t.id),
     ]));
 
+    const initialType = ['todo', 'note'].includes(todo.type) ? todo.type : 'todo';
     const { data, setData, put, processing, errors } = useForm({
+        type: initialType,
         title: todo.title || '',
         description: todo.description || '',
-        priority: todo.priority || 'medium',
+        priority: initialType === 'note' ? null : (todo.priority || 'medium'),
         is_completed: todo.is_completed || false,
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
@@ -41,6 +43,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     const [attachmentFiles, setAttachmentFiles] = useState([]);
     const [existingAttachments, setExistingAttachments] = useState(todo.attachments || []);
+    const isNote = data.type === 'note';
 
     const checklistErrors = Object.keys(errors)
         .filter((key) => key.startsWith('checklist_items'))
@@ -61,9 +64,12 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         // Always send multipart/form-data via POST + _method=PUT
         const formData = new FormData();
         formData.append('_method', 'PUT');
+        formData.append('type', data.type);
         formData.append('title', (data.title || '').trim());
         formData.append('description', data.description || '');
-        formData.append('priority', data.priority || 'medium');
+        if (!isNote && data.priority) {
+            formData.append('priority', data.priority);
+        }
         formData.append('is_completed', data.is_completed ? '1' : '0');
 
         // Arrays
@@ -109,23 +115,56 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         setData('priority', priority);
     };
 
+    const handleTypeChange = (type) => {
+        setData('type', type);
+        if (type === 'note') {
+            setData('priority', null);
+            if (data.is_completed && todo.type !== 'note') {
+                // allow keep completion
+            }
+        } else if (!data.priority) {
+            setData('priority', todo.priority || 'medium');
+        }
+    };
+
     return (
         <AppLayout title={`Edit ${todo.title}`}>
             <div className="max-w-7xl mx-auto">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-2xl text-gray-900 dark:text-white">Edit Todo</CardTitle>
-                            <Link href="/todos">
+                            <CardTitle className="text-2xl text-gray-900 dark:text-white">{isNote ? 'Edit Note' : 'Edit Todo'}</CardTitle>
+                            <Link href={isNote ? '/todos?type=note' : '/todos'}>
                                 <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Todos
+                                    Back to {isNote ? 'Notes' : 'Todos'}
                                 </Button>
                             </Link>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Type
+                                </label>
+                                <div className="flex rounded-md bg-gray-100 dark:bg-gray-800 p-1 w-fit">
+                                    {[{ value: 'todo', label: 'Todo' }, { value: 'note', label: 'Note' }].map(option => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => handleTypeChange(option.value)}
+                                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                                data.type === option.value
+                                                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                                                    : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                                            }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="space-y-2">
                                 <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Title <span className="text-red-500">*</span>
@@ -160,16 +199,18 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Priority
-                                </label>
-                                <PrioritySelector
-                                    selectedPriority={data.priority}
-                                    onPriorityChange={handlePriorityChange}
-                                    error={errors.priority}
-                                />
-                            </div>
+                            {!isNote && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Priority
+                                    </label>
+                                    <PrioritySelector
+                                        selectedPriority={data.priority}
+                                        onPriorityChange={handlePriorityChange}
+                                        error={errors.priority}
+                                    />
+                                </div>
+                            )}
 
                             <ChecklistEditor
                                 items={data.checklist_items || []}
@@ -247,13 +288,13 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                             </div>
 
                             <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <Link href="/todos">
+                                <Link href={isNote ? '/todos?type=note' : '/todos'}>
                                     <Button type="button" variant="outline" className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         Cancel
                                     </Button>
                                 </Link>
                                 <Button type="submit" disabled={processing} className="bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white">
-                                    {processing ? 'Updating...' : 'Update Todo'}
+                                    {processing ? 'Updating...' : isNote ? 'Update Note' : 'Update Todo'}
                                 </Button>
                             </div>
                         </form>

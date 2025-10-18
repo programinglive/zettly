@@ -21,9 +21,22 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Todo::where('user_id', Auth::id())->notArchived()->with(['user', 'tags']);
+        $requestedType = $request->get('type');
+        $type = in_array($requestedType, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)
+            ? $requestedType
+            : Todo::TYPE_TODO;
 
-        if ($request->has('filter')) {
+        $query = Todo::where('user_id', Auth::id())
+            ->notArchived()
+            ->with(['user', 'tags', 'relatedTodos', 'linkedByTodos']);
+
+        if ($type === Todo::TYPE_NOTE) {
+            $query->notes();
+        } else {
+            $query->tasks();
+        }
+
+        if ($request->has('filter') && $type === Todo::TYPE_TODO) {
             switch ($request->filter) {
                 case 'completed':
                     $query->completed();
@@ -40,48 +53,57 @@ class TodoController extends Controller
             }
         }
 
-        // Filter by specific priority if requested
-        if ($request->has('priority')) {
+        if ($request->has('priority') && $type === Todo::TYPE_TODO) {
             $query->byPriority($request->priority);
         }
 
-        // Filter by tag
         if ($request->has('tag') && $request->tag) {
             $query->whereHas('tags', function ($q) use ($request) {
                 $q->where('tags.id', $request->tag);
             });
         }
 
-        $todos = $query->with(['tags', 'relatedTodos', 'linkedByTodos'])
-            ->orderBy('is_completed', 'asc')
-            ->orderByRaw("CASE 
+        if ($type === Todo::TYPE_TODO) {
+            $query->orderBy('is_completed', 'asc')
+                ->orderByRaw("CASE 
                 WHEN priority = 'urgent' THEN 1 
                 WHEN priority = 'high' THEN 2 
                 WHEN priority = 'medium' THEN 3 
                 WHEN priority = 'low' THEN 4 
                 ELSE 5 END")
-            ->orderBy('created_at', 'desc')
-            ->get();
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $todos = $query->get();
         $tags = Tag::forUser(Auth::id())->get();
 
         return Inertia::render('Todos/Index', [
             'todos' => $todos,
             'tags' => $tags,
             'selectedTag' => $request->get('tag'),
+            'selectedType' => $type,
         ]);
     }
 
     /**
      * Show the form for creating a new todo.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $requestedType = $request->get('type');
+        $type = in_array($requestedType, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)
+            ? $requestedType
+            : Todo::TYPE_TODO;
+
         $tags = Tag::forUser(Auth::id())->get();
         $todos = Todo::where('user_id', Auth::id())->latest()->get(['id', 'title', 'is_completed']);
 
         return Inertia::render('Todos/Create', [
             'tags' => $tags,
             'todos' => $todos,
+            'defaultType' => $type,
         ]);
     }
 
@@ -91,6 +113,7 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
@@ -105,10 +128,19 @@ class TodoController extends Controller
             'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
 
+        $type = $validated['type'] ?? Todo::TYPE_TODO;
+        $validated['type'] = $type;
+
         $checklistItems = $validated['checklist_items'] ?? [];
         unset($validated['checklist_items']);
 
         $validated['user_id'] = Auth::id();
+
+        if ($type === Todo::TYPE_TODO) {
+            $validated['priority'] = $validated['priority'] ?? Todo::PRIORITY_MEDIUM;
+        } else {
+            $validated['priority'] = null;
+        }
 
         $todo = Todo::create($validated);
 
@@ -265,6 +297,7 @@ class TodoController extends Controller
     public function update(Request $request, Todo $todo)
     {
         $validated = $request->validate([
+            'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
@@ -281,6 +314,9 @@ class TodoController extends Controller
             'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
 
+        $type = $validated['type'] ?? $todo->type ?? Todo::TYPE_TODO;
+        $validated['type'] = $type;
+
         // Convert is_completed to boolean
         if (isset($validated['is_completed'])) {
             $validated['is_completed'] = in_array($validated['is_completed'], ['1', 1, true, 'true'], true);
@@ -290,6 +326,12 @@ class TodoController extends Controller
             $validated['completed_at'] = now();
         } elseif (isset($validated['is_completed']) && ! $validated['is_completed']) {
             $validated['completed_at'] = null;
+        }
+
+        if ($type === Todo::TYPE_TODO) {
+            $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_MEDIUM);
+        } else {
+            $validated['priority'] = null;
         }
 
         $checklistItems = $validated['checklist_items'] ?? null;

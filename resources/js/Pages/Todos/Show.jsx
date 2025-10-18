@@ -21,6 +21,7 @@ export default function Show({ todo, availableTodos }) {
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
+    const isNote = todo.type === 'note';
 
     const deriveChecklistItems = () => (todo.checklistItems || todo.checklist_items || []).map((item) => ({
         id: item.id,
@@ -118,39 +119,41 @@ export default function Show({ todo, availableTodos }) {
     return (
         <AppLayout title={todo.title}>
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
-                <Head title={`${todo.title} · Todo Details`} />
+                <Head title={`${todo.title} · ${isNote ? 'Note' : 'Todo'} Details`} />
 
                 <Link
-                    href="/todos"
+                    href={isNote ? '/todos?type=note' : '/todos'}
                     className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    Back to Todos
+                    Back to {isNote ? 'Notes' : 'Todos'}
                 </Link>
 
                 <section className="rounded-2xl bg-white text-gray-900 shadow-xl p-6 sm:p-8 space-y-6 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white">
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs uppercase tracking-widest text-gray-300">Todo</span>
+                            <span className="text-xs uppercase tracking-widest text-gray-300">{isNote ? 'Note' : 'Todo'}</span>
                             <h1 className="text-3xl sm:text-4xl font-semibold leading-tight break-words">
                                 {todo.title}
                             </h1>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                onClick={handleToggle}
-                                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-200 focus-visible:ring-offset-white dark:focus-visible:ring-white/70 dark:focus-visible:ring-offset-gray-900 ${
-                                    todo.is_completed
-                                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-100/20 dark:text-green-200 dark:border-green-300/30'
-                                        : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-orange-100/20 dark:text-orange-200 dark:border-orange-300/30'
-                                }`}
-                            >
-                                {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                {todo.is_completed ? 'Completed' : 'Pending'}
-                            </button>
+                            {!isNote && (
+                                <button
+                                    onClick={handleToggle}
+                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-200 focus-visible:ring-offset-white dark:focus-visible:ring-white/70 dark:focus-visible:ring-offset-gray-900 ${
+                                        todo.is_completed
+                                            ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-100/20 dark:text-green-200 dark:border-green-300/30'
+                                            : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-orange-100/20 dark:text-orange-200 dark:border-orange-300/30'
+                                    }`}
+                                >
+                                    {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                                    {todo.is_completed ? 'Completed' : 'Pending'}
+                                </button>
+                            )}
 
-                            {todo.priority && (
+                            {todo.priority && !isNote && (
                                 <span
                                     className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium text-white"
                                     style={{ backgroundColor: todo.priority_color ?? '#6B7280' }}
@@ -191,7 +194,7 @@ export default function Show({ todo, availableTodos }) {
                             <Link href={`/todos/${todo.id}/edit`}>
                                 <Button className="w-full bg-white text-gray-900 hover:bg-gray-200">
                                     <Edit className="w-4 h-4 mr-2" />
-                                    Edit Todo
+                                    Edit {isNote ? 'Note' : 'Todo'}
                                 </Button>
                             </Link>
                             <Button
@@ -200,7 +203,7 @@ export default function Show({ todo, availableTodos }) {
                                 className="w-full border border-white/30 text-white hover:bg-white/10"
                             >
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Todo
+                                Delete {isNote ? 'Note' : 'Todo'}
                             </Button>
                         </div>
                     </div>
@@ -343,12 +346,12 @@ export default function Show({ todo, availableTodos }) {
                                 <Link href={`/todos/${todo.id}/edit`}>
                                     <Button variant="outline" className="w-full">
                                         <Edit className="w-4 h-4 mr-2" />
-                                        Edit Todo
+                                        Edit {isNote ? 'Note' : 'Todo'}
                                     </Button>
                                 </Link>
                                 <Button variant="outline" onClick={handleDeleteClick} className="w-full">
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete Todo
+                                    Delete {isNote ? 'Note' : 'Todo'}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -359,9 +362,9 @@ export default function Show({ todo, availableTodos }) {
                     isOpen={showDeleteModal}
                     onClose={handleDeleteCancel}
                     onConfirm={handleDeleteConfirm}
-                    title="Delete Todo"
+                    title={isNote ? 'Delete Note' : 'Delete Todo'}
                     message={`Are you sure you want to delete "${todo.title}"? This action cannot be undone.`}
-                    confirmText="Delete Todo"
+                    confirmText={isNote ? 'Delete Note' : 'Delete Todo'}
                     confirmButtonVariant="destructive"
                     isLoading={destroy.processing}
                 />

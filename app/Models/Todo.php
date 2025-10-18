@@ -12,7 +12,10 @@ class Todo extends Model
 {
     use HasFactory, SoftDeletes;
 
-    // Priority constants
+    const TYPE_TODO = 'todo';
+
+    const TYPE_NOTE = 'note';
+
     const PRIORITY_LOW = 'low';
 
     const PRIORITY_MEDIUM = 'medium';
@@ -23,6 +26,7 @@ class Todo extends Model
 
     protected $fillable = [
         'user_id',
+        'type',
         'title',
         'description',
         'priority',
@@ -113,6 +117,16 @@ class Todo extends Model
         return $query->where('priority', $priority);
     }
 
+    public function scopeTasks($query)
+    {
+        return $query->where('type', self::TYPE_TODO);
+    }
+
+    public function scopeNotes($query)
+    {
+        return $query->where('type', self::TYPE_NOTE);
+    }
+
     public function scopeHighPriority($query)
     {
         return $query->whereIn('priority', [self::PRIORITY_HIGH, self::PRIORITY_URGENT]);
@@ -136,6 +150,11 @@ class Todo extends Model
     public function setPriorityAttribute($value): void
     {
         $this->attributes['priority'] = $value !== null ? strtolower($value) : null;
+    }
+
+    public function setTypeAttribute($value): void
+    {
+        $this->attributes['type'] = $value !== null ? strtolower($value) : null;
     }
 
     /**
@@ -165,5 +184,10 @@ class Todo extends Model
             self::PRIORITY_URGENT => '#DC2626',   // dark red
             default => '#6B7280',                 // gray
         };
+    }
+
+    public function isNote(): bool
+    {
+        return $this->type === self::TYPE_NOTE;
     }
 }

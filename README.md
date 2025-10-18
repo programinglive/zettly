@@ -45,6 +45,7 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
 - ✅ **Todo Linking** - Create relationships between related todos
 - ✅ **Attachments** - Upload images/documents, preview images, download files, and delete with a confirmation modal
 - ✅ **Dashboard Overview** - Quick stats and priority-based todo insights
+- ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 
 ### Priority System
 The application includes a comprehensive 4-level priority system:
@@ -60,6 +61,7 @@ Todos are automatically sorted by priority on all pages, ensuring urgent and hig
 Visit the application in your browser and start managing your todos! The interface is intuitive:
 
 - Create new todos with priority levels and tags
+- Switch to note mode when you just need to jot something down—notes never require a priority and stay separate from your actionable task list
 - Link related todos together
 - Upload attachments on the todo show page (image preview supported)
 - All destructive actions (e.g., deleting todos, tags, attachments) use a reusable confirmation modal for consistency

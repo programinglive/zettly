@@ -16,15 +16,37 @@ class TodoFactory extends Factory
      */
     public function definition(): array
     {
+        $type = fake()->randomElement(['todo', 'note']);
+        $isCompleted = $type === 'note' ? false : fake()->boolean(30);
+
         return [
             'user_id' => \App\Models\User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->optional()->paragraph(),
-            'priority' => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
-            'is_completed' => fake()->boolean(30), // 30% chance of being completed
-            'completed_at' => function (array $attributes) {
-                return $attributes['is_completed'] ? fake()->dateTimeBetween('-1 month', 'now') : null;
+            'type' => $type,
+            'priority' => $type === 'note' ? null : fake()->randomElement(['low', 'medium', 'high', 'urgent']),
+            'is_completed' => $isCompleted,
+            'completed_at' => function (array $attributes) use ($isCompleted) {
+                return $isCompleted ? fake()->dateTimeBetween('-1 month', 'now') : null;
             },
         ];
+    }
+
+    public function asTask(): self
+    {
+        return $this->state(fn () => [
+            'type' => 'todo',
+            'priority' => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
+        ]);
+    }
+
+    public function asNote(): self
+    {
+        return $this->state(fn () => [
+            'type' => 'note',
+            'priority' => null,
+            'is_completed' => false,
+            'completed_at' => null,
+        ]);
     }
 }
