@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { ZettlyEditor } from '@programinglive/zettly-editor';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import { Input } from '../../Components/ui/input';
-import { Textarea } from '../../Components/ui/textarea';
 import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
@@ -183,17 +183,19 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
-                                <Textarea
-                                    id="description"
-                                    placeholder="Enter todo description..."
-                                    value={data.description}
-                                    onChange={(e) => setData('description', e.target.value)}
-                                    rows={4}
-                                    className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${errors.description ? 'border-red-500' : ''}`}
-                                />
+                                <div
+                                    className={`rounded-xl border ${errors.description ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'} overflow-hidden bg-white dark:bg-gray-800 shadow-sm`}
+                                >
+                                    <ZettlyEditor
+                                        value={data.description || ''}
+                                        onChange={(value) => setData('description', value)}
+                                        className="zettly-editor-wrapper"
+                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                    />
+                                </div>
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}

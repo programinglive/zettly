@@ -3,6 +3,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import './bootstrap';
 import '../css/app.css';
+import 'zettly-editor/styles';
 
 import { ThemeProvider } from './Components/theme-provider';
 
