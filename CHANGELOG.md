@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.21](https://github.com/programinglive/todo/compare/v0.1.20...v0.1.21) (2025-10-19)
+
+
+### 🐛 Bug Fixes
+
+* **gemini:** handle timeout errors and switch to gemini-2.0-flash model ([c52f806](https://github.com/programinglive/todo/commit/c52f8062085a7a4a54137b2d041e8be892410c38))
+
+
+### 🔧 Maintenance
+
+* **deps:** update zettly-editor styles import ([e3c50f0](https://github.com/programinglive/todo/commit/e3c50f09047894dc58506d247f3c34770e76d259))
+
 ### [0.1.20](https://github.com/programinglive/todo/compare/v0.1.19...v0.1.20) (2025-10-18)
 
 
