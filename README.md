@@ -66,6 +66,11 @@ Visit the application in your browser and start managing your todos! The interfa
 - Upload attachments on the todo show page (image preview supported)
 - All destructive actions (e.g., deleting todos, tags, attachments) use a reusable confirmation modal for consistency
 
+## Gemini integration
+
+- Ensure `GEMINI_API_KEY` (and optional `GEMINI_REQUEST_TIMEOUT`) are set before hitting the chat endpoint in `routes/web.php`.
+- `GeminiTestController::chat()` now returns a `504` JSON response when the upstream request times out and logs the failure for later inspection.
+
 ## Release workflow
 
 - **Prerequisites**
