@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/programinglive/todo/compare/v0.1.22...v0.2.0) (2025-10-20)
+
+
+### ✨ Features
+
+* refresh dashboard stats cards and seed tag demo data ([ab05447](https://github.com/programinglive/todo/commit/ab05447342efd509067b08c5d049ba0ed3aa1123))
+
 ### [0.1.22](https://github.com/programinglive/todo/compare/v0.1.21...v0.1.22) (2025-10-20)
 
 
