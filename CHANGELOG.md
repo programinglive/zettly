@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.6](https://github.com/programinglive/todo/compare/v0.2.5...v0.2.6) (2025-10-20)
+
+
+### 🏗️ Build System
+
+* use programmatic vite build to avoid cli parse issue ([b7611f4](https://github.com/programinglive/todo/commit/b7611f494f5784a04f0c04e1d9699bbe3a2f4481))
+
 ### [0.2.5](https://github.com/programinglive/todo/compare/v0.2.4...v0.2.5) (2025-10-20)
 
 
