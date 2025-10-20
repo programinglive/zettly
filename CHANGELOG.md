@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.4](https://github.com/programinglive/todo/compare/v0.2.3...v0.2.4) (2025-10-20)
+
+
+### 🧹 Chores
+
+* align tag styling ([1ec4db3](https://github.com/programinglive/todo/commit/1ec4db32da5bc608a00399398b940abe81171050))
+* enhance dark mode experience ([a3d8bf7](https://github.com/programinglive/todo/commit/a3d8bf7b710ab68864e49093c0761a628aab3aae))
+
+
+### ✨ Features
+
+* **ui:** add sanitized HTML rendering with syntax highlighting ([b8f0272](https://github.com/programinglive/todo/commit/b8f0272828f4f116b79da53dca645a90053f1b78))
+
 ### [0.2.3](https://github.com/programinglive/todo/compare/v0.2.1...v0.2.3) (2025-10-20)
 
 
