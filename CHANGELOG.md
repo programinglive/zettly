@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/programinglive/todo/compare/v0.2.0...v0.2.1) (2025-10-20)
+
+
+### 🔧 Maintenance
+
+* enable lazy-loaded pages to reduce chunk size ([cd9225d](https://github.com/programinglive/todo/commit/cd9225d37e55b646095406db34ecf9a2351978c0))
+
 ## [0.2.0](https://github.com/programinglive/todo/compare/v0.1.22...v0.2.0) (2025-10-20)
 
 
