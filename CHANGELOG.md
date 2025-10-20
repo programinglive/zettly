@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.22](https://github.com/programinglive/todo/compare/v0.1.21...v0.1.22) (2025-10-20)
+
+
+### ✨ Features
+
+* **editor:** add local debug toggle logging ([339f621](https://github.com/programinglive/todo/commit/339f621ea342f46cf10bf71d948da14678098422))
+
 ### [0.1.21](https://github.com/programinglive/todo/compare/v0.1.20...v0.1.21) (2025-10-19)
 
 
