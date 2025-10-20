@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "node ./scripts/build.mjs",
     "dev": "vite",
     "release": "standard-version",
     "release:patch": "npm run release -- --release-as patch",
