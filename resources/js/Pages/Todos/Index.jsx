@@ -167,15 +167,15 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                         </p>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                        <div className="flex rounded-md bg-gray-100 dark:bg-gray-800 p-1">
+                        <div className="flex rounded-md bg-gray-100 dark:bg-gray-800/80 p-1">
                             {[{ value: 'todo', label: 'Todos' }, { value: 'note', label: 'Notes' }].map(option => (
                                 <Link
                                     key={option.value}
                                     href={buildUrl({ type: option.value, filter: option.value === 'note' ? null : filter })}
                                     className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                         type === option.value
-                                            ? 'bg-black text-white dark:bg-white dark:text-black'
-                                            : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                                            ? 'bg-black text-white dark:bg-indigo-500 dark:text-white'
+                                            : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white/90'
                                     }`}
                                 >
                                     {option.label}
@@ -186,7 +186,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                             href={`/todos/create${type === 'note' ? '?type=note' : ''}`}
                             className="flex-1 sm:flex-none"
                         >
-                            <Button className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black">
+                            <Button className="w-full bg-black hover:bg-gray-800 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:text-white">
                                 <Plus className="w-4 h-4 mr-2" />
                                 {isNoteView ? 'New Note' : 'New Todo'}
                             </Button>
@@ -212,8 +212,8 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                         href={buildUrl({ filter: key })}
                                         className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                             filter === key
-                                                ? 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                                ? 'bg-black text-white hover:bg-gray-800 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                                         }`}
                                     >
                                         {label}
@@ -249,11 +249,11 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             href={buildUrl({ tag: tag.id })}
                                             className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
                                                 isSelected
-                                                    ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800'
-                                                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                    ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-900'
+                                                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/70'
                                             }`}
                                             style={{
-                                                backgroundColor: tag.color + '20',
+                                                backgroundColor: `${tag.color}20`,
                                                 color: tag.color,
                                                 border: `1px solid ${tag.color}40`,
                                             }}
@@ -279,8 +279,8 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                             return (
                                 <div
                                     key={todo.id}
-                                    className={`group relative aspect-square rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-                                        todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-900/40' : ''
+                                    className={`group relative aspect-square rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                                        todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
                                     }`}
                                 >
                                     <div className="flex h-full flex-col p-4">
@@ -290,22 +290,22 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                                 className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
                                                     todo.is_completed
                                                         ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                        : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600'
+                                                        : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
                                                 }`}
                                                 disabled={toggleForm.processing}
                                             >
                                                 {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                                             </button>
-                                            <div className="flex gap-1 text-gray-500">
+                                            <div className="flex gap-1 text-gray-500 dark:text-gray-400">
                                                 <Link
                                                     href={`/todos/${todo.id}`}
-                                                    className="rounded-full p-2 hover:bg-white/60"
+                                                    className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 <Link
                                                     href={`/todos/${todo.id}/edit`}
-                                                    className="rounded-full p-2 hover:bg-white/60"
+                                                    className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Link>
@@ -330,7 +330,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                                     {formatPriorityLabel(todo.priority)}
                                                 </span>
                                             )}
-                                            <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600">
+                                            <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
                                                 {new Date(todo.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
@@ -339,16 +339,16 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             <h3
                                                 className={`text-lg font-semibold leading-snug ${
                                                     todo.is_completed
-                                                        ? 'text-gray-500 line-through'
-                                                        : 'text-gray-900'
+                                                        ? 'text-gray-500 line-through dark:text-gray-500'
+                                                        : 'text-gray-900 dark:text-gray-100'
                                                 }`}
                                             >
                                                 {todo.title}
                                             </h3>
                                             {todo.description && (
                                                 <p
-                                                    className={`text-sm leading-relaxed text-gray-700 line-clamp-4 ${
-                                                        todo.is_completed ? 'text-gray-500' : ''
+                                                    className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-4 ${
+                                                        todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
                                                     }`}
                                                 >
                                                     {todo.description}

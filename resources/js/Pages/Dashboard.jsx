@@ -125,10 +125,10 @@ export default function Dashboard({
                 </div>
 
                 {/* Kanban Board */}
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 shadow-sm">
+                <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-4 mb-6 shadow-sm">
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between flex-wrap gap-3">
-                            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                                 <Filter className="w-4 h-4" />
                                 <span className="text-sm font-medium">Tag Filters</span>
                                 <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
@@ -137,7 +137,7 @@ export default function Dashboard({
                                 <button
                                     type="button"
                                     onClick={() => handleTagFilterToggle(null)}
-                                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                                    className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
                                 >
                                     Clear filters
                                 </button>
@@ -159,8 +159,8 @@ export default function Dashboard({
                                             onClick={() => handleTagFilterToggle(tag.id)}
                                             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                                                 isActive
-                                                    ? 'ring-gray-400 dark:ring-offset-gray-800'
-                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                    ? 'ring-gray-400 dark:ring-offset-gray-900'
+                                                    : 'hover:bg-gray-100 dark:hover:bg-slate-800'
                                             }`}
                                             style={{
                                                 backgroundColor: baseColor + '20',

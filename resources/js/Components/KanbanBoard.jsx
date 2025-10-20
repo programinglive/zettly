@@ -49,7 +49,7 @@ function DraggableTodoCard({ todo, onToggle }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all ${
+            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${
                 isDragging ? 'z-50 opacity-50' : ''
             }`}
         >
@@ -72,16 +72,16 @@ function DraggableTodoCard({ todo, onToggle }) {
                     {todo.is_completed ? (
                         <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
                     ) : (
-                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
                     )}
                 </button>
 
                 <div className="flex-1 min-w-0">
-                    <h4 className={`text-sm font-medium ${todo.is_completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                    <h4 className={`text-sm font-medium ${todo.is_completed ? 'line-through text-gray-500 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
                         {todo.title}
                     </h4>
                     {todo.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-300 mt-1 line-clamp-2">
                             {todo.description}
                         </p>
                     )}
@@ -93,7 +93,7 @@ function DraggableTodoCard({ todo, onToggle }) {
                                 <TagBadge key={tag.id} tag={tag} />
                             ))}
                             {todo.tags.length > 3 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-300">
                                     +{todo.tags.length - 3}
                                 </span>
                             )}
@@ -101,7 +101,7 @@ function DraggableTodoCard({ todo, onToggle }) {
                     )}
 
                     <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 dark:text-gray-400">
                             {new Date(todo.created_at).toLocaleDateString()}
                         </span>
                         <Link href={`/todos/${todo.id}`} onClick={(e) => e.stopPropagation()}>
@@ -329,7 +329,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
                     <div 
-                        className="bg-gray-50 dark:bg-gray-800 p-3 rounded-b-lg min-h-[200px] space-y-3 border-l border-r border-b border-gray-200 dark:border-gray-600"
+                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-lg min-h-[200px] space-y-3 border-l border-r border-b border-gray-200 dark:border-slate-800"
                     >
                         {todos.length > 0 ? (
                             todos.map(todo => (
