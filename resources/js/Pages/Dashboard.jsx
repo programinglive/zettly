@@ -150,20 +150,27 @@ export default function Dashboard({
                             ) : (
                                 availableTags.map((tag) => {
                                     const isActive = selectedTagIds.includes(tag.id);
+                                    const baseColor = tag.color || '#3B82F6';
+
                                     return (
                                         <button
                                             key={tag.id}
                                             type="button"
                                             onClick={() => handleTagFilterToggle(tag.id)}
-                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                                                 isActive
-                                                    ? 'border-transparent bg-black text-white dark:bg-white dark:text-black'
-                                                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                                                    ? 'ring-gray-400 dark:ring-offset-gray-800'
+                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                                             }`}
+                                            style={{
+                                                backgroundColor: baseColor + '20',
+                                                color: baseColor,
+                                                border: `1px solid ${baseColor}40`,
+                                            }}
                                         >
                                             <span
                                                 className="inline-block h-2 w-2 rounded-full"
-                                                style={{ backgroundColor: tag.color || '#3B82F6' }}
+                                                style={{ backgroundColor: baseColor }}
                                             />
                                             {tag.name}
                                         </button>

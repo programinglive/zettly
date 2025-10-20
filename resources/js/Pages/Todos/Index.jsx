@@ -51,32 +51,22 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
     const getPriorityStyle = (priority) => {
         const palette = {
             low: {
-                cardBg: '#ECFDF5',
-                border: '#10B981',
                 badgeBg: '#10B981',
                 badgeText: '#FFFFFF',
             },
             medium: {
-                cardBg: '#FEF3C7',
-                border: '#F59E0B',
                 badgeBg: '#F59E0B',
                 badgeText: '#FFFFFF',
             },
             high: {
-                cardBg: '#FEE2E2',
-                border: '#EF4444',
                 badgeBg: '#EF4444',
                 badgeText: '#FFFFFF',
             },
             urgent: {
-                cardBg: '#FEE2E2',
-                border: '#DC2626',
                 badgeBg: '#DC2626',
                 badgeText: '#FFFFFF',
             },
             default: {
-                cardBg: '#F3F4F6',
-                border: '#D1D5DB',
                 badgeBg: '#111827',
                 badgeText: '#FFFFFF',
             },
@@ -250,23 +240,31 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {tags.map(tag => (
-                                    <Link
-                                        key={tag.id}
-                                        href={buildUrl({ tag: tag.id })}
-                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                                            selectedTag == tag.id
-                                                ? 'text-white ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800'
-                                                : 'text-white hover:opacity-80'
-                                        }`}
-                                        style={{ backgroundColor: tag.color }}
-                                    >
-                                        {tag.name}
-                                        {selectedTag == tag.id && (
-                                            <X className="w-3 h-3 ml-1" />
-                                        )}
-                                    </Link>
-                                ))}
+                                {tags.map(tag => {
+                                    const isSelected = selectedTag == tag.id;
+
+                                    return (
+                                        <Link
+                                            key={tag.id}
+                                            href={buildUrl({ tag: tag.id })}
+                                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                                                isSelected
+                                                    ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800'
+                                                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                                            }`}
+                                            style={{
+                                                backgroundColor: tag.color + '20',
+                                                color: tag.color,
+                                                border: `1px solid ${tag.color}40`,
+                                            }}
+                                        >
+                                            {tag.name}
+                                            {isSelected && (
+                                                <X className="w-3 h-3 ml-1" />
+                                            )}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -281,13 +279,9 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                             return (
                                 <div
                                     key={todo.id}
-                                    className={`group relative aspect-square rounded-2xl border shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                                    className={`group relative aspect-square rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
                                         todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-900/40' : ''
                                     }`}
-                                    style={{
-                                        borderColor: priorityStyle.border,
-                                        backgroundColor: priorityStyle.cardBg,
-                                    }}
                                 >
                                     <div className="flex h-full flex-col p-4">
                                         <div className="flex items-start justify-between gap-2">
