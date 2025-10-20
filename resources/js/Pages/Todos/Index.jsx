@@ -40,6 +40,51 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
         setTodoToDelete(null);
     };
 
+    const formatPriorityLabel = (priority) => {
+        if (!priority) {
+            return '';
+        }
+
+        return priority.charAt(0).toUpperCase() + priority.slice(1);
+    };
+
+    const getPriorityStyle = (priority) => {
+        const palette = {
+            low: {
+                cardBg: '#ECFDF5',
+                border: '#10B981',
+                badgeBg: '#10B981',
+                badgeText: '#FFFFFF',
+            },
+            medium: {
+                cardBg: '#FEF3C7',
+                border: '#F59E0B',
+                badgeBg: '#F59E0B',
+                badgeText: '#FFFFFF',
+            },
+            high: {
+                cardBg: '#FEE2E2',
+                border: '#EF4444',
+                badgeBg: '#EF4444',
+                badgeText: '#FFFFFF',
+            },
+            urgent: {
+                cardBg: '#FEE2E2',
+                border: '#DC2626',
+                badgeBg: '#DC2626',
+                badgeText: '#FFFFFF',
+            },
+            default: {
+                cardBg: '#F3F4F6',
+                border: '#D1D5DB',
+                badgeBg: '#111827',
+                badgeText: '#FFFFFF',
+            },
+        };
+
+        return palette[priority] ?? palette.default;
+    };
+
     const getFilteredTodos = () => {
         let filtered;
         if (!filter || filter === 'all' || isNoteView) {
@@ -229,105 +274,107 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
                 {/* Todos List */}
                 {filteredTodos.length > 0 ? (
-                    <div className="space-y-3">
-                        {filteredTodos.map((todo) => (
-                            <div
-                                key={todo.id}
-                                className={`group rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/80 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 ${
-                                    todo.is_completed ? 'ring-2 ring-green-100 dark:ring-green-900/40' : ''
-                                }`}
-                            >
-                                <div className="flex items-start gap-3 p-4 sm:p-5">
-                                    <button
-                                        onClick={() => handleToggle(todo)}
-                                        className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
-                                            todo.is_completed
-                                                ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                : 'border-gray-200 bg-white text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800'
-                                        }`}
-                                        disabled={toggleForm.processing}
-                                    >
-                                        {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                    </button>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {filteredTodos.map((todo) => {
+                            const priorityStyle = getPriorityStyle(todo.priority);
 
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                            <div className="min-w-0 space-y-2">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    {todo.priority && !isNoteView && (
-                                                        <span
-                                                            className="inline-flex items-center rounded-full bg-gray-900 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white dark:bg-gray-100 dark:text-gray-900"
-                                                            style={{
-                                                                backgroundColor:
-                                                                    todo.priority === 'low'
-                                                                        ? '#10B981'
-                                                                        : todo.priority === 'medium'
-                                                                            ? '#F59E0B'
-                                                                            : todo.priority === 'high'
-                                                                                ? '#EF4444'
-                                                                                : todo.priority === 'urgent'
-                                                                                    ? '#DC2626'
-                                                                                    : '#111827',
-                                                            }}
-                                                        >
-                                                            {todo.priority}
-                                                        </span>
-                                                    )}
-                                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                                                        {new Date(todo.created_at).toLocaleDateString()}
-                                                    </span>
-                                                </div>
+                            return (
+                                <div
+                                    key={todo.id}
+                                    className={`group relative aspect-square rounded-2xl border shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                                        todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-900/40' : ''
+                                    }`}
+                                    style={{
+                                        borderColor: priorityStyle.border,
+                                        backgroundColor: priorityStyle.cardBg,
+                                    }}
+                                >
+                                    <div className="flex h-full flex-col p-4">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <button
+                                                onClick={() => handleToggle(todo)}
+                                                className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
+                                                    todo.is_completed
+                                                        ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                        : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600'
+                                                }`}
+                                                disabled={toggleForm.processing}
+                                            >
+                                                {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                                            </button>
+                                            <div className="flex gap-1 text-gray-500">
+                                                <Link
+                                                    href={`/todos/${todo.id}`}
+                                                    className="rounded-full p-2 hover:bg-white/60"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Link>
+                                                <Link
+                                                    href={`/todos/${todo.id}/edit`}
+                                                    className="rounded-full p-2 hover:bg-white/60"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDeleteClick(todo)}
+                                                    className="rounded-full p-2 text-red-500 hover:bg-white/60"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                                <h3
-                                                    className={`truncate text-lg font-semibold leading-snug ${
-                                                        todo.is_completed
-                                                            ? 'text-gray-400 line-through dark:text-gray-500'
-                                                            : 'text-gray-900 dark:text-gray-100'
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                                            {todo.priority && !isNoteView && (
+                                                <span
+                                                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
+                                                    style={{
+                                                        backgroundColor: priorityStyle.badgeBg,
+                                                        color: priorityStyle.badgeText,
+                                                    }}
+                                                >
+                                                    {formatPriorityLabel(todo.priority)}
+                                                </span>
+                                            )}
+                                            <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600">
+                                                {new Date(todo.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-4 flex-1 space-y-2">
+                                            <h3
+                                                className={`text-lg font-semibold leading-snug ${
+                                                    todo.is_completed
+                                                        ? 'text-gray-500 line-through'
+                                                        : 'text-gray-900'
+                                                }`}
+                                            >
+                                                {todo.title}
+                                            </h3>
+                                            {todo.description && (
+                                                <p
+                                                    className={`text-sm leading-relaxed text-gray-700 line-clamp-4 ${
+                                                        todo.is_completed ? 'text-gray-500' : ''
                                                     }`}
                                                 >
-                                                    {todo.title}
-                                                </h3>
-                                                {todo.description && (
-                                                    <p
-                                                        className={`text-sm leading-relaxed text-gray-600 line-clamp-3 dark:text-gray-300 ${
-                                                            todo.is_completed ? 'text-gray-400' : ''
-                                                        }`}
-                                                    >
-                                                        {todo.description}
-                                                    </p>
-                                                )}
-                                                {/* Tags */}
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    {todo.tags && todo.tags.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {todo.tags.map(tag => (
-                                                                <TagBadge key={tag.id} tag={tag} />
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    {todo.description}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-4">
+                                            {todo.tags && todo.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {todo.tags.map(tag => (
+                                                        <TagBadge key={tag.id} tag={tag} />
+                                                    ))}
                                                 </div>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-3 text-xs text-gray-400">
-                                                <div className="flex gap-2 text-gray-400 dark:text-gray-500">
-                                                    <Link href={`/todos/${todo.id}`} className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                        <Eye className="w-4 h-4" />
-                                                    </Link>
-                                                    <Link href={`/todos/${todo.id}/edit`} className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                        <Edit className="w-4 h-4" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(todo)}
-                                                        className="rounded-full p-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
@@ -342,7 +389,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                     : 'Get started by creating your first todo item.'}
                             </p>
                             <Link href={`/todos/create${isNoteView ? '?type=note' : ''}`}>
-                                <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md font-semibold text-white text-sm uppercase tracking-widest hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
+                                <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                     <Plus className="w-5 h-5 mr-2" />
                                     {isNoteView ? 'Create Your First Note' : 'Create Your First Todo'}
                                 </button>

@@ -29,6 +29,7 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
    php artisan migrate
    php artisan db:seed
    ```
+   Running the seeders now creates todos that already have sample tags (Work, Personal, Important, Learning) attached, so the dashboard filters and tag-based features are immediately usable.
 
 5. **Start development server**
    ```bash

@@ -66,60 +66,61 @@ export default function Dashboard({
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">📝</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Total Todos</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                <div className="mb-8">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {[
+                            {
+                                label: 'Total Todos',
+                                value: stats.total,
+                                icon: '📝',
+                                accent: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-200',
+                            },
+                            {
+                                label: 'Completed',
+                                value: stats.completed,
+                                icon: '✅',
+                                accent: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200',
+                            },
+                            {
+                                label: 'Pending',
+                                value: stats.pending,
+                                icon: '⏳',
+                                accent: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-200',
+                            },
+                            {
+                                label: 'Urgent',
+                                value: stats.urgent || 0,
+                                icon: '🚨',
+                                accent: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-200',
+                            },
+                            {
+                                label: 'High',
+                                value: stats.high || 0,
+                                icon: '🔥',
+                                accent: 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-200',
+                            },
+                            {
+                                label: 'Archived',
+                                value: stats.archived || 0,
+                                icon: '🗃️',
+                                accent: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-200',
+                            },
+                        ].map((item) => (
+                            <div
+                                key={item.label}
+                                className="rounded-2xl border border-gray-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-700/60 dark:bg-gray-900/70"
+                            >
+                                <div className="flex items-center gap-4 p-4">
+                                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl font-medium ${item.accent}`}>
+                                        {item.icon}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</p>
+                                        <p className="text-2xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">✅</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">⏳</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-                                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pending}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">🚨</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Urgent</p>
-                                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.urgent || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">🔥</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">High</p>
-                                <p className="text-2xl font-bold text-red-500 dark:text-red-300">{stats.high || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-4">🗃️</div>
-                            <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Archived</p>
-                                <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{stats.archived || 0}</p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 

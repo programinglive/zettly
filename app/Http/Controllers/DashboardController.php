@@ -20,6 +20,7 @@ class DashboardController extends Controller
 
         $todosQuery = $user->todos()
             ->notArchived()
+            ->tasks()
             ->with('tags')
             ->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE 
@@ -40,7 +41,7 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        $notArchivedTodos = $user->todos()->notArchived();
+        $notArchivedTodos = $user->todos()->notArchived()->tasks();
 
         $stats = [
             'total' => (clone $notArchivedTodos)->count(),
