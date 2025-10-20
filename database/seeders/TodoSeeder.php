@@ -103,5 +103,27 @@ class TodoSeeder extends Seeder
                     );
                 }
             });
+
+        // Create extra notes for lazy-load demo (ensure multiple pages of results)
+        Todo::factory()
+            ->count(50)
+            ->asNote()
+            ->for($firstUser)
+            ->create();
+
+        // Create many todos as well to mirror notes behavior
+        Todo::factory()
+            ->count(50)
+            ->asTask()
+            ->for($firstUser)
+            ->create()
+            ->each(function (Todo $todo) use ($firstUserTagIds) {
+                if ($firstUserTagIds->isNotEmpty()) {
+                    $limit = min(3, $firstUserTagIds->count());
+                    $todo->tags()->sync(
+                        $firstUserTagIds->shuffle()->take(fake()->numberBetween(1, $limit))->all()
+                    );
+                }
+            });
     }
 }

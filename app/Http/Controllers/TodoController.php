@@ -76,7 +76,8 @@ class TodoController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $todos = $query->get();
+        $todos = $query->paginate(20);
+
         $tags = Tag::forUser(Auth::id())->get();
 
         return Inertia::render('Todos/Index', [

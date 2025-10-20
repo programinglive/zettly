@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -36,9 +36,17 @@ const getDescriptionPreview = (html, limit = 120) => {
     return `${text.slice(0, limit).trim()}…`;
 };
 
+const NOTES_PAGE_SIZE = 8;
+
 export default function Index({ todos, tags, filter, selectedTag, selectedType }) {
     const type = selectedType ?? 'todo';
     const isNoteView = type === 'note';
+    
+    // Handle paginated data from Laravel (both notes and todos)
+    const isPaginated = !!(todos && todos.data);
+    const todosData = isPaginated ? todos.data : (Array.isArray(todos) ? todos : []);
+    const currentPage = isPaginated ? (todos.current_page ?? 1) : 1;
+    const nextPageUrl = isPaginated ? todos.next_page_url : null;
     const toggleForm = useForm();
     const deleteForm = useForm();
 
@@ -106,9 +114,9 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
     const getFilteredTodos = () => {
         let filtered;
         if (!filter || filter === 'all' || isNoteView) {
-            filtered = todos;
+            filtered = todosData;
         } else {
-            filtered = todos.filter(todo =>
+            filtered = todosData.filter(todo =>
                 filter === 'completed' ? todo.is_completed : !todo.is_completed
             );
         }
@@ -137,7 +145,56 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
         });
     };
 
-    const filteredTodos = getFilteredTodos();
+    const filteredTodos = useMemo(() => getFilteredTodos(), [todosData, filter, isNoteView]);
+    const [visibleCount, setVisibleCount] = useState(Math.min(NOTES_PAGE_SIZE, filteredTodos.length));
+    const [accItems, setAccItems] = useState(filteredTodos);
+    const appendNextRef = useRef(false);
+    const listSignature = JSON.stringify({ type, filter: isNoteView ? null : filter, tag: selectedTag });
+    const sentinelRef = useRef(null);
+    const hasMoreServer = !!nextPageUrl;
+    const hasMoreLocal = !isPaginated && accItems.length < filteredTodos.length;
+    const hasMore = hasMoreServer || hasMoreLocal;
+
+    // Reset/append accumulated items on data or query changes
+    useEffect(() => {
+        if (appendNextRef.current && isPaginated && currentPage > 1) {
+            setAccItems((prev) => [...prev, ...filteredTodos]);
+        } else {
+            setAccItems(filteredTodos.slice(0, Math.min(visibleCount, filteredTodos.length)));
+        }
+        appendNextRef.current = false;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredTodos, isPaginated, currentPage, listSignature]);
+
+    // Keep visibleCount in sync for local-only lists
+    useEffect(() => {
+        if (!isPaginated) {
+            setVisibleCount((prev) => Math.min(Math.max(prev, NOTES_PAGE_SIZE), filteredTodos.length));
+        }
+    }, [filteredTodos.length, isPaginated]);
+
+    // Intersection observer to auto load more (server: fetch next page; local: grow slice)
+    useEffect(() => {
+        if (!hasMore) return undefined;
+        if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return undefined;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                if (hasMoreServer && nextPageUrl) {
+                    appendNextRef.current = true;
+                    router.get(nextPageUrl, {}, { preserveScroll: true, preserveState: true, only: ['todos'] });
+                } else if (hasMoreLocal) {
+                    setAccItems((prev) => filteredTodos.slice(0, Math.min(prev.length + NOTES_PAGE_SIZE, filteredTodos.length)));
+                }
+            });
+        }, { rootMargin: '200px 0px' });
+
+        if (sentinelRef.current) observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, hasMoreServer, hasMoreLocal, nextPageUrl, filteredTodos]);
+
+    const visibleTodos = accItems;
 
     const baseParams = new URLSearchParams();
     if (!isNoteView && filter) {
@@ -181,7 +238,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
     return (
         <AppLayout title="Todos">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
+            <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
                 {/* Header */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
@@ -299,16 +356,20 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                 </div>
 
                 {/* Todos List */}
-                {filteredTodos.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredTodos.map((todo) => {
+                {visibleTodos.length > 0 ? (
+                    <div
+                        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
+                            isNoteView ? '2xl:grid-cols-5' : '2xl:grid-cols-4'
+                        }`}
+                    >
+                        {visibleTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
                             const descriptionPreview = getDescriptionPreview(todo.description);
 
                             return (
                                 <div
                                     key={todo.id}
-                                    className={`group relative aspect-square rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                                    className={`group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
                                         todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
                                     }`}
                                 >
@@ -421,6 +482,26 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                     </div>
                 )}
             </div>
+
+            {hasMore && (
+                <div className="flex justify-center pt-6">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            if (hasMoreServer && nextPageUrl) {
+                                appendNextRef.current = true;
+                                router.get(nextPageUrl, {}, { preserveScroll: true, preserveState: true, only: ['todos'] });
+                            } else if (hasMoreLocal) {
+                                setAccItems((prev) => filteredTodos.slice(0, Math.min(prev.length + NOTES_PAGE_SIZE, filteredTodos.length)));
+                            }
+                        }}
+                    >
+                        Load more notes
+                    </Button>
+                </div>
+            )}
+
+            {hasMore && <div ref={sentinelRef} className="h-1" aria-hidden="true" />}
 
             {/* Delete Confirmation Modal */}
             <ConfirmationModal
