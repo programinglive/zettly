@@ -8,11 +8,15 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "release": "standard-version"
+        "release": "commiter release",
+        "release:patch": "commiter release patch",
+        "release:minor": "commiter release minor",
+        "release:major": "commiter release major"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.5.0",
         "@commitlint/config-conventional": "^19.5.0",
+        "@programinglive/commiter": "^1.0.6",
         "@headlessui/react": "^2.0.0",
         "@tailwindcss/forms": "^0.5.3",
         "@types/react": "^18.3.0",

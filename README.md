@@ -101,12 +101,12 @@ To inspect TipTap lifecycle and toolbar state during development, the app integr
   ```bash
   npm run release
   ```
-  This command updates `CHANGELOG.md`, bumps the version in `package.json`/`package-lock.json`, and creates a Git tag.
-- **Optional version override**
+  Powered by `@programinglive/commiter`, this analyzes commits, updates `CHANGELOG.md`, bumps the version in `package.json`/`package-lock.json`, and creates a Git tag with emoji-friendly sections.
+- **Override the version bump**
   ```bash
-  npm run release -- --release-as minor
+  npm run release:minor
   ```
-  Replace `minor` with `major` or `patch` to force a specific SemVer increment.
+  Use `release:patch` or `release:major` for other SemVer increments.
 - **Publish**
   ```bash
   git push --follow-tags
@@ -117,9 +117,9 @@ To inspect TipTap lifecycle and toolbar state during development, the app integr
 
 - **Install hooks**
   ```bash
-  npm install
+  npx husky install
   ```
-  The `prepare` script runs automatically and installs Husky commit hooks.
+  Run this once after cloning to enable the Husky hooks configured by `@programinglive/commiter`.
 - **Enforced format**
   - Commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
   - Examples: `feat(todo): add priority filter`, `fix(api): validate payload`, `chore: update dependencies`.
