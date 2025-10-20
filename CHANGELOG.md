@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.5](https://github.com/programinglive/todo/compare/v0.2.4...v0.2.5) (2025-10-20)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** apply plain-text preview to dashboard kanban cards ([2af6011](https://github.com/programinglive/todo/commit/2af6011e91b25c0b7dda679c703f77d5b97c3ca0))
+
 ### [0.2.4](https://github.com/programinglive/todo/compare/v0.2.3...v0.2.4) (2025-10-20)
 
 
