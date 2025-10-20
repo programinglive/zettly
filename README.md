@@ -66,6 +66,26 @@ Visit the application in your browser and start managing your todos! The interfa
 - Upload attachments on the todo show page (image preview supported)
 - All destructive actions (e.g., deleting todos, tags, attachments) use a reusable confirmation modal for consistency
 
+## Zettly Editor debug logging
+
+To inspect TipTap lifecycle and toolbar state during development, the app integrates `@programinglive/zettly-editor` debug logging with a local toggle (no API key, no remote forwarding):
+
+```tsx
+<ZettlyEditor
+  value={data.description || ''}
+  onChange={(value) => setData('description', value)}
+  debug={debugEnabled}
+  onDebugEvent={handleDebugEvent}
+  onDebugToggle={setDebugEnabled}
+  className="zettly-editor-wrapper"
+  editorClassName="min-h-[240px]"
+/>
+```
+
+- `debugEnabled` is a local React state controlled by the 🐞 toggle in the toolbar.
+- `handleDebugEvent` logs structured events to the browser console only when debug is enabled.
+- No `.env` keys are required for this flow.
+
 ## Gemini integration
 
 - Ensure `GEMINI_API_KEY` (and optional `GEMINI_REQUEST_TIMEOUT`) are set before hitting the chat endpoint in `routes/web.php`.

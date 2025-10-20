@@ -43,6 +43,21 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     const [attachmentFiles, setAttachmentFiles] = useState([]);
     const [existingAttachments, setExistingAttachments] = useState(todo.attachments || []);
+    const [debugEnabled, setDebugEnabled] = useState(false);
+
+    const handleDebugEvent = React.useCallback((event) => {
+        if (!debugEnabled) {
+            return;
+        }
+
+        console.log('zettly debug event', {
+            ...event,
+            context: {
+                todoId: todo?.id ?? null,
+                type: todo?.type ?? null,
+            },
+        });
+    }, [debugEnabled, todo?.id, todo?.type]);
     const isNote = data.type === 'note';
 
     const checklistErrors = Object.keys(errors)
@@ -192,6 +207,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                     <ZettlyEditor
                                         value={data.description || ''}
                                         onChange={(value) => setData('description', value)}
+                                        debug={debugEnabled}
+                                        onDebugEvent={handleDebugEvent}
+                                        onDebugToggle={setDebugEnabled}
                                         className="zettly-editor-wrapper"
                                         editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                                     />
