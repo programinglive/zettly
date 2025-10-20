@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
-import SanitizedHtml from './SanitizedHtml';
 import {
     DndContext,
     closestCenter,
@@ -21,6 +20,34 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TagBadge from './TagBadge';
+
+const stripHtml = (html) => {
+    if (!html) {
+        return '';
+    }
+
+    if (typeof window !== 'undefined' && window.DOMParser) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        return doc.body.textContent || '';
+    }
+
+    return html.replace(/<[^>]*>/g, ' ');
+};
+
+const getDescriptionPreview = (html, limit = 80) => {
+    const text = stripHtml(html).replace(/\s+/g, ' ').trim();
+
+    if (!text) {
+        return '';
+    }
+
+    if (text.length <= limit) {
+        return text;
+    }
+
+    return `${text.slice(0, limit).trim()}…`;
+};
 
 // Draggable Todo Card Component
 function DraggableTodoCard({ todo, onToggle }) {
@@ -82,10 +109,9 @@ function DraggableTodoCard({ todo, onToggle }) {
                         {todo.title}
                     </h4>
                     {todo.description && (
-                        <SanitizedHtml
-                            className="text-xs text-gray-500 dark:text-gray-300 mt-1 line-clamp-2"
-                            html={todo.description}
-                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                            {getDescriptionPreview(todo.description)}
+                        </p>
                     )}
                     
                     {/* Tags */}
