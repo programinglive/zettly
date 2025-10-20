@@ -246,6 +246,7 @@ class TodoController extends Controller
         return Inertia::render('Todos/Show', [
             'todo' => $todo,
             'availableTodos' => $availableTodos,
+            'isNote' => $todo->isNote(),
         ]);
     }
 

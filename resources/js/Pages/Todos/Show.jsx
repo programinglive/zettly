@@ -22,7 +22,7 @@ export default function Show({ todo, availableTodos }) {
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
-    const isNote = todo.type === 'note';
+    const isNote = (todo.type ?? '').toLowerCase() === 'note';
 
     const deriveChecklistItems = () => (todo.checklistItems || todo.checklist_items || []).map((item) => ({
         id: item.id,

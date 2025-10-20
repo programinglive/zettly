@@ -370,22 +370,24 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                 <div
                                     key={todo.id}
                                     className={`group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-                                        todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
+                                        !isNoteView && todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
                                     }`}
                                 >
                                     <div className="flex h-full flex-col p-4">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <button
-                                                onClick={() => handleToggle(todo)}
-                                                className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
-                                                    todo.is_completed
-                                                        ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                        : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
-                                                }`}
-                                                disabled={toggleForm.processing}
-                                            >
-                                                {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                            </button>
+                                        <div className={`flex items-start ${isNoteView ? 'justify-end' : 'justify-between'} gap-2`}>
+                                            {!isNoteView && (
+                                                <button
+                                                    onClick={() => handleToggle(todo)}
+                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
+                                                        todo.is_completed
+                                                            ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                            : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
+                                                    }`}
+                                                    disabled={toggleForm.processing}
+                                                >
+                                                    {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                                                </button>
+                                            )}
                                             <div className="flex gap-1 text-gray-500 dark:text-gray-400">
                                                 <Link
                                                     href={`/todos/${todo.id}`}
@@ -428,7 +430,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                         <div className="mt-4 flex-1 space-y-2">
                                             <h3
                                                 className={`text-lg font-semibold leading-snug ${
-                                                    todo.is_completed
+                                                    !isNoteView && todo.is_completed
                                                         ? 'text-gray-500 line-through dark:text-gray-500'
                                                         : 'text-gray-900 dark:text-gray-100'
                                                 }`}
@@ -438,7 +440,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             {descriptionPreview && (
                                                 <p
                                                     className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2 ${
-                                                        todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
+                                                        !isNoteView && todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
                                                     }`}
                                                 >
                                                     {descriptionPreview}
