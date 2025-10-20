@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.8](https://github.com/programinglive/todo/compare/v0.2.7...v0.2.8) (2025-10-20)
+
+
+### ✨ Features
+
+* paginate todos and notes with lazy load ([4ee03a2](https://github.com/programinglive/todo/commit/4ee03a24f4ee1b1e7e6e43621e220e4fb66fe588))
+
+
+### ✅ Tests
+
+* cover todos pagination ([4833d4d](https://github.com/programinglive/todo/commit/4833d4d301090db52488e58cb61cbbb9df44cb79))
+
 ### [0.2.7](https://github.com/programinglive/todo/compare/v0.2.6...v0.2.7) (2025-10-20)
 
 ### [0.2.6](https://github.com/programinglive/todo/compare/v0.2.5...v0.2.6) (2025-10-20)
