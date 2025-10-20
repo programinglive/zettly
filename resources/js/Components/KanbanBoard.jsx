@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
+import SanitizedHtml from './SanitizedHtml';
 import {
     DndContext,
     closestCenter,
@@ -81,9 +82,10 @@ function DraggableTodoCard({ todo, onToggle }) {
                         {todo.title}
                     </h4>
                     {todo.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-300 mt-1 line-clamp-2">
-                            {todo.description}
-                        </p>
+                        <SanitizedHtml
+                            className="text-xs text-gray-500 dark:text-gray-300 mt-1 line-clamp-2"
+                            html={todo.description}
+                        />
                     )}
                     
                     {/* Tags */}

@@ -8,6 +8,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
 
+const stripHtml = (html) => {
+    if (!html) {
+        return '';
+    }
+
+    if (typeof window !== 'undefined' && window.DOMParser) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        return doc.body.textContent || '';
+    }
+
+    return html.replace(/<[^>]*>/g, ' ');
+};
+
+const getDescriptionPreview = (html, limit = 120) => {
+    const text = stripHtml(html).replace(/\s+/g, ' ').trim();
+
+    if (!text) {
+        return '';
+    }
+
+    if (text.length <= limit) {
+        return text;
+    }
+
+    return `${text.slice(0, limit).trim()}…`;
+};
+
 export default function Index({ todos, tags, filter, selectedTag, selectedType }) {
     const type = selectedType ?? 'todo';
     const isNoteView = type === 'note';
@@ -275,6 +303,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {filteredTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
+                            const descriptionPreview = getDescriptionPreview(todo.description);
 
                             return (
                                 <div
@@ -345,13 +374,13 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             >
                                                 {todo.title}
                                             </h3>
-                                            {todo.description && (
+                                            {descriptionPreview && (
                                                 <p
-                                                    className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-4 ${
+                                                    className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2 ${
                                                         todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
                                                     }`}
                                                 >
-                                                    {todo.description}
+                                                    {descriptionPreview}
                                                 </p>
                                             )}
                                         </div>

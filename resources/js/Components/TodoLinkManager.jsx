@@ -4,6 +4,7 @@ import { LinkIcon, UnlinkIcon, Plus, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import ConfirmationModal from './ConfirmationModal';
+import SanitizedHtml from './SanitizedHtml';
 
 export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink, linkedTodos }) {
     const [showLinkModal, setShowLinkModal] = useState(false);
@@ -176,9 +177,10 @@ export default function TodoLinkManager({ todo, availableTodos, onLink, onUnlink
                                                     {availableTodo.title}
                                                 </div>
                                                 {availableTodo.description && (
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                                                        {availableTodo.description}
-                                                    </div>
+                                                    <SanitizedHtml
+                                                        className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1"
+                                                        html={availableTodo.description}
+                                                    />
                                                 )}
                                                 <div className="text-xs text-gray-400 mt-1">
                                                     {availableTodo.is_completed ? '✓ Completed' : '○ Pending'}

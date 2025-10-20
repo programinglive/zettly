@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from './ui/input';
+import SanitizedHtml from './SanitizedHtml';
 
 export default function TodoSelector({ 
     availableTodos, 
@@ -91,9 +92,10 @@ export default function TodoSelector({
                                             {todo.title}
                                         </div>
                                         {todo.description && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                                                {todo.description}
-                                            </div>
+                                            <SanitizedHtml
+                                                className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1"
+                                                html={todo.description}
+                                            />
                                         )}
                                         <div className="text-xs text-gray-400 mt-1">
                                             {todo.is_completed ? '✓ Completed' : '○ Pending'}

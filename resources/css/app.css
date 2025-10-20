@@ -74,3 +74,213 @@
     color: hsl(var(--foreground));
   }
 }
+
+@layer components {
+  .sanitized-html {
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .sanitized-html > :first-child {
+    margin-top: 0;
+  }
+
+  .sanitized-html > :last-child {
+    margin-bottom: 0;
+  }
+
+  .sanitized-html p,
+  .sanitized-html ul,
+  .sanitized-html ol,
+  .sanitized-html blockquote,
+  .sanitized-html pre {
+    margin-top: 0.875rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .sanitized-html ul,
+  .sanitized-html ol {
+    padding-left: 1.5rem;
+  }
+
+  .sanitized-html ul {
+    list-style: disc;
+  }
+
+  .sanitized-html ol {
+    list-style: decimal;
+  }
+
+  .sanitized-html li::marker {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+
+  .sanitized-html strong {
+    font-weight: 700;
+  }
+
+  .sanitized-html em {
+    font-style: italic;
+  }
+
+  .sanitized-html a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  }
+
+  .sanitized-html a:hover {
+    text-decoration-color: hsl(var(--primary));
+    color: hsl(var(--primary));
+  }
+
+  .sanitized-html h1,
+  .sanitized-html h2,
+  .sanitized-html h3,
+  .sanitized-html h4,
+  .sanitized-html h5,
+  .sanitized-html h6 {
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sanitized-html h1 {
+    font-size: 1.875rem;
+  }
+
+  .sanitized-html h2 {
+    font-size: 1.5rem;
+  }
+
+  .sanitized-html h3 {
+    font-size: 1.25rem;
+  }
+
+  .sanitized-html h4 {
+    font-size: 1.125rem;
+  }
+
+  .sanitized-html blockquote {
+    position: relative;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid hsl(var(--primary));
+    background-color: hsl(var(--accent) / 0.5);
+    color: hsl(var(--foreground));
+    border-radius: 0.75rem;
+    font-style: italic;
+  }
+
+  .dark .sanitized-html blockquote {
+    background-color: hsl(var(--secondary) / 0.4);
+    border-left-color: hsl(var(--primary));
+  }
+
+  .sanitized-html pre {
+    background-color: rgba(15, 23, 42, 0.92);
+    border-radius: 0.75rem;
+    padding: 1.2rem 1.45rem;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    border: none;
+    box-shadow: none;
+  }
+
+  .light .sanitized-html pre,
+  :root:not(.dark) .sanitized-html pre {
+    background-color: #f8fafc;
+  }
+
+  .sanitized-html code {
+    font-family: 'Fira Code', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    background-color: rgba(148, 163, 184, 0.24);
+    padding: 0.22rem 0.45rem;
+    border-radius: 0.45rem;
+    font-size: 0.95em;
+    color: inherit;
+  }
+
+  .dark .sanitized-html code {
+    background-color: rgba(30, 64, 175, 0.32);
+  }
+
+  .sanitized-html pre code.hljs {
+    display: block;
+    background: transparent;
+    color: #e2e8f0;
+    font-size: 0.95em;
+    line-height: 1.65;
+    white-space: pre;
+    border: none;
+  }
+
+  :root:not(.dark) .sanitized-html pre code.hljs {
+    color: #0f172a;
+  }
+
+  .sanitized-html pre code .hljs-keyword,
+  .sanitized-html pre code .hljs-selector-tag,
+  .sanitized-html pre code .hljs-literal {
+    color: #c084fc;
+    font-weight: 600;
+  }
+
+  .sanitized-html pre code .hljs-string,
+  .sanitized-html pre code .hljs-title,
+  .sanitized-html pre code .hljs-name,
+  .sanitized-html pre code .hljs-attr {
+    color: #4ade80;
+  }
+
+  .sanitized-html pre code .hljs-comment,
+  .sanitized-html pre code .hljs-quote {
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  .sanitized-html pre code .hljs-number,
+  .sanitized-html pre code .hljs-variable,
+  .sanitized-html pre code .hljs-template-variable {
+    color: #fbbf24;
+  }
+
+  .sanitized-html pre code .hljs-function .hljs-title,
+  .sanitized-html pre code .hljs-title.function_,
+  .sanitized-html pre code .hljs-property {
+    color: #60a5fa;
+  }
+
+  .sanitized-html pre code .hljs-built_in,
+  .sanitized-html pre code .hljs-builtin-name {
+    color: #38bdf8;
+  }
+
+  :root:not(.dark) .sanitized-html pre code .hljs-string,
+  :root:not(.dark) .sanitized-html pre code .hljs-title,
+  :root:not(.dark) .sanitized-html pre code .hljs-name,
+  :root:not(.dark) .sanitized-html pre code .hljs-attr {
+    color: #0f766e;
+  }
+
+  :root:not(.dark) .sanitized-html pre code .hljs-keyword,
+  :root:not(.dark) .sanitized-html pre code .hljs-selector-tag,
+  :root:not(.dark) .sanitized-html pre code .hljs-literal {
+    color: #7c3aed;
+  }
+
+  :root:not(.dark) .sanitized-html pre code .hljs-function .hljs-title,
+  :root:not(.dark) .sanitized-html pre code .hljs-title.function_,
+  :root:not(.dark) .sanitized-html pre code .hljs-property {
+    color: #2563eb;
+  }
+
+  .sanitized-html hr {
+    border-color: hsl(var(--border));
+    margin: 1.75rem 0;
+  }
+}

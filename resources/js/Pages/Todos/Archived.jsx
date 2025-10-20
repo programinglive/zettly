@@ -1,8 +1,10 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
-import { ArrowLeft, Archive, Calendar, Tag } from 'lucide-react';
-import TagBadge from '@/Components/TagBadge';
+
+import AppLayout from '../../Layouts/AppLayout';
+import { Button } from '../../Components/ui/button';
+import TagBadge from '../../Components/TagBadge';
+import SanitizedHtml from '../../Components/SanitizedHtml';
 
 export default function Archived({ todos }) {
     return (
@@ -68,9 +70,10 @@ export default function Archived({ todos }) {
                                                     </div>
                                                     
                                                     {todo.description && (
-                                                        <p className="text-gray-600 dark:text-gray-300 mb-3">
-                                                            {todo.description}
-                                                        </p>
+                                                        <SanitizedHtml
+                                                            className="text-gray-600 dark:text-gray-300 mb-3"
+                                                            html={todo.description}
+                                                        />
                                                     )}
 
                                                     {/* Tags */}

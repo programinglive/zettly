@@ -11,6 +11,7 @@ import TodoLinkManager from '../../Components/TodoLinkManager';
 import FileUpload from '../../Components/FileUpload';
 import AttachmentList from '../../Components/AttachmentList';
 import Checkbox from '../../Components/Checkbox';
+import SanitizedHtml from '../../Components/SanitizedHtml';
 
 export default function Show({ todo, availableTodos }) {
     const { delete: destroy } = useForm();
@@ -217,9 +218,10 @@ export default function Show({ todo, availableTodos }) {
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 {todo.description ? (
-                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                                        {todo.description}
-                                    </p>
+                                    <SanitizedHtml
+                                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                                        html={todo.description}
+                                    />
                                 ) : (
                                     <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                         <div className="mb-2 text-3xl">📝</div>

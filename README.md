@@ -45,6 +45,7 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
 - ✅ **Tag Management** - Organize todos with customizable colored tags
 - ✅ **Todo Linking** - Create relationships between related todos
 - ✅ **Attachments** - Upload images/documents, preview images, download files, and delete with a confirmation modal
+- ✅ **Rich Text Descriptions** - Compose todos with the Zettly Editor (TipTap). The app sanitizes all saved HTML, highlights code blocks with Highlight.js, and shows a concise plain-text preview on the overview cards to keep layouts tidy.
 - ✅ **Dashboard Overview** - Quick stats and priority-based todo insights
 - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 
