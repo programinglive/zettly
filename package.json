@@ -12,8 +12,7 @@
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major",
-    "test": "echo \"No tests specified\"",
-    "prepare": "husky"
+    "test": "echo \"No tests specified\""
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
