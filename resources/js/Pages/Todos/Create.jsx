@@ -165,7 +165,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
-                                </label>
+                                </label>  
                                 <div
                                     className={`rounded-xl border ${errors.description ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'} overflow-hidden bg-white dark:bg-gray-800 shadow-sm`}
                                 >
@@ -175,8 +175,8 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                         debug={debugEnabled}
                                         onDebugEvent={handleDebugEvent}
                                         onDebugToggle={setDebugEnabled}
-                                        className="zettly-editor-wrapper"
-                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        className="zettly-editor-wrapper shadow-none"
+                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-0 shadow-none outline-none ring-0"
                                     />
                                 </div>
                                 {errors.description && (

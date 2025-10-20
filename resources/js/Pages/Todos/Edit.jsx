@@ -210,8 +210,8 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                         debug={debugEnabled}
                                         onDebugEvent={handleDebugEvent}
                                         onDebugToggle={setDebugEnabled}
-                                        className="zettly-editor-wrapper"
-                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        className="zettly-editor-wrapper shadow-none"
+                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-0 shadow-none outline-none ring-0"
                                     />
                                 </div>
                                 {errors.description && (

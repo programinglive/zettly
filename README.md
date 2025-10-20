@@ -87,6 +87,7 @@ To inspect TipTap lifecycle and toolbar state during development, the app integr
 - `debugEnabled` is a local React state controlled by the 🐞 toggle in the toolbar.
 - `handleDebugEvent` logs structured events to the browser console only when debug is enabled.
 - No `.env` keys are required for this flow.
+- Styling overrides in `resources/css/app.css` remove the editor surface/footer borders so only the outer card border remains. Adjust those selectors if you change the wrapper layout.
 
 ## Gemini integration
 
