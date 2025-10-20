@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/programinglive/todo/compare/v0.2.1...v0.2.2) (2025-10-20)
+
+
+### 🧹 Chores
+
+* remove deprecated husky prepare script ([b9256d5](https://github.com/programinglive/todo/commit/b9256d570b1d8a972356de5969d3d14b532e43cf))
+* **tooling:** integrate commiter release workflow ([24ab80c](https://github.com/programinglive/todo/commit/24ab80cb7b92bcd9504c47aa6f1636216c0b24d5))
+
 ### [0.2.1](https://github.com/programinglive/todo/compare/v0.2.0...v0.2.1) (2025-10-20)
 
 
