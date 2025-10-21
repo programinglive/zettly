@@ -37,9 +37,7 @@ class DashboardController extends Controller
             });
         }
 
-        $todos = $todosQuery
-            ->take(10)
-            ->get();
+        $todos = $todosQuery->get();
 
         $notArchivedTodos = $user->todos()->notArchived()->tasks();
 

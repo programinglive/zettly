@@ -324,15 +324,19 @@ class TodoController extends Controller
             $validated['is_completed'] = in_array($validated['is_completed'], ['1', 1, true, 'true'], true);
         }
 
-        if (isset($validated['is_completed']) && $validated['is_completed'] && ! $todo->is_completed) {
-            $validated['completed_at'] = now();
+        if (isset($validated['is_completed']) && $validated['is_completed']) {
+            if (! $todo->is_completed) {
+                $validated['completed_at'] = now();
+            }
+
+            $validated['priority'] = null;
         } elseif (isset($validated['is_completed']) && ! $validated['is_completed']) {
             $validated['completed_at'] = null;
         }
 
-        if ($type === Todo::TYPE_TODO) {
+        if ($type === Todo::TYPE_TODO && (! isset($validated['is_completed']) || ! $validated['is_completed'])) {
             $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_MEDIUM);
-        } else {
+        } elseif ($type === Todo::TYPE_NOTE) {
             $validated['priority'] = null;
         }
 
@@ -451,10 +455,16 @@ class TodoController extends Controller
         $isCompleted = ! $todo->is_completed;
         $completedAt = $isCompleted ? now() : null;
 
-        $todo->update([
+        $updateData = [
             'is_completed' => $isCompleted,
             'completed_at' => $completedAt,
-        ]);
+        ];
+
+        if ($isCompleted) {
+            $updateData['priority'] = null;
+        }
+
+        $todo->update($updateData);
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -628,6 +638,7 @@ class TodoController extends Controller
         $user->todos()->completed()->notArchived()->update([
             'archived' => true,
             'archived_at' => now(),
+            'priority' => null,
         ]);
 
         if ($request->wantsJson() || $request->is('api/*')) {

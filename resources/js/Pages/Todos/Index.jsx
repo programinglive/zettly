@@ -411,7 +411,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                         </div>
 
                                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                                            {todo.priority && !isNoteView && (
+                                            {todo.priority && !isNoteView && !todo.is_completed && (
                                                 <span
                                                     className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
                                                     style={{

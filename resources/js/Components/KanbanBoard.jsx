@@ -333,26 +333,24 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 }`}
             >
                 <div className={`${bgColor} ${textColor} p-3 rounded-t-lg`}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <span className="text-lg">{icon}</span>
-                            <h3 className="font-medium text-sm">{title}</h3>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                                {todos.length}
-                            </span>
-                            {id === 'completed' && todos.length > 0 && (
-                                <button
-                                    onClick={handleArchiveCompleted}
-                                    className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-full transition-colors flex items-center space-x-1"
-                                    title="Archive all completed todos"
-                                >
-                                    <Archive className="w-3 h-3" />
-                                    <span>Archive</span>
-                                </button>
-                            )}
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg">{icon}</span>
+                        <h3 className="font-medium text-sm">{title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            {todos.length}
+                        </span>
+                        {id === 'completed' && todos.length > 0 && (
+                            <button
+                                onClick={handleArchiveCompleted}
+                                className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-full transition-colors flex items-center gap-1"
+                                title="Archive all completed todos"
+                            >
+                                <Archive className="w-3 h-3" />
+                                <span>Archive</span>
+                            </button>
+                        )}
                     </div>
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>

@@ -13,6 +13,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_view_todos_list(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
@@ -23,6 +24,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_create_note_without_priority(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('todos.store'), [
@@ -44,6 +46,7 @@ class TodoTest extends TestCase
 
     public function test_note_priority_is_reset_on_update(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $note = Todo::factory()->asNote()->create(['user_id' => $user->id]);
 
@@ -66,6 +69,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_create_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $todoData = [
@@ -84,6 +88,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_view_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
@@ -95,6 +100,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_update_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
@@ -118,6 +124,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_create_todo_with_checklist_items(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $payload = [
@@ -153,6 +160,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_update_todo_checklist_items(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
@@ -203,6 +211,7 @@ class TodoTest extends TestCase
 
     public function test_user_can_delete_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
@@ -214,8 +223,13 @@ class TodoTest extends TestCase
 
     public function test_user_can_toggle_todo_completion(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
-        $todo = Todo::factory()->asTask()->create(['user_id' => $user->id, 'is_completed' => false]);
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'priority' => 'high',
+            'is_completed' => false,
+        ]);
 
         $response = $this->actingAs($user)->post(route('todos.toggle', $todo));
 
@@ -223,11 +237,36 @@ class TodoTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'is_completed' => true,
+            'priority' => null,
+        ]);
+    }
+
+    public function test_archiving_completed_todos_clears_priority(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $completedTodo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'priority' => 'urgent',
+            'is_completed' => true,
+            'completed_at' => now()->subDay(),
+            'archived' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('todos.archive-completed'));
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $completedTodo->id,
+            'archived' => true,
+            'priority' => null,
         ]);
     }
 
     public function test_todo_creation_requires_title(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('todos.store'), [
@@ -240,6 +279,7 @@ class TodoTest extends TestCase
 
     public function test_todo_priority_validation(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Test valid priorities
@@ -275,6 +315,7 @@ class TodoTest extends TestCase
 
     public function test_todo_defaults_to_medium_priority(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('todos.store'), [

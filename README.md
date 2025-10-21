@@ -40,7 +40,7 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
 
 ### Core Functionality
 - ✅ **Create & Manage Todos** - Add, edit, delete, and complete todos
-- ✅ **Priority System** - Set priority levels (Low, Medium, High, Urgent) with color-coded badges
+- ✅ **Priority System** - Set priority levels (Low, Medium, High, Urgent) with color-coded badges; completed or archived todos automatically drop their priority so the "Completed" lane stays clean
 - ✅ **Smart Sorting** - Todos automatically sorted by priority and completion status
 - ✅ **Tag Management** - Organize todos with customizable colored tags
 - ✅ **Todo Linking** - Create relationships between related todos
