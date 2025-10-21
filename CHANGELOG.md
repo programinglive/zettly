@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.9](https://github.com/programinglive/todo/compare/v0.2.8...v0.2.9) (2025-10-21)
+
+
+### 🐛 Bug Fixes
+
+* drop priority on completed todos ([07ab19a](https://github.com/programinglive/todo/commit/07ab19a557929b5ca60849ee1e2edc99e00ad5a7))
+* hide task controls for notes ([f4f6c64](https://github.com/programinglive/todo/commit/f4f6c64cdf319f0ce836479dad3e296639c5762b))
+
 ### [0.2.8](https://github.com/programinglive/todo/compare/v0.2.7...v0.2.8) (2025-10-20)
 
 
