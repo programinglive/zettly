@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.11](https://github.com/programinglive/todo/compare/v0.2.10...v0.2.11) (2025-10-21)
+
+
+### 🐛 Bug Fixes
+
+* harden todos filtering and add coverage ([051729a](https://github.com/programinglive/todo/commit/051729a649dc5a7dfffe55cd39ad7d4cb703cb48))
+
 ### [0.2.10](https://github.com/programinglive/todo/compare/v0.2.9...v0.2.10) (2025-10-21)
 
 
