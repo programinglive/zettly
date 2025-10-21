@@ -13,6 +13,7 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_index_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         Todo::factory()->create(['user_id' => $user->id]);
 
@@ -24,6 +25,7 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_create_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get('/todos/create');
@@ -34,22 +36,34 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_store_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
 
         $todoData = [
             'title' => 'Test Todo',
             'description' => 'Test Description',
+            'due_date' => now()->addDay()->toDateString(),
             'priority' => 'high',
         ];
 
-        $response = $this->actingAs($user)->post('/todos', $todoData);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post('/todos', array_merge($todoData, ['_token' => 'test-token']));
 
         $response->assertStatus(302);
-        $this->assertDatabaseHas('todos', array_merge($todoData, ['user_id' => $user->id]));
+
+        $this->assertDatabaseHas('todos', [
+            'title' => $todoData['title'],
+            'description' => $todoData['description'],
+            'priority' => $todoData['priority'],
+            'user_id' => $user->id,
+        ]);
+
     }
 
     public function test_todos_show_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
@@ -61,6 +75,7 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_edit_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
@@ -72,6 +87,7 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_update_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
@@ -81,7 +97,9 @@ class TodoEndpointTest extends TestCase
             'is_completed' => true,
         ];
 
-        $response = $this->actingAs($user)->put("/todos/{$todo->id}", $updatedData);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->put("/todos/{$todo->id}", array_merge($updatedData, ['_token' => 'test-token']));
 
         $response->assertStatus(302);
         $this->assertDatabaseHas('todos', array_merge(['id' => $todo->id], $updatedData));
@@ -89,10 +107,14 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_delete_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->delete("/todos/{$todo->id}");
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
+            ->delete("/todos/{$todo->id}", ['_token' => 'test-token']);
 
         $response->assertStatus(302);
         $this->assertSoftDeleted('todos', ['id' => $todo->id]);
@@ -100,10 +122,14 @@ class TodoEndpointTest extends TestCase
 
     public function test_todos_toggle_endpoint_works(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id, 'is_completed' => false]);
 
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/toggle");
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
+            ->post("/todos/{$todo->id}/toggle", ['_token' => 'test-token']);
 
         $response->assertStatus(302);
         $this->assertDatabaseHas('todos', [

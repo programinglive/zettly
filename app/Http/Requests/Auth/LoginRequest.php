@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -41,19 +42,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $loginInput = $this->string('email');
+        $credentials = $this->validated();
 
-        // Find user by email or name
-        $user = \App\Models\User::where('email', $loginInput)
-            ->orWhere('name', $loginInput)
-            ->first();
+        $remember = (bool) ($this['remember'] ?? false);
+        
+        // Try standard Laravel authentication first
+        if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $remember)) {
+            // If email auth fails, try with name field
+            if (! Auth::attempt(['name' => $credentials['email'], 'password' => $credentials['password']], $remember)) {
+                RateLimiter::hit($this->throttleKey());
 
-        if (! $user || ! Auth::attempt(['email' => $user->email, 'password' => $this->string('password')], $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());
@@ -87,6 +89,8 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        $email = (string) ($this['email'] ?? '');
+
+        return Str::transliterate(Str::lower($email).'|'.request()->ip());
     }
 }

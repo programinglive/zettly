@@ -22,10 +22,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Test updating priority to high
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'high',
-            'is_completed' => false,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'high',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302); // Should redirect back
 
@@ -48,10 +51,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Test marking as completed
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'medium',
-            'is_completed' => true,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'medium',
+                'is_completed' => true,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302);
 
@@ -78,10 +84,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Simulate drag from medium to urgent
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'urgent',
-            'is_completed' => false,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'urgent',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302);
 
@@ -102,10 +111,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Test invalid priority
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'invalid',
-            'is_completed' => false,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'invalid',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302); // Laravel redirects back with validation errors
         $response->assertSessionHasErrors(['priority']);
@@ -122,10 +134,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // User 2 tries to update User 1's todo
-        $response = $this->actingAs($user2)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'high',
-            'is_completed' => false,
-        ]);
+        $response = $this->actingAs($user2)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'high',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         // Should fail (403 or 404 depending on policy implementation)
         $this->assertTrue(in_array($response->getStatusCode(), [403, 404]));
@@ -155,10 +170,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Update medium to high
-        $this->actingAs($user)->post("/todos/{$mediumTodo->id}/update-priority", [
-            'priority' => 'high',
-            'is_completed' => false,
-        ]);
+        $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$mediumTodo->id}/update-priority", [
+                'priority' => 'high',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         // Visit dashboard and check the todos are in correct columns
         $response = $this->actingAs($user)->get('/dashboard');
@@ -181,9 +199,12 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Mark as completed (simulating drag to completed column)
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'is_completed' => true,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'is_completed' => true,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302);
 
@@ -212,10 +233,13 @@ class KanbanDragDropTest extends TestCase
         ]);
 
         // Move back to medium priority (simulating drag from completed to medium-low)
-        $response = $this->actingAs($user)->post("/todos/{$todo->id}/update-priority", [
-            'priority' => 'medium',
-            'is_completed' => false,
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/update-priority", [
+                'priority' => 'medium',
+                'is_completed' => false,
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(302);
 

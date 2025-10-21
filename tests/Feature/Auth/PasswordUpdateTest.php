@@ -17,11 +17,13 @@ class PasswordUpdateTest extends TestCase
 
         $response = $this
             ->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'password',
                 'password' => 'new-password',
                 'password_confirmation' => 'new-password',
+                '_token' => 'test-token',
             ]);
 
         $response
@@ -37,11 +39,13 @@ class PasswordUpdateTest extends TestCase
 
         $response = $this
             ->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'wrong-password',
                 'password' => 'new-password',
                 'password_confirmation' => 'new-password',
+                '_token' => 'test-token',
             ]);
 
         $response

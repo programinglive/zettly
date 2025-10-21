@@ -5,6 +5,10 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "dev": "vite",

@@ -26,9 +26,12 @@ class GeminiChatTest extends TestCase
             new TransporterException($clientException),
         ]);
 
-        $response = $this->actingAs($user)->postJson(route('gemini.chat'), [
-            'message' => 'How can I organize my tasks?',
-        ]);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->postJson(route('gemini.chat'), [
+                'message' => 'How can I organize my tasks?',
+                '_token' => 'test-token',
+            ]);
 
         $response->assertStatus(504);
         $response->assertJson([

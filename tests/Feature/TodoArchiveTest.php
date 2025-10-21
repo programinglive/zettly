@@ -38,7 +38,9 @@ class TodoArchiveTest extends TestCase
         ]);
 
         // Archive completed todos
-        $response = $this->actingAs($user)->post('/todos/archive-completed');
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(302);
         $response->assertSessionHas('success', 'Successfully archived 2 completed todos');
@@ -70,7 +72,9 @@ class TodoArchiveTest extends TestCase
             'is_completed' => false,
         ]);
 
-        $response = $this->actingAs($user)->post('/todos/archive-completed');
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(302);
         $response->assertSessionHas('info', 'No completed todos to archive');
@@ -93,7 +97,9 @@ class TodoArchiveTest extends TestCase
         ]);
 
         // User1 archives their completed todos
-        $response = $this->actingAs($user1)->post('/todos/archive-completed');
+        $response = $this->actingAs($user1)
+            ->withSession(['_token' => 'test-token'])
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(302);
 
@@ -123,7 +129,9 @@ class TodoArchiveTest extends TestCase
         ]);
 
         // Archive completed todos
-        $this->actingAs($user)->post('/todos/archive-completed');
+        $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         // Visit dashboard
         $response = $this->actingAs($user)->get('/dashboard');
@@ -151,8 +159,9 @@ class TodoArchiveTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
             ->withHeaders(['Accept' => 'application/json'])
-            ->post('/todos/archive-completed');
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(200);
         $response->assertJson([
@@ -166,8 +175,9 @@ class TodoArchiveTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
             ->withHeaders(['Accept' => 'application/json'])
-            ->post('/todos/archive-completed');
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(200);
         $response->assertJson([
@@ -177,7 +187,8 @@ class TodoArchiveTest extends TestCase
 
     public function test_unauthorized_user_cannot_archive_todos()
     {
-        $response = $this->post('/todos/archive-completed');
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->post('/todos/archive-completed', ['_token' => 'test-token']);
 
         $response->assertStatus(302);
         $response->assertRedirect('/login');

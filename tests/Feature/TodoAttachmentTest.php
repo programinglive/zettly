@@ -22,15 +22,19 @@ class TodoAttachmentTest extends TestCase
 
     public function test_user_can_upload_attachment_to_their_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
         $file = UploadedFile::fake()->image('test-image.jpg', 800, 600);
 
+        $payload = [
+            'file' => $file,
+        ];
+
         $response = $this->actingAs($user)
-            ->post("/todos/{$todo->id}/attachments", [
-                'file' => $file,
-            ]);
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/attachments", array_merge($payload, ['_token' => 'test-token']));
 
         $response->assertRedirect();
 
@@ -42,20 +46,24 @@ class TodoAttachmentTest extends TestCase
         ]);
 
         $attachment = TodoAttachment::where('todo_id', $todo->id)->first();
-        Storage::disk('public')->assertExists($attachment->file_path);
+        $this->assertTrue(Storage::disk('public')->exists($attachment->file_path));
     }
 
     public function test_user_cannot_upload_attachment_to_others_todo(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $otherUser->id]);
 
         $file = UploadedFile::fake()->image('test-image.jpg');
 
         $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/attachments", [
                 'file' => $file,
+                '_token' => 'test-token',
             ]);
 
         $response->assertStatus(403);
@@ -63,12 +71,15 @@ class TodoAttachmentTest extends TestCase
 
     public function test_user_can_delete_their_attachment(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
         $attachment = TodoAttachment::factory()->create(['todo_id' => $todo->id]);
 
         $response = $this->actingAs($user)
-            ->delete("/attachments/{$attachment->id}");
+            ->withSession(['_token' => 'test-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
+            ->delete("/attachments/{$attachment->id}", ['_token' => 'test-token']);
 
         $response->assertOk();
         $this->assertDatabaseMissing('todo_attachments', ['id' => $attachment->id]);
@@ -76,13 +87,17 @@ class TodoAttachmentTest extends TestCase
 
     public function test_user_cannot_delete_others_attachment(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $otherUser->id]);
         $attachment = TodoAttachment::factory()->create(['todo_id' => $todo->id]);
 
         $response = $this->actingAs($user)
-            ->delete("/attachments/{$attachment->id}");
+            ->withSession(['_token' => 'test-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
+            ->delete("/attachments/{$attachment->id}", ['_token' => 'test-token']);
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('todo_attachments', ['id' => $attachment->id]);
@@ -90,12 +105,15 @@ class TodoAttachmentTest extends TestCase
 
     public function test_delete_attachment_returns_json_message(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
         $attachment = TodoAttachment::factory()->create(['todo_id' => $todo->id]);
 
         $response = $this->actingAs($user)
-            ->deleteJson("/attachments/{$attachment->id}");
+            ->withSession(['_token' => 'test-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
+            ->deleteJson("/attachments/{$attachment->id}", ['_token' => 'test-token']);
 
         $response->assertOk();
         $response->assertJson(['message' => 'Attachment deleted successfully']);
@@ -104,6 +122,7 @@ class TodoAttachmentTest extends TestCase
 
     public function test_user_can_download_their_attachment(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
 
@@ -135,6 +154,7 @@ class TodoAttachmentTest extends TestCase
 
     public function test_todo_show_includes_attachments(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->create(['user_id' => $user->id]);
         $attachment = TodoAttachment::factory()->create(['todo_id' => $todo->id]);
