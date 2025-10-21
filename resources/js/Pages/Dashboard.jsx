@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, lazy, Suspense } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 
 import AppLayout from '../Layouts/AppLayout';
-import KanbanBoard from '../Components/KanbanBoard';
+
+const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
 export default function Dashboard({
     todos = [],
@@ -181,7 +182,15 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                <KanbanBoard todos={todos} />
+                <Suspense
+                    fallback={
+                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-12 text-center text-gray-500 dark:text-gray-400">
+                            Loading board...
+                        </div>
+                    }
+                >
+                    <KanbanBoard todos={todos} />
+                </Suspense>
             </div>
         </AppLayout>
     );

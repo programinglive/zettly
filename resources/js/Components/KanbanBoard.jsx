@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
@@ -144,6 +144,9 @@ function DraggableTodoCard({ todo, onToggle }) {
     );
 }
 
+const MAX_VISIBLE_TODOS = 5;
+const LOAD_INCREMENT = 5;
+
 export default function KanbanBoard({ todos: initialTodos, showCreateButton = true }) {
     const toggleForm = useForm();
     const updateForm = useForm();
@@ -151,6 +154,21 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const [activeId, setActiveId] = useState(null);
     const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [isArchiving, setIsArchiving] = useState(false);
+    const [visibleCounts, setVisibleCounts] = useState({
+        urgent: MAX_VISIBLE_TODOS,
+        high: MAX_VISIBLE_TODOS,
+        mediumLow: MAX_VISIBLE_TODOS,
+        completed: MAX_VISIBLE_TODOS,
+    });
+
+    const computeVisible = useCallback((current, total) => {
+        if (total <= 0) {
+            return 0;
+        }
+        const base = typeof current === 'number' ? current : MAX_VISIBLE_TODOS;
+        const normalized = Math.max(base, MAX_VISIBLE_TODOS);
+        return Math.min(normalized, total);
+    }, []);
 
     // Sync with prop changes
     useEffect(() => {
@@ -317,13 +335,108 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const highTodos = pendingTodos.filter(todo => todo.priority === 'high');
     const mediumTodos = pendingTodos.filter(todo => todo.priority === 'medium');
     const lowTodos = pendingTodos.filter(todo => todo.priority === 'low');
+    const mediumLowTodos = useMemo(() => [...mediumTodos, ...lowTodos], [mediumTodos, lowTodos]);
 
-    const DroppableColumn = ({ id, title, todos, bgColor, textColor, icon }) => {
+    useEffect(() => {
+        setVisibleCounts((prev) => {
+            const next = {
+                urgent: computeVisible(prev.urgent, urgentTodos.length),
+                high: computeVisible(prev.high, highTodos.length),
+                mediumLow: computeVisible(prev.mediumLow, mediumLowTodos.length),
+                completed: computeVisible(prev.completed, completedTodos.length),
+            };
+
+            if (
+                next.urgent === prev.urgent &&
+                next.high === prev.high &&
+                next.mediumLow === prev.mediumLow &&
+                next.completed === prev.completed
+            ) {
+                return prev;
+            }
+
+            return next;
+        });
+    }, [computeVisible, urgentTodos.length, highTodos.length, mediumLowTodos.length, completedTodos.length]);
+
+    const handleLoadMore = useCallback((columnId, total) => {
+        setVisibleCounts((prev) => {
+            const current = prev[columnId] ?? MAX_VISIBLE_TODOS;
+            const next = Math.min(current + LOAD_INCREMENT, total);
+            if (next === current) {
+                return prev;
+            }
+            return { ...prev, [columnId]: next };
+        });
+    }, []);
+
+    const loadMoreHandlers = useMemo(
+        () => ({
+            urgent: () => handleLoadMore('urgent', urgentTodos.length),
+            high: () => handleLoadMore('high', highTodos.length),
+            mediumLow: () => handleLoadMore('mediumLow', mediumLowTodos.length),
+            completed: () => handleLoadMore('completed', completedTodos.length),
+        }),
+        [handleLoadMore, urgentTodos.length, highTodos.length, mediumLowTodos.length, completedTodos.length]
+    );
+
+    const getVisibleCount = useCallback(
+        (key, total) => {
+            if (total <= 0) {
+                return 0;
+            }
+            const value = visibleCounts[key];
+            if (typeof value !== 'number') {
+                return Math.min(MAX_VISIBLE_TODOS, total);
+            }
+            return Math.min(value, total);
+        },
+        [visibleCounts]
+    );
+
+    const urgentVisible = getVisibleCount('urgent', urgentTodos.length);
+    const highVisible = getVisibleCount('high', highTodos.length);
+    const mediumLowVisible = getVisibleCount('mediumLow', mediumLowTodos.length);
+    const completedVisible = getVisibleCount('completed', completedTodos.length);
+
+    const urgentHasMore = urgentVisible < urgentTodos.length;
+    const highHasMore = highVisible < highTodos.length;
+    const mediumLowHasMore = mediumLowVisible < mediumLowTodos.length;
+    const completedHasMore = completedVisible < completedTodos.length;
+
+    const DroppableColumn = ({ id, title, todos, totalCount, visibleCount, bgColor, textColor, icon, hasMore, onLoadMore }) => {
         const { isOver, setNodeRef } = useDroppable({
             id: id,
         });
-        
-        const todoIds = todos.map(todo => String(todo.id));
+
+        const sentinelRef = useRef(null);
+
+        useEffect(() => {
+            if (!hasMore) {
+                return undefined;
+            }
+            if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+                return undefined;
+            }
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        onLoadMore();
+                    }
+                });
+            }, { rootMargin: '200px 0px' });
+
+            const sentinel = sentinelRef.current;
+            if (sentinel) {
+                observer.observe(sentinel);
+            }
+
+            return () => observer.disconnect();
+        }, [hasMore, onLoadMore]);
+
+        const displayTodos = todos.slice(0, visibleCount);
+        const todoIds = displayTodos.map(todo => String(todo.id));
         
         return (
             <div 
@@ -339,9 +452,9 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                            {todos.length}
+                            {totalCount}
                         </span>
-                        {id === 'completed' && todos.length > 0 && (
+                        {id === 'completed' && totalCount > 0 && (
                             <button
                                 onClick={handleArchiveCompleted}
                                 className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-full transition-colors flex items-center gap-1"
@@ -357,8 +470,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     <div 
                         className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-lg min-h-[200px] space-y-3 border-l border-r border-b border-gray-200 dark:border-slate-800"
                     >
-                        {todos.length > 0 ? (
-                            todos.map(todo => (
+                        {displayTodos.length > 0 ? (
+                            displayTodos.map(todo => (
                                 <DraggableTodoCard key={todo.id} todo={todo} onToggle={handleToggle} />
                             ))
                         ) : (
@@ -367,6 +480,14 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                                 <p className="text-xs">No {title.toLowerCase()}</p>
                                 <p className="text-xs mt-1">Drag todos here</p>
                             </div>
+                        )}
+                        {totalCount > displayTodos.length && (
+                            <div className="text-center text-xs text-gray-400 dark:text-gray-500">
+                                +{totalCount - displayTodos.length} more
+                            </div>
+                        )}
+                        {hasMore && (
+                            <div ref={sentinelRef} className="h-1" />
                         )}
                     </div>
                 </SortableContext>
@@ -409,6 +530,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         id="urgent"
                         title="Urgent"
                         todos={urgentTodos}
+                        totalCount={urgentTodos.length}
+                        visibleCount={urgentVisible}
+                        hasMore={urgentHasMore}
+                        onLoadMore={loadMoreHandlers.urgent}
                         bgColor="bg-red-600"
                         textColor="text-white"
                         icon="🚨"
@@ -417,6 +542,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         id="high"
                         title="High Priority"
                         todos={highTodos}
+                        totalCount={highTodos.length}
+                        visibleCount={highVisible}
+                        hasMore={highHasMore}
+                        onLoadMore={loadMoreHandlers.high}
                         bgColor="bg-orange-500"
                         textColor="text-white"
                         icon="🔥"
@@ -424,7 +553,11 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     <DroppableColumn
                         id="medium-low"
                         title="Medium & Low"
-                        todos={[...mediumTodos, ...lowTodos]}
+                        todos={mediumLowTodos}
+                        totalCount={mediumLowTodos.length}
+                        visibleCount={mediumLowVisible}
+                        hasMore={mediumLowHasMore}
+                        onLoadMore={loadMoreHandlers.mediumLow}
                         bgColor="bg-blue-500"
                         textColor="text-white"
                         icon="📋"
@@ -433,6 +566,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         id="completed"
                         title="Completed"
                         todos={completedTodos}
+                        totalCount={completedTodos.length}
+                        visibleCount={completedVisible}
+                        hasMore={completedHasMore}
+                        onLoadMore={loadMoreHandlers.completed}
                         bgColor="bg-green-500"
                         textColor="text-white"
                         icon="✅"

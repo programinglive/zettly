@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -104,6 +105,98 @@ class DashboardTest extends TestCase
                 ->where('filters.tags', [$workTag->id])
                 ->where('todos', function ($todos) use ($workTodo) {
                     return count($todos) === 1 && $todos[0]['id'] === $workTodo->id;
+                });
+        });
+    }
+
+    public function test_dashboard_todos_are_sorted_for_kanban_display(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->createOne();
+
+        $urgentNewTime = Carbon::parse('2024-01-01 12:05:00');
+        $urgentOldTime = Carbon::parse('2024-01-01 12:00:00');
+        $highTime = Carbon::parse('2024-01-01 11:55:00');
+        $mediumTime = Carbon::parse('2024-01-01 11:50:00');
+        $completedRecentTime = Carbon::parse('2024-01-01 11:45:00');
+        $completedOlderTime = Carbon::parse('2024-01-01 11:40:00');
+
+        $urgentNew = Todo::factory()->asTask()->for($user)->create([
+            'priority' => 'urgent',
+            'is_completed' => false,
+            'created_at' => $urgentNewTime,
+            'updated_at' => $urgentNewTime,
+        ]);
+
+        $urgentOld = Todo::factory()->asTask()->for($user)->create([
+            'priority' => 'urgent',
+            'is_completed' => false,
+            'created_at' => $urgentOldTime,
+            'updated_at' => $urgentOldTime,
+        ]);
+
+        $high = Todo::factory()->asTask()->for($user)->create([
+            'priority' => 'high',
+            'is_completed' => false,
+            'created_at' => $highTime,
+            'updated_at' => $highTime,
+        ]);
+
+        $medium = Todo::factory()->asTask()->for($user)->create([
+            'priority' => 'medium',
+            'is_completed' => false,
+            'created_at' => $mediumTime,
+            'updated_at' => $mediumTime,
+        ]);
+
+        $completedRecent = Todo::factory()->asTask()->for($user)->create([
+            'priority' => null,
+            'is_completed' => true,
+            'completed_at' => $completedRecentTime,
+            'created_at' => $completedRecentTime,
+            'updated_at' => $completedRecentTime,
+        ]);
+
+        $completedOlder = Todo::factory()->asTask()->for($user)->create([
+            'priority' => null,
+            'is_completed' => true,
+            'completed_at' => $completedOlderTime,
+            'created_at' => $completedOlderTime,
+            'updated_at' => $completedOlderTime,
+        ]);
+
+        Todo::factory()->asTask()->for($user)->create([
+            'priority' => 'high',
+            'is_completed' => false,
+            'archived' => true,
+            'archived_at' => Carbon::parse('2024-01-01 12:10:00'),
+        ]);
+
+        Todo::factory()->for($user)->create([
+            'type' => 'note',
+            'priority' => null,
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/dashboard');
+
+        $response->assertOk();
+
+        $expectedOrder = [
+            $urgentNew->id,
+            $urgentOld->id,
+            $high->id,
+            $medium->id,
+            $completedRecent->id,
+            $completedOlder->id,
+        ];
+
+        $response->assertInertia(function (Assert $page) use ($expectedOrder) {
+            $page->component('Dashboard')
+                ->has('todos', 6)
+                ->where('todos', function ($todos) use ($expectedOrder) {
+                    $ids = collect($todos)->pluck('id')->all();
+
+                    return $ids === $expectedOrder;
                 });
         });
     }
