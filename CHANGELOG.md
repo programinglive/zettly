@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.10](https://github.com/programinglive/todo/compare/v0.2.9...v0.2.10) (2025-10-21)
+
+
+### ✅ Tests
+
+* ensure dashboard todos sorted for kanban ([fa6f7ca](https://github.com/programinglive/todo/commit/fa6f7ca00d3c19dd82dee07ca15376847ca624f1))
+
 ### [0.2.9](https://github.com/programinglive/todo/compare/v0.2.8...v0.2.9) (2025-10-21)
 
 
