@@ -96,7 +96,7 @@ class DashboardTest extends TestCase
         $personalTodo->tags()->sync([$personalTag->id]);
         $archivedTodo->tags()->sync([$workTag->id]);
 
-        $response = $this->actingAs($user, 'web')->get('/dashboard?tags[]=' . $workTag->id);
+        $response = $this->actingAs($user, 'web')->get('/dashboard?tags[]='.$workTag->id);
 
         $response->assertOk();
 

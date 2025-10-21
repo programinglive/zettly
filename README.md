@@ -36,6 +36,17 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
    composer run dev
    ```
 
+### Tests
+
+- **PHPUnit**
+  ```bash
+  vendor\\bin\\phpunit --stop-on-failure
+  ```
+- **Frontend filtering helper** (Node test runner)
+  ```bash
+  node --test resources/js/Pages/Todos/__tests__/filterTodos.test.js
+  ```
+
 ## Features
 
 ### Core Functionality

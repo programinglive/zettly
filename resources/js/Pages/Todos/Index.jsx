@@ -7,6 +7,7 @@ import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
+import filterAndSortTodos from './filterTodos';
 
 const stripHtml = (html) => {
     if (!html) {
@@ -111,41 +112,10 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
         return palette[priority] ?? palette.default;
     };
 
-    const getFilteredTodos = () => {
-        let filtered;
-        if (!filter || filter === 'all' || isNoteView) {
-            filtered = todosData;
-        } else {
-            filtered = todosData.filter(todo =>
-                filter === 'completed' ? todo.is_completed : !todo.is_completed
-            );
-        }
-
-        if (isNoteView) {
-            return filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        }
-
-        // Sort todos: pending first, completed last, then by priority
-        return filtered.sort((a, b) => {
-            if (a.is_completed === b.is_completed) {
-                // If both have same completion status, sort by priority first
-                const priorityOrder = { 'urgent': 4, 'high': 3, 'medium': 2, 'low': 1 };
-                const aPriority = priorityOrder[a.priority] || 2;
-                const bPriority = priorityOrder[b.priority] || 2;
-
-                if (aPriority !== bPriority) {
-                    return bPriority - aPriority; // Higher priority first
-                }
-
-                // If same priority, sort by created_at (newest first)
-                return new Date(b.created_at) - new Date(a.created_at);
-            }
-            // Pending todos (false) come before completed todos (true)
-            return a.is_completed - b.is_completed;
-        });
-    };
-
-    const filteredTodos = useMemo(() => getFilteredTodos(), [todosData, filter, isNoteView]);
+    const filteredTodos = useMemo(
+        () => filterAndSortTodos(todosData, filter, isNoteView),
+        [todosData, filter, isNoteView]
+    );
     const [visibleCount, setVisibleCount] = useState(Math.min(NOTES_PAGE_SIZE, filteredTodos.length));
     const [accItems, setAccItems] = useState(filteredTodos);
     const appendNextRef = useRef(false);

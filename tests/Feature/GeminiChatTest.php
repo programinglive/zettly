@@ -20,8 +20,7 @@ class GeminiChatTest extends TestCase
         $user = User::factory()->create();
         Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
-        $clientException = new class ('timeout') extends Exception implements ClientExceptionInterface {
-        };
+        $clientException = new class('timeout') extends Exception implements ClientExceptionInterface {};
 
         Gemini::fake([
             new TransporterException($clientException),
