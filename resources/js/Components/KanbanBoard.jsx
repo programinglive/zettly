@@ -468,7 +468,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
                     <div 
-                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-lg min-h-[200px] space-y-3 border-l border-r border-b border-gray-200 dark:border-slate-800"
+                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-lg min-h-[200px] max-h-[520px] overflow-y-auto space-y-3 border-l border-r border-b border-gray-200 dark:border-slate-800"
                     >
                         {displayTodos.length > 0 ? (
                             displayTodos.map(todo => (

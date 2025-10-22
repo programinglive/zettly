@@ -129,6 +129,61 @@ export default function Dashboard({
                     <p className="text-gray-600 dark:text-gray-400">Stay on top of your latest activity.</p>
                 </div>
 
+                {/* Filters Bar */}
+                <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                            <Filter className="w-4 h-4" />
+                            <span className="text-sm font-medium">Tag Filters</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
+                        </div>
+                        {selectedTagIds.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => handleTagFilterToggle(null)}
+                                className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {availableTags.length === 0 ? (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
+                        ) : (
+                            availableTags.map((tag) => {
+                                const isActive = selectedTagIds.includes(tag.id);
+                                const baseColor = tag.color || '#3B82F6';
+
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => handleTagFilterToggle(tag.id)}
+                                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                                            isActive
+                                                ? 'ring-gray-400 dark:ring-offset-gray-900'
+                                                : 'hover:bg-gray-100 dark:hover:bg-slate-800'
+                                        }`}
+                                        style={{
+                                            backgroundColor: baseColor + '20',
+                                            color: baseColor,
+                                            border: `1px solid ${baseColor}40`,
+                                        }}
+                                    >
+                                        <span
+                                            className="inline-block h-2 w-2 rounded-full"
+                                            style={{ backgroundColor: baseColor }}
+                                        />
+                                        {tag.name}
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
                 {/* Integrated Zettelkasten + Eisenhower workspace */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(240px,300px)] lg:items-start">
                     <div className="lg:h-[720px]">
@@ -212,62 +267,6 @@ export default function Dashboard({
                 </div>
 
                 {/* Kanban Board */}
-                <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-4 mb-6 shadow-sm">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between flex-wrap gap-3">
-                            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                                <Filter className="w-4 h-4" />
-                                <span className="text-sm font-medium">Tag Filters</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
-                            </div>
-                            {selectedTagIds.length > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={() => handleTagFilterToggle(null)}
-                                    className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
-                                >
-                                    Clear filters
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                            {availableTags.length === 0 ? (
-                                <span className="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
-                            ) : (
-                                availableTags.map((tag) => {
-                                    const isActive = selectedTagIds.includes(tag.id);
-                                    const baseColor = tag.color || '#3B82F6';
-
-                                    return (
-                                        <button
-                                            key={tag.id}
-                                            type="button"
-                                            onClick={() => handleTagFilterToggle(tag.id)}
-                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                                                isActive
-                                                    ? 'ring-gray-400 dark:ring-offset-gray-900'
-                                                    : 'hover:bg-gray-100 dark:hover:bg-slate-800'
-                                            }`}
-                                            style={{
-                                                backgroundColor: baseColor + '20',
-                                                color: baseColor,
-                                                border: `1px solid ${baseColor}40`,
-                                            }}
-                                        >
-                                            <span
-                                                className="inline-block h-2 w-2 rounded-full"
-                                                style={{ backgroundColor: baseColor }}
-                                            />
-                                            {tag.name}
-                                        </button>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </div>
-                </div>
-
                 <Suspense
                     fallback={
                         <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-12 text-center text-gray-500 dark:text-gray-400">
