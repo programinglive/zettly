@@ -73,6 +73,9 @@ The project follows standard open-source practices. Refer to the following docum
 - [Security Policy](./SECURITY.md)
 - [MIT License](./LICENSE)
 
+### Editor Credits
+- Built with the [@programinglive/zettly-editor](https://github.com/programinglive/zettly-editor) package — explore the editor source and examples in that repository.
+
 ### Layout & Navigation
 - 🧭 **Public Marketing Layout** – The landing experience uses `PublicLayout.jsx`, a centered design with a marketing-focused navbar, internal anchors, and a theme toggle without exposing account information.
 - 📊 **Authenticated App Shell** – Signed-in pages share `DashboardLayout.jsx`, which wraps the fluid-width `AppLayout.jsx` so dashboard, todos, and other tools stretch edge-to-edge while keeping account menus handy.
