@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.15](https://github.com/programinglive/todo/compare/v0.2.14...v0.2.15) (2025-10-22)
+
+
+### ✨ Features
+
+* rebrand app to Zettly and show version in footer ([4f8f0c7](https://github.com/programinglive/todo/commit/4f8f0c762af0545aacbedcdb47c7b30dec8d18d7))
+
 ### [0.2.14](https://github.com/programinglive/todo/compare/v0.2.13...v0.2.14) (2025-10-22)
 
 
