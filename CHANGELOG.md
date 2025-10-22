@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.13](https://github.com/programinglive/todo/compare/v0.2.12...v0.2.13) (2025-10-22)
+
+
+### 🐛 Bug Fixes
+
+* define token removal handler on profile page ([59c409a](https://github.com/programinglive/todo/commit/59c409acbb0b534fea6647501dedbd52965ec075))
+
 ### [0.2.12](https://github.com/programinglive/todo/compare/v0.2.11...v0.2.12) (2025-10-22)
 
 
