@@ -57,7 +57,11 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 - ✅ **Todo Linking** - Create relationships between related todos
 - ✅ **Attachments** - Upload images/documents, preview images, download files, and delete with a confirmation modal
 - ✅ **Rich Text Descriptions** - Compose todos with the Zettly Editor (TipTap). The app sanitizes all saved HTML, highlights code blocks with Highlight.js, and shows a concise plain-text preview on the overview cards to keep layouts tidy.
-- ✅ **Dashboard Overview** - Quick stats and priority-based todo insights
+- ✅ **Dashboard Overview** - Quick stats and priority-based todo insights. The home view now merges Zettelkasten notes with an Eisenhower Matrix workspace:
+  - Notes panel on the left for daily/recent zettels with search and tag filtering
+  - Eisenhower Matrix in the center (drag tasks between quadrants; urgency/importance auto-adjust)
+  - Context panel on the right that surfaces linked todos and metadata for the selected task
+  - Sticky metrics bar anchored to the bottom showing totals (uses the full width and stays visible while scrolling)
 - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 
 ### Layout & Navigation

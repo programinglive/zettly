@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $todosQuery = $user->todos()
             ->notArchived()
             ->tasks()
-            ->with('tags')
+            ->with(['tags', 'relatedTodos', 'linkedByTodos'])
             ->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE 
             WHEN priority = 'urgent' THEN 1 
@@ -54,6 +54,14 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'color']);
 
+        $notes = $user->todos()
+            ->notArchived()
+            ->notes()
+            ->with('tags')
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
         return Inertia::render('Dashboard', [
             'todos' => $todos,
             'stats' => $stats,
@@ -61,6 +69,7 @@ class DashboardController extends Controller
                 'tags' => $selectedTagIds,
             ],
             'availableTags' => $availableTags,
+            'notes' => $notes,
         ]);
     }
 }

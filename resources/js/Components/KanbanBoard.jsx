@@ -482,9 +482,13 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                             </div>
                         )}
                         {totalCount > displayTodos.length && (
-                            <div className="text-center text-xs text-gray-400 dark:text-gray-500">
+                            <button
+                                type="button"
+                                onClick={onLoadMore}
+                                className="w-full text-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 py-1 transition-colors"
+                            >
                                 +{totalCount - displayTodos.length} more
-                            </div>
+                            </button>
                         )}
                         {hasMore && (
                             <div ref={sentinelRef} className="h-1" />

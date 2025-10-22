@@ -25,6 +25,7 @@ class TodoFactory extends Factory
             'description' => fake()->optional()->paragraph(),
             'type' => $type,
             'priority' => $type === 'note' ? null : fake()->randomElement(['low', 'medium', 'high', 'urgent']),
+            'importance' => $type === 'note' ? null : fake()->randomElement(['low', 'high']),
             'is_completed' => $isCompleted,
             'completed_at' => function (array $attributes) use ($isCompleted) {
                 return $isCompleted ? fake()->dateTimeBetween('-1 month', 'now') : null;

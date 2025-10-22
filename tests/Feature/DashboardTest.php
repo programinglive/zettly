@@ -220,7 +220,8 @@ class DashboardTest extends TestCase
         $this->assertNotFalse($dashboardContent);
 
         $this->assertStringContainsString('DashboardLayout title="Dashboard"', $dashboardContent);
-        $this->assertStringContainsString('xl:grid-cols-5 2xl:grid-cols-6', $dashboardContent);
+        $this->assertStringContainsString('flex flex-wrap items-stretch gap-3 md:flex-nowrap', $dashboardContent);
+        $this->assertStringContainsString('sticky bottom-6 left-0 right-0', $dashboardContent);
         $this->assertStringNotContainsString('max-w-6xl', $dashboardContent);
     }
 }

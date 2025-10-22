@@ -285,6 +285,91 @@ class TodoTest extends TestCase
         ]);
     }
 
+    public function test_user_can_update_eisenhower_placement(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'priority' => 'medium',
+            'importance' => 'low',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from('/dashboard')
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.update-eisenhower', $todo), [
+                '_token' => 'test-token',
+                'importance' => 'high',
+                'priority' => 'urgent',
+            ]);
+
+        $response->assertRedirect('/dashboard');
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'importance' => 'high',
+            'priority' => 'urgent',
+        ]);
+    }
+
+    public function test_eisenhower_update_requires_task_type(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $note = Todo::factory()->asNote()->create([
+            'user_id' => $user->id,
+        ]);
+        $originalImportance = $note->importance;
+
+        $response = $this->actingAs($user)
+            ->from('/dashboard')
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.update-eisenhower', $note), [
+                '_token' => 'test-token',
+                'importance' => 'high',
+                'priority' => 'urgent',
+            ]);
+
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHas('error');
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $note->id,
+            'priority' => null,
+            'importance' => $originalImportance,
+        ]);
+    }
+
+    public function test_eisenhower_update_validates_input(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'importance' => 'low',
+            'priority' => 'low',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from('/dashboard')
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.update-eisenhower', $todo), [
+                '_token' => 'test-token',
+                'importance' => 'mega-important',
+                'priority' => 'mega-urgent',
+            ]);
+
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHasErrors(['importance', 'priority']);
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'importance' => 'low',
+            'priority' => 'low',
+        ]);
+    }
+
     public function test_todo_creation_requires_title(): void
     {
         /** @var User $user */

@@ -551,6 +551,41 @@ class TodoController extends Controller
             ->with('success', 'Todo priority updated successfully!');
     }
 
+    public function updateEisenhower(Request $request, Todo $todo)
+    {
+        if ($todo->user_id !== Auth::id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            abort(403);
+        }
+
+        if ($todo->type !== Todo::TYPE_TODO) {
+            return redirect()->back()->with('error', 'Only tasks can be moved on the Eisenhower matrix.');
+        }
+
+        $validated = $request->validate([
+            'importance' => 'required|in:low,high',
+            'priority' => 'required|in:low,medium,high,urgent',
+        ]);
+
+        $todo->update([
+            'importance' => $validated['importance'],
+            'priority' => $validated['priority'],
+        ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Eisenhower placement updated successfully',
+                'importance' => $todo->importance,
+                'priority' => $todo->priority,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Eisenhower placement updated successfully!');
+    }
+
     /**
      * Link this todo to another todo.
      */

@@ -24,12 +24,17 @@ class Todo extends Model
 
     const PRIORITY_URGENT = 'urgent';
 
+    const IMPORTANCE_LOW = 'low';
+
+    const IMPORTANCE_HIGH = 'high';
+
     protected $fillable = [
         'user_id',
         'type',
         'title',
         'description',
         'priority',
+        'importance',
         'is_completed',
         'completed_at',
         'archived',
@@ -157,6 +162,11 @@ class Todo extends Model
         $this->attributes['type'] = $value !== null ? strtolower($value) : null;
     }
 
+    public function setImportanceAttribute($value): void
+    {
+        $this->attributes['importance'] = $value !== null ? strtolower($value) : null;
+    }
+
     /**
      * Get all available priority levels
      */
@@ -167,6 +177,14 @@ class Todo extends Model
             self::PRIORITY_MEDIUM => 'Medium',
             self::PRIORITY_HIGH => 'High',
             self::PRIORITY_URGENT => 'Urgent',
+        ];
+    }
+
+    public static function getImportanceLevels()
+    {
+        return [
+            self::IMPORTANCE_LOW => 'Low',
+            self::IMPORTANCE_HIGH => 'High',
         ];
     }
 
@@ -184,6 +202,39 @@ class Todo extends Model
             self::PRIORITY_URGENT => '#DC2626',   // dark red
             default => '#6B7280',                 // gray
         };
+    }
+
+    public function scopeByImportance($query, $importance)
+    {
+        return $query->where('importance', $importance);
+    }
+
+    public function scopeQ1($query)
+    {
+        return $query->where('importance', self::IMPORTANCE_HIGH)
+            ->whereIn('priority', [self::PRIORITY_URGENT, self::PRIORITY_HIGH])
+            ->where('is_completed', false);
+    }
+
+    public function scopeQ2($query)
+    {
+        return $query->where('importance', self::IMPORTANCE_HIGH)
+            ->whereIn('priority', [self::PRIORITY_MEDIUM, self::PRIORITY_LOW])
+            ->where('is_completed', false);
+    }
+
+    public function scopeQ3($query)
+    {
+        return $query->where('importance', self::IMPORTANCE_LOW)
+            ->whereIn('priority', [self::PRIORITY_URGENT, self::PRIORITY_HIGH])
+            ->where('is_completed', false);
+    }
+
+    public function scopeQ4($query)
+    {
+        return $query->where('importance', self::IMPORTANCE_LOW)
+            ->whereIn('priority', [self::PRIORITY_MEDIUM, self::PRIORITY_LOW])
+            ->where('is_completed', false);
     }
 
     public function isNote(): bool
