@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/programinglive/todo/compare/v0.3.0...v0.3.1) (2025-10-22)
+
+
+### 📝 Documentation
+
+* credit zettly editor ([c94794a](https://github.com/programinglive/todo/commit/c94794ae14db078334a5e09679bcde5bb5595ec4))
+
+
+### ✨ Features
+
+* refresh landing CTA and developer section ([fb31ce2](https://github.com/programinglive/todo/commit/fb31ce26113c5fae112bf5894d545fa61b786436))
+* refresh marketing CTA layout ([314892d](https://github.com/programinglive/todo/commit/314892d772f805582fd07c75d907a428e78658cf))
+* streamline landing cta ([d449eeb](https://github.com/programinglive/todo/commit/d449eeb0cf003ed3ce22f91b4bdf063d95d28d9c))
+
 ## [0.3.0](https://github.com/programinglive/todo/compare/v0.2.16...v0.3.0) (2025-10-22)
 
 
