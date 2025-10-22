@@ -23,41 +23,31 @@ export default function Index({ message }) {
                         Built with React, Inertia.js, and shadcn/ui for a clean, modern experience.
                     </p>
 
-                    <div id="hero-cta" className="flex flex-wrap justify-center gap-4 mb-10">
+                    <div id="hero-cta" className="flex flex-col items-center gap-3 mb-10">
                         {!auth?.user ? (
                             <>
                                 <Link
-                                    href="/login"
-                                    className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-slate-800"
-                                >
-                                    <LogIn className="w-4 h-4" />
-                                    Sign In
-                                </Link>
-                                <Link
                                     href="/register"
-                                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                                 >
                                     <UserPlus className="w-4 h-4" />
-                                    Create Account
+                                    Get Started
                                 </Link>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Already have an account?{' '}
+                                    <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">
+                                        Sign in
+                                    </Link>
+                                </p>
                             </>
                         ) : (
-                            <>
-                                <Link
-                                    href="/dashboard"
-                                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                                >
-                                    <LayoutDashboard className="w-4 h-4" />
-                                    Open Dashboard
-                                </Link>
-                                <Link
-                                    href="/todos"
-                                    className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-slate-800"
-                                >
-                                    <CheckSquare className="w-4 h-4" />
-                                    View My Todos
-                                </Link>
-                            </>
+                            <Link
+                                href="/dashboard"
+                                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                            >
+                                <LayoutDashboard className="w-4 h-4" />
+                                Open Dashboard
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -96,50 +86,6 @@ export default function Index({ message }) {
                         <div className="flex items-center justify-center">🧠 Smart workflow — built to fit how you already work</div>
                         <div className="flex items-center justify-center">🧩 API-first — everything you can click, you can code</div>
                         <div className="flex items-center justify-center sm:col-span-2">👫 Team-ready — collaborate without chaos</div>
-                    </div>
-                </div>
-
-                <div className="mt-16 rounded-3xl bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 text-white px-8 py-10 text-center shadow-xl">
-                    <h2 className="text-3xl font-bold mb-3">Start organizing your tasks today!</h2>
-                    <p className="text-base text-slate-200 max-w-2xl mx-auto mb-6">
-                        Join thousands of users who trust Zettly to manage their daily tasks efficiently.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-3">
-                        {!auth?.user ? (
-                            <>
-                                <Link
-                                    href="/login"
-                                    className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-white/10 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/20"
-                                >
-                                    <LogIn className="w-4 h-4" />
-                                    Sign In
-                                </Link>
-                                <Link
-                                    href="/register"
-                                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-400"
-                                >
-                                    <UserPlus className="w-4 h-4" />
-                                    Create Account
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link
-                                    href="/todos"
-                                    className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-white/10 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/20"
-                                >
-                                    <CheckSquare className="w-4 h-4" />
-                                    Go to Todos
-                                </Link>
-                                <Link
-                                    href="/dashboard"
-                                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-400"
-                                >
-                                    <LayoutDashboard className="w-4 h-4" />
-                                    Open Dashboard
-                                </Link>
-                            </>
-                        )}
                     </div>
                 </div>
 
