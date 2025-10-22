@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/programinglive/todo/compare/v0.3.1...v0.3.2) (2025-10-22)
+
+
+### 🧹 Chores
+
+* align zettly editor styling ([d6391ae](https://github.com/programinglive/todo/commit/d6391aea99c259eb6d9b6c62e0c6e88c942240af))
+
+
+### 🐛 Bug Fixes
+
+* **editor:** restore light toolbar active colors ([192d7ec](https://github.com/programinglive/todo/commit/192d7ec4b783b2ce2604ba83c371c24d197c993d))
+
 ### [0.3.1](https://github.com/programinglive/todo/compare/v0.3.0...v0.3.1) (2025-10-22)
 
 
