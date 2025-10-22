@@ -95,6 +95,10 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
         setVisibleTokens(newVisible);
     };
 
+    const handleTokenVisibilityToggle = (tokenId) => {
+        toggleTokenVisibility(tokenId);
+    };
+
     return (
         <AppLayout title="Profile">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pb-12">
@@ -321,7 +325,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => toggleTokenVisibility(token.id)}
+                                                        onClick={() => handleTokenVisibilityToggle(token.id)}
                                                         className="border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700/60"
                                                     >
                                                         {visibleTokens.has(token.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -336,9 +340,9 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                             <Button
                                                 onClick={() => deleteToken(token.id)}
                                                 variant="destructive"
-                                                className="w-full sm:w-auto rounded-xl"
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl sm:w-auto"
                                             >
-                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                <Trash2 className="w-4 h-4" />
                                                 Remove
                                             </Button>
                                         </div>
