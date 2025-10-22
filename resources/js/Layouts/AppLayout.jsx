@@ -68,22 +68,6 @@ export default function AppLayout({
 
                                     <div className="hidden md:flex items-center gap-3">
                                         <ModeToggle />
-                                        {!auth?.user && (
-                                            <>
-                                                <Link
-                                                    href="/login"
-                                                    className="inline-flex items-center rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800"
-                                                >
-                                                    Log in
-                                                </Link>
-                                                <Link
-                                                    href="/register"
-                                                    className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                                                >
-                                                    Get Started
-                                                </Link>
-                                            </>
-                                        )}
                                     </div>
 
                                     <div className="flex md:hidden items-center gap-2">
@@ -115,20 +99,12 @@ export default function AppLayout({
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             {!auth?.user ? (
-                                                <>
-                                                    <Link
-                                                        href="/login"
-                                                        className="inline-flex items-center justify-center rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800"
-                                                    >
-                                                        Log in
-                                                    </Link>
-                                                    <Link
-                                                        href="/register"
-                                                        className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                                                    >
-                                                        Get Started
-                                                    </Link>
-                                                </>
+                                                <Link
+                                                    href="#hero-cta"
+                                                    className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                                >
+                                                    Get Started
+                                                </Link>
                                             ) : null}
                                         </div>
                                     </div>
@@ -270,8 +246,8 @@ export default function AppLayout({
                                             {mobileMenuOpen && (
                                                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-800 z-50">
                                                     <div className="py-1">
-                                                        <Link href="/login" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            Login
+                                                        <Link href="#hero-cta" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
+                                                            Get Started
                                                         </Link>
                                                     </div>
                                                 </div>
