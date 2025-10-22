@@ -185,7 +185,7 @@ export default function Dashboard({
                 </div>
 
                 {/* Integrated Zettelkasten + Eisenhower workspace */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(240px,300px)] lg:items-start">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] lg:items-start">
                     <div className="lg:h-[720px]">
                         <NotesPanel notes={noteItems} allTags={availableTags} />
                     </div>

@@ -6,7 +6,7 @@ The latest `main` branch receives security updates. Please ensure you are on the
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please email us at [security@programinglive.com](mailto:security@programinglive.com). Include the following details whenever possible:
+If you discover a security vulnerability, please email us at [creative@programinglive.com](mailto:creative@programinglive.com). Include the following details whenever possible:
 
 - Steps to reproduce
 - Impact assessment (what data or functionality is at risk)
