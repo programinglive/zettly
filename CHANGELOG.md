@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/programinglive/todo/compare/v0.2.16...v0.3.0) (2025-10-22)
+
+
+### ✨ Features
+
+* merge zettelkasten dashboard with eisenhower matrix ([f08d71a](https://github.com/programinglive/todo/commit/f08d71a811293a5d12d9fd0660ad93d63a5ae751))
+
+
+### 📝 Documentation
+
+* add open source governance files ([08dcb55](https://github.com/programinglive/todo/commit/08dcb55a5d7145c3c12e29b6d27aaeac26635dce))
+
+
+### 💄 Styles
+
+* adjust kanban board layout ([fd964ec](https://github.com/programinglive/todo/commit/fd964ecd13233cefe6c6e8f05ce8eb91c782eb7a))
+* widen dashboard side panels and update contact emails ([0cd9e14](https://github.com/programinglive/todo/commit/0cd9e14757883164a03ed560cc58fa21ef56a0fc))
+
 ### [0.2.16](https://github.com/programinglive/todo/compare/v0.2.15...v0.2.16) (2025-10-22)
 
 
