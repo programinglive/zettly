@@ -63,7 +63,7 @@ export default function AppLayout({
                                     <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
                                         <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Features</a>
                                         <a href="#why" className="hover:text-gray-900 dark:hover:text-white transition-colors">Why Zettly</a>
-                                        <a href="#api" className="hover:text-gray-900 dark:hover:text-white transition-colors">API</a>
+                                        <a href="#developer" className="hover:text-gray-900 dark:hover:text-white transition-colors">Developer</a>
                                     </div>
 
                                     <div className="hidden md:flex items-center gap-3">
@@ -93,8 +93,8 @@ export default function AppLayout({
                                             <a href="#why" className="rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800" onClick={() => setMobileMenuOpen(false)}>
                                                 Why Zettly
                                             </a>
-                                            <a href="#api" className="rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800" onClick={() => setMobileMenuOpen(false)}>
-                                                API
+                                            <a href="#developer" className="rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800" onClick={() => setMobileMenuOpen(false)}>
+                                                Developer
                                             </a>
                                         </div>
                                         <div className="flex flex-col gap-2">
