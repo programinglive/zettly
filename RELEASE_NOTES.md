@@ -1,6 +1,6 @@
-# 🎉 Todo App v0.0.1 - Initial Release
+# 🎉 Zettly v0.0.1 - Initial Release
 
-Welcome to the first official release of Todo App! This is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, and TailwindCSS.
+Welcome to the first official release of Zettly! This is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, and TailwindCSS.
 
 ## ✨ Key Features
 

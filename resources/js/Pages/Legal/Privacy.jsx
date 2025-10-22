@@ -14,14 +14,14 @@ export default function Privacy() {
                         Effective date: October 5, 2025
                     </p>
                     <p className="text-gray-600 dark:text-gray-300">
-                        Todo App is open source. This policy describes how data is handled when you self-host or contribute to the project.
+                        Zettly is open source. This policy describes how data is handled when you self-host or contribute to the project.
                     </p>
                 </header>
 
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">1. Self-Hosted Instances</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        If you deploy Todo App on your own infrastructure, you control all collected data. The project maintainers do not receive telemetry or analytics from self-hosted installations. Protecting user data in your deployment is your responsibility.
+                        If you deploy Zettly on your own infrastructure, you control all collected data. The project maintainers do not receive telemetry or analytics from self-hosted installations. Protecting user data in your deployment is your responsibility.
                     </p>
                 </section>
 
@@ -49,7 +49,7 @@ export default function Privacy() {
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">5. Rights and Choices</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        Because Todo App is open source, you can inspect, modify, or delete data stored in your own instance at any time. If you use a third-party hosted instance, contact that operator directly to exercise any data rights they provide.
+                        Because Zettly is open source, you can inspect, modify, or delete data stored in your own instance at any time. If you use a third-party hosted instance, contact that operator directly to exercise any data rights they provide.
                     </p>
                 </section>
 

@@ -9,7 +9,7 @@ class HomeController extends Controller
     public function index()
     {
         return Inertia::render('Home/Index', [
-            'message' => 'Welcome to the Todo App!',
+            'message' => 'Welcome to Zettly!',
         ]);
     }
 }

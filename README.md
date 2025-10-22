@@ -1,6 +1,6 @@
-# Todo Application
+# Zettly Application
 
-A modern, full-stack todo list application built with Laravel 12, React, Inertia.js, TailwindCSS, and shadcn/ui. Create, manage, and track your todos with a beautiful and responsive interface.
+Zettly is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, TailwindCSS, and shadcn/ui. Create, manage, and track your todos with a beautiful and responsive interface.
 
 ## Quick Start
 

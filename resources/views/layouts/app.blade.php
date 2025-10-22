@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Todo App') - {{ config('app.name', 'Laravel') }}</title>
+    <title>@yield('title', 'Zettly') - {{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,7 +21,7 @@
                     <div class="flex items-center">
                         <h1 class="text-xl font-semibold text-gray-900">
                             <a href="{{ route('todos.index') }}" class="text-indigo-600 hover:text-indigo-500">
-                                📝 Todo App
+                                📝 Zettly
                             </a>
                         </h1>
                     </div>

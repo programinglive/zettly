@@ -31,7 +31,7 @@ export default function AppLayout({
 
     return (
         <>
-            <Head title={title || 'Todo App'} />
+            <Head title={title || 'Zettly'} />
             <div className="min-h-screen bg-white dark:bg-slate-950 font-sans antialiased transition-colors">
                 {/* Flash Messages */}
                 {(flash?.success || flash?.error) && (
@@ -139,7 +139,7 @@ export default function AppLayout({
                                 <div className="flex items-center">
                                     <Link href="/">
                                         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                            📝 Todo App
+                                            📝 Zettly
                                         </h1>
                                     </Link>
                                 </div>

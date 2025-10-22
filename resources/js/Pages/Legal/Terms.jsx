@@ -14,21 +14,21 @@ export default function Terms() {
                         Effective date: October 5, 2025
                     </p>
                     <p className="text-gray-600 dark:text-gray-300">
-                        Todo App is an open-source project. By accessing or using the application, you agree to the terms below.
+                        Zettly is an open-source project. By accessing or using the application, you agree to the terms below.
                     </p>
                 </header>
 
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">1. Open Source License</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        Todo App is distributed under the MIT License. You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided that the original copyright notice and permission notice are included in all copies or substantial portions of the software.
+                        Zettly is distributed under the MIT License. You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided that the original copyright notice and permission notice are included in all copies or substantial portions of the software.
                     </p>
                 </section>
 
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">2. Acceptable Use</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        You agree not to use Todo App to store or transmit unlawful content, malicious code, or to infringe upon the rights of others. When self-hosting, you are solely responsible for complying with local laws and regulations.
+                        You agree not to use Zettly to store or transmit unlawful content, malicious code, or to infringe upon the rights of others. When self-hosting, you are solely responsible for complying with local laws and regulations.
                     </p>
                 </section>
 
@@ -49,7 +49,7 @@ export default function Terms() {
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">5. Hosted Service</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        If you access an instance of Todo App hosted by another party, you acknowledge that they may impose additional terms. We are not responsible for how third parties operate or configure their deployments.
+                        If you access an instance of Zettly hosted by another party, you acknowledge that they may impose additional terms. We are not responsible for how third parties operate or configure their deployments.
                     </p>
                 </section>
 

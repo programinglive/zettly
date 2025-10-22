@@ -1,8 +1,8 @@
-# Todo Attachments Feature
+# Zettly Attachments Feature
 
 ## Overview
 
-The Todo application now supports file attachments for todos. Users can upload images, documents, and other files to their todos, with automatic thumbnail generation for images and secure file handling.
+The Zettly application now supports file attachments for todos. Users can upload images, documents, and other files to their todos, with automatic thumbnail generation for images and secure file handling.
 
 ## Features
 

@@ -11,9 +11,9 @@ export default function Developer() {
                 {/* Hero */}
                 <section className="text-center space-y-4">
                     <div className="text-5xl">👩‍💻</div>
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Todo App Developer Portal</h1>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Zettly Developer Portal</h1>
                     <p className="text-lg text-gray-600 dark:text-gray-300">
-                        Integrate Todo App features into your applications using our secure REST API.
+                        Integrate Zettly features into your applications using our secure REST API.
                     </p>
                 </section>
 

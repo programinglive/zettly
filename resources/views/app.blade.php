@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'Todo App') }}</title>
+        <title>{{ config('app.name', 'Zettly') }}</title>
         <meta name="description" content="A modern task management application with Kanban board functionality">
 
         <meta name="csrf-token" content="{{ csrf_token() }}">
