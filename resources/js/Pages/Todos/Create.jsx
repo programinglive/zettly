@@ -166,17 +166,13 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>  
-                                <div
-                                    className={`rounded-xl border ${errors.description ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'} overflow-hidden bg-white dark:bg-gray-800 shadow-sm`}
-                                >
+                                <div className="rounded-xl border border-transparent">
                                     <ZettlyEditor
                                         value={data.description || ''}
                                         onChange={(value) => setData('description', value)}
                                         debug={debugEnabled}
-                                        onDebugEvent={handleDebugEvent}
                                         onDebugToggle={setDebugEnabled}
-                                        className="zettly-editor-wrapper shadow-none"
-                                        editorClassName="min-h-[240px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-0 shadow-none outline-none ring-0"
+                                        onDebugEvent={handleDebugEvent}
                                     />
                                 </div>
                                 {errors.description && (

@@ -65,7 +65,7 @@
     --ring: 224 76% 48%;
   }
 
-  * {
+  *:where(:not([data-zettly-editor-root], [data-zettly-editor-root] *)) {
     border-color: hsl(var(--border));
   }
 
@@ -284,16 +284,4 @@
     margin: 1.75rem 0;
   }
 
-  .zettly-editor-wrapper [data-zettly-editor-surface] {
-    border: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
-  }
-  .zettly-editor-wrapper [data-zettly-editor-footer] {
-    border-top: 0 !important;
-  }
-  .zettly-editor-wrapper {
-    border: 0 !important;
-    box-shadow: none !important;
-  }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import './bootstrap';
-import 'zettly-editor/styles';
+import '@programinglive/zettly-editor/styles';
 import '../css/app.css';
 
 import { ThemeProvider } from './Components/theme-provider';

@@ -16,10 +16,16 @@ export default defineConfig({
         react(),
     ],
     resolve: {
-        alias: {
-            '@programinglive/zettly-editor': path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.js'),
-            'zettly-editor/styles': path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.css'),
-        },
+        alias: [
+            {
+                find: '@programinglive/zettly-editor/styles',
+                replacement: path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.css'),
+            },
+            {
+                find: '@programinglive/zettly-editor',
+                replacement: path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.js'),
+            },
+        ],
     },
     build: {
         chunkSizeWarningLimit: 1000,
