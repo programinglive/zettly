@@ -73,6 +73,12 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  :root:not(.dark) [data-zettly-editor-toolbar] button[data-state=on],
+  .light [data-zettly-editor-toolbar] button[data-state=on] {
+    background: var(--zettly-editor-menu-selected);
+    color: var(--zettly-editor-menu-accent);
+  }
 }
 
 @layer components {
