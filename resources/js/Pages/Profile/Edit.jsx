@@ -334,15 +334,11 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                                 )}
                                             </div>
                                             <Button
-                                                onClick={handleToggle}
-                                                variant="outline"
-                                                className={`w-full rounded-xl border border-slate-200 transition-colors dark:border-slate-700 ${
-                                                    todo.is_completed
-                                                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                                                        : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-800 dark:hover:bg-slate-200'
-                                                }`}
+                                                onClick={() => deleteToken(token.id)}
+                                                variant="destructive"
+                                                className="w-full sm:w-auto rounded-xl"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 className="w-4 h-4 mr-2" />
                                                 Remove
                                             </Button>
                                         </div>
