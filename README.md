@@ -64,6 +64,15 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
   - Sticky metrics bar anchored to the bottom showing totals (uses the full width and stays visible while scrolling)
 - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 
+## Open Source Resources
+
+The project follows standard open-source practices. Refer to the following documents:
+
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
+- [MIT License](./LICENSE)
+
 ### Layout & Navigation
 - 🧭 **Public Marketing Layout** – The landing experience uses `PublicLayout.jsx`, a centered design with a marketing-focused navbar, internal anchors, and a theme toggle without exposing account information.
 - 📊 **Authenticated App Shell** – Signed-in pages share `DashboardLayout.jsx`, which wraps the fluid-width `AppLayout.jsx` so dashboard, todos, and other tools stretch edge-to-edge while keeping account menus handy.
