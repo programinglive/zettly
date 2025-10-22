@@ -2,7 +2,7 @@ import React, { useMemo, lazy, Suspense } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 
-import AppLayout from '../Layouts/AppLayout';
+import DashboardLayout from '../Layouts/DashboardLayout';
 
 const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
@@ -57,18 +57,16 @@ export default function Dashboard({
     }, [selectedTagIds, availableTags]);
 
     return (
-        <AppLayout title="Dashboard">
-            <div className="max-w-6xl mx-auto">
-                <Head title="Dashboard" />
-                {/* Welcome Header */}
-                <div className="mb-8">
+        <DashboardLayout title="Dashboard">
+            <Head title="Dashboard" />
+            <div className="space-y-8">
+                <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Welcome back! Here's your recent activity.</p>
+                    <p className="text-gray-600 dark:text-gray-400">Stay on top of your latest activity.</p>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="mb-8">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 2xl:grid-cols-6">
                         {[
                             {
                                 label: 'Total Todos',
@@ -192,6 +190,6 @@ export default function Dashboard({
                     <KanbanBoard todos={todos} />
                 </Suspense>
             </div>
-        </AppLayout>
+        </DashboardLayout>
     );
 }

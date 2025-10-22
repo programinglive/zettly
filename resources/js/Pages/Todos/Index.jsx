@@ -208,7 +208,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
     return (
         <AppLayout title="Todos">
-            <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
+            <div className="w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
                 {/* Header */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
@@ -328,8 +328,10 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                 {/* Todos List */}
                 {visibleTodos.length > 0 ? (
                     <div
-                        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
-                            isNoteView ? '2xl:grid-cols-5' : '2xl:grid-cols-4'
+                        className={`[column-fill:_balance] [column-gap:1rem] ${
+                            isNoteView
+                                ? 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5'
+                                : 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4'
                         }`}
                     >
                         {visibleTodos.map((todo) => {
@@ -337,97 +339,98 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                             const descriptionPreview = getDescriptionPreview(todo.description);
 
                             return (
-                                <div
-                                    key={todo.id}
-                                    className={`group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-                                        !isNoteView && todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
-                                    }`}
-                                >
-                                    <div className="flex h-full flex-col p-4">
-                                        <div className={`flex items-start ${isNoteView ? 'justify-end' : 'justify-between'} gap-2`}>
-                                            {!isNoteView && (
-                                                <button
-                                                    onClick={() => handleToggle(todo)}
-                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
-                                                        todo.is_completed
-                                                            ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                            : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
+                                <div key={todo.id} className="mb-4" style={{ breakInside: 'avoid' }}>
+                                    <article
+                                        className={`group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                                            !isNoteView && todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
+                                        }`}
+                                    >
+                                        <div className="flex h-full flex-col p-4">
+                                            <div className={`flex items-start ${isNoteView ? 'justify-end' : 'justify-between'} gap-2`}>
+                                                {!isNoteView && (
+                                                    <button
+                                                        onClick={() => handleToggle(todo)}
+                                                        className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
+                                                            todo.is_completed
+                                                                ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                                : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
+                                                        }`}
+                                                        disabled={toggleForm.processing}
+                                                    >
+                                                        {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                                                    </button>
+                                                )}
+                                                <div className="flex gap-1 text-gray-500 dark:text-gray-400">
+                                                    <Link
+                                                        href={`/todos/${todo.id}`}
+                                                        className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Link>
+                                                    <Link
+                                                        href={`/todos/${todo.id}/edit`}
+                                                        className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDeleteClick(todo)}
+                                                        className="rounded-full p-2 text-red-500 hover:bg-white/60"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                {todo.priority && !isNoteView && !todo.is_completed && (
+                                                    <span
+                                                        className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
+                                                        style={{
+                                                            backgroundColor: priorityStyle.badgeBg,
+                                                            color: priorityStyle.badgeText,
+                                                        }}
+                                                    >
+                                                        {formatPriorityLabel(todo.priority)}
+                                                    </span>
+                                                )}
+                                                <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
+                                                    {new Date(todo.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4 flex-1 space-y-2">
+                                                <h3
+                                                    className={`text-lg font-semibold leading-snug ${
+                                                        !isNoteView && todo.is_completed
+                                                            ? 'text-gray-500 line-through dark:text-gray-500'
+                                                            : 'text-gray-900 dark:text-gray-100'
                                                     }`}
-                                                    disabled={toggleForm.processing}
                                                 >
-                                                    {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                                </button>
-                                            )}
-                                            <div className="flex gap-1 text-gray-500 dark:text-gray-400">
-                                                <Link
-                                                    href={`/todos/${todo.id}`}
-                                                    className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </Link>
-                                                <Link
-                                                    href={`/todos/${todo.id}/edit`}
-                                                    className="rounded-full p-2 hover:bg-white/60 dark:hover:bg-gray-800/70"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDeleteClick(todo)}
-                                                    className="rounded-full p-2 text-red-500 hover:bg-white/60"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                    {todo.title}
+                                                </h3>
+                                                {descriptionPreview && (
+                                                    <p
+                                                        className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2 ${
+                                                            !isNoteView && todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
+                                                        }`}
+                                                    >
+                                                        {descriptionPreview}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-4">
+                                                {todo.tags && todo.tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {todo.tags.map(tag => (
+                                                            <TagBadge key={tag.id} tag={tag} />
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-
-                                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                                            {todo.priority && !isNoteView && !todo.is_completed && (
-                                                <span
-                                                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
-                                                    style={{
-                                                        backgroundColor: priorityStyle.badgeBg,
-                                                        color: priorityStyle.badgeText,
-                                                    }}
-                                                >
-                                                    {formatPriorityLabel(todo.priority)}
-                                                </span>
-                                            )}
-                                            <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
-                                                {new Date(todo.created_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-
-                                        <div className="mt-4 flex-1 space-y-2">
-                                            <h3
-                                                className={`text-lg font-semibold leading-snug ${
-                                                    !isNoteView && todo.is_completed
-                                                        ? 'text-gray-500 line-through dark:text-gray-500'
-                                                        : 'text-gray-900 dark:text-gray-100'
-                                                }`}
-                                            >
-                                                {todo.title}
-                                            </h3>
-                                            {descriptionPreview && (
-                                                <p
-                                                    className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2 ${
-                                                        !isNoteView && todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
-                                                    }`}
-                                                >
-                                                    {descriptionPreview}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-4">
-                                            {todo.tags && todo.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {todo.tags.map(tag => (
-                                                        <TagBadge key={tag.id} tag={tag} />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    </article>
                                 </div>
                             );
                         })}

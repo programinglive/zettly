@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { Archive, ArrowLeft, Calendar } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
@@ -8,11 +9,11 @@ import SanitizedHtml from '../../Components/SanitizedHtml';
 
 export default function Archived({ todos }) {
     return (
-        <AppLayout>
+        <AppLayout title="Archived Todos">
             <Head title="Archived Todos" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white/80 dark:bg-slate-950/80 shadow-sm">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                         <div className="p-6 lg:p-8 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex items-center justify-between">

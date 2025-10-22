@@ -60,6 +60,10 @@ A modern, full-stack todo list application built with Laravel 12, React, Inertia
 - ✅ **Dashboard Overview** - Quick stats and priority-based todo insights
 - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 
+### Layout & Navigation
+- 🧭 **Public Marketing Layout** – The landing experience uses `PublicLayout.jsx`, a centered design with a marketing-focused navbar, internal anchors, and a theme toggle without exposing account information.
+- 📊 **Authenticated App Shell** – Signed-in pages share `DashboardLayout.jsx`, which wraps the fluid-width `AppLayout.jsx` so dashboard, todos, and other tools stretch edge-to-edge while keeping account menus handy.
+
 ### Priority System
 The application includes a comprehensive 4-level priority system:
 - 🟢 **Low** - Nice to have tasks

@@ -200,4 +200,27 @@ class DashboardTest extends TestCase
                 });
         });
     }
+
+    public function test_dashboard_layout_uses_fluid_containers(): void
+    {
+        $layoutContent = file_get_contents(resource_path('js/Layouts/AppLayout.jsx'));
+        $this->assertNotFalse($layoutContent);
+
+        $this->assertStringContainsString("resolvedVariant === 'public'", $layoutContent);
+        $this->assertStringContainsString("variant ?? (isAuthenticated ? 'authenticated' : 'public')", $layoutContent);
+        $this->assertStringContainsString('className={resolvedContentClassName}', $layoutContent);
+        $this->assertStringContainsString('className={resolvedNavClassName}', $layoutContent);
+
+        $dashboardLayoutContent = file_get_contents(resource_path('js/Layouts/DashboardLayout.jsx'));
+        $this->assertNotFalse($dashboardLayoutContent);
+        $this->assertStringContainsString("contentClassName ?? 'w-full px-4 sm:px-6 lg:px-8'", $dashboardLayoutContent);
+        $this->assertStringContainsString("navClassName ?? 'w-full px-4 sm:px-6 lg:px-8'", $dashboardLayoutContent);
+
+        $dashboardContent = file_get_contents(resource_path('js/Pages/Dashboard.jsx'));
+        $this->assertNotFalse($dashboardContent);
+
+        $this->assertStringContainsString('DashboardLayout title="Dashboard"', $dashboardContent);
+        $this->assertStringContainsString('xl:grid-cols-5 2xl:grid-cols-6', $dashboardContent);
+        $this->assertStringNotContainsString('max-w-6xl', $dashboardContent);
+    }
 }
