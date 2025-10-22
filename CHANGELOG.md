@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.12](https://github.com/programinglive/todo/compare/v0.2.11...v0.2.12) (2025-10-22)
+
+
+### 🐛 Bug Fixes
+
+* resolve CSRF token issues and auth errors ([05b2c63](https://github.com/programinglive/todo/commit/05b2c6300cf8b0ffc313509790b0d4d465ecdaab))
+
+
+### ✨ Features
+
+* refresh layouts with dedicated public navbar ([451118a](https://github.com/programinglive/todo/commit/451118ae683c7e31973095267c9f4c03e5edbfe9))
+
 ### [0.2.11](https://github.com/programinglive/todo/compare/v0.2.10...v0.2.11) (2025-10-21)
 
 
