@@ -8,6 +8,11 @@ import TagBadge from '../../Components/TagBadge';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 
 export default function Archived({ todos }) {
+    const isPaginated = todos && Array.isArray(todos.data);
+    const archivedTodos = isPaginated ? todos.data : todos;
+    const totalArchived = isPaginated ? todos.total : archivedTodos.length;
+    const paginationLinks = isPaginated ? todos.links : [];
+
     return (
         <AppLayout title="Archived Todos">
             <Head title="Archived Todos" />
@@ -23,19 +28,19 @@ export default function Archived({ todos }) {
                                     </Link>
                                     <div className="flex items-center space-x-2">
                                         <Archive className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                        <h1 className="text-2xl leading-tight font-bold text-gray-900 dark:text-white">
                                             Archived Todos
                                         </h1>
                                     </div>
                                 </div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    {todos.length} archived {todos.length === 1 ? 'todo' : 'todos'}
+                                    {totalArchived} archived {totalArchived === 1 ? 'todo' : 'todos'}
                                 </div>
                             </div>
                         </div>
 
                         <div className="p-6 lg:p-8">
-                            {todos.length === 0 ? (
+                            {archivedTodos.length === 0 ? (
                                 <div className="text-center py-12">
                                     <Archive className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -47,7 +52,7 @@ export default function Archived({ todos }) {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {todos.map((todo) => (
+                                    {archivedTodos.map((todo) => (
                                         <div
                                             key={todo.id}
                                             className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
@@ -118,6 +123,35 @@ export default function Archived({ todos }) {
                                             </div>
                                         </div>
                                     ))}
+
+                                    {isPaginated && paginationLinks.length > 0 && (
+                                        <nav className="flex justify-center pt-6" aria-label="Archived todos pagination">
+                                            <ul className="flex flex-wrap items-center gap-2 text-sm">
+                                                {paginationLinks.map((link, index) => (
+                                                    <li key={`${link.label}-${index}`}>
+                                                        {link.url ? (
+                                                            <Link
+                                                                href={link.url}
+                                                                preserveScroll
+                                                                preserveState
+                                                                className={`inline-flex min-w-[2.25rem] items-center justify-center rounded-lg px-3 py-2 border transition-all ${
+                                                                    link.active
+                                                                        ? 'border-indigo-500 bg-indigo-500 text-white shadow-sm'
+                                                                        : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                                                                }`}
+                                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                                            />
+                                                        ) : (
+                                                            <span
+                                                                className="inline-flex min-w-[2.25rem] items-center justify-center rounded-lg px-3 py-2 border border-gray-100 text-gray-400 dark:border-gray-800 dark:text-gray-500"
+                                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                                            />
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </nav>
+                                    )}
                                 </div>
                             )}
                         </div>

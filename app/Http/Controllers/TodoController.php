@@ -660,7 +660,8 @@ class TodoController extends Controller
             ->archived()
             ->with(['tags', 'relatedTodos', 'linkedByTodos'])
             ->orderBy('archived_at', 'desc')
-            ->get();
+            ->paginate(12)
+            ->withQueryString();
 
         return Inertia::render('Todos/Archived', [
             'todos' => $archivedTodos,

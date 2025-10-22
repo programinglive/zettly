@@ -218,9 +218,10 @@ class TodoArchiveTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('Todos/Archived')
-            ->has('todos', 1)
-            ->where('todos.0.id', $archivedTodo->id)
-            ->where('todos.0.title', 'Archived Todo')
+            ->has('todos.data', 1)
+            ->where('todos.data.0.id', $archivedTodo->id)
+            ->where('todos.data.0.title', 'Archived Todo')
+            ->where('todos.total', 1)
         );
     }
 
