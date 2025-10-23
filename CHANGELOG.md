@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.3](https://github.com/programinglive/todo/compare/v0.3.2...v0.3.3) (2025-10-23)
+
+
+### ♻️ Refactors
+
+* align dashboard and tests with Eisenhower metrics ([7591445](https://github.com/programinglive/todo/commit/7591445dd2e9ad0a2a7071be37e77de29fb208a3))
+* implement Eisenhower Matrix for todo prioritization ([fdc13bc](https://github.com/programinglive/todo/commit/fdc13bccbb454e7c0e14b6c80945ad930a836d7b))
+
 ### [0.3.2](https://github.com/programinglive/todo/compare/v0.3.1...v0.3.2) (2025-10-22)
 
 
