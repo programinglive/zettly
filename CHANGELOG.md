@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.6](https://github.com/programinglive/todo/compare/v0.3.5...v0.3.6) (2025-10-23)
+
+
+### 🐛 Bug Fixes
+
+* align todo update validation with matrix enums ([17cd78c](https://github.com/programinglive/todo/commit/17cd78c88dc54aca30bb451e4832f5caa87ac39f))
+
 ### [0.3.5](https://github.com/programinglive/todo/compare/v0.3.4...v0.3.5) (2025-10-23)
 
 
