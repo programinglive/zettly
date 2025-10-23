@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class KanbanDragDropTest extends TestCase
@@ -17,15 +18,17 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
         ]);
 
-        // Test updating priority to high
+        // Test updating priority to urgent & important
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/update-priority", [
-                'priority' => 'high',
+                'priority' => Todo::PRIORITY_URGENT,
+                'importance' => Todo::IMPORTANCE_IMPORTANT,
                 'is_completed' => false,
                 '_token' => 'test-token',
             ]);
@@ -35,7 +38,8 @@ class KanbanDragDropTest extends TestCase
         // Check database was updated
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
     }
@@ -46,7 +50,8 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
         ]);
 
@@ -54,7 +59,8 @@ class KanbanDragDropTest extends TestCase
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/update-priority", [
-                'priority' => 'medium',
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
                 'is_completed' => true,
                 '_token' => 'test-token',
             ]);
@@ -65,6 +71,7 @@ class KanbanDragDropTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'priority' => null,
+            'importance' => null,
             'is_completed' => true,
         ]);
 
@@ -73,21 +80,23 @@ class KanbanDragDropTest extends TestCase
         $this->assertNotNull($todo->completed_at);
     }
 
-    public function test_can_move_todo_from_medium_to_urgent()
+    public function test_can_move_todo_from_not_urgent_to_urgent()
     {
         // Create a user and todo
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
         ]);
 
-        // Simulate drag from medium to urgent
+        // Simulate drag from not urgent to urgent
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/update-priority", [
-                'priority' => 'urgent',
+                'priority' => Todo::PRIORITY_URGENT,
+                'importance' => Todo::IMPORTANCE_IMPORTANT,
                 'is_completed' => false,
                 '_token' => 'test-token',
             ]);
@@ -97,7 +106,8 @@ class KanbanDragDropTest extends TestCase
         // Verify the change persisted
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
     }
@@ -107,7 +117,8 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
 
         // Test invalid priority
@@ -130,14 +141,16 @@ class KanbanDragDropTest extends TestCase
 
         $todo = Todo::factory()->create([
             'user_id' => $user1->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
 
         // User 2 tries to update User 1's todo
         $response = $this->actingAs($user2)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/update-priority", [
-                'priority' => 'high',
+                'priority' => Todo::PRIORITY_URGENT,
+                'importance' => Todo::IMPORTANCE_IMPORTANT,
                 'is_completed' => false,
                 '_token' => 'test-token',
             ]);
@@ -148,32 +161,38 @@ class KanbanDragDropTest extends TestCase
         // Original todo should be unchanged
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
     }
 
     public function test_dashboard_shows_updated_priorities()
     {
+        $this->withoutVite();
+
         $user = User::factory()->create();
 
         // Create todos with different priorities
         $urgentTodo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
 
         $mediumTodo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
         ]);
 
-        // Update medium to high
+        // Update not urgent & not important todo to urgent & important
         $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$mediumTodo->id}/update-priority", [
-                'priority' => 'high',
+                'priority' => Todo::PRIORITY_URGENT,
+                'importance' => Todo::IMPORTANCE_IMPORTANT,
                 'is_completed' => false,
                 '_token' => 'test-token',
             ]);
@@ -183,9 +202,20 @@ class KanbanDragDropTest extends TestCase
 
         $response->assertStatus(200);
 
+        $response->assertInertia(function (Assert $page) {
+            $page->component('Dashboard')
+                ->where('stats.important_urgent', 2)
+                ->where('stats.important_not_urgent', 0)
+                ->where('stats.not_important_urgent', 0)
+                ->where('stats.not_important_not_urgent', 0)
+                ->where('stats.completed', 0)
+                ->where('stats.archived', 0);
+        });
+
         // Verify the updated todo appears in the correct priority group
         $mediumTodo->refresh();
-        $this->assertEquals('high', $mediumTodo->priority);
+        $this->assertEquals(Todo::PRIORITY_URGENT, $mediumTodo->priority);
+        $this->assertEquals(Todo::IMPORTANCE_IMPORTANT, $mediumTodo->importance);
     }
 
     public function test_completed_todo_has_null_priority()
@@ -194,7 +224,8 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
 
@@ -212,6 +243,7 @@ class KanbanDragDropTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'priority' => null,
+            'importance' => null,
             'is_completed' => true,
         ]);
 
@@ -219,6 +251,7 @@ class KanbanDragDropTest extends TestCase
         $todo->refresh();
         $this->assertNotNull($todo->completed_at);
         $this->assertNull($todo->priority);
+        $this->assertNull($todo->importance);
     }
 
     public function test_uncompleting_todo_restores_default_priority()
@@ -228,6 +261,7 @@ class KanbanDragDropTest extends TestCase
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
             'priority' => null,
+            'importance' => null,
             'is_completed' => true,
             'completed_at' => now(),
         ]);
@@ -236,7 +270,8 @@ class KanbanDragDropTest extends TestCase
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->post("/todos/{$todo->id}/update-priority", [
-                'priority' => 'medium',
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
                 'is_completed' => false,
                 '_token' => 'test-token',
             ]);
@@ -246,13 +281,14 @@ class KanbanDragDropTest extends TestCase
         // Check database was updated
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
             'is_completed' => false,
         ]);
 
         // Check completed_at was cleared
         $todo->refresh();
         $this->assertNull($todo->completed_at);
-        $this->assertEquals('medium', $todo->priority);
+        $this->assertEquals(Todo::PRIORITY_NOT_URGENT, $todo->priority);
+        $this->assertEquals(Todo::IMPORTANCE_NOT_IMPORTANT, $todo->importance);
     }
 }

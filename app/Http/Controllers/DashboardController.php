@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Todo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -46,23 +47,23 @@ class DashboardController extends Controller
         $stats = [
             'important_urgent' => (clone $notArchivedTodos)
                 ->where('is_completed', false)
-                ->where('importance', 'important')
-                ->where('priority', 'urgent')
+                ->where('importance', Todo::IMPORTANCE_IMPORTANT)
+                ->where('priority', Todo::PRIORITY_URGENT)
                 ->count(),
             'important_not_urgent' => (clone $notArchivedTodos)
                 ->where('is_completed', false)
-                ->where('importance', 'important')
-                ->where('priority', 'not_urgent')
+                ->where('importance', Todo::IMPORTANCE_IMPORTANT)
+                ->where('priority', Todo::PRIORITY_NOT_URGENT)
                 ->count(),
             'not_important_urgent' => (clone $notArchivedTodos)
                 ->where('is_completed', false)
-                ->where('importance', 'not_important')
-                ->where('priority', 'urgent')
+                ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
+                ->where('priority', Todo::PRIORITY_URGENT)
                 ->count(),
             'not_important_not_urgent' => (clone $notArchivedTodos)
                 ->where('is_completed', false)
-                ->where('importance', 'not_important')
-                ->where('priority', 'not_urgent')
+                ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
+                ->where('priority', Todo::PRIORITY_NOT_URGENT)
                 ->count(),
             'completed' => (clone $notArchivedTodos)->where('is_completed', true)->count(),
             'archived' => $user->todos()->archived()->count(),

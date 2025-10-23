@@ -82,8 +82,8 @@ class TodoTest extends TestCase
         $todoData = [
             'title' => 'Test Todo',
             'description' => 'Test Description',
-            'priority' => 'high',
-            'user_id' => $user->id,
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'type' => 'todo',
         ];
 
@@ -92,7 +92,14 @@ class TodoTest extends TestCase
             ->post(route('todos.store'), array_merge($todoData, ['_token' => 'test-token']));
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('todos', array_merge($todoData, ['priority' => 'high']));
+        $this->assertDatabaseHas('todos', [
+            'title' => 'Test Todo',
+            'description' => 'Test Description',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'user_id' => $user->id,
+            'type' => 'todo',
+        ]);
     }
 
     public function test_user_can_view_todo(): void
@@ -141,7 +148,8 @@ class TodoTest extends TestCase
         $payload = [
             'title' => 'Checklist Todo',
             'description' => 'Todo with checklist items',
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'checklist_items' => [
                 ['title' => 'Item A', 'is_completed' => false],
                 ['title' => 'Item B', 'is_completed' => true],
@@ -191,7 +199,8 @@ class TodoTest extends TestCase
         $payload = [
             'title' => 'Updated Title',
             'description' => 'Updated Description',
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'checklist_items' => [
                 ['id' => $existingItem->id, 'title' => 'Existing item updated', 'is_completed' => true],
                 ['title' => 'Brand new item', 'is_completed' => false],
@@ -244,7 +253,8 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create([
             'user_id' => $user->id,
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
 
@@ -257,6 +267,7 @@ class TodoTest extends TestCase
             'id' => $todo->id,
             'is_completed' => true,
             'priority' => null,
+            'importance' => null,
         ]);
     }
 
@@ -266,7 +277,8 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $completedTodo = Todo::factory()->asTask()->create([
             'user_id' => $user->id,
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => true,
             'completed_at' => now()->subDay(),
             'archived' => false,
@@ -291,8 +303,8 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create([
             'user_id' => $user->id,
-            'priority' => 'medium',
-            'importance' => 'low',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
 
         $response = $this->actingAs($user)
@@ -300,7 +312,7 @@ class TodoTest extends TestCase
             ->withSession(['_token' => 'test-token'])
             ->post(route('todos.update-eisenhower', $todo), [
                 '_token' => 'test-token',
-                'importance' => 'high',
+                'importance' => 'important',
                 'priority' => 'urgent',
             ]);
 
@@ -308,8 +320,8 @@ class TodoTest extends TestCase
 
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'importance' => 'high',
-            'priority' => 'urgent',
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'priority' => Todo::PRIORITY_URGENT,
         ]);
     }
 
@@ -347,8 +359,8 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create([
             'user_id' => $user->id,
-            'importance' => 'low',
-            'priority' => 'low',
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            'priority' => Todo::PRIORITY_NOT_URGENT,
         ]);
 
         $response = $this->actingAs($user)
@@ -365,8 +377,8 @@ class TodoTest extends TestCase
 
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
-            'importance' => 'low',
-            'priority' => 'low',
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            'priority' => Todo::PRIORITY_NOT_URGENT,
         ]);
     }
 
@@ -392,7 +404,7 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
 
         // Test valid priorities
-        $validPriorities = ['low', 'medium', 'high', 'urgent'];
+        $validPriorities = [Todo::PRIORITY_NOT_URGENT, Todo::PRIORITY_URGENT];
         foreach ($validPriorities as $priority) {
             $response = $this->actingAs($user)
                 ->withSession(['_token' => 'test-token'])
@@ -400,6 +412,7 @@ class TodoTest extends TestCase
                     'title' => 'Test Todo',
                     'description' => 'Test Description',
                     'priority' => $priority,
+                    'importance' => Todo::IMPORTANCE_IMPORTANT,
                     'user_id' => $user->id,
                     'type' => 'todo',
                     '_token' => 'test-token',
@@ -409,6 +422,7 @@ class TodoTest extends TestCase
             $this->assertDatabaseHas('todos', [
                 'title' => 'Test Todo',
                 'priority' => $priority,
+                'importance' => Todo::IMPORTANCE_IMPORTANT,
                 'user_id' => $user->id,
                 'type' => 'todo',
             ]);
@@ -421,15 +435,16 @@ class TodoTest extends TestCase
                 'title' => 'Test Todo',
                 'description' => 'Test Description',
                 'priority' => 'invalid',
+                'importance' => 'invalid',
                 'user_id' => $user->id,
                 'type' => 'todo',
                 '_token' => 'test-token',
             ]);
 
-        $response->assertSessionHasErrors('priority');
+        $response->assertSessionHasErrors(['priority', 'importance']);
     }
 
-    public function test_todo_defaults_to_medium_priority(): void
+    public function test_todo_defaults_to_not_urgent_priority(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
@@ -446,7 +461,8 @@ class TodoTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('todos', [
             'title' => 'Test Todo',
-            'priority' => 'medium', // Should default to medium
+            'priority' => Todo::PRIORITY_NOT_URGENT, // Should default to not urgent
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'user_id' => $user->id,
         ]);
     }
@@ -454,11 +470,11 @@ class TodoTest extends TestCase
     public function test_priority_is_normalized_and_color_resolved(): void
     {
         $todo = Todo::factory()->asTask()->create([
-            'priority' => 'HIGH',
+            'priority' => 'NOT_URGENT',
         ]);
 
-        $this->assertSame('high', $todo->priority);
-        $this->assertSame('#EF4444', $todo->priority_color);
+        $this->assertSame(Todo::PRIORITY_NOT_URGENT, $todo->priority);
+        $this->assertSame('#0EA5E9', $todo->priority_color);
 
         $todo->priority = 'Urgent';
         $todo->save();

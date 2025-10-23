@@ -77,30 +77,27 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
         setTodoToDelete(null);
     };
 
+    const PRIORITY_LABELS = {
+        urgent: 'Urgent',
+        not_urgent: 'Not Urgent',
+    };
+
     const formatPriorityLabel = (priority) => {
         if (!priority) {
             return '';
         }
 
-        return priority.charAt(0).toUpperCase() + priority.slice(1);
+        return PRIORITY_LABELS[priority] ?? priority.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
     const getPriorityStyle = (priority) => {
         const palette = {
-            low: {
-                badgeBg: '#10B981',
-                badgeText: '#FFFFFF',
-            },
-            medium: {
-                badgeBg: '#F59E0B',
-                badgeText: '#FFFFFF',
-            },
-            high: {
-                badgeBg: '#EF4444',
-                badgeText: '#FFFFFF',
-            },
             urgent: {
                 badgeBg: '#DC2626',
+                badgeText: '#FFFFFF',
+            },
+            not_urgent: {
+                badgeBg: '#2563EB',
                 badgeText: '#FFFFFF',
             },
             default: {
@@ -259,8 +256,10 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                     { key: null, label: 'All' },
                                     { key: 'pending', label: 'Pending' },
                                     { key: 'completed', label: 'Completed' },
-                                    { key: 'high_priority', label: 'High Priority' },
-                                    { key: 'low_priority', label: 'Low Priority' },
+                                    { key: 'urgent', label: 'Urgent' },
+                                    { key: 'not_urgent', label: 'Not Urgent' },
+                                    { key: 'important', label: 'Important' },
+                                    { key: 'not_important', label: 'Not Important' },
                                 ].map(({ key, label }) => (
                                     <Link
                                         key={key || 'all'}

@@ -11,6 +11,13 @@ class TodoArchiveTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
     public function test_can_archive_completed_todos()
     {
         // Create a user with completed and pending todos

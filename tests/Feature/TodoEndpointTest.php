@@ -43,7 +43,8 @@ class TodoEndpointTest extends TestCase
             'title' => 'Test Todo',
             'description' => 'Test Description',
             'due_date' => now()->addDay()->toDateString(),
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
         ];
 
         $response = $this->actingAs($user)
@@ -56,6 +57,7 @@ class TodoEndpointTest extends TestCase
             'title' => $todoData['title'],
             'description' => $todoData['description'],
             'priority' => $todoData['priority'],
+            'importance' => $todoData['importance'],
             'user_id' => $user->id,
         ]);
 

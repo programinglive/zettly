@@ -14,24 +14,36 @@ class DashboardTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
     public function test_dashboard_stats_exclude_archived_and_include_archived_count(): void
     {
+        $this->withoutExceptionHandling();
+
         /** @var User $user */
         $user = User::factory()->createOne();
 
         // Non-archived todos
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
 
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
         ]);
 
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'medium',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => true,
             'completed_at' => now(),
         ]);
@@ -45,14 +57,16 @@ class DashboardTest extends TestCase
 
         // Archived todos (should not affect other stats)
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
             'archived' => true,
             'archived_at' => now(),
         ]);
 
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'low',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => true,
             'completed_at' => now(),
             'archived' => true,
@@ -65,17 +79,19 @@ class DashboardTest extends TestCase
 
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard')
-            ->where('stats.total', 3)
+            ->where('stats.important_urgent', 1)
+            ->where('stats.important_not_urgent', 1)
+            ->where('stats.not_important_urgent', 0)
+            ->where('stats.not_important_not_urgent', 0)
             ->where('stats.completed', 1)
-            ->where('stats.pending', 2)
-            ->where('stats.urgent', 1)
-            ->where('stats.high', 1)
             ->where('stats.archived', 2)
         );
     }
 
     public function test_dashboard_filters_todos_by_selected_tags(): void
     {
+        $this->withoutExceptionHandling();
+
         /** @var User $user */
         $user = User::factory()->createOne();
         /** @var User $otherUser */
@@ -111,6 +127,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_todos_are_sorted_for_kanban_display(): void
     {
+        $this->withoutExceptionHandling();
+
         /** @var User $user */
         $user = User::factory()->createOne();
 
@@ -122,28 +140,32 @@ class DashboardTest extends TestCase
         $completedOlderTime = Carbon::parse('2024-01-01 11:40:00');
 
         $urgentNew = Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
             'created_at' => $urgentNewTime,
             'updated_at' => $urgentNewTime,
         ]);
 
         $urgentOld = Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'urgent',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
             'created_at' => $urgentOldTime,
             'updated_at' => $urgentOldTime,
         ]);
 
-        $high = Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'high',
+        $importantNotUrgent = Todo::factory()->asTask()->for($user)->create([
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
             'created_at' => $highTime,
             'updated_at' => $highTime,
         ]);
 
-        $medium = Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'medium',
+        $notImportantNotUrgent = Todo::factory()->asTask()->for($user)->create([
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
             'created_at' => $mediumTime,
             'updated_at' => $mediumTime,
@@ -151,6 +173,7 @@ class DashboardTest extends TestCase
 
         $completedRecent = Todo::factory()->asTask()->for($user)->create([
             'priority' => null,
+            'importance' => null,
             'is_completed' => true,
             'completed_at' => $completedRecentTime,
             'created_at' => $completedRecentTime,
@@ -159,6 +182,7 @@ class DashboardTest extends TestCase
 
         $completedOlder = Todo::factory()->asTask()->for($user)->create([
             'priority' => null,
+            'importance' => null,
             'is_completed' => true,
             'completed_at' => $completedOlderTime,
             'created_at' => $completedOlderTime,
@@ -166,7 +190,8 @@ class DashboardTest extends TestCase
         ]);
 
         Todo::factory()->asTask()->for($user)->create([
-            'priority' => 'high',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
             'archived' => true,
             'archived_at' => Carbon::parse('2024-01-01 12:10:00'),
@@ -184,8 +209,8 @@ class DashboardTest extends TestCase
         $expectedOrder = [
             $urgentNew->id,
             $urgentOld->id,
-            $high->id,
-            $medium->id,
+            $importantNotUrgent->id,
+            $notImportantNotUrgent->id,
             $completedRecent->id,
             $completedOlder->id,
         ];

@@ -210,9 +210,41 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         }
     };
 
+    const resolveImportance = (todo) => {
+        const raw = todo.importance ?? todo.importance_level ?? null;
+
+        if (typeof raw !== 'string') {
+            return 'not_important';
+        }
+
+        const normalized = raw.toLowerCase();
+
+        if (normalized === 'high' || normalized === 'important') {
+            return 'important';
+        }
+
+        return 'not_important';
+    };
+
+    const resolvePriority = (todo) => {
+        const raw = todo.priority ?? todo.priority_level ?? null;
+
+        if (typeof raw !== 'string') {
+            return 'not_urgent';
+        }
+
+        const normalized = raw.toLowerCase();
+
+        if (normalized === 'urgent' || normalized === 'high') {
+            return 'urgent';
+        }
+
+        return 'not_urgent';
+    };
+
     const getQuadrant = (todo) => {
-        const priority = todo.priority ?? 'not_urgent';
-        const importance = todo.importance ?? 'not_important';
+        const priority = resolvePriority(todo);
+        const importance = resolveImportance(todo);
 
         if (importance === 'important' && priority === 'urgent') return 'q1';
         if (importance === 'important' && priority === 'not_urgent') return 'q2';

@@ -45,10 +45,10 @@ class TodoController extends Controller
                     $query->pending();
                     break;
                 case 'urgent':
-                    $query->highPriority();
+                    $query->byPriority(Todo::PRIORITY_URGENT);
                     break;
                 case 'not_urgent':
-                    $query->lowPriority();
+                    $query->byPriority(Todo::PRIORITY_NOT_URGENT);
                     break;
                 case 'important':
                     $query->byImportance(Todo::IMPORTANCE_IMPORTANT);
@@ -476,16 +476,23 @@ class TodoController extends Controller
 
         if ($isCompleted) {
             $updateData['priority'] = null;
+            $updateData['importance'] = null;
+        } else {
+            $updateData['priority'] = $todo->priority ?? Todo::PRIORITY_NOT_URGENT;
+            $updateData['importance'] = $todo->importance ?? Todo::IMPORTANCE_NOT_IMPORTANT;
         }
 
         $todo->update($updateData);
+        $todo->refresh();
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Todo status updated successfully',
-                'is_completed' => ! $todo->is_completed,
-                'completed_at' => ! $todo->is_completed ? now() : null,
+                'is_completed' => $todo->is_completed,
+                'completed_at' => $todo->completed_at,
+                'priority' => $todo->priority,
+                'importance' => $todo->importance,
             ]);
         }
 
@@ -529,36 +536,51 @@ class TodoController extends Controller
 
         $validated = $request->validate([
             'priority' => 'nullable|in:not_urgent,urgent',
+            'importance' => 'nullable|in:not_important,important',
             'is_completed' => 'boolean',
         ]);
 
-        $updateData = [];
+        $isCompleted = array_key_exists('is_completed', $validated)
+            ? (bool) $validated['is_completed']
+            : $todo->is_completed;
 
-        // Handle priority updates
-        if (array_key_exists('priority', $validated)) {
-            $updateData['priority'] = $validated['priority'];
+        $priority = array_key_exists('priority', $validated)
+            ? $validated['priority']
+            : $todo->priority;
+
+        $importance = array_key_exists('importance', $validated)
+            ? $validated['importance']
+            : $todo->importance;
+
+        if ($isCompleted) {
+            $priority = null;
+            $importance = null;
+        } else {
+            $priority = $priority ?? Todo::PRIORITY_NOT_URGENT;
+            $importance = $importance ?? Todo::IMPORTANCE_NOT_IMPORTANT;
         }
 
-        if (isset($validated['is_completed'])) {
-            $updateData['is_completed'] = $validated['is_completed'];
-            $updateData['completed_at'] = $validated['is_completed'] ? now() : null;
+        $updateData = [
+            'priority' => $priority,
+            'importance' => $importance,
+        ];
 
-            // When marking as completed, remove priority (set to null)
-            if ($validated['is_completed']) {
-                $updateData['priority'] = null;
-                $updateData['importance'] = null;
-            }
+        if (array_key_exists('is_completed', $validated)) {
+            $updateData['is_completed'] = $isCompleted;
+            $updateData['completed_at'] = $isCompleted ? now() : null;
         }
 
         $todo->update($updateData);
+        $todo->refresh();
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Todo priority updated successfully',
-                'priority' => $updateData['priority'] ?? $todo->priority,
-                'is_completed' => isset($validated['is_completed']) ? $validated['is_completed'] : $todo->is_completed,
-                'completed_at' => isset($validated['is_completed']) ? ($validated['is_completed'] ? now() : null) : $todo->completed_at,
+                'priority' => $todo->priority,
+                'importance' => $todo->importance,
+                'is_completed' => $todo->is_completed,
+                'completed_at' => $todo->completed_at,
             ]);
         }
 
@@ -701,19 +723,23 @@ class TodoController extends Controller
         return redirect()->back()->with('success', "Successfully archived {$completedCount} completed todos");
     }
 
-    /**
-     * Display archived todos.
-     */
     public function archived(Request $request)
     {
-        $archivedTodos = Auth::user()->todos()
+        $user = Auth::user();
+
+        $archivedTodos = $user->todos()
             ->archived()
             ->with(['tags', 'relatedTodos', 'linkedByTodos'])
             ->orderBy('archived_at', 'desc')
-            ->paginate(12)
+            ->paginate(15)
             ->withQueryString();
 
         return Inertia::render('Todos/Archived', [
+            'todos' => $archivedTodos,
+        ]);
+    }
+
+    /**
             'todos' => $archivedTodos,
         ]);
     }

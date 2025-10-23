@@ -1,4 +1,5 @@
-const PRIORITY_ORDER = { urgent: 4, high: 3, medium: 2, low: 1 };
+const PRIORITY_ORDER = { urgent: 2, not_urgent: 1 };
+const IMPORTANCE_ORDER = { important: 2, not_important: 1 };
 
 const isTruthyDate = (value) => {
     if (!value) {
@@ -14,12 +15,22 @@ const isCompleted = (todo) => Boolean(todo && todo.is_completed);
 
 const resolvePriorityRank = (priority) => {
     if (typeof priority !== 'string') {
-        return PRIORITY_ORDER.medium;
+        return PRIORITY_ORDER.not_urgent;
     }
 
     const normalized = priority.toLowerCase();
 
-    return PRIORITY_ORDER[normalized] ?? PRIORITY_ORDER.medium;
+    return PRIORITY_ORDER[normalized] ?? PRIORITY_ORDER.not_urgent;
+};
+
+const resolveImportanceRank = (importance) => {
+    if (typeof importance !== 'string') {
+        return IMPORTANCE_ORDER.not_important;
+    }
+
+    const normalized = importance.toLowerCase();
+
+    return IMPORTANCE_ORDER[normalized] ?? IMPORTANCE_ORDER.not_important;
 };
 
 const applyFilter = (items, filter) => {
@@ -28,18 +39,14 @@ const applyFilter = (items, filter) => {
             return items.filter((todo) => isCompleted(todo));
         case 'pending':
             return items.filter((todo) => !isCompleted(todo));
-        case 'high_priority':
-            return items.filter((todo) => {
-                const priority = (todo?.priority || '').toLowerCase();
-
-                return priority === 'urgent' || priority === 'high';
-            });
-        case 'low_priority':
-            return items.filter((todo) => {
-                const priority = (todo?.priority || '').toLowerCase();
-
-                return priority === 'medium' || priority === 'low';
-            });
+        case 'urgent':
+            return items.filter((todo) => (todo?.priority || '').toLowerCase() === 'urgent');
+        case 'not_urgent':
+            return items.filter((todo) => (todo?.priority || '').toLowerCase() === 'not_urgent');
+        case 'important':
+            return items.filter((todo) => (todo?.importance || todo?.importance_level || '').toLowerCase() === 'important');
+        case 'not_important':
+            return items.filter((todo) => (todo?.importance || todo?.importance_level || '').toLowerCase() === 'not_important');
         default:
             return items;
     }
@@ -58,6 +65,11 @@ const sortTasks = (items) => [...items].sort((a, b) => {
     const priorityDelta = resolvePriorityRank(b?.priority) - resolvePriorityRank(a?.priority);
     if (priorityDelta !== 0) {
         return priorityDelta;
+    }
+
+    const importanceDelta = resolveImportanceRank(b?.importance) - resolveImportanceRank(a?.importance);
+    if (importanceDelta !== 0) {
+        return importanceDelta;
     }
 
     return isTruthyDate(b?.created_at) - isTruthyDate(a?.created_at);
