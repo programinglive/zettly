@@ -155,9 +155,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [isArchiving, setIsArchiving] = useState(false);
     const [visibleCounts, setVisibleCounts] = useState({
-        urgent: MAX_VISIBLE_TODOS,
-        high: MAX_VISIBLE_TODOS,
-        mediumLow: MAX_VISIBLE_TODOS,
+        q1: MAX_VISIBLE_TODOS,
+        q2: MAX_VISIBLE_TODOS,
+        q3: MAX_VISIBLE_TODOS,
+        q4: MAX_VISIBLE_TODOS,
         completed: MAX_VISIBLE_TODOS,
     });
 
@@ -243,7 +244,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         let targetColumn = null;
         
         // Check if dropped directly on a column
-        if (['urgent', 'high', 'medium-low', 'completed'].includes(overId)) {
+        if (['q1', 'q2', 'q3', 'q4', 'completed'].includes(overId)) {
             targetColumn = overId;
         } else {
             // Dropped on another todo, find which column it belongs to
@@ -251,12 +252,16 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             if (targetTodo) {
                 if (targetTodo.is_completed) {
                     targetColumn = 'completed';
-                } else if (targetTodo.priority === 'urgent') {
-                    targetColumn = 'urgent';
-                } else if (targetTodo.priority === 'high') {
-                    targetColumn = 'high';
+                } else if (targetTodo.importance === 'important' && targetTodo.priority === 'urgent') {
+                    targetColumn = 'q1';
+                } else if (targetTodo.importance === 'important' && targetTodo.priority === 'not_urgent') {
+                    targetColumn = 'q2';
+                } else if (targetTodo.importance === 'not_important' && targetTodo.priority === 'urgent') {
+                    targetColumn = 'q3';
+                } else if (targetTodo.importance === 'not_important' && targetTodo.priority === 'not_urgent') {
+                    targetColumn = 'q4';
                 } else {
-                    targetColumn = 'medium-low';
+                    targetColumn = 'q4';
                 }
             }
         }
@@ -267,38 +272,50 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
         // Determine new priority and completion status
         let newPriority = draggedTodo.priority;
+        let newImportance = draggedTodo.importance;
         let newCompleted = draggedTodo.is_completed;
 
         switch (targetColumn) {
-            case 'urgent':
+            case 'q1':
+                newImportance = 'important';
                 newPriority = 'urgent';
                 newCompleted = false;
                 break;
-            case 'high':
-                newPriority = 'high';
+            case 'q2':
+                newImportance = 'important';
+                newPriority = 'not_urgent';
                 newCompleted = false;
                 break;
-            case 'medium-low':
-                if (!['medium', 'low'].includes(draggedTodo.priority)) {
-                    newPriority = 'medium';
-                }
+            case 'q3':
+                newImportance = 'not_important';
+                newPriority = 'urgent';
+                newCompleted = false;
+                break;
+            case 'q4':
+                newImportance = 'not_important';
+                newPriority = 'not_urgent';
                 newCompleted = false;
                 break;
             case 'completed':
                 newCompleted = true;
                 // When completed, priority becomes irrelevant - set to null
                 newPriority = null;
+                newImportance = null;
                 break;
         }
 
         // Only update if something changed
-        if (newPriority !== draggedTodo.priority || newCompleted !== draggedTodo.is_completed) {
+        if (
+            newPriority !== draggedTodo.priority ||
+            newImportance !== draggedTodo.importance ||
+            newCompleted !== draggedTodo.is_completed
+        ) {
 
             // Optimistically update the UI
             setTodos(prevTodos => 
                 prevTodos.map(todo => 
                     String(todo.id) === draggedId 
-                        ? { ...todo, priority: newPriority, is_completed: newCompleted }
+                        ? { ...todo, priority: newPriority, importance: newImportance, is_completed: newCompleted }
                         : todo
                 )
             );
@@ -306,6 +323,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             // Send update to backend using the new priority endpoint
             const updateData = {
                 priority: newPriority,
+                importance: newImportance,
                 is_completed: Boolean(newCompleted),
             };
 
@@ -317,7 +335,12 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     setTodos(prevTodos => 
                         prevTodos.map(todo => 
                             String(todo.id) === draggedId 
-                                ? { ...todo, priority: draggedTodo.priority, is_completed: draggedTodo.is_completed }
+                                ? {
+                                      ...todo,
+                                      priority: draggedTodo.priority,
+                                      importance: draggedTodo.importance,
+                                      is_completed: draggedTodo.is_completed,
+                                  }
                                 : todo
                         )
                     );
@@ -330,26 +353,46 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const pendingTodos = todos.filter(todo => !todo.is_completed && !todo.archived);
     const completedTodos = todos.filter(todo => todo.is_completed && !todo.archived);
 
-    // Group pending todos by priority
-    const urgentTodos = pendingTodos.filter(todo => todo.priority === 'urgent');
-    const highTodos = pendingTodos.filter(todo => todo.priority === 'high');
-    const mediumTodos = pendingTodos.filter(todo => todo.priority === 'medium');
-    const lowTodos = pendingTodos.filter(todo => todo.priority === 'low');
-    const mediumLowTodos = useMemo(() => [...mediumTodos, ...lowTodos], [mediumTodos, lowTodos]);
+    // Group pending todos by Eisenhower properties
+    const resolveQuadrant = (todo) => {
+        const priority = todo.priority ?? 'not_urgent';
+        const importance = todo.importance ?? 'not_important';
+
+        if (importance === 'important' && priority === 'urgent') {
+            return 'q1';
+        }
+        if (importance === 'important' && priority === 'not_urgent') {
+            return 'q2';
+        }
+        if (importance === 'not_important' && priority === 'urgent') {
+            return 'q3';
+        }
+
+        return 'q4';
+    };
+
+    const quadrantTodos = {
+        q1: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q1'),
+        q2: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q2'),
+        q3: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q3'),
+        q4: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q4'),
+    };
 
     useEffect(() => {
         setVisibleCounts((prev) => {
             const next = {
-                urgent: computeVisible(prev.urgent, urgentTodos.length),
-                high: computeVisible(prev.high, highTodos.length),
-                mediumLow: computeVisible(prev.mediumLow, mediumLowTodos.length),
+                q1: computeVisible(prev.q1, quadrantTodos.q1.length),
+                q2: computeVisible(prev.q2, quadrantTodos.q2.length),
+                q3: computeVisible(prev.q3, quadrantTodos.q3.length),
+                q4: computeVisible(prev.q4, quadrantTodos.q4.length),
                 completed: computeVisible(prev.completed, completedTodos.length),
             };
 
             if (
-                next.urgent === prev.urgent &&
-                next.high === prev.high &&
-                next.mediumLow === prev.mediumLow &&
+                next.q1 === prev.q1 &&
+                next.q2 === prev.q2 &&
+                next.q3 === prev.q3 &&
+                next.q4 === prev.q4 &&
                 next.completed === prev.completed
             ) {
                 return prev;
@@ -357,7 +400,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
             return next;
         });
-    }, [computeVisible, urgentTodos.length, highTodos.length, mediumLowTodos.length, completedTodos.length]);
+    }, [computeVisible, quadrantTodos.q1.length, quadrantTodos.q2.length, quadrantTodos.q3.length, quadrantTodos.q4.length, completedTodos.length]);
 
     const handleLoadMore = useCallback((columnId, total) => {
         setVisibleCounts((prev) => {
@@ -372,12 +415,13 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
     const loadMoreHandlers = useMemo(
         () => ({
-            urgent: () => handleLoadMore('urgent', urgentTodos.length),
-            high: () => handleLoadMore('high', highTodos.length),
-            mediumLow: () => handleLoadMore('mediumLow', mediumLowTodos.length),
+            q1: () => handleLoadMore('q1', quadrantTodos.q1.length),
+            q2: () => handleLoadMore('q2', quadrantTodos.q2.length),
+            q3: () => handleLoadMore('q3', quadrantTodos.q3.length),
+            q4: () => handleLoadMore('q4', quadrantTodos.q4.length),
             completed: () => handleLoadMore('completed', completedTodos.length),
         }),
-        [handleLoadMore, urgentTodos.length, highTodos.length, mediumLowTodos.length, completedTodos.length]
+        [handleLoadMore, quadrantTodos.q1.length, quadrantTodos.q2.length, quadrantTodos.q3.length, quadrantTodos.q4.length, completedTodos.length]
     );
 
     const getVisibleCount = useCallback(
@@ -394,17 +438,19 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         [visibleCounts]
     );
 
-    const urgentVisible = getVisibleCount('urgent', urgentTodos.length);
-    const highVisible = getVisibleCount('high', highTodos.length);
-    const mediumLowVisible = getVisibleCount('mediumLow', mediumLowTodos.length);
+    const q1Visible = getVisibleCount('q1', quadrantTodos.q1.length);
+    const q2Visible = getVisibleCount('q2', quadrantTodos.q2.length);
+    const q3Visible = getVisibleCount('q3', quadrantTodos.q3.length);
+    const q4Visible = getVisibleCount('q4', quadrantTodos.q4.length);
     const completedVisible = getVisibleCount('completed', completedTodos.length);
 
-    const urgentHasMore = urgentVisible < urgentTodos.length;
-    const highHasMore = highVisible < highTodos.length;
-    const mediumLowHasMore = mediumLowVisible < mediumLowTodos.length;
+    const q1HasMore = q1Visible < quadrantTodos.q1.length;
+    const q2HasMore = q2Visible < quadrantTodos.q2.length;
+    const q3HasMore = q3Visible < quadrantTodos.q3.length;
+    const q4HasMore = q4Visible < quadrantTodos.q4.length;
     const completedHasMore = completedVisible < completedTodos.length;
 
-    const DroppableColumn = ({ id, title, todos, totalCount, visibleCount, bgColor, textColor, icon, hasMore, onLoadMore }) => {
+    const DroppableColumn = ({ id, title, subtitle, todos, totalCount, visibleCount, bgColor, textColor, icon, hasMore, onLoadMore }) => {
         const { isOver, setNodeRef } = useDroppable({
             id: id,
         });
@@ -439,36 +485,41 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         const todoIds = displayTodos.map(todo => String(todo.id));
         
         return (
-            <div 
+            <div
                 ref={setNodeRef}
                 className={`flex-1 min-w-0 transition-colors ${
-                    isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+                    isOver ? 'ring-2 ring-indigo-400 ring-opacity-60' : ''
                 }`}
             >
-                <div className={`${bgColor} ${textColor} p-3 rounded-t-lg`}>
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg">{icon}</span>
-                        <h3 className="font-medium text-sm">{title}</h3>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                <div className={`${bgColor} ${textColor} p-4 rounded-t-2xl shadow-sm`}>
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2">
+                            <span className="text-xl leading-none">{icon}</span>
+                            <div>
+                                <h3 className="text-sm font-semibold uppercase tracking-wide">{title}</h3>
+                                {subtitle && <p className="text-xs opacity-80">{subtitle}</p>}
+                            </div>
+                        </div>
+                        <span className="inline-flex items-center justify-center rounded-full bg-white/25 px-2 py-0.5 text-xs font-semibold">
                             {totalCount}
                         </span>
-                        {id === 'completed' && totalCount > 0 && (
+                    </div>
+                    {id === 'completed' && totalCount > 0 && (
+                        <div className="mt-3 flex justify-end">
                             <button
                                 onClick={handleArchiveCompleted}
-                                className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-full transition-colors flex items-center gap-1"
+                                className="text-[11px] bg-white/25 hover:bg-white/35 px-2 py-1 rounded-full transition-colors flex items-center gap-1"
                                 title="Archive all completed todos"
                             >
                                 <Archive className="w-3 h-3" />
                                 <span>Archive</span>
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
                     <div 
-                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-lg min-h-[200px] max-h-[520px] overflow-y-auto space-y-3 border-l border-r border-b border-gray-200 dark:border-slate-800"
+                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-2xl min-h-[220px] max-h-[540px] overflow-y-auto space-y-3 border border-gray-200/70 dark:border-slate-800/80"
                     >
                         {displayTodos.length > 0 ? (
                             displayTodos.map(todo => (
@@ -477,7 +528,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         ) : (
                             <div className="text-center py-8 text-gray-400 dark:text-gray-500">
                                 <div className="text-2xl mb-2">{icon}</div>
-                                <p className="text-xs">No {title.toLowerCase()}</p>
+                                <p className="text-xs">No tasks yet</p>
                                 <p className="text-xs mt-1">Drag todos here</p>
                             </div>
                         )}
@@ -529,46 +580,63 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 </div>
 
                 {/* Kanban Board */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                     <DroppableColumn
-                        id="urgent"
-                        title="Urgent"
-                        todos={urgentTodos}
-                        totalCount={urgentTodos.length}
-                        visibleCount={urgentVisible}
-                        hasMore={urgentHasMore}
-                        onLoadMore={loadMoreHandlers.urgent}
-                        bgColor="bg-red-600"
+                        id="q1"
+                        title="Q1: Do First"
+                        subtitle="Urgent & Important"
+                        todos={quadrantTodos.q1}
+                        totalCount={quadrantTodos.q1.length}
+                        visibleCount={q1Visible}
+                        hasMore={q1HasMore}
+                        onLoadMore={loadMoreHandlers.q1}
+                        bgColor="bg-rose-600"
                         textColor="text-white"
                         icon="🚨"
                     />
                     <DroppableColumn
-                        id="high"
-                        title="High Priority"
-                        todos={highTodos}
-                        totalCount={highTodos.length}
-                        visibleCount={highVisible}
-                        hasMore={highHasMore}
-                        onLoadMore={loadMoreHandlers.high}
-                        bgColor="bg-orange-500"
+                        id="q2"
+                        title="Q2: Schedule"
+                        subtitle="Not Urgent & Important"
+                        todos={quadrantTodos.q2}
+                        totalCount={quadrantTodos.q2.length}
+                        visibleCount={q2Visible}
+                        hasMore={q2HasMore}
+                        onLoadMore={loadMoreHandlers.q2}
+                        bgColor="bg-blue-600"
                         textColor="text-white"
-                        icon="🔥"
+                        icon="📅"
                     />
                     <DroppableColumn
-                        id="medium-low"
-                        title="Medium & Low"
-                        todos={mediumLowTodos}
-                        totalCount={mediumLowTodos.length}
-                        visibleCount={mediumLowVisible}
-                        hasMore={mediumLowHasMore}
-                        onLoadMore={loadMoreHandlers.mediumLow}
-                        bgColor="bg-blue-500"
+                        id="q3"
+                        title="Q3: Delegate"
+                        subtitle="Urgent & Not Important"
+                        todos={quadrantTodos.q3}
+                        totalCount={quadrantTodos.q3.length}
+                        visibleCount={q3Visible}
+                        hasMore={q3HasMore}
+                        onLoadMore={loadMoreHandlers.q3}
+                        bgColor="bg-amber-500"
+                        textColor="text-gray-900"
+                        icon="👥"
+                    />
+                    <DroppableColumn
+                        id="q4"
+                        title="Q4: Eliminate"
+                        subtitle="Not Urgent & Not Important"
+                        todos={quadrantTodos.q4}
+                        totalCount={quadrantTodos.q4.length}
+                        visibleCount={q4Visible}
+                        hasMore={q4HasMore}
+                        onLoadMore={loadMoreHandlers.q4}
+                        bgColor="bg-slate-600"
                         textColor="text-white"
-                        icon="📋"
+                        icon="🗑️"
                     />
                     <DroppableColumn
                         id="completed"
                         title="Completed"
+                        subtitle="Archived after review"
                         todos={completedTodos}
                         totalCount={completedTodos.length}
                         visibleCount={completedVisible}

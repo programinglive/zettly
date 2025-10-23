@@ -44,11 +44,17 @@ class TodoController extends Controller
                 case 'pending':
                     $query->pending();
                     break;
-                case 'high_priority':
+                case 'urgent':
                     $query->highPriority();
                     break;
-                case 'low_priority':
+                case 'not_urgent':
                     $query->lowPriority();
+                    break;
+                case 'important':
+                    $query->byImportance(Todo::IMPORTANCE_IMPORTANT);
+                    break;
+                case 'not_important':
+                    $query->byImportance(Todo::IMPORTANCE_NOT_IMPORTANT);
                     break;
             }
         }
@@ -67,10 +73,12 @@ class TodoController extends Controller
             $query->orderBy('is_completed', 'asc')
                 ->orderByRaw("CASE 
                 WHEN priority = 'urgent' THEN 1 
-                WHEN priority = 'high' THEN 2 
-                WHEN priority = 'medium' THEN 3 
-                WHEN priority = 'low' THEN 4 
-                ELSE 5 END")
+                WHEN priority = 'not_urgent' THEN 2 
+                ELSE 3 END")
+                ->orderByRaw("CASE 
+                WHEN importance = 'important' THEN 1 
+                WHEN importance = 'not_important' THEN 2 
+                ELSE 3 END")
                 ->orderBy('created_at', 'desc');
         } else {
             $query->orderBy('created_at', 'desc');
@@ -117,7 +125,8 @@ class TodoController extends Controller
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'nullable|in:low,medium,high,urgent',
+            'priority' => 'nullable|in:not_urgent,urgent',
+            'importance' => 'nullable|in:not_important,important',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
@@ -138,9 +147,11 @@ class TodoController extends Controller
         $validated['user_id'] = Auth::id();
 
         if ($type === Todo::TYPE_TODO) {
-            $validated['priority'] = $validated['priority'] ?? Todo::PRIORITY_MEDIUM;
+            $validated['priority'] = $validated['priority'] ?? Todo::PRIORITY_NOT_URGENT;
+            $validated['importance'] = $validated['importance'] ?? Todo::IMPORTANCE_NOT_IMPORTANT;
         } else {
             $validated['priority'] = null;
+            $validated['importance'] = null;
         }
 
         $todo = Todo::create($validated);
@@ -330,14 +341,17 @@ class TodoController extends Controller
             }
 
             $validated['priority'] = null;
+            $validated['importance'] = null;
         } elseif (isset($validated['is_completed']) && ! $validated['is_completed']) {
             $validated['completed_at'] = null;
         }
 
         if ($type === Todo::TYPE_TODO && (! isset($validated['is_completed']) || ! $validated['is_completed'])) {
-            $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_MEDIUM);
+            $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_NOT_URGENT);
+            $validated['importance'] = $validated['importance'] ?? ($todo->importance ?? Todo::IMPORTANCE_NOT_IMPORTANT);
         } elseif ($type === Todo::TYPE_NOTE) {
             $validated['priority'] = null;
+            $validated['importance'] = null;
         }
 
         $checklistItems = $validated['checklist_items'] ?? null;
@@ -514,7 +528,7 @@ class TodoController extends Controller
         }
 
         $validated = $request->validate([
-            'priority' => 'nullable|in:low,medium,high,urgent',
+            'priority' => 'nullable|in:not_urgent,urgent',
             'is_completed' => 'boolean',
         ]);
 
@@ -532,6 +546,7 @@ class TodoController extends Controller
             // When marking as completed, remove priority (set to null)
             if ($validated['is_completed']) {
                 $updateData['priority'] = null;
+                $updateData['importance'] = null;
             }
         }
 
@@ -566,8 +581,8 @@ class TodoController extends Controller
         }
 
         $validated = $request->validate([
-            'importance' => 'required|in:low,high',
-            'priority' => 'required|in:low,medium,high,urgent',
+            'importance' => 'required|in:not_important,important',
+            'priority' => 'required|in:not_urgent,urgent',
         ]);
 
         $todo->update([

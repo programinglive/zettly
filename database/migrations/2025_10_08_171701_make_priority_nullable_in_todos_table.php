@@ -12,13 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('todos', function (Blueprint $table) {
-            // For PostgreSQL, we need to drop and recreate the column
             $table->dropColumn('priority');
         });
 
         Schema::table('todos', function (Blueprint $table) {
-            // Add priority column as nullable enum
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->nullable()->default('medium')->after('description');
+            $table->string('priority', 50)->nullable()->default('not_urgent')->after('description');
         });
     }
 
@@ -32,8 +30,7 @@ return new class extends Migration
         });
 
         Schema::table('todos', function (Blueprint $table) {
-            // Restore non-nullable priority column
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium')->after('description');
+            $table->string('priority', 50)->default('medium')->after('description');
         });
     }
 };

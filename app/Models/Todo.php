@@ -16,17 +16,13 @@ class Todo extends Model
 
     const TYPE_NOTE = 'note';
 
-    const PRIORITY_LOW = 'low';
-
-    const PRIORITY_MEDIUM = 'medium';
-
-    const PRIORITY_HIGH = 'high';
+    const PRIORITY_NOT_URGENT = 'not_urgent';
 
     const PRIORITY_URGENT = 'urgent';
 
-    const IMPORTANCE_LOW = 'low';
+    const IMPORTANCE_NOT_IMPORTANT = 'not_important';
 
-    const IMPORTANCE_HIGH = 'high';
+    const IMPORTANCE_IMPORTANT = 'important';
 
     protected $fillable = [
         'user_id',
@@ -134,12 +130,12 @@ class Todo extends Model
 
     public function scopeHighPriority($query)
     {
-        return $query->whereIn('priority', [self::PRIORITY_HIGH, self::PRIORITY_URGENT]);
+        return $query->where('priority', self::PRIORITY_URGENT);
     }
 
     public function scopeLowPriority($query)
     {
-        return $query->whereIn('priority', [self::PRIORITY_LOW, self::PRIORITY_MEDIUM]);
+        return $query->where('priority', self::PRIORITY_NOT_URGENT);
     }
 
     public function scopeArchived($query)
@@ -173,9 +169,7 @@ class Todo extends Model
     public static function getPriorityLevels()
     {
         return [
-            self::PRIORITY_LOW => 'Low',
-            self::PRIORITY_MEDIUM => 'Medium',
-            self::PRIORITY_HIGH => 'High',
+            self::PRIORITY_NOT_URGENT => 'Not Urgent',
             self::PRIORITY_URGENT => 'Urgent',
         ];
     }
@@ -183,8 +177,8 @@ class Todo extends Model
     public static function getImportanceLevels()
     {
         return [
-            self::IMPORTANCE_LOW => 'Low',
-            self::IMPORTANCE_HIGH => 'High',
+            self::IMPORTANCE_NOT_IMPORTANT => 'Not Important',
+            self::IMPORTANCE_IMPORTANT => 'Important',
         ];
     }
 
@@ -196,10 +190,8 @@ class Todo extends Model
         $priority = $this->priority !== null ? strtolower($this->priority) : null;
 
         return match ($priority) {
-            self::PRIORITY_LOW => '#10B981',      // green
-            self::PRIORITY_MEDIUM => '#F59E0B',   // yellow
-            self::PRIORITY_HIGH => '#EF4444',     // red
-            self::PRIORITY_URGENT => '#DC2626',   // dark red
+            self::PRIORITY_NOT_URGENT => '#0EA5E9',   // sky blue
+            self::PRIORITY_URGENT => '#DC2626',       // red
             default => '#6B7280',                 // gray
         };
     }
@@ -211,29 +203,29 @@ class Todo extends Model
 
     public function scopeQ1($query)
     {
-        return $query->where('importance', self::IMPORTANCE_HIGH)
-            ->whereIn('priority', [self::PRIORITY_URGENT, self::PRIORITY_HIGH])
+        return $query->where('importance', self::IMPORTANCE_IMPORTANT)
+            ->where('priority', self::PRIORITY_URGENT)
             ->where('is_completed', false);
     }
 
     public function scopeQ2($query)
     {
-        return $query->where('importance', self::IMPORTANCE_HIGH)
-            ->whereIn('priority', [self::PRIORITY_MEDIUM, self::PRIORITY_LOW])
+        return $query->where('importance', self::IMPORTANCE_IMPORTANT)
+            ->where('priority', self::PRIORITY_NOT_URGENT)
             ->where('is_completed', false);
     }
 
     public function scopeQ3($query)
     {
-        return $query->where('importance', self::IMPORTANCE_LOW)
-            ->whereIn('priority', [self::PRIORITY_URGENT, self::PRIORITY_HIGH])
+        return $query->where('importance', self::IMPORTANCE_NOT_IMPORTANT)
+            ->where('priority', self::PRIORITY_URGENT)
             ->where('is_completed', false);
     }
 
     public function scopeQ4($query)
     {
-        return $query->where('importance', self::IMPORTANCE_LOW)
-            ->whereIn('priority', [self::PRIORITY_MEDIUM, self::PRIORITY_LOW])
+        return $query->where('importance', self::IMPORTANCE_NOT_IMPORTANT)
+            ->where('priority', self::PRIORITY_NOT_URGENT)
             ->where('is_completed', false);
     }
 

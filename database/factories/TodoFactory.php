@@ -19,13 +19,26 @@ class TodoFactory extends Factory
         $type = fake()->randomElement(['todo', 'note']);
         $isCompleted = $type === 'note' ? false : fake()->boolean(30);
 
+        $priority = null;
+        $importance = null;
+
+        if ($type === 'todo') {
+            $priority = fake()->randomElement(['not_urgent', 'urgent']);
+            $importance = fake()->randomElement(['not_important', 'important']);
+        }
+
+        if ($isCompleted) {
+            $priority = null;
+            $importance = null;
+        }
+
         return [
             'user_id' => \App\Models\User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->optional()->paragraph(),
             'type' => $type,
-            'priority' => $type === 'note' ? null : fake()->randomElement(['low', 'medium', 'high', 'urgent']),
-            'importance' => $type === 'note' ? null : fake()->randomElement(['low', 'high']),
+            'priority' => $priority,
+            'importance' => $importance,
             'is_completed' => $isCompleted,
             'completed_at' => function (array $attributes) use ($isCompleted) {
                 return $isCompleted ? fake()->dateTimeBetween('-1 month', 'now') : null;
@@ -37,7 +50,8 @@ class TodoFactory extends Factory
     {
         return $this->state(fn () => [
             'type' => 'todo',
-            'priority' => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
+            'priority' => fake()->randomElement(['not_urgent', 'urgent']),
+            'importance' => fake()->randomElement(['not_important', 'important']),
         ]);
     }
 
@@ -46,6 +60,7 @@ class TodoFactory extends Factory
         return $this->state(fn () => [
             'type' => 'note',
             'priority' => null,
+            'importance' => null,
             'is_completed' => false,
             'completed_at' => null,
         ]);

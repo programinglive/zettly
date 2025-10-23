@@ -46,15 +46,49 @@ class TodoSeeder extends Seeder
 
             $tagIds = $tags->pluck('id');
 
-            // Create 3-5 todos per user
+            $quadrants = [
+                ['title' => 'Handle critical production issue', 'priority' => 'urgent', 'importance' => 'important'],
+                ['title' => 'Plan upcoming sprint goals', 'priority' => 'not_urgent', 'importance' => 'important'],
+                ['title' => 'Answer support inbox', 'priority' => 'urgent', 'importance' => 'not_important'],
+                ['title' => 'Declutter workspace', 'priority' => 'not_urgent', 'importance' => 'not_important'],
+            ];
+
+            collect($quadrants)->each(function ($attributes) use ($user, $tagIds) {
+                $todo = Todo::factory()
+                    ->asTask()
+                    ->for($user)
+                    ->create([
+                        'title' => $attributes['title'],
+                        'priority' => $attributes['priority'],
+                        'importance' => $attributes['importance'],
+                        'is_completed' => false,
+                        'completed_at' => null,
+                    ]);
+
+                if ($tagIds->isNotEmpty()) {
+                    $limit = min(3, $tagIds->count());
+                    $todo->tags()->sync(
+                        $tagIds->shuffle()->take(fake()->numberBetween(1, $limit))->all()
+                    );
+                }
+            });
+
+            // Additional random todos for variety
             Todo::factory()
-                ->count(fake()->numberBetween(3, 5))
+                ->count(fake()->numberBetween(2, 4))
                 ->asTask()
                 ->for($user)
                 ->create()
                 ->each(function (Todo $todo) use ($tagIds) {
                     if ($tagIds->isEmpty()) {
                         return;
+                    }
+
+                    if ($todo->is_completed) {
+                        $todo->forceFill([
+                            'priority' => null,
+                            'importance' => null,
+                        ])->save();
                     }
 
                     $limit = min(3, $tagIds->count());
@@ -76,6 +110,8 @@ class TodoSeeder extends Seeder
             ->create([
                 'is_completed' => true,
                 'completed_at' => now()->subDays(rand(1, 7)),
+                'priority' => null,
+                'importance' => null,
             ])
             ->each(function (Todo $todo) use ($firstUserTagIds) {
                 if ($firstUserTagIds->isNotEmpty()) {
@@ -86,9 +122,9 @@ class TodoSeeder extends Seeder
                 }
             });
 
-        // Create some pending todos
+        // Create some pending todos covering quadrants
         Todo::factory()
-            ->count(3)
+            ->count(4)
             ->asTask()
             ->for($firstUser)
             ->create([
@@ -96,6 +132,11 @@ class TodoSeeder extends Seeder
                 'completed_at' => null,
             ])
             ->each(function (Todo $todo) use ($firstUserTagIds) {
+                $todo->update([
+                    'priority' => fake()->randomElement(['urgent', 'not_urgent']),
+                    'importance' => fake()->randomElement(['important', 'not_important']),
+                ]);
+
                 if ($firstUserTagIds->isNotEmpty()) {
                     $limit = min(3, $firstUserTagIds->count());
                     $todo->tags()->sync(
@@ -118,6 +159,13 @@ class TodoSeeder extends Seeder
             ->for($firstUser)
             ->create()
             ->each(function (Todo $todo) use ($firstUserTagIds) {
+                if ($todo->is_completed) {
+                    $todo->forceFill([
+                        'priority' => null,
+                        'importance' => null,
+                    ])->save();
+                }
+
                 if ($firstUserTagIds->isNotEmpty()) {
                     $limit = min(3, $firstUserTagIds->count());
                     $todo->tags()->sync(

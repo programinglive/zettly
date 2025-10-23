@@ -25,10 +25,12 @@ class DashboardController extends Controller
             ->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE 
             WHEN priority = 'urgent' THEN 1 
-            WHEN priority = 'high' THEN 2 
-            WHEN priority = 'medium' THEN 3 
-            WHEN priority = 'low' THEN 4 
-            ELSE 5 END")
+            WHEN priority = 'not_urgent' THEN 2 
+            ELSE 3 END")
+            ->orderByRaw("CASE 
+            WHEN importance = 'important' THEN 1 
+            WHEN importance = 'not_important' THEN 2 
+            ELSE 3 END")
             ->orderBy('created_at', 'desc');
 
         if (! empty($selectedTagIds)) {
@@ -42,11 +44,27 @@ class DashboardController extends Controller
         $notArchivedTodos = $user->todos()->notArchived()->tasks();
 
         $stats = [
-            'total' => (clone $notArchivedTodos)->count(),
+            'important_urgent' => (clone $notArchivedTodos)
+                ->where('is_completed', false)
+                ->where('importance', 'important')
+                ->where('priority', 'urgent')
+                ->count(),
+            'important_not_urgent' => (clone $notArchivedTodos)
+                ->where('is_completed', false)
+                ->where('importance', 'important')
+                ->where('priority', 'not_urgent')
+                ->count(),
+            'not_important_urgent' => (clone $notArchivedTodos)
+                ->where('is_completed', false)
+                ->where('importance', 'not_important')
+                ->where('priority', 'urgent')
+                ->count(),
+            'not_important_not_urgent' => (clone $notArchivedTodos)
+                ->where('is_completed', false)
+                ->where('importance', 'not_important')
+                ->where('priority', 'not_urgent')
+                ->count(),
             'completed' => (clone $notArchivedTodos)->where('is_completed', true)->count(),
-            'pending' => (clone $notArchivedTodos)->where('is_completed', false)->count(),
-            'urgent' => (clone $notArchivedTodos)->where('is_completed', false)->where('priority', 'urgent')->count(),
-            'high' => (clone $notArchivedTodos)->where('is_completed', false)->where('priority', 'high')->count(),
             'archived' => $user->todos()->archived()->count(),
         ];
 

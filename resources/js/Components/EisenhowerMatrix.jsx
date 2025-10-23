@@ -211,23 +211,23 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
     };
 
     const getQuadrant = (todo) => {
-        const isUrgent = ['urgent', 'high'].includes(todo.priority);
-        const isImportant = todo.importance === 'high';
+        const priority = todo.priority ?? 'not_urgent';
+        const importance = todo.importance ?? 'not_important';
 
-        if (isImportant && isUrgent) return 'q1';
-        if (isImportant && !isUrgent) return 'q2';
-        if (!isImportant && isUrgent) return 'q3';
+        if (importance === 'important' && priority === 'urgent') return 'q1';
+        if (importance === 'important' && priority === 'not_urgent') return 'q2';
+        if (importance === 'not_important' && priority === 'urgent') return 'q3';
         return 'q4';
     };
 
     const quadrantToMatrix = (quadrant) => {
         const map = {
-            q1: ['high', 'urgent'],
-            q2: ['high', 'medium'],
-            q3: ['low', 'urgent'],
-            q4: ['low', 'low'],
+            q1: ['important', 'urgent'],
+            q2: ['important', 'not_urgent'],
+            q3: ['not_important', 'urgent'],
+            q4: ['not_important', 'not_urgent'],
         };
-        return map[quadrant] || ['low', 'low'];
+        return map[quadrant] || ['not_important', 'not_urgent'];
     };
 
     const groupedTodos = useMemo(() => {
