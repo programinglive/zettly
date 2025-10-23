@@ -26,6 +26,14 @@ return new class extends Migration
                 });
             }
 
+            $driver = DB::getDriverName();
+
+            if ($driver === 'pgsql') {
+                // Drop legacy enum check constraints so data updates can succeed.
+                DB::statement("ALTER TABLE todos DROP CONSTRAINT IF EXISTS todos_priority_check");
+                DB::statement("ALTER TABLE todos DROP CONSTRAINT IF EXISTS todos_importance_check");
+            }
+
             // Normalize legacy values for todos only (notes keep null priority/importance).
             DB::table('todos')
                 ->where('type', 'todo')
@@ -42,8 +50,6 @@ return new class extends Migration
                     'importance' => null,
                 ]);
 
-            $driver = DB::getDriverName();
-
             if ($driver === 'mysql') {
                 DB::statement("ALTER TABLE todos MODIFY COLUMN priority ENUM('not_urgent','urgent') NULL DEFAULT 'not_urgent'");
                 DB::statement("ALTER TABLE todos MODIFY COLUMN importance ENUM('not_important','important') NULL DEFAULT 'not_important'");
@@ -52,6 +58,8 @@ return new class extends Migration
                 DB::statement("ALTER TABLE todos ALTER COLUMN priority SET DEFAULT 'not_urgent'");
                 DB::statement("ALTER TABLE todos ALTER COLUMN importance TYPE VARCHAR(20)");
                 DB::statement("ALTER TABLE todos ALTER COLUMN importance SET DEFAULT 'not_important'");
+                DB::statement("ALTER TABLE todos ADD CONSTRAINT todos_priority_check CHECK (priority IN ('urgent','not_urgent') OR priority IS NULL)");
+                DB::statement("ALTER TABLE todos ADD CONSTRAINT todos_importance_check CHECK (importance IN ('important','not_important') OR importance IS NULL)");
             }
         });
     }
@@ -68,10 +76,14 @@ return new class extends Migration
                 DB::statement("ALTER TABLE todos MODIFY COLUMN priority ENUM('low','medium','high','urgent') NULL DEFAULT 'medium'");
                 DB::statement("ALTER TABLE todos MODIFY COLUMN importance ENUM('low','high') NULL DEFAULT 'low'");
             } elseif ($driver === 'pgsql') {
+                DB::statement("ALTER TABLE todos DROP CONSTRAINT IF EXISTS todos_priority_check");
+                DB::statement("ALTER TABLE todos DROP CONSTRAINT IF EXISTS todos_importance_check");
                 DB::statement("ALTER TABLE todos ALTER COLUMN priority TYPE VARCHAR(20)");
                 DB::statement("ALTER TABLE todos ALTER COLUMN priority SET DEFAULT 'medium'");
                 DB::statement("ALTER TABLE todos ALTER COLUMN importance TYPE VARCHAR(20)");
                 DB::statement("ALTER TABLE todos ALTER COLUMN importance SET DEFAULT 'low'");
+                DB::statement("ALTER TABLE todos ADD CONSTRAINT todos_priority_check CHECK (priority IN ('low','medium','high','urgent') OR priority IS NULL)");
+                DB::statement("ALTER TABLE todos ADD CONSTRAINT todos_importance_check CHECK (importance IN ('low','high') OR importance IS NULL)");
             }
         });
     }
