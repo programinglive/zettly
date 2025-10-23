@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.7](https://github.com/programinglive/todo/compare/v0.3.6...v0.3.7) (2025-10-23)
+
+
+### 🧹 Chores
+
+* add sqlite testing environment ([982f878](https://github.com/programinglive/todo/commit/982f87898e6dd9a9910a624ad38af46a7eec32ef))
+
+
+### 🐛 Bug Fixes
+
+* stabilize migrations and seed demo notes ([9ba4c93](https://github.com/programinglive/todo/commit/9ba4c93aa257287a2cb88ce5684fb2c754329ec1))
+
+
+### 💄 Styles
+
+* refine home hero mobile layout ([ec5a619](https://github.com/programinglive/todo/commit/ec5a61987f8203821aa1975bdac3478d6812eff6))
+
 ### [0.3.6](https://github.com/programinglive/todo/compare/v0.3.5...v0.3.6) (2025-10-23)
 
 
