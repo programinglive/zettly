@@ -46,6 +46,29 @@ class TodoSeeder extends Seeder
 
             $tagIds = $tags->pluck('id');
 
+            $noteTemplates = [
+                [
+                    'title' => 'Weekly Reflection',
+                    'description' => "## Wins\n- Shipped the sprint goal ahead of schedule\n- Helped unblock a teammate\n\n## Next Week\n- Outline roadmap for automation project\n- Share learnings from incident review",
+                    'tags' => ['Personal', 'Work'],
+                ],
+                [
+                    'title' => 'Reading Notes: Atomic Habits',
+                    'description' => "- Focus on systems, not goals\n- Habit stacking example to try: \n  - After brewing coffee, spend 5 minutes planning the day\n- Quote to revisit: *You do not rise to the level of your goals. You fall to the level of your systems.*",
+                    'tags' => ['Learning'],
+                ],
+                [
+                    'title' => 'Conference Ideas Dump',
+                    'description' => "### Talks to watch\n1. Scaling product discovery\n2. Building resilient async teams\n\n### Action Items\n- Pitch the async update template to the squad\n- Experiment with no-meeting Wednesday",
+                    'tags' => ['Work', 'Important'],
+                ],
+                [
+                    'title' => 'Personal Bucket List',
+                    'description' => "- Visit Japan during cherry blossom season\n- Learn conversational Spanish\n- Build a home lab for tinkering",
+                    'tags' => ['Personal'],
+                ],
+            ];
+
             $quadrants = [
                 ['title' => 'Handle critical production issue', 'priority' => 'urgent', 'importance' => 'important'],
                 ['title' => 'Plan upcoming sprint goals', 'priority' => 'not_urgent', 'importance' => 'important'],
@@ -72,6 +95,42 @@ class TodoSeeder extends Seeder
                     );
                 }
             });
+
+            collect($noteTemplates)->each(function (array $template) use ($user, $tags) {
+                $note = Todo::factory()
+                    ->asNote()
+                    ->for($user)
+                    ->create([
+                        'title' => $template['title'],
+                        'description' => $template['description'],
+                    ]);
+
+                $noteTagIds = $tags
+                    ->whereIn('name', $template['tags'])
+                    ->pluck('id');
+
+                if ($noteTagIds->isNotEmpty()) {
+                    $note->tags()->sync($noteTagIds->all());
+                }
+            });
+
+            Todo::factory()
+                ->count(fake()->numberBetween(3, 6))
+                ->asNote()
+                ->for($user)
+                ->create()
+                ->each(function (Todo $note) use ($tagIds) {
+                    if ($tagIds->isEmpty()) {
+                        return;
+                    }
+
+                    if (fake()->boolean(65)) {
+                        $limit = min(3, $tagIds->count());
+                        $note->tags()->sync(
+                            $tagIds->shuffle()->take(fake()->numberBetween(1, $limit))->all()
+                        );
+                    }
+                });
 
             // Additional random todos for variety
             Todo::factory()
