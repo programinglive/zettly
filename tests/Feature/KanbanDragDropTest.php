@@ -18,6 +18,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
@@ -50,6 +51,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
@@ -86,6 +88,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
@@ -117,6 +120,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
@@ -141,6 +145,7 @@ class KanbanDragDropTest extends TestCase
 
         $todo = Todo::factory()->create([
             'user_id' => $user1->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
         ]);
@@ -175,6 +180,7 @@ class KanbanDragDropTest extends TestCase
         // Create todos with different priorities
         $urgentTodo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_URGENT,
             'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
@@ -182,6 +188,7 @@ class KanbanDragDropTest extends TestCase
 
         $mediumTodo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'is_completed' => false,
@@ -224,6 +231,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => Todo::PRIORITY_URGENT,
             'importance' => Todo::IMPORTANCE_IMPORTANT,
             'is_completed' => false,
@@ -260,6 +268,7 @@ class KanbanDragDropTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
             'priority' => null,
             'importance' => null,
             'is_completed' => true,

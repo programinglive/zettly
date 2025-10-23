@@ -29,7 +29,8 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         type: initialType,
         title: todo.title || '',
         description: todo.description || '',
-        priority: initialType === 'note' ? null : (todo.priority || 'medium'),
+        priority: initialType === 'note' ? null : (todo.priority ?? null),
+        importance: initialType === 'note' ? null : (todo.importance ?? null),
         is_completed: todo.is_completed || false,
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
@@ -82,8 +83,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         formData.append('type', data.type);
         formData.append('title', (data.title || '').trim());
         formData.append('description', data.description || '');
-        if (!isNote && data.priority) {
+        if (!isNote && data.priority && data.importance) {
             formData.append('priority', data.priority);
+            formData.append('importance', data.importance);
         }
         formData.append('is_completed', data.is_completed ? '1' : '0');
 
@@ -126,19 +128,22 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         setData('related_todo_ids', todoIds);
     };
 
-    const handlePriorityChange = (priority) => {
-        setData('priority', priority);
+    const handlePriorityChange = (selection) => {
+        setData('priority', selection?.priority ?? null);
+        setData('importance', selection?.importance ?? null);
     };
 
     const handleTypeChange = (type) => {
         setData('type', type);
         if (type === 'note') {
             setData('priority', null);
+            setData('importance', null);
             if (data.is_completed && todo.type !== 'note') {
                 // allow keep completion
             }
-        } else if (!data.priority) {
-            setData('priority', todo.priority || 'medium');
+        } else if (!data.priority || !data.importance) {
+            setData('priority', todo.priority ?? 'not_urgent');
+            setData('importance', todo.importance ?? 'not_important');
         }
     };
 
@@ -222,8 +227,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                     </label>
                                     <PrioritySelector
                                         selectedPriority={data.priority}
-                                        onPriorityChange={handlePriorityChange}
-                                        error={errors.priority}
+                                        selectedImportance={data.importance}
+                                        onChange={handlePriorityChange}
+                                        error={errors.priority || errors.importance}
                                     />
                                 </div>
                             )}

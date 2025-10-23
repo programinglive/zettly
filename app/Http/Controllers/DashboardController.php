@@ -44,24 +44,22 @@ class DashboardController extends Controller
 
         $notArchivedTodos = $user->todos()->notArchived()->tasks();
 
+        $activeTodos = $todos->filter(fn (Todo $todo) => ! $todo->is_completed);
+
         $stats = [
-            'important_urgent' => (clone $notArchivedTodos)
-                ->where('is_completed', false)
+            'important_urgent' => $activeTodos
                 ->where('importance', Todo::IMPORTANCE_IMPORTANT)
                 ->where('priority', Todo::PRIORITY_URGENT)
                 ->count(),
-            'important_not_urgent' => (clone $notArchivedTodos)
-                ->where('is_completed', false)
+            'important_not_urgent' => $activeTodos
                 ->where('importance', Todo::IMPORTANCE_IMPORTANT)
                 ->where('priority', Todo::PRIORITY_NOT_URGENT)
                 ->count(),
-            'not_important_urgent' => (clone $notArchivedTodos)
-                ->where('is_completed', false)
+            'not_important_urgent' => $activeTodos
                 ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
                 ->where('priority', Todo::PRIORITY_URGENT)
                 ->count(),
-            'not_important_not_urgent' => (clone $notArchivedTodos)
-                ->where('is_completed', false)
+            'not_important_not_urgent' => $activeTodos
                 ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
                 ->where('priority', Todo::PRIORITY_NOT_URGENT)
                 ->count(),

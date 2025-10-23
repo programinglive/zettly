@@ -19,7 +19,8 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         type: initialType,
         title: '',
         description: '',
-        priority: initialType === 'note' ? null : 'medium',
+        priority: initialType === 'note' ? null : 'not_urgent',
+        importance: initialType === 'note' ? null : 'not_important',
         tag_ids: [],
         related_todo_ids: [],
         checklist_items: [],
@@ -51,8 +52,9 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         formData.append('type', data.type);
         formData.append('title', data.title);
         formData.append('description', data.description);
-        if (!isNote && data.priority) {
+        if (!isNote && data.priority && data.importance) {
             formData.append('priority', data.priority);
+            formData.append('importance', data.importance);
         }
         
         // Append tag IDs
@@ -94,15 +96,18 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
     };
 
     const handlePriorityChange = (priority) => {
-        setData('priority', priority);
+        setData('priority', priority?.priority ?? null);
+        setData('importance', priority?.importance ?? null);
     };
 
     const handleTypeChange = (type) => {
         setData('type', type);
         if (type === 'note') {
             setData('priority', null);
-        } else if (!data.priority) {
-            setData('priority', 'medium');
+            setData('importance', null);
+        } else if (!data.priority || !data.importance) {
+            setData('priority', 'not_urgent');
+            setData('importance', 'not_important');
         }
     };
 
@@ -187,8 +192,9 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                     </label>
                                     <PrioritySelector
                                         selectedPriority={data.priority}
-                                        onPriorityChange={handlePriorityChange}
-                                        error={errors.priority}
+                                        selectedImportance={data.importance}
+                                        onChange={handlePriorityChange}
+                                        error={errors.priority || errors.importance}
                                     />
                                 </div>
                             )}
