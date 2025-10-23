@@ -82,7 +82,9 @@ Route::get('/todos/{todo}', [TodoController::class, 'show']);
  * {
  *   "title": "Optional string",
  *   "description": "Optional string",
- *   "is_completed": "Optional boolean"
+ *   "is_completed": "Optional boolean",
+ *   "priority": "Optional enum not_urgent|urgent",
+ *   "importance": "Optional enum not_important|important"
  * }
  */
 Route::put('/todos/{todo}', [TodoController::class, 'update']);

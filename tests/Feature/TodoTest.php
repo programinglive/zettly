@@ -140,6 +140,35 @@ class TodoTest extends TestCase
         ]);
     }
 
+    public function test_user_can_update_todo_priority_and_importance(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
+
+        $payload = [
+            'title' => 'Updated Priority Todo',
+            'description' => 'Updated description with valid priority',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'type' => 'todo',
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->put(route('todos.update', $todo), array_merge($payload, ['_token' => 'test-token']));
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'title' => 'Updated Priority Todo',
+            'description' => 'Updated description with valid priority',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+        ]);
+    }
+
     public function test_user_can_create_todo_with_checklist_items(): void
     {
         /** @var User $user */
