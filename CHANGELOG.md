@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.4](https://github.com/programinglive/todo/compare/v0.3.3...v0.3.4) (2025-10-23)
+
+
+### 🐛 Bug Fixes
+
+* make eisenhower migration drop legacy constraints ([2f4bc3b](https://github.com/programinglive/todo/commit/2f4bc3be869f0884689f8dbfc1523b0e167ff07c))
+
 ### [0.3.3](https://github.com/programinglive/todo/compare/v0.3.2...v0.3.3) (2025-10-23)
 
 
