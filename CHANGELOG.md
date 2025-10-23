@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.5](https://github.com/programinglive/todo/compare/v0.3.4...v0.3.5) (2025-10-23)
+
+
+### 🐛 Bug Fixes
+
+* **api:** clear priority when completing via api ([4fcd5e1](https://github.com/programinglive/todo/commit/4fcd5e1d2fa98d75fb8d90a699bec2091a8c5345))
+
+
+### ✨ Features
+
+* **todo:** align priority selector with eisenhower matrix ([b90039c](https://github.com/programinglive/todo/commit/b90039cda00887e78a14ab9e44442eb46db0f811))
+
 ### [0.3.4](https://github.com/programinglive/todo/compare/v0.3.3...v0.3.4) (2025-10-23)
 
 
