@@ -51,7 +51,7 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 
 ### Core Functionality
 - ✅ **Create & Manage Todos** - Add, edit, delete, and complete todos
-- ✅ **Priority System** - Set priority levels (Low, Medium, High, Urgent) with color-coded badges; completed or archived todos automatically drop their priority so the "Completed" lane stays clean
+- ✅ **Priority System** - Set priority levels (Low, Medium, High, Urgent) with color-coded badges; completed or archived todos automatically drop their priority so the "Completed" lane stays clean, and API updates mirror the same behavior for parity across clients
 - ✅ **Smart Sorting** - Todos automatically sorted by priority and completion status
 - ✅ **Tag Management** - Organize todos with customizable colored tags
 - ✅ **Todo Linking** - Create relationships between related todos

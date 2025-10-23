@@ -16,7 +16,9 @@
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major",
-    "test": "echo \"No tests specified\""
+    "test": "npm run test:js",
+    "test:js": "node --test",
+    "test:php": "php artisan test"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

@@ -183,7 +183,12 @@ class TodoController extends Controller
         $type = $validated['type'] ?? $todo->type ?? Todo::TYPE_TODO;
         $validated['type'] = $type;
 
-        if ($type === Todo::TYPE_TODO) {
+        $isCompleted = $validated['is_completed'] ?? $todo->is_completed;
+
+        if ($isCompleted) {
+            $validated['priority'] = null;
+            $validated['importance'] = null;
+        } elseif ($type === Todo::TYPE_TODO) {
             $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_NOT_URGENT);
             $validated['importance'] = $validated['importance'] ?? ($todo->importance ?? Todo::IMPORTANCE_NOT_IMPORTANT);
         } else {
@@ -267,10 +272,22 @@ class TodoController extends Controller
             ], 403);
         }
 
-        $todo->update([
-            'is_completed' => ! $todo->is_completed,
-            'completed_at' => ! $todo->is_completed ? now() : null,
-        ]);
+        $isCompleted = ! $todo->is_completed;
+
+        $updateData = [
+            'is_completed' => $isCompleted,
+            'completed_at' => $isCompleted ? now() : null,
+        ];
+
+        if ($isCompleted) {
+            $updateData['priority'] = null;
+            $updateData['importance'] = null;
+        } else {
+            $updateData['priority'] = $todo->priority ?? Todo::PRIORITY_NOT_URGENT;
+            $updateData['importance'] = $todo->importance ?? Todo::IMPORTANCE_NOT_IMPORTANT;
+        }
+
+        $todo->update($updateData);
 
         return response()->json([
             'success' => true,
