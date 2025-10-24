@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.14](https://github.com/programinglive/todo/compare/v0.3.13...v0.3.14) (2025-10-24)
+
+
+### 🧹 Chores
+
+* enforce future due dates and polish calendar ([554ecaa](https://github.com/programinglive/todo/commit/554ecaa6405088e5a737e7845f51236ffe11ee9a))
+
 ### [0.3.13](https://github.com/programinglive/todo/compare/v0.3.12...v0.3.13) (2025-10-24)
 
 
