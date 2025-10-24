@@ -278,6 +278,11 @@ class TodoController extends Controller
             ->latest()
             ->get();
 
+        // Ensure attachments include computed url and thumbnail_url attributes
+        $todo->attachments->each(function ($attachment) {
+            $attachment->append(['url', 'thumbnail_url']);
+        });
+
         return Inertia::render('Todos/Show', [
             'todo' => $todo,
             'availableTodos' => $availableTodos,
@@ -303,6 +308,11 @@ class TodoController extends Controller
 
         // Load existing relationships (both directions)
         $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments', 'checklistItems']);
+
+        // Ensure attachments include computed url and thumbnail_url attributes
+        $todo->attachments->each(function ($attachment) {
+            $attachment->append(['url', 'thumbnail_url']);
+        });
 
         // Build selected linked todos + ids for the form
         $selectedLinkedTodos = $todo->relatedTodos
@@ -890,7 +900,11 @@ class TodoController extends Controller
         // Delete attachment record
         $attachment->delete();
 
-        return response()->json(['message' => 'Attachment deleted successfully']);
+        if (request()->wantsJson() || request()->is('api/*')) {
+            return response()->json(['message' => 'Attachment deleted successfully']);
+        }
+
+        return back()->with('success', 'Attachment deleted successfully');
     }
 
     /**
@@ -966,7 +980,7 @@ class TodoController extends Controller
      */
     private function createBasicThumbnail(string $source, string $destination): void
     {
-        $imageInfo = getimagesize($source);
+        $imageInfo = @getimagesize($source);
         if (! $imageInfo) {
             return;
         }
@@ -980,40 +994,50 @@ class TodoController extends Controller
         $newHeight = 200;
 
         if ($width > $height) {
-            $newHeight = ($height / $width) * $newWidth;
+            $newHeight = (int) (($height / $width) * $newWidth);
         } else {
-            $newWidth = ($width / $height) * $newHeight;
+            $newWidth = (int) (($width / $height) * $newHeight);
         }
 
         // Create image resource based on type
+        $sourceImage = null;
         switch ($type) {
             case IMAGETYPE_JPEG:
-                $sourceImage = imagecreatefromjpeg($source);
+                $sourceImage = @imagecreatefromjpeg($source);
                 break;
             case IMAGETYPE_PNG:
-                $sourceImage = imagecreatefrompng($source);
+                $sourceImage = @imagecreatefrompng($source);
                 break;
             case IMAGETYPE_GIF:
-                $sourceImage = imagecreatefromgif($source);
+                $sourceImage = @imagecreatefromgif($source);
                 break;
             default:
                 return;
         }
 
+        if (! $sourceImage) {
+            return;
+        }
+
         // Create thumbnail
-        $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
-        imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        $thumbnail = @imagecreatetruecolor($newWidth, $newHeight);
+        if (! $thumbnail) {
+            imagedestroy($sourceImage);
+            return;
+        }
+
+        @imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
         // Save thumbnail
         switch ($type) {
             case IMAGETYPE_JPEG:
-                imagejpeg($thumbnail, $destination, 85);
+                @imagejpeg($thumbnail, $destination, 85);
                 break;
             case IMAGETYPE_PNG:
-                imagepng($thumbnail, $destination);
+                @imagepng($thumbnail, $destination);
                 break;
             case IMAGETYPE_GIF:
-                imagegif($thumbnail, $destination);
+                @imagegif($thumbnail, $destination);
                 break;
         }
 

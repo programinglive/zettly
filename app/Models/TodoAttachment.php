@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 class TodoAttachment extends Model
@@ -42,15 +43,25 @@ class TodoAttachment extends Model
         $disk = config('todo.attachments_disk', 'public');
         $storage = Storage::disk($disk);
 
-        try {
-            return $storage->url($this->file_path);
-        } catch (\Throwable $exception) {
-            // Fallback for drivers that don't support url() method
-            $baseUrl = config("filesystems.disks.{$disk}.url")
-                ?? sprintf('https://storage.googleapis.com/%s', config("filesystems.disks.{$disk}.bucket"));
-
-            return rtrim($baseUrl, '/').'/'.ltrim($this->file_path, '/');
+        if ($storage instanceof FilesystemAdapter) {
+            /** @var FilesystemAdapter $storage */
+            try {
+                return $storage->url($this->file_path);
+            } catch (\Throwable $exception) {
+                // fall through to manual URL handling below
+            }
         }
+
+        $diskConfig = (array) config("filesystems.disks.$disk", []);
+        $bucket = $diskConfig['bucket'] ?? null;
+        $baseUrl = $diskConfig['url']
+            ?? ($bucket ? sprintf('https://storage.googleapis.com/%s', $bucket) : null);
+
+        if (! $baseUrl) {
+            return Storage::url($this->file_path);
+        }
+
+        return rtrim($baseUrl, '/').'/'.ltrim($this->file_path, '/');
     }
 
     public function getThumbnailUrlAttribute(): ?string
@@ -62,15 +73,33 @@ class TodoAttachment extends Model
         $disk = config('todo.attachments_disk', 'public');
         $storage = Storage::disk($disk);
 
-        try {
-            return $storage->url($this->thumbnail_path);
-        } catch (\Throwable $exception) {
-            // Fallback for drivers that don't support url() method
-            $baseUrl = config("filesystems.disks.{$disk}.url")
-                ?? sprintf('https://storage.googleapis.com/%s', config("filesystems.disks.{$disk}.bucket"));
+        if ($storage instanceof FilesystemAdapter) {
+            // For GCS, try to get a signed URL if available
+            if ($disk === 'gcs' && method_exists($storage, 'temporaryUrl')) {
+                try {
+                    return $storage->temporaryUrl($this->thumbnail_path, now()->addHours(24));
+                } catch (\Throwable $exception) {
+                    // fall back to regular URL handling below
+                }
+            }
 
-            return rtrim($baseUrl, '/').'/'.ltrim($this->thumbnail_path, '/');
+            try {
+                return $storage->url($this->thumbnail_path);
+            } catch (\Throwable $exception) {
+                // fall through to manual URL handling below
+            }
         }
+
+        $diskConfig = (array) config("filesystems.disks.$disk", []);
+        $bucket = $diskConfig['bucket'] ?? null;
+        $baseUrl = $diskConfig['url']
+            ?? ($bucket ? sprintf('https://storage.googleapis.com/%s', $bucket) : null);
+
+        if (! $baseUrl) {
+            return null;
+        }
+
+        return rtrim($baseUrl, '/').'/'.ltrim($this->thumbnail_path, '/');
     }
 
     public function getFormattedFileSizeAttribute(): string

@@ -28,23 +28,23 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
         setDeletingId(attachmentId);
 
         try {
-            await router.delete(`/attachments/${attachmentId}`, {
-                onSuccess: () => {
-                    if (onAttachmentDeleted) {
-                        onAttachmentDeleted(attachmentId);
-                    }
-                    setShowDeleteModal(false);
-                    setAttachmentToDelete(null);
+            const response = await fetch(`/attachments/${attachmentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
                 },
-                onError: () => {
-                    setDeletingId(null);
-                },
-                onFinish: () => {
-                    if (deletingId === attachmentId) {
-                        setDeletingId(null);
-                    }
-                }
             });
+
+            if (response.ok) {
+                if (onAttachmentDeleted) {
+                    onAttachmentDeleted(attachmentId);
+                }
+                setShowDeleteModal(false);
+                setAttachmentToDelete(null);
+            } else {
+                setDeletingId(null);
+            }
         } catch (error) {
             setDeletingId(null);
             setShowDeleteModal(false);

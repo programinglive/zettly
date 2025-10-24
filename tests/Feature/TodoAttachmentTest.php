@@ -107,8 +107,8 @@ class TodoAttachmentTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
-            ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
-            ->delete("/attachments/{$attachment->id}", ['_token' => 'test-token']);
+            ->withHeaders(['X-CSRF-TOKEN' => 'test-token', 'Accept' => 'application/json'])
+            ->deleteJson("/attachments/{$attachment->id}", ['_token' => 'test-token']);
 
         $response->assertOk();
         $this->assertDatabaseMissing('todo_attachments', ['id' => $attachment->id]);
