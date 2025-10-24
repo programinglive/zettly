@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.16](https://github.com/programinglive/todo/compare/v0.3.15...v0.3.16) (2025-10-24)
+
+
+### 🐛 Bug Fixes
+
+* **attachments:** improve delete flow and gcs thumbnails ([65b84fb](https://github.com/programinglive/todo/commit/65b84fb1316cfedae3dd2c2f8773328eafbc70e1))
+* **attachments:** simplify delete modal and improve thumbnail generation ([f75ed00](https://github.com/programinglive/todo/commit/f75ed001de1c6eec87205644553d308f2453751e))
+
 ### [0.3.15](https://github.com/programinglive/todo/compare/v0.3.14...v0.3.15) (2025-10-24)
 
 
