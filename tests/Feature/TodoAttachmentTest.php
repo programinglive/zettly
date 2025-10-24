@@ -196,4 +196,62 @@ class TodoAttachmentTest extends TestCase
             ->where('todo.attachments.0.id', $attachment->id)
         );
     }
+
+    public function test_attachment_url_attribute_returns_url_for_public_disk(): void
+    {
+        $attachment = TodoAttachment::factory()->create([
+            'file_path' => 'todos/1/attachments/test.jpg',
+        ]);
+
+        $url = $attachment->url;
+
+        $this->assertNotEmpty($url);
+        $this->assertStringContainsString('test.jpg', $url);
+    }
+
+    public function test_attachment_url_attribute_handles_unsupported_driver_with_fallback(): void
+    {
+        // Create a custom disk that doesn't support url() method
+        config(['todo.attachments_disk' => 'local']);
+        config(['filesystems.disks.local.url' => 'https://cdn.example.com']);
+
+        $attachment = TodoAttachment::factory()->create([
+            'file_path' => 'todos/1/attachments/test.jpg',
+        ]);
+
+        $url = $attachment->url;
+
+        $this->assertNotEmpty($url);
+        $this->assertStringContainsString('https://cdn.example.com', $url);
+        $this->assertStringContainsString('todos/1/attachments/test.jpg', $url);
+    }
+
+    public function test_attachment_thumbnail_url_attribute_handles_unsupported_driver(): void
+    {
+        config(['todo.attachments_disk' => 'local']);
+        config(['filesystems.disks.local.url' => 'https://cdn.example.com']);
+
+        $attachment = TodoAttachment::factory()->create([
+            'file_path' => 'todos/1/attachments/test.jpg',
+            'thumbnail_path' => 'todos/1/thumbnails/thumb_test.jpg',
+        ]);
+
+        $url = $attachment->thumbnail_url;
+
+        $this->assertNotEmpty($url);
+        $this->assertStringContainsString('https://cdn.example.com', $url);
+        $this->assertStringContainsString('todos/1/thumbnails/thumb_test.jpg', $url);
+    }
+
+    public function test_attachment_thumbnail_url_returns_null_when_no_thumbnail(): void
+    {
+        $attachment = TodoAttachment::factory()->create([
+            'file_path' => 'todos/1/attachments/test.jpg',
+            'thumbnail_path' => null,
+        ]);
+
+        $url = $attachment->thumbnail_url;
+
+        $this->assertNull($url);
+    }
 }

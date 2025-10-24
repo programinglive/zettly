@@ -39,7 +39,18 @@ class TodoAttachment extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::disk(config('todo.attachments_disk', 'public'))->url($this->file_path);
+        $disk = config('todo.attachments_disk', 'public');
+        $storage = Storage::disk($disk);
+
+        try {
+            return $storage->url($this->file_path);
+        } catch (\Throwable $exception) {
+            // Fallback for drivers that don't support url() method
+            $baseUrl = config("filesystems.disks.{$disk}.url")
+                ?? sprintf('https://storage.googleapis.com/%s', config("filesystems.disks.{$disk}.bucket"));
+
+            return rtrim($baseUrl, '/').'/'.ltrim($this->file_path, '/');
+        }
     }
 
     public function getThumbnailUrlAttribute(): ?string
@@ -48,7 +59,18 @@ class TodoAttachment extends Model
             return null;
         }
 
-        return Storage::disk(config('todo.attachments_disk', 'public'))->url($this->thumbnail_path);
+        $disk = config('todo.attachments_disk', 'public');
+        $storage = Storage::disk($disk);
+
+        try {
+            return $storage->url($this->thumbnail_path);
+        } catch (\Throwable $exception) {
+            // Fallback for drivers that don't support url() method
+            $baseUrl = config("filesystems.disks.{$disk}.url")
+                ?? sprintf('https://storage.googleapis.com/%s', config("filesystems.disks.{$disk}.bucket"));
+
+            return rtrim($baseUrl, '/').'/'.ltrim($this->thumbnail_path, '/');
+        }
     }
 
     public function getFormattedFileSizeAttribute(): string
