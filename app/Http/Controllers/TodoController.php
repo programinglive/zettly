@@ -9,9 +9,11 @@ use App\Models\TodoChecklistItem;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -128,7 +130,7 @@ class TodoController extends Controller
             ]);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -145,6 +147,12 @@ class TodoController extends Controller
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
+
+        $validator->sometimes('due_date', 'after_or_equal:today', function ($input) {
+            return isset($input->due_date) && $input->due_date !== '';
+        });
+
+        $validated = $validator->validate();
 
         $type = $validated['type'] ?? Todo::TYPE_TODO;
         $validated['type'] = $type;
@@ -331,7 +339,7 @@ class TodoController extends Controller
             ]);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -350,6 +358,26 @@ class TodoController extends Controller
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
         ]);
+
+        $validator->sometimes('due_date', 'after_or_equal:today', function ($input) use ($todo) {
+            if (! isset($input->due_date) || $input->due_date === '') {
+                return false;
+            }
+
+            try {
+                $candidate = Carbon::parse($input->due_date)->startOfDay();
+            } catch (\Throwable $e) {
+                return true;
+            }
+
+            if ($todo->due_date instanceof Carbon) {
+                return ! $todo->due_date->isSameDay($candidate);
+            }
+
+            return true;
+        });
+
+        $validated = $validator->validate();
 
         $type = $validated['type'] ?? $todo->type ?? Todo::TYPE_TODO;
         $validated['type'] = $type;

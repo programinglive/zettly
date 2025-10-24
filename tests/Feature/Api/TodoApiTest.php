@@ -76,4 +76,51 @@ class TodoApiTest extends TestCase
             'importance' => null,
         ]);
     }
+
+    public function test_store_endpoint_rejects_past_due_date(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('api.todos.store'), [
+            'title' => 'Past Due API Todo',
+            'description' => 'Should be invalid',
+            'due_date' => now()->subDay()->format('Y-m-d'),
+            'type' => Todo::TYPE_TODO,
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('due_date');
+
+        $this->assertDatabaseMissing('todos', [
+            'title' => 'Past Due API Todo',
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_update_endpoint_rejects_past_due_date(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'due_date' => now()->addWeek(),
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->putJson(route('api.todos.update', $todo), [
+            'title' => $todo->title,
+            'description' => $todo->description,
+            'type' => Todo::TYPE_TODO,
+            'due_date' => now()->subDay()->format('Y-m-d'),
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('due_date');
+
+        $this->assertEquals(
+            $todo->due_date?->format('Y-m-d'),
+            $todo->fresh()->due_date?->format('Y-m-d')
+        );
+    }
 }

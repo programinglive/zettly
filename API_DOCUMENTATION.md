@@ -66,7 +66,7 @@ Route::get('/todos', [TodoController::class, 'index']);
  *   "description": "Optional string"
  *   "priority": "Optional enum not_urgent|urgent",
  *   "importance": "Optional enum not_important|important",
- *   "due_date": "Optional date string (YYYY-MM-DD)"
+ *   "due_date": "Optional date string (YYYY-MM-DD) — must be today or a future date"
  * }
  */
 Route::post('/todos', [TodoController::class, 'store']);
@@ -88,7 +88,7 @@ Route::get('/todos/{todo}', [TodoController::class, 'show']);
  *   "is_completed": "Optional boolean",
  *   "priority": "Optional enum not_urgent|urgent",
  *   "importance": "Optional enum not_important|important",
- *   "due_date": "Optional date string (YYYY-MM-DD)"
+ *   "due_date": "Optional date string (YYYY-MM-DD) — must be today or a future date"
  * }
  */
 Route::put('/api/todos/{todo}', [TodoController::class, 'update']);

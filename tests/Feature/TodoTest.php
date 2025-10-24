@@ -107,6 +107,34 @@ class TodoTest extends TestCase
         );
     }
 
+    public function test_user_cannot_create_todo_with_past_due_date(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $payload = [
+            'title' => 'Past Due Todo',
+            'description' => 'Should not be allowed',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'due_date' => now()->subDay()->format('Y-m-d'),
+            'type' => 'todo',
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from(route('todos.create'))
+            ->post(route('todos.store'), array_merge($payload, ['_token' => 'test-token']));
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('due_date');
+
+        $this->assertDatabaseMissing('todos', [
+            'title' => 'Past Due Todo',
+            'user_id' => $user->id,
+        ]);
+    }
+
     public function test_note_due_date_is_cleared_on_store(): void
     {
         /** @var User $user */
@@ -159,6 +187,38 @@ class TodoTest extends TestCase
 
         $this->assertEquals(
             $newDueDate,
+            $todo->fresh()->due_date?->format('Y-m-d')
+        );
+    }
+
+    public function test_user_cannot_update_todo_with_past_due_date(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $existingDueDate = now()->addWeek()->format('Y-m-d');
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'due_date' => $existingDueDate,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from(route('todos.edit', $todo))
+            ->put(route('todos.update', $todo), [
+                '_token' => 'test-token',
+                'title' => $todo->title,
+                'description' => $todo->description,
+                'priority' => $todo->priority,
+                'importance' => $todo->importance,
+                'due_date' => now()->subDay()->format('Y-m-d'),
+                'type' => 'todo',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('due_date');
+
+        $this->assertSame(
+            $existingDueDate,
             $todo->fresh()->due_date?->format('Y-m-d')
         );
     }

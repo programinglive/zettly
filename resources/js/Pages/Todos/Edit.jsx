@@ -247,6 +247,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                         <Input
                                             id="due_date"
                                             type="date"
+                                            min={new Date().toISOString().slice(0, 10)}
                                             value={data.due_date || ''}
                                             onChange={(e) => setData('due_date', e.target.value)}
                                             className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.due_date ? 'border-red-500' : ''}`}
