@@ -1,5 +1,5 @@
 import React, { useMemo, lazy, Suspense, useState, useCallback, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
@@ -283,56 +283,85 @@ export default function Dashboard({
                         <div className="flex flex-wrap items-stretch gap-3 md:flex-nowrap">
                             {[
                                 {
-                                    label: 'Important & Urgent',
+                                    label: 'Q1 · Do First',
+                                    description: 'Important & Urgent',
+                                    abbr: 'I&U',
                                     value: stats.important_urgent || 0,
                                     icon: '🚨',
                                     accent: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-200',
+                                    href: '/todos?priority=urgent&importance=important',
                                 },
                                 {
-                                    label: 'Important & Not Urgent',
+                                    label: 'Q2 · Schedule',
+                                    description: 'Important & Not Urgent',
+                                    abbr: 'I&NU',
                                     value: stats.important_not_urgent || 0,
                                     icon: '📅',
                                     accent: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-200',
+                                    href: '/todos?priority=not_urgent&importance=important',
                                 },
                                 {
-                                    label: 'Not Important & Urgent',
+                                    label: 'Q3 · Delegate',
+                                    description: 'Not Important & Urgent',
+                                    abbr: 'NI&U',
                                     value: stats.not_important_urgent || 0,
                                     icon: '🛎️',
                                     accent: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-200',
+                                    href: '/todos?priority=urgent&importance=not_important',
                                 },
                                 {
-                                    label: 'Not Important & Not Urgent',
+                                    label: 'Q4 · Eliminate',
+                                    description: 'Not Important & Not Urgent',
+                                    abbr: 'NI&NU',
                                     value: stats.not_important_not_urgent || 0,
                                     icon: '🌿',
                                     accent: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200',
+                                    href: '/todos?priority=not_urgent&importance=not_important',
                                 },
                                 {
                                     label: 'Completed',
+                                    description: 'Across your active list',
+                                    abbr: 'DONE',
                                     value: stats.completed || 0,
                                     icon: '✅',
                                     accent: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-200',
+                                    href: '/todos?filter=completed',
                                 },
                                 {
                                     label: 'Archived',
+                                    description: 'Stored for later review',
+                                    abbr: 'ARCH',
                                     value: stats.archived || 0,
                                     icon: '🗃️',
                                     accent: 'bg-gray-100 text-gray-600 dark:bg-gray-900/40 dark:text-gray-300',
+                                    href: '/todos/archived',
                                 },
                             ].map((item) => (
-                                <div
+                                <Link
                                     key={item.label}
-                                    className="flex-1 min-w-[140px] basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-700/60 dark:bg-gray-900/85"
+                                    href={item.href}
+                                    className="flex-1 min-w-[140px] basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700/60 dark:bg-gray-900/85"
                                 >
-                                    <div className="flex items-center gap-3 p-3">
-                                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg font-medium ${item.accent}`}>
+                                    <div className="flex items-center gap-2 p-3 sm:gap-3">
+                                        <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-base font-medium ${item.accent}`}>
                                             {item.icon}
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{item.label}</p>
-                                            <p className="text-xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                                        <div className="flex w-full items-center justify-between gap-2">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.label}</span>
+                                                <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 sm:hidden">{item.abbr}</span>
+                                                {item.description && (
+                                                    <span className="hidden text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500 sm:block">
+                                                        {item.description}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-lg font-semibold text-gray-900 dark:text-white" aria-label={`${item.label} count`}>
+                                                {item.value}
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
