@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.8](https://github.com/programinglive/todo/compare/v0.3.7...v0.3.8) (2025-10-24)
+
+
+### 🐛 Bug Fixes
+
+* support gcs uploads under ubla ([5e12a4e](https://github.com/programinglive/todo/commit/5e12a4e489d73392e3518aeede17ddb97d6b020c))
+
 ### [0.3.7](https://github.com/programinglive/todo/compare/v0.3.6...v0.3.7) (2025-10-23)
 
 
