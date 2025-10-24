@@ -187,8 +187,8 @@ const DueDateCalendar = ({ tasks }) => {
     };
 
     return (
-        <div className="bg-white/80 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm w-full xl:w-80">
-            <div className="flex items-center justify-between px-4 pt-4">
+        <div className="bg-white/80 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm w-full">
+            <div className="flex items-center justify-between px-3 pt-3 pb-2">
                 <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                     <CalendarDays className="w-4 h-4" />
                     <span className="text-sm font-medium">Due Date Calendar</span>
@@ -212,16 +212,16 @@ const DueDateCalendar = ({ tasks }) => {
                     </button>
                 </div>
             </div>
-            <div className="px-4">
-                <p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">{monthLabel}</p>
-                <div className="mt-3 grid grid-cols-7 gap-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+            <div className="px-3 pb-3">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{monthLabel}</p>
+                <div className="mt-2 grid grid-cols-7 gap-[2px] text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                         <span key={day} className="text-center">
                             {day}
                         </span>
                     ))}
                 </div>
-                <div className="mt-1 grid grid-cols-7 gap-1 pb-4">
+                <div className="mt-1 grid grid-cols-7 gap-[2px]">
                     {monthMatrix.flat().map((date) => {
                         const key = date.toISOString().slice(0, 10);
                         const isCurrentMonth = date.getMonth() === activeMonth.getMonth();
@@ -244,7 +244,7 @@ const DueDateCalendar = ({ tasks }) => {
                         return (
                             <div
                                 key={key + isCurrentMonth}
-                                className={`relative flex h-14 flex-col justify-start rounded-lg border border-transparent px-2 pt-2 pb-3 text-xs transition-colors ${
+                                className={`relative flex h-12 flex-col justify-start rounded-lg border border-transparent px-1.5 pt-2 pb-2 text-[11px] transition-colors ${
                                     isCurrentMonth
                                         ? 'text-gray-700 dark:text-gray-200'
                                         : 'text-gray-400 dark:text-gray-600'
@@ -258,7 +258,7 @@ const DueDateCalendar = ({ tasks }) => {
                                 </span>
 
                                 {highlight && (
-                                    <div className="absolute left-1/2 bottom-[6px] flex h-1 w-5 -translate-x-1/2 overflow-hidden rounded-full bg-white/80 dark:bg-slate-950/80">
+                                    <div className="absolute left-1/2 bottom-1 flex h-1 w-4 -translate-x-1/2 overflow-hidden rounded-full bg-white/80 dark:bg-slate-950/80">
                                         {tagColors.length
                                             ? tagColors.slice(0, 4).map((color) => (
                                                   <span
@@ -437,81 +437,24 @@ export default function Dashboard({
     return (
         <DashboardLayout title="Dashboard">
             <Head title="Dashboard" />
-            <div className="space-y-8 pb-24">
-                <div>
+            <div className="min-h-screen flex flex-col pb-48 lg:pb-0">
+                {/* Header */}
+                <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
                     <p className="text-gray-600 dark:text-gray-400">Stay on top of your latest activity.</p>
                 </div>
 
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch">
-                    {/* Filters Bar */}
-                    <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex-1">
-                        <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-                            <div className="flex-1">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                                        <Filter className="w-4 h-4" />
-                                        <span className="text-sm font-medium">Tag Filters</span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
-                                    </div>
-                                    {selectedTagIds.length > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTagFilterToggle(null)}
-                                            className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
-                                        >
-                                            Clear filters
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {availableTags.length === 0 ? (
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
-                                    ) : (
-                                        availableTags.map((tag) => {
-                                            const isActive = selectedTagIds.includes(tag.id);
-                                            const baseColor = tag.color || '#3B82F6';
-
-                                            return (
-                                                <button
-                                                    key={tag.id}
-                                                    type="button"
-                                                    onClick={() => handleTagFilterToggle(tag.id)}
-                                                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                                                        isActive
-                                                            ? 'ring-gray-400 dark:ring-offset-gray-900'
-                                                            : 'hover:bg-gray-100 dark:hover:bg-slate-800'
-                                                    }`}
-                                                    style={{
-                                                        backgroundColor: baseColor + '20',
-                                                        color: baseColor,
-                                                        border: `1px solid ${baseColor}40`,
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="inline-block h-2 w-2 rounded-full"
-                                                        style={{ backgroundColor: baseColor }}
-                                                    />
-                                                    {tag.name}
-                                                </button>
-                                            );
-                                        })
-                                    )}
-                                </div>
+                {/* Main Layout */}
+                <div className="flex flex-col lg:flex-row gap-6 flex-1">
+                    {/* Left Sidebar - Above content on mobile/tablet, sidebar on desktop */}
+                    <aside className="w-full lg:w-80 lg:flex-shrink-0 space-y-4">
+                        {/* Workspace Focus */}
+                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                            <div className="mb-3">
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Workspace</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Switch between views</p>
                             </div>
-
-                            <DueDateCalendar tasks={tasks} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm w-full xl:max-w-xs xl:flex-none">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between xl:flex-col xl:items-start">
-                            <div>
-                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Workspace focus</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Switch between Eisenhower prioritization and the Kanban board.</p>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="space-y-2">
                                 {WORKSPACE_OPTIONS.map((option) => {
                                     const isActive = workspaceView === option.id;
                                     return (
@@ -519,13 +462,13 @@ export default function Dashboard({
                                             key={option.id}
                                             type="button"
                                             onClick={() => setWorkspaceView(option.id)}
-                                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                                            className={`w-full rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 text-left ${
                                                 isActive
                                                     ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm focus-visible:ring-indigo-500 dark:border-indigo-400 dark:bg-indigo-500'
                                                     : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-300 dark:hover:bg-slate-800'
                                             }`}
                                         >
-                                            <div className="flex flex-col text-left">
+                                            <div className="flex flex-col">
                                                 <span>{option.label}</span>
                                                 <span className={`text-xs font-normal ${isActive ? 'text-indigo-100 dark:text-indigo-100/90' : 'text-gray-400 dark:text-gray-500'}`}>
                                                     {option.blurb}
@@ -536,14 +479,76 @@ export default function Dashboard({
                                 })}
                             </div>
                         </div>
-                    </div>
+
+                        {/* Tag Filters */}
+                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                                    <Filter className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Tag Filters</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
+                                </div>
+                                {selectedTagIds.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTagFilterToggle(null)}
+                                        className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {availableTags.length === 0 ? (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
+                                ) : (
+                                    availableTags.map((tag) => {
+                                        const isActive = selectedTagIds.includes(tag.id);
+                                        const baseColor = tag.color || '#3B82F6';
+
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                type="button"
+                                                onClick={() => handleTagFilterToggle(tag.id)}
+                                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                                                    isActive
+                                                        ? 'ring-gray-400 dark:ring-offset-gray-900'
+                                                        : 'hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                }`}
+                                                style={{
+                                                    backgroundColor: baseColor + '20',
+                                                    color: baseColor,
+                                                    border: `1px solid ${baseColor}40`,
+                                                }}
+                                            >
+                                                <span
+                                                    className="inline-block h-2 w-2 rounded-full"
+                                                    style={{ backgroundColor: baseColor }}
+                                                />
+                                                {tag.name}
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Due Date Calendar */}
+                        <DueDateCalendar tasks={tasks} />
+                    </aside>
+
+                    {/* Main Content - Grows to fill available space */}
+                    <main className="w-full lg:flex-1 lg:min-w-0">
+                        {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
+                    </main>
                 </div>
 
-                {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
-
-                <div className="sticky bottom-6 left-0 right-0 z-20">
-                    <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 rounded-3xl shadow-lg border border-white/60 dark:border-slate-800/60">
-                        <div className="flex flex-wrap items-stretch gap-3 md:flex-nowrap">
+                {/* Bottom Stats Bar - Fixed on mobile/tablet, sticky on desktop */}
+                <div className="fixed lg:sticky bottom-0 left-0 right-0 z-20 lg:z-10 mt-8">
+                    <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 shadow-lg border-t border-white/60 dark:border-slate-800/60 lg:rounded-t-3xl lg:border-0 lg:border-t lg:mx-0">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap lg:items-stretch">
                             {[
                                 {
                                     label: 'Q1 · Do First',
@@ -603,7 +608,7 @@ export default function Dashboard({
                                 <Link
                                     key={item.label}
                                     href={item.href}
-                                    className="flex-1 min-w-[140px] basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700/60 dark:bg-gray-900/85"
+                                    className="lg:flex-1 lg:min-w-[140px] lg:basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700/60 dark:bg-gray-900/85"
                                 >
                                     <div className="flex items-center gap-2 p-3 sm:gap-3">
                                         <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-base font-medium ${item.accent}`}>
