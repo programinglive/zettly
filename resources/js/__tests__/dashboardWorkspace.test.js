@@ -30,3 +30,10 @@ test('dashboard conditionally renders matrix or kanban workspace', () => {
         'Expected workspace toggle to render matrix or kanban content.'
     );
 });
+
+test('dashboard passes tasks into TodosPanel in matrix layout', () => {
+    assert.ok(
+        dashboardSource.includes('<TodosPanel todos={tasks} allTags={availableTags} />'),
+        'Expected TodosPanel to receive task list and available tags from dashboard.'
+    );
+});

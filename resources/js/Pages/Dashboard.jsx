@@ -3,7 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
-import NotesPanel from '../Components/NotesPanel';
+import TodosPanel from '../Components/NotesPanel';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 
@@ -71,14 +71,6 @@ export default function Dashboard({
         () => todos.filter((todo) => todo.type === 'todo' && !todo.archived),
         [todos]
     );
-
-    const noteItems = useMemo(() => {
-        if (Array.isArray(notes) && notes.length > 0) {
-            return notes;
-        }
-
-        return todos.filter((todo) => todo.type === 'note' && !todo.archived);
-    }, [notes, todos]);
 
     const selectedTask = useMemo(
         () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -151,7 +143,7 @@ export default function Dashboard({
     const renderMatrixWorkspace = () => (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] lg:items-start">
             <div className="lg:h-[720px]">
-                <NotesPanel notes={noteItems} allTags={availableTags} />
+                <TodosPanel todos={tasks} allTags={availableTags} />
             </div>
             <div className="lg:h-[720px]">
                 <div className="h-full overflow-visible lg:overflow-hidden">
