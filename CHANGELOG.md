@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.13](https://github.com/programinglive/todo/compare/v0.3.12...v0.3.13) (2025-10-24)
+
+
+### ✨ Features
+
+* add due date scheduling for todos ([17b6211](https://github.com/programinglive/todo/commit/17b62112a31123b2d2a5bc9a920d61c49a4512c7))
+* polish dashboard summaries ([e3fede2](https://github.com/programinglive/todo/commit/e3fede28822cbf299b2389d96504a12d4629d743))
+
 ### [0.3.12](https://github.com/programinglive/todo/compare/v0.3.11...v0.3.12) (2025-10-24)
 
 ### [0.3.11](https://github.com/programinglive/todo/compare/v0.3.10...v0.3.11) (2025-10-24)
