@@ -8,6 +8,7 @@ use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -191,6 +192,8 @@ class TodoController extends Controller
 
         // Handle file attachments
         if ($request->hasFile('attachments')) {
+            $disk = $this->attachmentDisk();
+
             foreach ($request->file('attachments') as $file) {
                 $originalName = $file->getClientOriginalName();
                 $mimeType = $file->getMimeType();
@@ -201,7 +204,12 @@ class TodoController extends Controller
                 $filePath = "todos/{$todo->id}/attachments/{$fileName}";
 
                 // Store the file
-                Storage::disk('public')->put($filePath, file_get_contents($file));
+                Storage::disk($disk)->putFileAs(
+                    "todos/{$todo->id}/attachments",
+                    $file,
+                    $fileName,
+                    $this->fsWriteOptions($disk)
+                );
 
                 // Determine file type
                 $type = TodoAttachment::determineType($mimeType);
@@ -209,7 +217,7 @@ class TodoController extends Controller
                 // Generate thumbnail for images
                 $thumbnailPath = null;
                 if ($type === 'image') {
-                    $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+                    $thumbnailPath = $this->generateThumbnail($file, $fileName, $todo->id, $disk);
                 }
 
                 // Create attachment record
@@ -404,6 +412,8 @@ class TodoController extends Controller
 
         // Handle new file attachments
         if ($request->hasFile('attachments')) {
+            $disk = $this->attachmentDisk();
+
             foreach ($request->file('attachments') as $file) {
                 $originalName = $file->getClientOriginalName();
                 $mimeType = $file->getMimeType();
@@ -414,7 +424,12 @@ class TodoController extends Controller
                 $filePath = "todos/{$todo->id}/attachments/{$fileName}";
 
                 // Store the file
-                Storage::disk('public')->put($filePath, file_get_contents($file));
+                Storage::disk($disk)->putFileAs(
+                    "todos/{$todo->id}/attachments",
+                    $file,
+                    $fileName,
+                    $this->fsWriteOptions($disk)
+                );
 
                 // Determine file type
                 $type = TodoAttachment::determineType($mimeType);
@@ -422,7 +437,7 @@ class TodoController extends Controller
                 // Generate thumbnail for images
                 $thumbnailPath = null;
                 if ($type === 'image') {
-                    $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+                    $thumbnailPath = $this->generateThumbnail($file, $fileName, $todo->id, $disk);
                 }
 
                 // Create attachment record
@@ -760,6 +775,7 @@ class TodoController extends Controller
         ]);
 
         $file = $request->file('file');
+        $disk = $this->attachmentDisk();
         $originalName = $file->getClientOriginalName();
         $mimeType = $file->getMimeType();
         $fileSize = $file->getSize();
@@ -769,7 +785,12 @@ class TodoController extends Controller
         $filePath = "todos/{$todo->id}/attachments/{$fileName}";
 
         // Store the file
-        Storage::disk('public')->put($filePath, file_get_contents($file));
+        Storage::disk($disk)->putFileAs(
+            "todos/{$todo->id}/attachments",
+            $file,
+            $fileName,
+            $this->fsWriteOptions($disk)
+        );
 
         // Determine file type
         $type = TodoAttachment::determineType($mimeType);
@@ -777,7 +798,7 @@ class TodoController extends Controller
         // Generate thumbnail for images
         $thumbnailPath = null;
         if ($type === 'image') {
-            $thumbnailPath = $this->generateThumbnail($filePath, $todo->id);
+            $thumbnailPath = $this->generateThumbnail($file, $fileName, $todo->id, $disk);
         }
 
         // Create attachment record
@@ -812,12 +833,14 @@ class TodoController extends Controller
         }
 
         // Delete files from storage
-        if (Storage::disk('public')->exists($attachment->file_path)) {
-            Storage::disk('public')->delete($attachment->file_path);
+        $disk = $this->attachmentDisk();
+
+        if (Storage::disk($disk)->exists($attachment->file_path)) {
+            Storage::disk($disk)->delete($attachment->file_path);
         }
 
-        if ($attachment->thumbnail_path && Storage::disk('public')->exists($attachment->thumbnail_path)) {
-            Storage::disk('public')->delete($attachment->thumbnail_path);
+        if ($attachment->thumbnail_path && Storage::disk($disk)->exists($attachment->thumbnail_path)) {
+            Storage::disk($disk)->delete($attachment->thumbnail_path);
         }
 
         // Delete attachment record
@@ -836,47 +859,55 @@ class TodoController extends Controller
             abort(403);
         }
 
-        if (! Storage::disk('public')->exists($attachment->file_path)) {
+        $disk = $this->attachmentDisk();
+
+        if (! Storage::disk($disk)->exists($attachment->file_path)) {
             abort(404, 'File not found');
         }
 
-        $filePath = Storage::disk('public')->path($attachment->file_path);
-
-        return response()->download($filePath, $attachment->original_name);
+        return Storage::disk($disk)->download($attachment->file_path, $attachment->original_name);
     }
 
     /**
      * Generate thumbnail for image files.
      */
-    private function generateThumbnail(string $filePath, int $todoId): ?string
+    private function generateThumbnail(UploadedFile $file, string $fileName, int $todoId, string $disk): ?string
     {
         try {
-            $fullPath = Storage::disk('public')->path($filePath);
-            $thumbnailFileName = 'thumb_'.basename($filePath);
+            $thumbnailFileName = 'thumb_'.$fileName;
             $thumbnailPath = "todos/{$todoId}/thumbnails/{$thumbnailFileName}";
-            $thumbnailFullPath = Storage::disk('public')->path($thumbnailPath);
-
-            // Create thumbnails directory if it doesn't exist
-            $thumbnailDir = dirname($thumbnailFullPath);
-            if (! is_dir($thumbnailDir)) {
-                mkdir($thumbnailDir, 0755, true);
-            }
+            $temporaryThumbnail = tempnam(sys_get_temp_dir(), 'todo-thumb-');
 
             // Create thumbnail using intervention/image if available, otherwise use basic PHP
             $imageClass = 'Intervention\\Image\\ImageManagerStatic';
             if (class_exists($imageClass)) {
-                $image = $imageClass::make($fullPath);
+                $image = $imageClass::make($file->getRealPath());
                 $image->fit(200, 200, function ($constraint) {
                     $constraint->upsize();
                 });
-                $image->save($thumbnailFullPath);
+                $image->save($temporaryThumbnail);
             } else {
                 // Fallback to basic thumbnail generation
-                $this->createBasicThumbnail($fullPath, $thumbnailFullPath);
+                $this->createBasicThumbnail($file->getRealPath(), $temporaryThumbnail);
             }
+
+            if (! file_exists($temporaryThumbnail)) {
+                return null;
+            }
+
+            Storage::disk($disk)->put(
+                $thumbnailPath,
+                file_get_contents($temporaryThumbnail),
+                $this->fsWriteOptions($disk)
+            );
+            @unlink($temporaryThumbnail);
 
             return $thumbnailPath;
         } catch (\Exception $e) {
+            if (isset($temporaryThumbnail) && file_exists($temporaryThumbnail)) {
+                @unlink($temporaryThumbnail);
+            }
+
             // If thumbnail generation fails, return null
             return null;
         }
@@ -941,5 +972,25 @@ class TodoController extends Controller
         // Clean up
         imagedestroy($sourceImage);
         imagedestroy($thumbnail);
+    }
+
+    private function attachmentDisk(): string
+    {
+        return config('todo.attachments_disk', 'public');
+    }
+
+    private function fsWriteOptions(string $disk): array
+    {
+        // With GCS + Uniform Bucket-Level Access, per-object ACLs are not allowed.
+        if ($disk === 'gcs') {
+            return [];
+        }
+
+        return ['visibility' => $this->attachmentVisibility($disk)];
+    }
+
+    private function attachmentVisibility(string $disk): string
+    {
+        return config("filesystems.disks.{$disk}.visibility", 'public');
     }
 }

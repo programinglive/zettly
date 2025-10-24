@@ -23,6 +23,8 @@ class TodoAttachmentSeeder extends Seeder
             return;
         }
 
+        $disk = config('todo.attachments_disk', 'public');
+
         foreach ($todos as $todo) {
             // Create 1-3 sample attachments per todo
             $attachmentCount = rand(1, 3);
@@ -37,7 +39,7 @@ class TodoAttachmentSeeder extends Seeder
                     $filePath = "todos/{$todo->id}/attachments/{$fileName}";
 
                     // Create a simple placeholder image content (not a real image, just for demo)
-                    Storage::disk('public')->put($filePath, 'Sample image content for demo');
+                    Storage::disk($disk)->put($filePath, 'Sample image content for demo');
 
                     TodoAttachment::create([
                         'todo_id' => $todo->id,
@@ -54,7 +56,7 @@ class TodoAttachmentSeeder extends Seeder
                     $fileName = 'sample-document-'.$i.'.pdf';
                     $filePath = "todos/{$todo->id}/attachments/{$fileName}";
 
-                    Storage::disk('public')->put($filePath, 'Sample PDF content for demo');
+                    Storage::disk($disk)->put($filePath, 'Sample PDF content for demo');
 
                     TodoAttachment::create([
                         'todo_id' => $todo->id,

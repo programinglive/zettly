@@ -39,12 +39,16 @@ class TodoAttachment extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->file_path);
+        return Storage::disk(config('todo.attachments_disk', 'public'))->url($this->file_path);
     }
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        return $this->thumbnail_path ? Storage::url($this->thumbnail_path) : null;
+        if (! $this->thumbnail_path) {
+            return null;
+        }
+
+        return Storage::disk(config('todo.attachments_disk', 'public'))->url($this->thumbnail_path);
     }
 
     public function getFormattedFileSizeAttribute(): string

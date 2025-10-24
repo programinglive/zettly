@@ -9,11 +9,13 @@
         "php": "^8.2",
         "google-gemini-php/laravel": "^2.0",
         "google/apiclient": "2.15",
+        "google/cloud-storage": "^1.32",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.31",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-google-cloud-storage": "^3.0",
         "opcodesio/log-viewer": "^3.19",
         "sentry/sentry-laravel": "^4.16",
         "tightenco/ziggy": "^2.0"

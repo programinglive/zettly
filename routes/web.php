@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\UploadTestController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -60,6 +61,9 @@ Route::middleware('auth')->group(function () {
     // API Token Management
     Route::post('/tokens', [ProfileController::class, 'createToken'])->name('tokens.create');
     Route::delete('/tokens/{token}', [ProfileController::class, 'deleteToken'])->name('tokens.delete');
+
+    Route::get('/upload', [UploadTestController::class, 'show'])->name('upload.show');
+    Route::post('/upload', [UploadTestController::class, 'store'])->name('upload.store');
 
     // Gemini demo routes
     Route::get('/gemini-test', [GeminiTestController::class, 'test'])->name('gemini.test');

@@ -60,6 +60,20 @@ return [
             'report' => false,
         ],
 
+        'gcs' => [
+            'driver' => 'gcs',
+            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
+            'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET'),
+            'root' => env('GOOGLE_CLOUD_STORAGE_ROOT'),
+            'key_file_path' => env('GOOGLE_CLOUD_STORAGE_KEY_FILE'),
+            'key_file' => env('GOOGLE_CLOUD_STORAGE_KEY_JSON'),
+            'visibility' => env('GOOGLE_CLOUD_STORAGE_VISIBILITY', 'public'),
+            'api_uri' => env('GOOGLE_CLOUD_STORAGE_API_URI'),
+            'url' => env('GOOGLE_CLOUD_STORAGE_URL'),
+            'throw' => true,
+            'report' => true,
+        ],
+
     ],
 
     /*

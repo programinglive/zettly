@@ -17,7 +17,8 @@ class TodoAttachmentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('public');
+        config(['todo.attachments_disk' => 'public']);
+        Storage::fake(config('todo.attachments_disk'));
     }
 
     public function test_user_can_upload_attachment_to_their_todo(): void
@@ -46,7 +47,35 @@ class TodoAttachmentTest extends TestCase
         ]);
 
         $attachment = TodoAttachment::where('todo_id', $todo->id)->first();
-        $this->assertTrue(Storage::disk('public')->exists($attachment->file_path));
+        $this->assertTrue(Storage::disk(config('todo.attachments_disk'))->exists($attachment->file_path));
+    }
+
+    public function test_user_can_upload_attachment_when_using_gcs_disk(): void
+    {
+        config(['todo.attachments_disk' => 'gcs']);
+        Storage::fake('gcs');
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create(['user_id' => $user->id]);
+
+        $file = UploadedFile::fake()->image('gcs-image.jpg', 800, 600);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post("/todos/{$todo->id}/attachments", [
+                'file' => $file,
+                '_token' => 'test-token',
+            ]);
+
+        $response->assertRedirect();
+
+        $attachment = TodoAttachment::where('todo_id', $todo->id)->firstOrFail();
+        $this->assertTrue(Storage::disk('gcs')->exists($attachment->file_path));
+
+        // Restore default disk for subsequent tests
+        config(['todo.attachments_disk' => 'public']);
+        Storage::fake('public');
     }
 
     public function test_user_cannot_upload_attachment_to_others_todo(): void
@@ -128,7 +157,7 @@ class TodoAttachmentTest extends TestCase
 
         // Create a fake file in storage
         $filePath = 'todos/1/attachments/test-file.txt';
-        Storage::disk('public')->put($filePath, 'Test file content');
+        Storage::disk(config('todo.attachments_disk'))->put($filePath, 'Test file content');
 
         $attachment = TodoAttachment::factory()->create([
             'todo_id' => $todo->id,

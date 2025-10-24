@@ -175,7 +175,23 @@ ALLOWED_FILE_TYPES=jpg,jpeg,png,gif,pdf,doc,docx,txt
 
 # Storage configuration
 FILESYSTEM_DISK=public
+
+# Google Cloud Storage (optional)
+TODO_ATTACHMENTS_DISK=gcs
+GOOGLE_CLOUD_PROJECT_ID=your-project-id
+GOOGLE_CLOUD_STORAGE_BUCKET=your-bucket-name
+GOOGLE_CLOUD_STORAGE_ROOT=null
+GOOGLE_CLOUD_STORAGE_KEY_FILE=/absolute/path/to/service-account.json
+# or provide raw JSON via GOOGLE_CLOUD_STORAGE_KEY_JSON
+GOOGLE_CLOUD_STORAGE_VISIBILITY=public
+GOOGLE_CLOUD_STORAGE_URL=https://storage.googleapis.com/your-bucket-name
 ```
+
+### Google Cloud Storage Setup
+- **Service Account**: Create a service account with `Storage Object Admin` access and download its JSON key.
+- **Disk Selection**: Update `.env` to set `TODO_ATTACHMENTS_DISK=gcs` and provide the bucket credentials above.
+- **Public Access**: Ensure the bucket grants appropriate read access when using public visibility.
+- **Uniform Bucket-Level Access (UBLA)**: If UBLA is enabled on your bucket, leave object-level ACLs to GCS. The application avoids setting per-object ACLs automatically, so no additional configuration is needed.
 
 ### Dependencies
 - **Required**: Laravel Storage, GD extension, Lucide React (icons)
