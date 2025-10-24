@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.15](https://github.com/programinglive/todo/compare/v0.3.14...v0.3.15) (2025-10-24)
+
+
+### 🐛 Bug Fixes
+
+* **attachments:** handle disks without url support ([74496be](https://github.com/programinglive/todo/commit/74496be298cd03bcec7b6ee29b77b3838b985294))
+
 ### [0.3.14](https://github.com/programinglive/todo/compare/v0.3.13...v0.3.14) (2025-10-24)
 
 
