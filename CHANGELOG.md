@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.18](https://github.com/programinglive/todo/compare/v0.3.17...v0.3.18) (2025-10-24)
+
+
+### 💄 Styles
+
+* **scrollbar:** apply slim scrollbar styling ([8162217](https://github.com/programinglive/todo/commit/8162217047be3838b940066e6ca0deef7e41fa30))
+
 ### [0.3.17](https://github.com/programinglive/todo/compare/v0.3.16...v0.3.17) (2025-10-24)
 
 
