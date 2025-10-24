@@ -11,6 +11,16 @@ const isTruthyDate = (value) => {
     return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
+const resolveDueRank = (todo) => {
+    if (!todo || !todo.due_date) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    const timestamp = isTruthyDate(todo.due_date);
+
+    return timestamp === 0 ? Number.POSITIVE_INFINITY : timestamp;
+};
+
 const isCompleted = (todo) => Boolean(todo && todo.is_completed);
 
 const resolvePriorityRank = (priority) => {
@@ -70,6 +80,11 @@ const sortTasks = (items) => [...items].sort((a, b) => {
     const importanceDelta = resolveImportanceRank(b?.importance) - resolveImportanceRank(a?.importance);
     if (importanceDelta !== 0) {
         return importanceDelta;
+    }
+
+    const dueDelta = resolveDueRank(a) - resolveDueRank(b);
+    if (dueDelta !== 0) {
+        return dueDelta;
     }
 
     return isTruthyDate(b?.created_at) - isTruthyDate(a?.created_at);

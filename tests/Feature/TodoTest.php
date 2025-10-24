@@ -84,6 +84,7 @@ class TodoTest extends TestCase
             'description' => 'Test Description',
             'priority' => Todo::PRIORITY_URGENT,
             'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'due_date' => now()->addDays(3)->format('Y-m-d'),
             'type' => 'todo',
         ];
 
@@ -100,6 +101,66 @@ class TodoTest extends TestCase
             'user_id' => $user->id,
             'type' => 'todo',
         ]);
+        $this->assertEquals(
+            $todoData['due_date'],
+            Todo::where('title', 'Test Todo')->value('due_date')?->format('Y-m-d')
+        );
+    }
+
+    public function test_note_due_date_is_cleared_on_store(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.store'), [
+                'title' => 'Note with date',
+                'description' => 'Should ignore due date',
+                'due_date' => now()->addDay()->format('Y-m-d'),
+                'type' => 'note',
+                '_token' => 'test-token',
+            ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('todos', [
+            'title' => 'Note with date',
+            'type' => 'note',
+            'due_date' => null,
+        ]);
+    }
+
+    public function test_user_can_update_todo_due_date(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'due_date' => now()->addWeek()->format('Y-m-d'),
+        ]);
+
+        $newDueDate = now()->addWeeks(2)->format('Y-m-d');
+
+        $payload = [
+            'title' => 'Updated Todo',
+            'description' => 'With new due date',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            'due_date' => $newDueDate,
+            'type' => 'todo',
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->put(route('todos.update', $todo), array_merge($payload, ['_token' => 'test-token']));
+
+        $response->assertRedirect();
+
+        $this->assertEquals(
+            $newDueDate,
+            $todo->fresh()->due_date?->format('Y-m-d')
+        );
     }
 
     public function test_user_can_view_todo(): void

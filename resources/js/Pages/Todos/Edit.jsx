@@ -32,6 +32,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         priority: initialType === 'note' ? null : (todo.priority ?? null),
         importance: initialType === 'note' ? null : (todo.importance ?? null),
         is_completed: todo.is_completed || false,
+        due_date: initialType === 'note' ? '' : (todo.due_date ?? ''),
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
         checklist_items: (todo.checklistItems || todo.checklist_items || []).map((item, index) => ({
@@ -87,6 +88,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
             formData.append('priority', data.priority);
             formData.append('importance', data.importance);
         }
+        if (!isNote && data.due_date) {
+            formData.append('due_date', data.due_date);
+        }
         formData.append('is_completed', data.is_completed ? '1' : '0');
 
         // Arrays
@@ -138,12 +142,14 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         if (type === 'note') {
             setData('priority', null);
             setData('importance', null);
+            setData('due_date', '');
             if (data.is_completed && todo.type !== 'note') {
                 // allow keep completion
             }
         } else if (!data.priority || !data.importance) {
             setData('priority', todo.priority ?? 'not_urgent');
             setData('importance', todo.importance ?? 'not_important');
+            setData('due_date', todo.due_date ?? '');
         }
     };
 
@@ -221,17 +227,35 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                             </div>
 
                             {!isNote && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Priority
-                                    </label>
-                                    <PrioritySelector
-                                        selectedPriority={data.priority}
-                                        selectedImportance={data.importance}
-                                        onChange={handlePriorityChange}
-                                        error={errors.priority || errors.importance}
-                                    />
-                                </div>
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Priority
+                                        </label>
+                                        <PrioritySelector
+                                            selectedPriority={data.priority}
+                                            selectedImportance={data.importance}
+                                            onChange={handlePriorityChange}
+                                            error={errors.priority || errors.importance}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label htmlFor="due_date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Due Date
+                                        </label>
+                                        <Input
+                                            id="due_date"
+                                            type="date"
+                                            value={data.due_date || ''}
+                                            onChange={(e) => setData('due_date', e.target.value)}
+                                            className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.due_date ? 'border-red-500' : ''}`}
+                                        />
+                                        {errors.due_date && (
+                                            <p className="text-sm text-red-600 dark:text-red-400">{errors.due_date}</p>
+                                        )}
+                                    </div>
+                                </>
                             )}
 
                             <ChecklistEditor

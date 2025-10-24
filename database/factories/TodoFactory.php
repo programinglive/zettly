@@ -21,15 +21,18 @@ class TodoFactory extends Factory
 
         $priority = null;
         $importance = null;
+        $dueDate = null;
 
         if ($type === 'todo') {
             $priority = fake()->randomElement(['not_urgent', 'urgent']);
             $importance = fake()->randomElement(['not_important', 'important']);
+            $dueDate = fake()->optional()->dateTimeBetween('now', '+2 months');
         }
 
         if ($isCompleted) {
             $priority = null;
             $importance = null;
+            $dueDate = $dueDate ?? fake()->optional()->dateTimeBetween('-1 month', 'now');
         }
 
         return [
@@ -43,6 +46,7 @@ class TodoFactory extends Factory
             'completed_at' => function (array $attributes) use ($isCompleted) {
                 return $isCompleted ? fake()->dateTimeBetween('-1 month', 'now') : null;
             },
+            'due_date' => isset($dueDate) ? $dueDate->format('Y-m-d') : null,
         ];
     }
 

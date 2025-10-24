@@ -21,6 +21,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         description: '',
         priority: initialType === 'note' ? null : 'not_urgent',
         importance: initialType === 'note' ? null : 'not_important',
+        due_date: '',
         tag_ids: [],
         related_todo_ids: [],
         checklist_items: [],
@@ -55,6 +56,9 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         if (!isNote && data.priority && data.importance) {
             formData.append('priority', data.priority);
             formData.append('importance', data.importance);
+        }
+        if (!isNote && data.due_date) {
+            formData.append('due_date', data.due_date);
         }
         
         // Append tag IDs
@@ -105,9 +109,15 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         if (type === 'note') {
             setData('priority', null);
             setData('importance', null);
-        } else if (!data.priority || !data.importance) {
-            setData('priority', 'not_urgent');
-            setData('importance', 'not_important');
+            setData('due_date', '');
+        } else {
+            if (!data.priority || !data.importance) {
+                setData('priority', 'not_urgent');
+                setData('importance', 'not_important');
+            }
+            if (!data.due_date) {
+                setData('due_date', '');
+            }
         }
     };
 
@@ -186,17 +196,34 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                             </div>
 
                             {!isNote && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Priority
-                                    </label>
-                                    <PrioritySelector
-                                        selectedPriority={data.priority}
-                                        selectedImportance={data.importance}
-                                        onChange={handlePriorityChange}
-                                        error={errors.priority || errors.importance}
-                                    />
-                                </div>
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Priority
+                                        </label>
+                                        <PrioritySelector
+                                            selectedPriority={data.priority}
+                                            selectedImportance={data.importance}
+                                            onChange={handlePriorityChange}
+                                            error={errors.priority || errors.importance}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="due_date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Due Date
+                                        </label>
+                                        <Input
+                                            id="due_date"
+                                            type="date"
+                                            value={data.due_date || ''}
+                                            onChange={(e) => setData('due_date', e.target.value)}
+                                            className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.due_date ? 'border-red-500' : ''}`}
+                                        />
+                                        {errors.due_date && (
+                                            <p className="text-sm text-red-600 dark:text-red-400">{errors.due_date}</p>
+                                        )}
+                                    </div>
+                                </>
                             )}
 
                             <ChecklistEditor

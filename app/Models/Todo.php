@@ -33,6 +33,7 @@ class Todo extends Model
         'importance',
         'is_completed',
         'completed_at',
+        'due_date',
         'archived',
         'archived_at',
     ];
@@ -40,6 +41,7 @@ class Todo extends Model
     protected $casts = [
         'is_completed' => 'boolean',
         'completed_at' => 'datetime',
+        'due_date' => 'date',
         'archived' => 'boolean',
         'archived_at' => 'datetime',
     ];

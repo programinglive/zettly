@@ -75,12 +75,19 @@ class TodoController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if ($request->has('due_date')) {
+            $request->merge([
+                'due_date' => $request->input('due_date') === '' ? null : $request->input('due_date'),
+            ]);
+        }
+
         $validated = $request->validate([
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
+            'due_date' => 'nullable|date',
             'checklist_items' => 'nullable|array',
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
@@ -100,6 +107,7 @@ class TodoController extends Controller
         } else {
             $validated['priority'] = null;
             $validated['importance'] = null;
+            $validated['due_date'] = null;
         }
 
         $todo = null;
@@ -149,6 +157,12 @@ class TodoController extends Controller
      */
     public function update(Request $request, Todo $todo): JsonResponse
     {
+        if ($request->has('due_date')) {
+            $request->merge([
+                'due_date' => $request->input('due_date') === '' ? null : $request->input('due_date'),
+            ]);
+        }
+
         // Ensure the todo belongs to the authenticated user
         if ($todo->user_id !== Auth::id()) {
             return response()->json([
@@ -164,6 +178,7 @@ class TodoController extends Controller
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
             'is_completed' => 'nullable|boolean',
+            'due_date' => 'nullable|date',
             'checklist_items' => 'nullable|array',
             'checklist_items.*.id' => 'nullable|exists:todo_checklist_items,id',
             'checklist_items.*.title' => 'required|string|max:255',
@@ -194,6 +209,7 @@ class TodoController extends Controller
         } else {
             $validated['priority'] = null;
             $validated['importance'] = null;
+            $validated['due_date'] = null;
         }
 
         $checklistItems = $validated['checklist_items'] ?? null;

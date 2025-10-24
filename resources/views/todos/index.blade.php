@@ -50,6 +50,11 @@
                                 @endif
                                 <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                                     <span>Created: {{ $todo->created_at->format('M d, Y') }}</span>
+                                    @if($todo->due_date)
+                                        <span class="{{ $todo->is_completed ? 'text-gray-500' : ($todo->due_date->isPast() ? 'text-red-600 font-semibold' : 'text-indigo-600') }}">
+                                            Due: {{ $todo->due_date->format('M d, Y') }}
+                                        </span>
+                                    @endif
                                     @if($todo->is_completed && $todo->completed_at)
                                         <span class="text-green-600">✓ Completed: {{ $todo->completed_at->format('M d, Y') }}</span>
                                     @endif

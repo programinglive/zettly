@@ -39,6 +39,65 @@ const getDescriptionPreview = (html, limit = 120) => {
 
 const NOTES_PAGE_SIZE = 8;
 
+const parseDateOnly = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const localDate = new Date(`${value}T00:00:00`);
+
+    if (!Number.isNaN(localDate.getTime())) {
+        return localDate;
+    }
+
+    const fallback = new Date(value);
+
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+};
+
+const formatDueDateLabel = (value) => {
+    const parsed = parseDateOnly(value);
+
+    if (!parsed) {
+        return null;
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
+
+const isOverdue = (value) => {
+    const parsed = parseDateOnly(value);
+
+    if (!parsed) {
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return parsed < today;
+};
+
+const isDueSoon = (value, horizonDays = 3) => {
+    const parsed = parseDateOnly(value);
+
+    if (!parsed) {
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const horizon = new Date(today);
+    horizon.setDate(horizon.getDate() + horizonDays);
+
+    return parsed >= today && parsed <= horizon;
+};
+
 export default function Index({ todos, tags, filter, selectedTag, selectedType }) {
     const type = selectedType ?? 'todo';
     const isNoteView = type === 'note';
@@ -336,6 +395,10 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                         {visibleTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
                             const descriptionPreview = getDescriptionPreview(todo.description);
+                            const dueDateLabel = !isNoteView && todo.due_date ? formatDueDateLabel(todo.due_date) : null;
+                            const showDueBadge = Boolean(dueDateLabel && !todo.is_completed);
+                            const overdue = showDueBadge && isOverdue(todo.due_date);
+                            const dueSoon = showDueBadge && !overdue && isDueSoon(todo.due_date);
 
                             return (
                                 <div key={todo.id} className="mb-4" style={{ breakInside: 'avoid' }}>
@@ -382,7 +445,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             </div>
 
                                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                {todo.priority && !isNoteView && !todo.is_completed && (
+                                                {!isNoteView && todo.is_completed === false && todo.priority && (
                                                     <span
                                                         className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
                                                         style={{
@@ -396,6 +459,19 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                                 <span className="inline-flex items-center rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
                                                     {new Date(todo.created_at).toLocaleDateString()}
                                                 </span>
+                                                {showDueBadge && (
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${
+                                                            overdue
+                                                                ? 'bg-red-500 text-white'
+                                                                : dueSoon
+                                                                    ? 'bg-orange-500 text-white'
+                                                                    : 'bg-emerald-500 text-white'
+                                                        }`}
+                                                    >
+                                                        Due {dueDateLabel}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="mt-4 flex-1 space-y-2">

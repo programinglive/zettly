@@ -122,12 +122,19 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->has('due_date')) {
+            $request->merge([
+                'due_date' => $request->input('due_date') === '' ? null : $request->input('due_date'),
+            ]);
+        }
+
         $validated = $request->validate([
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
+            'due_date' => 'nullable|date',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
@@ -153,6 +160,7 @@ class TodoController extends Controller
         } else {
             $validated['priority'] = null;
             $validated['importance'] = null;
+            $validated['due_date'] = null;
         }
 
         $todo = Todo::create($validated);
@@ -317,6 +325,12 @@ class TodoController extends Controller
      */
     public function update(Request $request, Todo $todo)
     {
+        if ($request->has('due_date')) {
+            $request->merge([
+                'due_date' => $request->input('due_date') === '' ? null : $request->input('due_date'),
+            ]);
+        }
+
         $validated = $request->validate([
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
             'title' => 'required|string|max:255',
@@ -324,6 +338,7 @@ class TodoController extends Controller
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
             'is_completed' => 'nullable|in:0,1,true,false',
+            'due_date' => 'nullable|date',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
             'related_todo_ids' => 'nullable|array',
@@ -361,6 +376,7 @@ class TodoController extends Controller
         } elseif ($type === Todo::TYPE_NOTE) {
             $validated['priority'] = null;
             $validated['importance'] = null;
+            $validated['due_date'] = null;
         }
 
         $checklistItems = $validated['checklist_items'] ?? null;
