@@ -917,10 +917,15 @@ class TodoController extends Controller
      */
     private function generateThumbnail(UploadedFile $file, string $fileName, int $todoId, string $disk): ?string
     {
+        $temporaryThumbnail = null;
         try {
             $thumbnailFileName = 'thumb_'.$fileName;
             $thumbnailPath = "todos/{$todoId}/thumbnails/{$thumbnailFileName}";
             $temporaryThumbnail = tempnam(sys_get_temp_dir(), 'todo-thumb-');
+
+            if ($temporaryThumbnail === false) {
+                return null;
+            }
 
             // Create thumbnail using intervention/image if available, otherwise use basic PHP
             $imageClass = 'Intervention\\Image\\ImageManagerStatic';
@@ -935,7 +940,7 @@ class TodoController extends Controller
                 $this->createBasicThumbnail($file->getRealPath(), $temporaryThumbnail);
             }
 
-            if (! file_exists($temporaryThumbnail)) {
+            if (! file_exists($temporaryThumbnail) || filesize($temporaryThumbnail) === 0) {
                 return null;
             }
 
@@ -944,16 +949,15 @@ class TodoController extends Controller
                 file_get_contents($temporaryThumbnail),
                 $this->fsWriteOptions($disk)
             );
-            @unlink($temporaryThumbnail);
 
             return $thumbnailPath;
         } catch (\Exception $e) {
-            if (isset($temporaryThumbnail) && file_exists($temporaryThumbnail)) {
+            // If thumbnail generation fails, return null silently
+            return null;
+        } finally {
+            if ($temporaryThumbnail && file_exists($temporaryThumbnail)) {
                 @unlink($temporaryThumbnail);
             }
-
-            // If thumbnail generation fails, return null
-            return null;
         }
     }
 

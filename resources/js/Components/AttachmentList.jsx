@@ -33,17 +33,20 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                     if (onAttachmentDeleted) {
                         onAttachmentDeleted(attachmentId);
                     }
+                    setShowDeleteModal(false);
+                    setAttachmentToDelete(null);
                 },
                 onError: () => {
-                    // Error handling via Inertia
+                    setDeletingId(null);
                 },
                 onFinish: () => {
-                    setDeletingId(null);
+                    if (deletingId === attachmentId) {
+                        setDeletingId(null);
+                    }
                 }
             });
         } catch (error) {
             setDeletingId(null);
-        } finally {
             setShowDeleteModal(false);
             setAttachmentToDelete(null);
         }
@@ -119,7 +122,9 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                                         onError={(e) => {
                                             // Fallback to file icon if image fails to load
                                             e.target.style.display = 'none';
-                                            e.target.nextSibling.style.display = 'flex';
+                                            if (e.target.nextSibling) {
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }
                                         }}
                                     />
                                     <div className="h-12 w-12 items-center justify-center bg-white dark:bg-gray-600 rounded border hidden">
@@ -205,8 +210,8 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                 onClose={handleDeleteCancel}
                 onConfirm={handleDeleteConfirm}
                 title="Delete Attachment"
-                message={`Are you sure you want to delete "${attachmentToDelete?.original_name}"? This action cannot be undone.`}
-                confirmText="Delete Attachment"
+                message={`Delete "${attachmentToDelete?.original_name}"?`}
+                confirmText="Delete"
                 confirmButtonVariant="destructive"
                 isLoading={deletingId !== null}
             />
