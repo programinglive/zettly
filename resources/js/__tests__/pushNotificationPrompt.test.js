@@ -12,12 +12,12 @@ const componentSource = readFileSync(componentPath, 'utf8');
 
 test('push notification prompt respects dismissed state', () => {
     assert.ok(
-        componentSource.includes('if (dismissed) {') && componentSource.includes('setVisible(false);'),
-        'Expected the prompt to remain hidden when previously dismissed.'
+        componentSource.includes("if (dismissed && permission !== 'granted')"),
+        'Expected the prompt to only respect dismissal when permission not granted.'
     );
 
     assert.ok(
         componentSource.includes("const shouldShow = permission !== 'granted' || !isSubscribed;"),
-        'Expected prompt visibility to be gated by permission/subscription when not dismissed.'
+        'Expected prompt to show when permission granted but not subscribed, even if dismissed.'
     );
 });
