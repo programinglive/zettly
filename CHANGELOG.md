@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.4](https://github.com/programinglive/todo/compare/v0.4.3...v0.4.4) (2025-10-25)
+
+
+### ✨ Features
+
+* send push notification when todo is created ([211458d](https://github.com/programinglive/todo/commit/211458d5f7e3a1a294dcf3ced879669da69c0e09))
+
+
+### 🐛 Bug Fixes
+
+* add CSRF token to FormData for todo creation on production ([8ba66f0](https://github.com/programinglive/todo/commit/8ba66f0344a11f19bc712d0bdff9db35fbc0cfe4))
+* persist hidden state for push notification prompt ([7dcb819](https://github.com/programinglive/todo/commit/7dcb819e53ce2ced29cc3deaadf4b3fe6e8f5c26))
+
+
+### ✅ Tests
+
+* add console logging to push notification prompt visibility ([0930907](https://github.com/programinglive/todo/commit/09309077b33f4607a50b62aeeccc02e8142910ff))
+
 ### [0.4.3](https://github.com/programinglive/todo/compare/v0.4.2...v0.4.3) (2025-10-25)
 
 
