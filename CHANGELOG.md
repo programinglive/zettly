@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.21](https://github.com/programinglive/todo/compare/v0.3.20...v0.3.21) (2025-10-25)
+
+
+### 🧹 Chores
+
+* ignore workflow state and update dashboard layout ([4129b50](https://github.com/programinglive/todo/commit/4129b507ee5e2db2d57ae33ad668cc7ed0add6e2))
+
+
+### 🐛 Bug Fixes
+
+* ensure dashboard stats bar layout ([201cafc](https://github.com/programinglive/todo/commit/201cafc0b401de3b2ffe9fff84429d911af41416))
+* remove workspace selector ui ([258a30f](https://github.com/programinglive/todo/commit/258a30f62708be0a48eff3f0abf0d148c8787103))
+
 ### [0.3.20](https://github.com/programinglive/todo/compare/v0.3.19...v0.3.20) (2025-10-25)
 
 
