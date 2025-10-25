@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.30](https://github.com/programinglive/todo/compare/v0.3.29...v0.3.30) (2025-10-25)
+
+
+### ✨ Features
+
+* unify dashboard workspace panel ([bea401b](https://github.com/programinglive/todo/commit/bea401b8e544ab5f6b3525bb88caa45cacefce1a))
+
 ### [0.3.29](https://github.com/programinglive/todo/compare/v0.3.28...v0.3.29) (2025-10-25)
 
 
