@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.13](https://github.com/programinglive/todo/compare/v0.4.12...v0.4.13) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* add logging to notification toggle handler ([bb10d70](https://github.com/programinglive/todo/commit/bb10d702e3ae1048d90b8c8030a2616d33ba9d32))
+
+
+### ♻️ Refactors
+
+* remove floating push notification banner ([22a04d2](https://github.com/programinglive/todo/commit/22a04d20c86846feeeb7f784a199a9c7db35bd06))
+
+
+### ✨ Features
+
+* add push notification toggle to profile settings page ([21d8521](https://github.com/programinglive/todo/commit/21d852165910f1fcb7532dcd471c8f02892e2bd1))
+* add quick create actions on todo form ([4887671](https://github.com/programinglive/todo/commit/488767104e6ed709de0c9b066819037ea1953f06))
+
 ### [0.4.12](https://github.com/programinglive/todo/compare/v0.4.11...v0.4.12) (2025-10-25)
 
 
