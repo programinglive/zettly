@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\TodoController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -43,4 +44,14 @@ Route::middleware('auth:sanctum')->group(function () {
     ]);
     Route::post('tags/{id}/restore', [TagController::class, 'restore'])->name('api.tags.restore');
     Route::get('tags/search', [TagController::class, 'search'])->name('api.tags.search');
+
+    // Push Subscription Routes
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('api.push-subscriptions.store');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('api.push-subscriptions.destroy');
+    Route::post('push/test', [PushSubscriptionController::class, 'test'])->name('api.push-subscriptions.test');
+});
+
+// Push routes with session auth (for web clients)
+Route::middleware('auth')->group(function () {
+    Route::post('push/test', [PushSubscriptionController::class, 'test'])->name('api.push-subscriptions.test-web');
 });

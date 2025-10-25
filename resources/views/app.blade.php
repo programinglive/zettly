@@ -7,6 +7,7 @@
         <meta name="description" content="A modern task management application with Kanban board functionality">
 
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="vapid-public-key" content="{{ config('app.vapid_public_key') }}">
         
         <!-- Favicon and Icons -->
         <link rel="icon" type="image/x-icon" href="/favicon.ico">

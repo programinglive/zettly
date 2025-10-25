@@ -71,6 +71,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/gemini-test', [GeminiTestController::class, 'test'])->name('gemini.test');
     Route::get('/gemini/chat', fn () => Inertia::render('Gemini/Chat'))->name('gemini.chat.page');
     Route::post('/gemini/chat', [GeminiTestController::class, 'chat'])->name('gemini.chat');
+
+    // Push notification routes
+    Route::post('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
+    Route::delete('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
+    Route::post('/push/test', [\App\Http\Controllers\PushSubscriptionController::class, 'test'])->name('push.test');
 });
 
 require __DIR__.'/auth.php';

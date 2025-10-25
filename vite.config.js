@@ -20,56 +20,18 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'prompt',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
-            manifest: {
-                name: 'Zettly',
-                short_name: 'Zettly',
-                description: 'Manage todos and notes in one unified workspace.',
-                theme_color: '#111827',
-                background_color: '#111827',
-                start_url: '/dashboard',
-                display: 'standalone',
-                orientation: 'portrait-primary',
-                icons: [
-                    {
-                        src: '/android-chrome-192x192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                    },
-                    {
-                        src: '/android-chrome-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                    },
-                    {
-                        src: '/apple-touch-icon.png',
-                        sizes: '180x180',
-                        type: 'image/png',
-                        purpose: 'any maskable',
-                    },
-                ],
+            strategies: 'injectManifest',
+            srcDir: 'resources/js',
+            filename: 'sw.js',
+            outDir: 'public',
+            injectManifest: {
+                globPatterns: [],
+                injectionPoint: undefined,
             },
-            workbox: {
-                runtimeCaching: [
-                    {
-                        urlPattern: /^https:\/\/(?:[a-z0-9-]+\.)*zettly\.app\//,
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'zettly-api-cache',
-                            networkTimeoutSeconds: 10,
-                            cacheableResponse: {
-                                statuses: [0, 200],
-                            },
-                        },
-                    },
-                    {
-                        urlPattern: ({ request }) => request.destination === 'script' || request.destination === 'style',
-                        handler: 'StaleWhileRevalidate',
-                        options: {
-                            cacheName: 'zettly-static-resources',
-                        },
-                    },
-                ],
+            manifest: false,
+            scope: '/',
+            devOptions: {
+                enabled: false,
             },
         }),
     ],

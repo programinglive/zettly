@@ -4,6 +4,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { ModeToggle } from '../Components/mode-toggle';
 import Footer from '../Components/Footer';
 import PwaInstallPrompt from '../Components/PwaInstallPrompt';
+import PushNotificationPrompt from '../Components/PushNotificationPrompt';
 
 export default function AppLayout({
     children,
@@ -39,6 +40,7 @@ export default function AppLayout({
         <>
             <Head title={title || 'Zettly'} />
             <PwaInstallPrompt />
+            {isAuthenticated && <PushNotificationPrompt />}
             <div className="min-h-screen bg-white dark:bg-slate-950 font-sans antialiased transition-colors">
                 {/* Flash Messages */}
                 {(flash?.success || flash?.error) && (
