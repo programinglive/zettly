@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.20](https://github.com/programinglive/todo/compare/v0.3.19...v0.3.20) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* adjust dashboard responsive layout ([b29c8ba](https://github.com/programinglive/todo/commit/b29c8bafe6bc7421d1ea3268b391fc89a4290334))
+
 ### [0.3.19](https://github.com/programinglive/todo/compare/v0.3.18...v0.3.19) (2025-10-25)
 
 ### [0.3.18](https://github.com/programinglive/todo/compare/v0.3.17...v0.3.18) (2025-10-24)
