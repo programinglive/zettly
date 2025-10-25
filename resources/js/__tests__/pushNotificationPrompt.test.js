@@ -10,20 +10,14 @@ const __dirname = dirname(__filename);
 const componentPath = join(__dirname, '..', 'Components', 'PushNotificationPrompt.jsx');
 const componentSource = readFileSync(componentPath, 'utf8');
 
-test('push notification prompt respects dismissed state', () => {
+test('push notification prompt now renders nothing', () => {
     assert.ok(
-        componentSource.includes('if (dismissed) {') && componentSource.includes('setVisible(false);'),
-        'Expected the prompt to remain hidden when previously dismissed.'
+        componentSource.includes('return null;'),
+        'Expected the prompt component to return null after deprecating the floating banner.'
     );
 
     assert.ok(
-        componentSource.includes("const needsAttention = permission !== 'granted' || !isSubscribed;") &&
-            componentSource.includes('const shouldDisplayBanner = needsAttention || isSubscribed;'),
-        'Expected prompt visibility to consider both attention state and existing subscription.'
-    );
-
-    assert.ok(
-        componentSource.includes('const showReopenButton = dismissed && needsAttention;'),
-        'Expected dismissed users to get a reopen control when they still need to enable notifications.'
+        componentSource.includes('console.debug('),
+        'Expected the prompt component to log diagnostic information for the legacy removal.'
     );
 });
