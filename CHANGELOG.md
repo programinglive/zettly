@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/programinglive/todo/compare/v0.3.35...v0.4.0) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* guide ios users for pwa install ([e6347d6](https://github.com/programinglive/todo/commit/e6347d667c6b3be522ee04d45340b7623a1fa3fa))
+
 ### [0.3.35](https://github.com/programinglive/todo/compare/v0.3.34...v0.3.35) (2025-10-25)
 
 
