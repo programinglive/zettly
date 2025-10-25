@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.25](https://github.com/programinglive/todo/compare/v0.3.24...v0.3.25) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* restore workspace preference toggles ([e843755](https://github.com/programinglive/todo/commit/e843755d47c11d0fc60bb323ce013dfb4d2e05b8))
+
 ### [0.3.24](https://github.com/programinglive/todo/compare/v0.3.23...v0.3.24) (2025-10-25)
 
 
