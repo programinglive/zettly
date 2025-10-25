@@ -265,8 +265,7 @@ class TodoController extends Controller
             }
         }
 
-        return redirect()->route('todos.index')
-            ->with('success', 'Todo created successfully!');
+        return redirect()->route('dashboard')->with('success', 'Todo created successfully.');
     }
 
     /**
@@ -523,8 +522,7 @@ class TodoController extends Controller
             }
         }
 
-        return redirect()->route('todos.index')
-            ->with('success', 'Todo updated successfully!');
+        return redirect()->route('dashboard')->with('success', 'Todo updated successfully.');
     }
 
     /**
