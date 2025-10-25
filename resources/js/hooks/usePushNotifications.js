@@ -15,6 +15,7 @@ export function usePushNotifications() {
         setIsSupported(supported);
 
         if (!supported) {
+            console.debug('[push] Push not supported in browser');
             return;
         }
 
@@ -31,6 +32,7 @@ export function usePushNotifications() {
                     return null;
                 }
 
+                console.debug('[push] Service worker registration found');
                 return registration;
             })
             .then((registration) => {
@@ -84,7 +86,6 @@ export function usePushNotifications() {
             return false;
         }
 
-        console.debug('[push] Attempting subscription', { isSupported, permission });
         setIsLoading(true);
 
         try {
