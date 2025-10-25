@@ -7,6 +7,7 @@ use App\Models\Todo;
 use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
 use App\Models\User;
+use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -138,7 +139,7 @@ class TodoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, WebPushService $webPush)
     {
         if ($request->has('due_date')) {
             $request->merge([
@@ -262,6 +263,24 @@ class TodoController extends Controller
                     'type' => $type,
                     'thumbnail_path' => $thumbnailPath,
                 ]);
+            }
+        }
+
+        if ($type === Todo::TYPE_TODO) {
+            try {
+                $webPush->sendToUser(
+                    $todo->user,
+                    [
+                        'title' => 'New todo created',
+                        'body' => $todo->description
+                            ? Str::limit(strip_tags($todo->description), 120)
+                            : 'Open your dashboard to review it.',
+                        'url' => route('todos.show', $todo),
+                        'tag' => 'todo-created-'.$todo->id,
+                    ]
+                );
+            } catch (\Throwable $exception) {
+                report($exception);
             }
         }
 

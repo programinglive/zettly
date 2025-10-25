@@ -4,12 +4,21 @@ namespace Tests\Feature;
 
 use App\Models\Todo;
 use App\Models\User;
+use App\Services\WebPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use Tests\TestCase;
 
 class TodoTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+
+        parent::tearDown();
+    }
 
     public function test_user_can_view_todos_list(): void
     {
@@ -327,6 +336,45 @@ class TodoTest extends TestCase
             'position' => 1,
         ]);
         $this->assertEquals(2, $todo->checklistItems()->count());
+    }
+
+    public function test_creating_todo_dispatches_push_notification(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $webPush = Mockery::mock(WebPushService::class);
+        $webPush->shouldReceive('sendToUser')
+            ->once()
+            ->withArgs(function ($notifiedUser, array $payload) use ($user) {
+                $this->assertTrue($notifiedUser->is($user));
+                $this->assertSame('New todo created', $payload['title']);
+                $this->assertArrayHasKey('url', $payload);
+
+                return true;
+            })
+            ->andReturn(['sent' => true, 'successes' => 1, 'failures' => [], 'total' => 1]);
+
+        $this->instance(WebPushService::class, $webPush);
+
+        $todoData = [
+            'title' => 'Notify Todo',
+            'description' => 'Send push when created',
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'type' => 'todo',
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.store'), array_merge($todoData, ['_token' => 'test-token']));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('todos', [
+            'title' => 'Notify Todo',
+            'user_id' => $user->id,
+            'type' => Todo::TYPE_TODO,
+        ]);
     }
 
     public function test_user_can_update_todo_checklist_items(): void
