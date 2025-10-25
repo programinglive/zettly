@@ -398,12 +398,12 @@ export default function Dashboard({
     };
 
     const renderMatrixWorkspace = () => (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] lg:items-start">
-            <div className="lg:h-[720px]">
+        <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] 2xl:items-start">
+            <div className="2xl:h-[720px]">
                 <TodosPanel todos={tasks} allTags={availableTags} />
             </div>
-            <div className="lg:h-[720px]">
-                <div className="h-full overflow-visible lg:overflow-hidden">
+            <div className="2xl:h-[720px]">
+                <div className="h-full overflow-visible 2xl:overflow-hidden">
                     <div className="h-full overflow-y-auto pr-1">
                         <EisenhowerMatrix
                             todos={tasks}
@@ -414,7 +414,7 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
-            <div className="lg:h-[720px]">
+            <div className="2xl:h-[720px]">
                 <ContextPanel selectedTask={selectedTask} linkedTodos={aggregateLinkedTodos} />
             </div>
         </div>
@@ -445,9 +445,9 @@ export default function Dashboard({
                 </div>
 
                 {/* Main Layout */}
-                <div className="flex flex-col lg:flex-row gap-6 flex-1">
+                <div className="flex flex-col 2xl:flex-row gap-6 flex-1 2xl:items-start">
                     {/* Left Sidebar - Above content on mobile/tablet, sidebar on desktop */}
-                    <aside className="w-full lg:w-80 lg:flex-shrink-0 space-y-4">
+                    <aside className="w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4">
                         {/* Workspace Focus */}
                         <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
                             <div className="mb-3">
@@ -540,15 +540,15 @@ export default function Dashboard({
                     </aside>
 
                     {/* Main Content - Grows to fill available space */}
-                    <main className="w-full lg:flex-1 lg:min-w-0">
+                    <main className="w-full 2xl:flex-1 2xl:min-w-0">
                         {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
                     </main>
                 </div>
 
-                {/* Bottom Stats Bar - Fixed on mobile/tablet, sticky on desktop */}
-                <div className="fixed lg:sticky bottom-0 left-0 right-0 z-20 lg:z-10 mt-8">
-                    <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 shadow-lg border-t border-white/60 dark:border-slate-800/60 lg:rounded-t-3xl lg:border-0 lg:border-t lg:mx-0">
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap lg:items-stretch">
+                {/* Bottom Stats Bar - Fixed on mobile, becomes inline on tablets to match desktop grid */}
+                <div className="fixed bottom-0 left-0 right-0 z-20 mt-8 md:static md:mt-12 md:z-auto lg:sticky lg:mt-8 lg:z-10">
+                    <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 shadow-lg border-t border-white/60 dark:border-slate-800/60 md:rounded-3xl md:border md:border-white/40 md:dark:border-slate-800/60 md:px-6 lg:rounded-t-3xl lg:border-0 lg:border-t lg:px-4">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:flex md:flex-wrap md:items-stretch">
                             {[
                                 {
                                     label: 'Q1 · Do First',
@@ -608,7 +608,7 @@ export default function Dashboard({
                                 <Link
                                     key={item.label}
                                     href={item.href}
-                                    className="lg:flex-1 lg:min-w-[140px] lg:basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700/60 dark:bg-gray-900/85"
+                                    className="md:flex-1 md:min-w-[160px] md:basis-0 rounded-2xl border border-gray-200/80 bg-white/95 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700/60 dark:bg-gray-900/85"
                                 >
                                     <div className="flex items-center gap-2 p-3 sm:gap-3">
                                         <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-base font-medium ${item.accent}`}>
