@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.5](https://github.com/programinglive/todo/compare/v0.4.4...v0.4.5) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* show notification prompt after permission granted, even if previously dismissed ([7850301](https://github.com/programinglive/todo/commit/7850301bb078419660bddf012add3b4e1bce8f60))
+
 ### [0.4.4](https://github.com/programinglive/todo/compare/v0.4.3...v0.4.4) (2025-10-25)
 
 
