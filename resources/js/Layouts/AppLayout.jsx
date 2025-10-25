@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 
 import { ModeToggle } from '../Components/mode-toggle';
 import Footer from '../Components/Footer';
@@ -30,6 +30,10 @@ export default function AppLayout({
     const resolvedContentClassName = contentClassName ?? defaultContentClassName;
     const resolvedNavClassName = navClassName ?? defaultNavClassName;
     const resolvedVariant = variant ?? (isAuthenticated ? 'authenticated' : 'public');
+
+    const handleLogout = React.useCallback(() => {
+        router.post('/logout', {}, { preserveScroll: true });
+    }, []);
 
     return (
         <>
@@ -192,15 +196,16 @@ export default function AppLayout({
                                                                 Profile
                                                             </Link>
                                                             <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
-                                                            <form method="POST" action="/logout" className="block">
-                                                                <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
-                                                                <button type="submit" className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800">
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleLogout}
+                                                                className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800"
+                                                            >
                                                                     <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                                     </svg>
                                                                     Logout
-                                                                </button>
-                                                            </form>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 )}
