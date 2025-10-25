@@ -132,11 +132,14 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
     };
 
     const handleNotificationToggle = async (desiredState) => {
+        console.debug('[profile-toggle] Toggling notifications to', desiredState);
         if (isLoading || permission === 'denied') return;
         if (desiredState) {
-            await requestPermission();
+            const result = await requestPermission();
+            console.debug('[profile-toggle] requestPermission result:', result);
         } else {
-            await unsubscribe();
+            const result = await unsubscribe();
+            console.debug('[profile-toggle] unsubscribe result:', result);
         }
     };
 
