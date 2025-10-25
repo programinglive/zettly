@@ -20,14 +20,18 @@ export default function PushNotificationPrompt() {
             return false;
         }
 
-        return window.localStorage.getItem(STORAGE_KEY) === '1';
+        const val = window.localStorage.getItem(STORAGE_KEY) === '1';
+        console.debug('[push-prompt] Initial dismissed state', val, 'storage:', window.localStorage.getItem(STORAGE_KEY));
+        return val;
     });
     const [visible, setVisible] = useState(() => {
         if (typeof window === 'undefined') {
             return false;
         }
 
-        return window.localStorage.getItem(STORAGE_KEY) !== '1';
+        const val = window.localStorage.getItem(STORAGE_KEY) !== '1';
+        console.debug('[push-prompt] Initial visible state', val, 'storage:', window.localStorage.getItem(STORAGE_KEY));
+        return val;
     });
     const [testStatus, setTestStatus] = useState('idle');
 
@@ -51,17 +55,28 @@ export default function PushNotificationPrompt() {
     }, []);
 
     useEffect(() => {
+        console.debug('[push-prompt] Visibility check', {
+            isSupported,
+            dismissed,
+            permission,
+            isSubscribed,
+            storageValue: typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : 'N/A',
+        });
+
         if (!isSupported) {
+            console.debug('[push-prompt] Not supported, hiding');
             setVisible(false);
             return;
         }
 
         if (dismissed) {
+            console.debug('[push-prompt] Dismissed, hiding');
             setVisible(false);
             return;
         }
 
         const shouldShow = permission !== 'granted' || !isSubscribed;
+        console.debug('[push-prompt] Should show?', shouldShow, { permission, isSubscribed });
         setVisible(shouldShow);
     }, [isSupported, permission, isSubscribed, dismissed]);
 
@@ -133,7 +148,9 @@ export default function PushNotificationPrompt() {
         return 'Enable push notifications to get real-time updates without keeping this page open.';
     }, [isSupported, permission, isSubscribed, showTestButton]);
 
+    console.debug('[push-prompt] Render check', { isSupported, visible });
     if (!isSupported || !visible) {
+        console.debug('[push-prompt] Not rendering (isSupported:', isSupported, 'visible:', visible, ')');
         return null;
     }
 

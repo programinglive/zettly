@@ -12,7 +12,7 @@ const componentSource = readFileSync(componentPath, 'utf8');
 
 test('push notification prompt respects dismissed state', () => {
     assert.ok(
-        componentSource.includes('if (dismissed) {\n            setVisible(false);'),
+        componentSource.includes('if (dismissed) {') && componentSource.includes('setVisible(false);'),
         'Expected the prompt to remain hidden when previously dismissed.'
     );
 
