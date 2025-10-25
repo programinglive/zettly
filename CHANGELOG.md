@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.12](https://github.com/programinglive/todo/compare/v0.4.11...v0.4.12) (2025-10-25)
+
+
+### ✨ Features
+
+* add sentry error reporting and notification toggle to profile settings ([c1f957c](https://github.com/programinglive/todo/commit/c1f957cf4c5b5d2383cbc5a227aa9e7b940a93ef))
+
 ### [0.4.11](https://github.com/programinglive/todo/compare/v0.4.10...v0.4.11) (2025-10-25)
 
 
