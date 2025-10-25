@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.34](https://github.com/programinglive/todo/compare/v0.3.33...v0.3.34) (2025-10-25)
+
+
+### ⚡ Performance
+
+* improve pwa performance ([a53677b](https://github.com/programinglive/todo/commit/a53677b276b1a8befa776c37b119236ada621ff7))
+
 ### [0.3.33](https://github.com/programinglive/todo/compare/v0.3.32...v0.3.33) (2025-10-25)
 
 
