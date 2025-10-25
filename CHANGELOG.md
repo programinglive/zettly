@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/programinglive/todo/compare/v0.4.2...v0.4.3) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* restore web push notifications with custom service worker and session-auth routes ([9c9451c](https://github.com/programinglive/todo/commit/9c9451ce70a893929869570fda65a3cb6d0db6af))
+
 ### [0.4.3](https://github.com/programinglive/todo/compare/v0.4.2...v0.4.3) (2025-10-26)
 
 ### 🐛 Bug Fixes
