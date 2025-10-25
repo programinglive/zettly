@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.35](https://github.com/programinglive/todo/compare/v0.3.34...v0.3.35) (2025-10-25)
+
+
+### ✨ Features
+
+* add pwa install prompt ([b1c257b](https://github.com/programinglive/todo/commit/b1c257ba06249df8e1462a0b318d5752cb543359))
+
 ### [0.3.34](https://github.com/programinglive/todo/compare/v0.3.33...v0.3.34) (2025-10-25)
 
 
