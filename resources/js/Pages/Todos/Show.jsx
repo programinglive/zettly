@@ -121,27 +121,27 @@ export default function Show({ todo, availableTodos }) {
     const completedAt = useMemo(() => (todo.completed_at ? new Date(todo.completed_at) : null), [todo.completed_at]);
     const [extrasOpen, setExtrasOpen] = useState(false);
 
+    const formatTimestamp = useMemo(() => {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+
+        return (date) => formatter.format(date).replace(', ', ' • ').replace(', ', ' • ');
+    }, []);
+
     const metaRows = useMemo(() => {
         const rows = [
             {
                 label: 'Created',
-                value: createdAt.toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }),
+                value: formatTimestamp(createdAt),
             },
             {
                 label: 'Last Updated',
-                value: updatedAt.toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }),
+                value: formatTimestamp(updatedAt),
             },
         ];
 
@@ -152,18 +152,25 @@ export default function Show({ todo, availableTodos }) {
         if (todo.is_completed && completedAt) {
             rows.push({
                 label: 'Completed',
-                value: completedAt.toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }),
+                value: formatTimestamp(completedAt),
             });
         }
 
         return rows;
-    }, [createdAt, updatedAt, completedAt, todo.user?.name, todo.is_completed]);
+    }, [createdAt, updatedAt, completedAt, todo.user?.name, todo.is_completed, formatTimestamp]);
+
+    const checklistProgress = useMemo(() => {
+        if (!checklistItems.length) {
+            return null;
+        }
+
+        const percent = Math.round((completedChecklistCount / checklistItems.length) * 100);
+        return {
+            completed: completedChecklistCount,
+            total: checklistItems.length,
+            percent,
+        };
+    }, [checklistItems.length, completedChecklistCount]);
 
     return (
         <AppLayout title={todo.title}>
@@ -212,13 +219,19 @@ export default function Show({ todo, availableTodos }) {
                                     {todo.priority}
                                 </span>
                             )}
+
+                            {checklistProgress && (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
+                                    {checklistProgress.completed}/{checklistProgress.total} tasks • {checklistProgress.percent}%
+                                </span>
+                            )}
                         </div>
 
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Updated {metaRows[1].value}
-                            <span className="mx-2 text-gray-300">•</span>
-                            Created {metaRows[0].value}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span>Updated {metaRows[1].value}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>Created {metaRows[0].value}</span>
+                        </div>
                     </header>
 
                     <div className="px-5 py-6 text-gray-700 dark:text-gray-200">
