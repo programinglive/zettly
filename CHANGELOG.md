@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.32](https://github.com/programinglive/todo/compare/v0.3.31...v0.3.32) (2025-10-25)
+
+
+### ✨ Features
+
+* show checklist progress on todo detail ([b7ce298](https://github.com/programinglive/todo/commit/b7ce298f106fe4a396c8b1b308bf33d9a42a5b93))
+
 ### [0.3.31](https://github.com/programinglive/todo/compare/v0.3.30...v0.3.31) (2025-10-25)
 
 
