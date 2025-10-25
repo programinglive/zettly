@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.22](https://github.com/programinglive/todo/compare/v0.3.21...v0.3.22) (2025-10-25)
+
+
+### 🧹 Chores
+
+* add workspace preference artifacts ([74c68b2](https://github.com/programinglive/todo/commit/74c68b2449a3d66c2a215cf6290fc8073f3649d9))
+
+
+### 🐛 Bug Fixes
+
+* drop dashboard summary bar ([a8ba695](https://github.com/programinglive/todo/commit/a8ba695a283c8df243992dc6552e3ed41c72374c))
+* polish mobile dashboard layout ([a2525d4](https://github.com/programinglive/todo/commit/a2525d4a319fec2cf34ac3a243e15d53a597dd66))
+
 ### [0.3.21](https://github.com/programinglive/todo/compare/v0.3.20...v0.3.21) (2025-10-25)
 
 
