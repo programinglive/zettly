@@ -69,10 +69,8 @@ export default function PushNotificationPrompt() {
             return;
         }
 
-        // Only respect dismissal if user hasn't granted permission yet
-        // Once permission is granted, show the prompt to complete subscription
-        if (dismissed && permission !== 'granted') {
-            console.debug('[push-prompt] Dismissed and no permission, hiding');
+        if (dismissed) {
+            console.debug('[push-prompt] Dismissed, hiding');
             setVisible(false);
             return;
         }
