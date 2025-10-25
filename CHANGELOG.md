@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.11](https://github.com/programinglive/todo/compare/v0.4.10...v0.4.11) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* send csrf header when storing push subscription ([45d3fd1](https://github.com/programinglive/todo/commit/45d3fd1c31515847dda560338d74fb8298fdb202))
+
 ### [0.4.10](https://github.com/programinglive/todo/compare/v0.4.9...v0.4.10) (2025-10-25)
 
 
