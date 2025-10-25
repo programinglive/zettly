@@ -132,23 +132,33 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         <AppLayout title={isNote ? 'Create Note' : 'Create Todo'}>
             <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="space-y-4 border-b border-gray-200/60 dark:border-gray-700/60 pb-6">
+                    <CardHeader className="sticky top-0 z-10 space-y-4 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <CardTitle className="text-2xl text-gray-900 dark:text-white">{isNote ? 'Create New Note' : 'Create New Todo'}</CardTitle>
                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Capture details, choose tags, and attach files to keep your work organized.</p>
                             </div>
-                            <Link
-                                href={isNote ? '/notes' : '/todos'}
-                                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back to {isNote ? 'Notes' : 'Todos'}
-                            </Link>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <Link
+                                    href={isNote ? '/notes' : '/todos'}
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Back
+                                </Link>
+                                <Button
+                                    type="submit"
+                                    form="create-todo-form"
+                                    disabled={processing}
+                                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                >
+                                    {processing ? 'Creating…' : isNote ? 'Create Note' : 'Create Todo'}
+                                </Button>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 sm:p-8">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form id="create-todo-form" onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Type
@@ -204,6 +214,17 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to create a todo.</span>
+                                    <Button
+                                        type="submit"
+                                        form="create-todo-form"
+                                        disabled={processing}
+                                        className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                    >
+                                        {processing ? 'Creating…' : 'Save now'}
+                                    </Button>
+                                </div>
                             </div>
 
                             {!isNote && (
@@ -278,24 +299,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 />
                             </div>
 
-                            <div className="flex flex-col-reverse gap-3 pt-6 border-t border-gray-200 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-end">
-                                <Link href={isNote ? '/notes' : '/todos'} className="sm:w-auto">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-                                    >
-                                        Cancel
-                                    </Button>
-                                </Link>
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="w-full sm:w-auto bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white"
-                                >
-                                    {processing ? 'Creating...' : isNote ? 'Create Note' : 'Create Todo'}
-                                </Button>
-                            </div>
                         </form>
                     </CardContent>
                 </Card>
