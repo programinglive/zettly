@@ -1,6 +1,5 @@
 import React, { useMemo, lazy, Suspense, useState, useCallback } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Filter, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import TodosPanel from '../Components/NotesPanel';
@@ -507,64 +506,6 @@ export default function Dashboard({
 
                     {/* Left Sidebar - hidden on small screens */}
                     <aside className="hidden 2xl:block w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4 order-3">
-                        {/* Tag Filters */}
-                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                                    <Filter className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Tag Filters</span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">{filterDescription}</span>
-                                </div>
-                                {selectedTagIds.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTagFilterToggle(null)}
-                                        className="text-xs text-indigo-600 dark:text-indigo-300 hover:underline"
-                                    >
-                                        Clear
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                                {availableTags.length === 0 ? (
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
-                                ) : (
-                                    availableTags.map((tag) => {
-                                        const isActive = selectedTagIds.includes(tag.id);
-                                        const baseColor = tag.color || '#3B82F6';
-
-                                        return (
-                                            <button
-                                                key={tag.id}
-                                                type="button"
-                                                onClick={() => handleTagFilterToggle(tag.id)}
-                                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                                                    isActive
-                                                        ? 'ring-gray-400 dark:ring-offset-gray-900'
-                                                        : 'hover:bg-gray-100 dark:hover:bg-slate-800'
-                                                }`}
-                                                style={{
-                                                    backgroundColor: baseColor + '20',
-                                                    color: baseColor,
-                                                    border: `1px solid ${baseColor}40`,
-                                                }}
-                                            >
-                                                <span
-                                                    className="inline-block h-2 w-2 rounded-full"
-                                                    style={{ backgroundColor: baseColor }}
-                                                />
-                                                {tag.name}
-                                            </button>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Due Date Calendar */}
-                        <DueDateCalendar tasks={tasks} />
-
                         {/* Recent Notes */}
                         <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
                             <div className="flex items-center justify-between mb-3">
