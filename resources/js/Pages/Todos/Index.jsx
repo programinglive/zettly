@@ -264,9 +264,9 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
     return (
         <AppLayout title="Todos">
-            <div className="w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-10">
+            <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 pb-10">
                 {/* Header */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
                         <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
                             {isNoteView ? 'My Notes' : 'My Todos'}
@@ -277,13 +277,13 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                 : 'Plan, prioritize, and complete your work efficiently.'}
                         </p>
                     </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                        <div className="flex rounded-md bg-gray-100 dark:bg-gray-800/80 p-1">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                        <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 dark:bg-gray-800/80 p-1">
                             {[{ value: 'todo', label: 'Todos' }, { value: 'note', label: 'Notes' }].map(option => (
                                 <Link
                                     key={option.value}
                                     href={buildUrl({ type: option.value, filter: option.value === 'note' ? null : filter })}
-                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    className={`w-full rounded-lg px-4 py-2 text-sm font-medium text-center transition-colors ${
                                         type === option.value
                                             ? 'bg-black text-white dark:bg-indigo-500 dark:text-white'
                                             : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white/90'
@@ -295,10 +295,10 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                         </div>
                         <Link
                             href={`/todos/create${type === 'note' ? '?type=note' : ''}`}
-                            className="flex-1 sm:flex-none"
+                            className="w-full sm:w-auto"
                         >
-                            <Button className="w-full bg-black hover:bg-gray-800 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:text-white">
-                                <Plus className="w-4 h-4 mr-2" />
+                            <Button className="w-full gap-2 bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                                <Plus className="w-4 h-4" />
                                 {isNoteView ? 'New Note' : 'New Todo'}
                             </Button>
                         </Link>
