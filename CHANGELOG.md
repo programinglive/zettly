@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.29](https://github.com/programinglive/todo/compare/v0.3.28...v0.3.29) (2025-10-25)
+
+
+### 🧹 Chores
+
+* simplify dashboard sidebar ([5cb2074](https://github.com/programinglive/todo/commit/5cb207485cf716daf91983894cdc991d0cf59eda))
+
 ### [0.3.28](https://github.com/programinglive/todo/compare/v0.3.27...v0.3.28) (2025-10-25)
 
 ### [0.3.27](https://github.com/programinglive/todo/compare/v0.3.26...v0.3.27) (2025-10-25)
