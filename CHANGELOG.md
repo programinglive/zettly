@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.10](https://github.com/programinglive/todo/compare/v0.4.9...v0.4.10) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* ensure unsubscribe clears state when subscription missing ([da9254f](https://github.com/programinglive/todo/commit/da9254f3e30cf603aaee498e88170df331a1a89e))
+
+
+### ✨ Features
+
+* keep notification banner visible for management ([d94710f](https://github.com/programinglive/todo/commit/d94710f0e88912101962e9dfefcc9d03a86224c8))
+* surface manage button when banner hidden ([505e6ac](https://github.com/programinglive/todo/commit/505e6ac1d4e77040d66f556635ed8fef4a2bef0d))
+
 ### [0.4.9](https://github.com/programinglive/todo/compare/v0.4.8...v0.4.9) (2025-10-25)
 
 
