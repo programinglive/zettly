@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
+import * as Sentry from '@sentry/react';
 
 export function usePushNotifications() {
     const [permission, setPermission] = useState(() =>
@@ -138,6 +139,19 @@ export function usePushNotifications() {
             return true;
         } catch (error) {
             console.error('Failed to subscribe to push notifications', error);
+            Sentry.captureException(error, {
+                tags: {
+                    component: 'usePushNotifications',
+                    action: 'subscribe',
+                },
+                contexts: {
+                    push: {
+                        isSupported,
+                        permission,
+                        hasRegistration: !!registration,
+                    },
+                },
+            });
             return false;
         } finally {
             setIsLoading(false);
@@ -169,6 +183,12 @@ export function usePushNotifications() {
             return true;
         } catch (error) {
             console.error('Failed to unsubscribe from push notifications', error);
+            Sentry.captureException(error, {
+                tags: {
+                    component: 'usePushNotifications',
+                    action: 'unsubscribe',
+                },
+            });
             return false;
         } finally {
             setIsLoading(false);

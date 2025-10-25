@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -11,6 +12,8 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
+    const { isSupported, isSubscribed, isLoading, requestPermission, unsubscribe } =
+        usePushNotifications();
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -108,6 +111,46 @@ export default function UpdateProfileInformation({
                     </Transition>
                 </div>
             </form>
+
+            {isSupported && (
+                <section className="mt-12 space-y-6 border-t border-gray-200 pt-12 dark:border-gray-700">
+                    <header>
+                        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Push Notifications
+                        </h2>
+
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            Manage push notifications for real-time updates.
+                        </p>
+                    </header>
+
+                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                        <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {isSubscribed ? 'Notifications Enabled' : 'Notifications Disabled'}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {isSubscribed
+                                    ? 'You will receive push notifications on this device.'
+                                    : 'Enable to receive push notifications.'}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={isSubscribed ? unsubscribe : requestPermission}
+                            disabled={isLoading}
+                            className={`rounded-lg px-4 py-2 font-medium transition ${
+                                isSubscribed
+                                    ? 'bg-red-100 text-red-700 hover:bg-red-200 disabled:bg-red-50 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
+                                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
+                            }`}
+                        >
+                            {isLoading ? 'Loading...' : isSubscribed ? 'Disable' : 'Enable'}
+                        </button>
+                    </div>
+                </section>
+            )}
         </section>
     );
 }
