@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
 import TodoLinkManager from '../../Components/TodoLinkManager';
@@ -117,248 +116,219 @@ export default function Show({ todo, availableTodos }) {
         });
     };
 
+    const createdAt = useMemo(() => new Date(todo.created_at), [todo.created_at]);
+    const updatedAt = useMemo(() => new Date(todo.updated_at), [todo.updated_at]);
+    const completedAt = useMemo(() => (todo.completed_at ? new Date(todo.completed_at) : null), [todo.completed_at]);
+    const [extrasOpen, setExtrasOpen] = useState(false);
+
+    const metaRows = useMemo(() => {
+        const rows = [
+            {
+                label: 'Created',
+                value: createdAt.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }),
+            },
+            {
+                label: 'Last Updated',
+                value: updatedAt.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }),
+            },
+        ];
+
+        if (todo.user?.name) {
+            rows.push({ label: 'Owner', value: todo.user.name });
+        }
+
+        if (todo.is_completed && completedAt) {
+            rows.push({
+                label: 'Completed',
+                value: completedAt.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }),
+            });
+        }
+
+        return rows;
+    }, [createdAt, updatedAt, completedAt, todo.user?.name, todo.is_completed]);
+
     return (
         <AppLayout title={todo.title}>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
                 <Head title={`${todo.title} · ${isNote ? 'Note' : 'Todo'} Details`} />
 
                 <Link
                     href={isNote ? '/todos?type=note' : '/todos'}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to {isNote ? 'Notes' : 'Todos'}
                 </Link>
 
-                <section className="rounded-2xl bg-white text-gray-900 shadow-xl p-6 sm:p-8 space-y-6 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs uppercase tracking-widest text-gray-300">{isNote ? 'Note' : 'Todo'}</span>
-                            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight break-words">
+                <article className="mt-6 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <header className="flex flex-col gap-4 border-b border-gray-200/60 px-5 py-6 dark:border-gray-800">
+                        <div className="space-y-2">
+                            <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200">
+                                {isNote ? 'Note' : 'Todo'}
+                            </span>
+                            <h1 className="text-3xl font-semibold leading-snug text-gray-900 dark:text-white">
                                 {todo.title}
                             </h1>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-3">
                             {!isNote && (
                                 <button
                                     onClick={handleToggle}
-                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-200 focus-visible:ring-offset-white dark:focus-visible:ring-white/70 dark:focus-visible:ring-offset-gray-900 ${
+                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                                         todo.is_completed
-                                            ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-100/20 dark:text-green-200 dark:border-green-300/30'
-                                            : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-orange-100/20 dark:text-orange-200 dark:border-orange-300/30'
+                                            ? 'bg-green-100 text-green-700 ring-green-200 ring-offset-white dark:bg-green-900/30 dark:text-green-200 dark:ring-green-700/50 dark:ring-offset-gray-900'
+                                            : 'bg-amber-100 text-amber-700 ring-amber-200 ring-offset-white dark:bg-amber-900/30 dark:text-amber-200 dark:ring-amber-700/50 dark:ring-offset-gray-900'
                                     }`}
                                 >
-                                    {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                    {todo.is_completed ? 'Completed' : 'Pending'}
+                                    {todo.is_completed ? <CheckCircle className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                                    {todo.is_completed ? 'Completed' : 'Mark complete'}
                                 </button>
                             )}
 
                             {todo.priority && !isNote && !todo.is_completed && (
                                 <span
-                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium text-white"
+                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase text-white"
                                     style={{ backgroundColor: todo.priority_color ?? '#6B7280' }}
                                 >
-                                    {todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)} Priority
+                                    {todo.priority}
                                 </span>
                             )}
                         </div>
 
-                        <dl className="grid grid-cols-1 gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
-                            <div className="rounded-lg bg-gray-100 px-3 py-2 dark:bg-white/5">
-                                <dt className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Created</dt>
-                                <dd className="mt-1">
-                                    {new Date(todo.created_at).toLocaleString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
-                                </dd>
-                            </div>
-                            <div className="rounded-lg bg-gray-100 px-3 py-2 dark:bg-white/5">
-                                <dt className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Last Updated</dt>
-                                <dd className="mt-1">
-                                    {new Date(todo.updated_at).toLocaleString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
-                                </dd>
-                            </div>
-                        </dl>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Updated {metaRows[1].value}
+                            <span className="mx-2 text-gray-300">•</span>
+                            Created {metaRows[0].value}
+                        </p>
+                    </header>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Link href={`/todos/${todo.id}/edit`}>
-                                <Button className="w-full bg-white text-gray-900 hover:bg-gray-200">
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit {isNote ? 'Note' : 'Todo'}
+                    <div className="px-5 py-6 text-gray-700 dark:text-gray-200">
+                        <section>
+                            {todo.description ? (
+                                <SanitizedHtml className="prose prose-slate max-w-none text-base dark:prose-invert" html={todo.description} />
+                            ) : (
+                                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-400">
+                                    No description provided yet.
+                                </div>
+                            )}
+                        </section>
+
+                        {(checklistItems.length > 0 || todo.tags?.length || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length)) && (
+                            <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800">
+                                <button
+                                    type="button"
+                                    onClick={() => setExtrasOpen((open) => !open)}
+                                    className="flex w-full items-center justify-between rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                >
+                                    <span>More details</span>
+                                    {extrasOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                </button>
+
+                                {extrasOpen && (
+                                    <div className="mt-4 space-y-6">
+                                        {checklistItems.length > 0 && (
+                                            <section className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Checklist</h2>
+                                                    <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                                                        {completedChecklistCount}/{checklistItems.length} complete
+                                                    </span>
+                                                </div>
+                                                <ul className="space-y-2">
+                                                    {checklistItems.map((item) => (
+                                                        <li key={item.id ?? item.title}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleChecklistToggle(item)}
+                                                                disabled={!item.id || updatingChecklistIds.includes(item.id)}
+                                                                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+                                                                    item.is_completed
+                                                                        ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-200'
+                                                                        : 'border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                                                                }`}
+                                                            >
+                                                                <Checkbox
+                                                                    checked={!!item.is_completed}
+                                                                    onChange={() => handleChecklistToggle(item)}
+                                                                    className="h-5 w-5"
+                                                                    disabled={!item.id || updatingChecklistIds.includes(item.id)}
+                                                                />
+                                                                <span className="font-medium">{item.title}</span>
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                        )}
+
+                                        {todo.tags && todo.tags.length > 0 && (
+                                            <section className="space-y-3">
+                                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Tags</h2>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {todo.tags.map((tag) => (
+                                                        <TagBadge key={tag.id} tag={tag} />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        <section className="space-y-3">
+                                            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Linked Todos</h2>
+                                            <TodoLinkManager
+                                                todo={todo}
+                                                availableTodos={availableTodos}
+                                                onLink={handleLink}
+                                                onUnlink={handleUnlink}
+                                            />
+                                        </section>
+
+                                        <section className="space-y-3">
+                                            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Attachments</h2>
+                                            <FileUpload todoId={todo.id} onUploadSuccess={handleUploadSuccess} />
+                                            <AttachmentList attachments={attachments} onAttachmentDeleted={handleAttachmentDeleted} />
+                                        </section>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="mt-10 flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-800 sm:flex-row sm:justify-end">
+                            <Link href={`/todos/${todo.id}/edit`} className="sm:w-auto">
+                                <Button variant="outline" className="flex w-full items-center justify-center gap-2">
+                                    <Edit className="h-4 w-4" />
+                                    Edit {isNote ? 'note' : 'todo'}
                                 </Button>
                             </Link>
                             <Button
-                                variant="outline"
+                                variant="destructive"
                                 onClick={handleDeleteClick}
-                                className="w-full border border-white/30 text-white hover:bg-white/10"
+                                className="flex w-full items-center justify-center gap-2 sm:w-auto"
                             >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete {isNote ? 'Note' : 'Todo'}
+                                <Trash2 className="h-4 w-4" />
+                                Delete {isNote ? 'note' : 'todo'}
                             </Button>
                         </div>
                     </div>
-                </section>
-
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="space-y-6 lg:col-span-2">
-                        <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Overview</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {todo.description ? (
-                                    <SanitizedHtml
-                                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
-                                        html={todo.description}
-                                    />
-                                ) : (
-                                    <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                                        <div className="mb-2 text-3xl">📝</div>
-                                        No description provided
-                                    </div>
-                                )}
-
-                                {checklistItems.length > 0 && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Checklist</h3>
-                                            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                                                {completedChecklistCount}/{checklistItems.length} complete
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {checklistItems.map((item) => (
-                                                <button
-                                                    key={item.id ?? item.title}
-                                                    onClick={() => handleChecklistToggle(item)}
-                                                    disabled={!item.id || updatingChecklistIds.includes(item.id)}
-                                                    className={`w-full rounded-xl border px-3 py-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
-                                                        item.is_completed
-                                                            ? 'border-green-200/70 bg-green-50 dark:border-green-700/70 dark:bg-green-900/20'
-                                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                                                    }`}
-                                                >
-                                                    <span
-                                                        className={`inline-flex items-center gap-2 text-sm font-medium ${
-                                                            item.is_completed
-                                                                ? 'text-green-700 dark:text-green-300'
-                                                                : 'text-gray-700 dark:text-gray-200'
-                                                        }`}
-                                                    >
-                                                        <Checkbox
-                                                            checked={!!item.is_completed}
-                                                            onChange={() => handleChecklistToggle(item)}
-                                                            className="h-5 w-5"
-                                                            disabled={!item.id || updatingChecklistIds.includes(item.id)}
-                                                        />
-                                                        {item.title}
-                                                    </span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {todo.tags && todo.tags.length > 0 && (
-                                    <div className="space-y-3">
-                                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Tags</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {todo.tags.map((tag) => (
-                                                <TagBadge key={tag.id} tag={tag} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="space-y-3">
-                                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">Linked Todos</h3>
-                                    <TodoLinkManager
-                                        todo={todo}
-                                        availableTodos={availableTodos}
-                                        onLink={handleLink}
-                                        onUnlink={handleUnlink}
-                                    />
-                                </div>
-
-                                <div className="space-y-3">
-                                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">Attachments</h3>
-                                    <FileUpload todoId={todo.id} onUploadSuccess={handleUploadSuccess} />
-                                    <AttachmentList attachments={attachments} onAttachmentDeleted={handleAttachmentDeleted} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Quick Info</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2">
-                                    <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                    <div>
-                                        <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Created</p>
-                                        <p className="text-sm text-gray-700 dark:text-gray-200">
-                                            {new Date(todo.created_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {todo.user && (
-                                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2">
-                                        <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                        <div>
-                                            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Owner</p>
-                                            <p className="text-sm text-gray-700 dark:text-gray-200">{todo.user.name}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {todo.is_completed && todo.completed_at && (
-                                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2">
-                                        <CheckCircle className="w-5 h-5 text-green-500" />
-                                        <div>
-                                            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Completed</p>
-                                            <p className="text-sm text-gray-700 dark:text-gray-200">
-                                                {new Date(todo.completed_at).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Actions</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid grid-cols-1 gap-3">
-                                <Link href={`/todos/${todo.id}/edit`}>
-                                    <Button variant="outline" className="w-full">
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit {isNote ? 'Note' : 'Todo'}
-                                    </Button>
-                                </Link>
-                                <Button variant="outline" onClick={handleDeleteClick} className="w-full">
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete {isNote ? 'Note' : 'Todo'}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
+                </article>
 
                 <ConfirmationModal
                     isOpen={showDeleteModal}
