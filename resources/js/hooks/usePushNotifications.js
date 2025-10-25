@@ -140,8 +140,12 @@ export function usePushNotifications() {
 
                 await subscription.unsubscribe();
                 setIsSubscribed(false);
+                console.debug('[push] Unsubscribed and removed backend subscription');
+                return true;
             }
 
+            console.debug('[push] No subscription found during unsubscribe; clearing state');
+            setIsSubscribed(false);
             return true;
         } catch (error) {
             console.error('Failed to unsubscribe from push notifications', error);
