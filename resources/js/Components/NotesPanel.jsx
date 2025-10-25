@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { Search, Plus, Calendar, Clock, Tag } from 'lucide-react';
 import TagBadge from './TagBadge';
@@ -48,7 +48,7 @@ const sortTodos = (list) =>
         return 0;
     });
 
-export default function TodosPanel({ todos = [], allTags = [] }) {
+export default function TodosPanel({ todos = [], allTags = [], hideCreate = false, subtitle }) {
     const safeTodos = Array.isArray(todos) ? todos : [];
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTagId, setSelectedTagId] = useState(null);
@@ -114,12 +114,17 @@ export default function TodosPanel({ todos = [], allTags = [] }) {
             {/* Header */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Todos</h2>
-                    <Link href="/todos/create">
-                        <button className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors">
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    </Link>
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Todos</h2>
+                        {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>}
+                    </div>
+                    {!hideCreate && (
+                        <Link href="/todos/create">
+                            <button className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors">
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Search */}

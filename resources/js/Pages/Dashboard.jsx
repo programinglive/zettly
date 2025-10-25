@@ -2,11 +2,10 @@ import React, { useMemo, lazy, Suspense, useState, useCallback } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
-import TodosPanel from '../Components/NotesPanel';
+import UnifiedWorkspacePanel from '../Components/UnifiedWorkspacePanel';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
-import TagBadge from '../Components/TagBadge';
 
 const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
@@ -371,84 +370,10 @@ export default function Dashboard({
         );
     };
 
-    const toPlainText = (input) => {
-        if (!input || typeof input !== 'string') {
-            return '';
-        }
-
-        return input.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    };
-
-    const renderRecentNotesCard = () => {
-        const recentNotes = Array.isArray(notes) ? notes.slice(0, 5) : [];
-
-        return (
-            <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                    <div>
-                        <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Notes</h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Quick reference to your latest ideas.</p>
-                    </div>
-                    <Link
-                        href="/notes"
-                        className="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
-                    >
-                        View all
-                    </Link>
-                </div>
-
-                {recentNotes.length > 0 ? (
-                    <ul className="space-y-3">
-                        {recentNotes.map((note) => {
-                            const plain = toPlainText(note.description);
-                            const preview = plain.length > 120 ? `${plain.slice(0, 120).trim()}…` : plain;
-
-                            return (
-                                <li key={note.id} className="group rounded-lg border border-transparent bg-white/80 dark:bg-slate-900/50 p-3 transition hover:border-indigo-200 dark:hover:border-indigo-500/50">
-                                    <Link href={`/todos/${note.id}`} className="block">
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-300">
-                                            {note.title || 'Untitled note'}
-                                        </p>
-                                        {preview && (
-                                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                                                {preview}
-                                            </p>
-                                        )}
-                                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                            <span className="text-[11px] text-gray-400 dark:text-gray-500">
-                                                {note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}
-                                            </span>
-                                            {Array.isArray(note.tags) && note.tags.length > 0 && note.tags.slice(0, 2).map((tag) => (
-                                                <TagBadge key={tag.id} tag={tag} />
-                                            ))}
-                                            {Array.isArray(note.tags) && note.tags.length > 2 && (
-                                                <span className="text-[10px] text-gray-400 dark:text-gray-500">+{note.tags.length - 2}</span>
-                                            )}
-                                        </div>
-                                    </Link>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                ) : (
-                    <div className="rounded-lg border border-dashed border-gray-200 dark:border-slate-800 bg-gray-50/80 dark:bg-slate-900/40 p-4 text-center">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">You haven’t created any notes yet.</p>
-                        <Link
-                            href="/todos/create?type=note"
-                            className="mt-3 inline-flex items-center justify-center rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                        >
-                            New Note
-                        </Link>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
     const renderMatrixWorkspace = () => (
         <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] 2xl:items-start">
             <div className="2xl:h-[720px]">
-                <TodosPanel todos={tasks} allTags={availableTags} />
+                <UnifiedWorkspacePanel todos={tasks} notes={notes} tags={availableTags} />
             </div>
             <div className="2xl:h-[720px]">
                 <div className="h-full overflow-visible 2xl:overflow-hidden">
@@ -496,73 +421,13 @@ export default function Dashboard({
                 <div className="flex flex-col 2xl:flex-row gap-6 flex-1 2xl:items-start">
                     {/* Main Content - prioritized on mobile */}
                     <main className="w-full 2xl:flex-1 2xl:min-w-0 order-1">
-                        {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
-                    </main>
-
-                    {/* Recent Notes (mobile & tablet) */}
-                    <section className="order-2 2xl:hidden">
-                        {renderRecentNotesCard()}
-                    </section>
-
-                    {/* Left Sidebar - hidden on small screens */}
-                    <aside className="hidden 2xl:block w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4 order-3">
-                        {/* Recent Notes */}
-                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
-                                <div>
-                                    <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Notes</h2>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Quick reference to your latest ideas.</p>
-                                </div>
-                                <Link
-                                    href="/notes"
-                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
-                                >
-                                    View all
-                                </Link>
+                        {workspaceView === 'matrix' ? renderMatrixWorkspace() : (
+                            <div className="space-y-6">
+                                <UnifiedWorkspacePanel todos={tasks} notes={notes} tags={availableTags} />
+                                {renderKanbanWorkspace()}
                             </div>
-
-                            {Array.isArray(notes) && notes.length > 0 ? (
-                                <ul className="space-y-3">
-                                    {notes.slice(0, 5).map((note) => (
-                                        <li key={note.id} className="group rounded-lg border border-transparent bg-white/80 dark:bg-slate-900/50 p-3 transition hover:border-indigo-200 dark:hover:border-indigo-500/50">
-                                            <Link href={`/todos/${note.id}`} className="block">
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-300">
-                                                    {note.title || 'Untitled note'}
-                                                </p>
-                                                {note.description && (
-                                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                                                        {note.description.replace(/<[^>]+>/g, '').slice(0, 120)}
-                                                        {note.description.length > 120 ? '…' : ''}
-                                                    </p>
-                                                )}
-                                                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                                    <span className="text-[11px] text-gray-400 dark:text-gray-500">
-                                                        {new Date(note.created_at).toLocaleDateString()}
-                                                    </span>
-                                                    {Array.isArray(note.tags) && note.tags.length > 0 && note.tags.slice(0, 2).map((tag) => (
-                                                        <TagBadge key={tag.id} tag={tag} />
-                                                    ))}
-                                                    {Array.isArray(note.tags) && note.tags.length > 2 && (
-                                                        <span className="text-[10px] text-gray-400 dark:text-gray-500">+{note.tags.length - 2}</span>
-                                                    )}
-                                                </div>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div className="rounded-lg border border-dashed border-gray-200 dark:border-slate-800 bg-gray-50/80 dark:bg-slate-900/40 p-4 text-center">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">You haven’t created any notes yet.</p>
-                                    <Link
-                                        href="/todos/create?type=note"
-                                        className="mt-3 inline-flex items-center justify-center rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                                    >
-                                        New Note
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    </aside>
+                        )}
+                    </main>
                 </div>
             </div>
         </DashboardLayout>

@@ -50,18 +50,16 @@ test('dashboard uses shared workspace preference hook', () => {
 });
 
 test('dashboard conditionally renders matrix or kanban workspace', () => {
-    const renderPattern = /workspaceView === 'matrix' \? renderMatrixWorkspace\(\) : renderKanbanWorkspace\(\)/;
-
     assert.ok(
-        renderPattern.test(dashboardSource),
+        dashboardSource.includes('workspaceView === \'matrix\' ? renderMatrixWorkspace() : ('),
         'Expected workspace toggle to render matrix or kanban content.'
     );
 });
 
-test('dashboard passes tasks into TodosPanel in matrix layout', () => {
+test('dashboard renders unified workspace panel', () => {
     assert.ok(
-        dashboardSource.includes('<TodosPanel todos={tasks} allTags={availableTags} />'),
-        'Expected TodosPanel to receive task list and available tags from dashboard.'
+        dashboardSource.includes('<UnifiedWorkspacePanel todos={tasks} notes={notes} tags={availableTags} />'),
+        'Expected dashboard to provide todos, notes, and tags to the unified workspace panel.'
     );
 });
 
