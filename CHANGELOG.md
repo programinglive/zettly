@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.33](https://github.com/programinglive/todo/compare/v0.3.32...v0.3.33) (2025-10-25)
+
+
+### 🧹 Chores
+
+* redirect todo flows to dashboard ([cc4572d](https://github.com/programinglive/todo/commit/cc4572d40da1ea6e090fa8ec692d5203e8ba0f0c))
+
 ### [0.3.32](https://github.com/programinglive/todo/compare/v0.3.31...v0.3.32) (2025-10-25)
 
 
