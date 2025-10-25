@@ -25,21 +25,16 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         $requestedType = $request->get('type');
-        $type = in_array($requestedType, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)
-            ? $requestedType
-            : Todo::TYPE_TODO;
+        if ($requestedType === Todo::TYPE_NOTE) {
+            return redirect()->route('notes.index', $request->query());
+        }
 
         $query = Todo::where('user_id', Auth::id())
             ->notArchived()
+            ->tasks()
             ->with(['user', 'tags', 'relatedTodos', 'linkedByTodos']);
 
-        if ($type === Todo::TYPE_NOTE) {
-            $query->notes();
-        } else {
-            $query->tasks();
-        }
-
-        if ($request->has('filter') && $type === Todo::TYPE_TODO) {
+        if ($request->has('filter')) {
             switch ($request->filter) {
                 case 'completed':
                     $query->completed();
@@ -62,7 +57,7 @@ class TodoController extends Controller
             }
         }
 
-        if ($request->has('priority') && $type === Todo::TYPE_TODO) {
+        if ($request->has('priority')) {
             $query->byPriority($request->priority);
         }
 
@@ -72,20 +67,16 @@ class TodoController extends Controller
             });
         }
 
-        if ($type === Todo::TYPE_TODO) {
-            $query->orderBy('is_completed', 'asc')
-                ->orderByRaw("CASE 
+        $query->orderBy('is_completed', 'asc')
+            ->orderByRaw("CASE 
                 WHEN priority = 'urgent' THEN 1 
                 WHEN priority = 'not_urgent' THEN 2 
                 ELSE 3 END")
-                ->orderByRaw("CASE 
+            ->orderByRaw("CASE 
                 WHEN importance = 'important' THEN 1 
                 WHEN importance = 'not_important' THEN 2 
                 ELSE 3 END")
-                ->orderBy('created_at', 'desc');
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
+            ->orderBy('created_at', 'desc');
 
         $todos = $query->paginate(20);
 
@@ -95,7 +86,32 @@ class TodoController extends Controller
             'todos' => $todos,
             'tags' => $tags,
             'selectedTag' => $request->get('tag'),
-            'selectedType' => $type,
+            'filter' => $request->get('filter'),
+        ]);
+    }
+
+    public function notes(Request $request)
+    {
+        $query = Todo::where('user_id', Auth::id())
+            ->notArchived()
+            ->notes()
+            ->with(['user', 'tags'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->has('tag') && $request->tag) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->where('tags.id', $request->tag);
+            });
+        }
+
+        $notes = $query->paginate(20);
+
+        $tags = Tag::forUser(Auth::id())->get();
+
+        return Inertia::render('Notes/Index', [
+            'notes' => $notes,
+            'tags' => $tags,
+            'selectedTag' => $request->get('tag'),
         ]);
     }
 

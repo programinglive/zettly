@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');
     Route::post('todos/archive-completed', [TodoController::class, 'archiveCompleted'])->name('todos.archive-completed');
 
+    Route::get('notes', [TodoController::class, 'notes'])->name('notes.index');
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');

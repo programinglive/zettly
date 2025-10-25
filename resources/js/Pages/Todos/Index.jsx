@@ -37,7 +37,7 @@ const getDescriptionPreview = (html, limit = 120) => {
     return `${text.slice(0, limit).trim()}…`;
 };
 
-const NOTES_PAGE_SIZE = 8;
+const PAGE_CHUNK_SIZE = 8;
 
 const parseDateOnly = (value) => {
     if (!value) {
@@ -98,11 +98,7 @@ const isDueSoon = (value, horizonDays = 3) => {
     return parsed >= today && parsed <= horizon;
 };
 
-export default function Index({ todos, tags, filter, selectedTag, selectedType }) {
-    const type = selectedType ?? 'todo';
-    const isNoteView = type === 'note';
-    
-    // Handle paginated data from Laravel (both notes and todos)
+export default function Index({ todos, tags, filter, selectedTag }) {
     const isPaginated = !!(todos && todos.data);
     const todosData = isPaginated ? todos.data : (Array.isArray(todos) ? todos : []);
     const currentPage = isPaginated ? (todos.current_page ?? 1) : 1;
@@ -169,13 +165,12 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
     };
 
     const filteredTodos = useMemo(
-        () => filterAndSortTodos(todosData, filter, isNoteView),
-        [todosData, filter, isNoteView]
+        () => filterAndSortTodos(todosData, filter, false),
+        [todosData, filter]
     );
-    const [visibleCount, setVisibleCount] = useState(Math.min(NOTES_PAGE_SIZE, filteredTodos.length));
-    const [accItems, setAccItems] = useState(filteredTodos);
+    const [accItems, setAccItems] = useState(filteredTodos.slice(0, Math.min(PAGE_CHUNK_SIZE, filteredTodos.length)));
     const appendNextRef = useRef(false);
-    const listSignature = JSON.stringify({ type, filter: isNoteView ? null : filter, tag: selectedTag });
+    const listSignature = JSON.stringify({ filter, tag: selectedTag });
     const sentinelRef = useRef(null);
     const hasMoreServer = !!nextPageUrl;
     const hasMoreLocal = !isPaginated && accItems.length < filteredTodos.length;
@@ -186,18 +181,11 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
         if (appendNextRef.current && isPaginated && currentPage > 1) {
             setAccItems((prev) => [...prev, ...filteredTodos]);
         } else {
-            setAccItems(filteredTodos.slice(0, Math.min(visibleCount, filteredTodos.length)));
+            setAccItems(filteredTodos.slice(0, Math.min(PAGE_CHUNK_SIZE, filteredTodos.length)));
         }
         appendNextRef.current = false;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredTodos, isPaginated, currentPage, listSignature]);
-
-    // Keep visibleCount in sync for local-only lists
-    useEffect(() => {
-        if (!isPaginated) {
-            setVisibleCount((prev) => Math.min(Math.max(prev, NOTES_PAGE_SIZE), filteredTodos.length));
-        }
-    }, [filteredTodos.length, isPaginated]);
 
     // Intersection observer to auto load more (server: fetch next page; local: grow slice)
     useEffect(() => {
@@ -223,7 +211,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
     const visibleTodos = accItems;
 
     const baseParams = new URLSearchParams();
-    if (!isNoteView && filter) {
+    if (filter) {
         baseParams.set('filter', filter);
     }
     if (selectedTag) {
@@ -233,21 +221,12 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
     const buildUrl = (params = {}) => {
         const search = new URLSearchParams(baseParams.toString());
 
-        const nextType = params.type ?? type;
-        if (nextType) {
-            search.set('type', nextType);
-        }
-
-        if (!isNoteView) {
-            if (params.filter !== undefined) {
-                if (params.filter) {
-                    search.set('filter', params.filter);
-                } else {
-                    search.delete('filter');
-                }
+        if (params.filter !== undefined) {
+            if (params.filter) {
+                search.set('filter', params.filter);
+            } else {
+                search.delete('filter');
             }
-        } else {
-            search.delete('filter');
         }
 
         if (params.tag !== undefined) {
@@ -264,42 +243,26 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
     return (
         <AppLayout title="Todos">
+            <Head title="My Todos" />
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 pb-10">
                 {/* Header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
                         <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                            {isNoteView ? 'My Notes' : 'My Todos'}
+                            My Todos
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {isNoteView
-                                ? 'Capture ideas and information without due dates or priorities.'
-                                : 'Plan, prioritize, and complete your work efficiently.'}
+                            Plan, prioritize, and complete your work efficiently.
                         </p>
                     </div>
                     <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                        <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 dark:bg-gray-800/80 p-1">
-                            {[{ value: 'todo', label: 'Todos' }, { value: 'note', label: 'Notes' }].map(option => (
-                                <Link
-                                    key={option.value}
-                                    href={buildUrl({ type: option.value, filter: option.value === 'note' ? null : filter })}
-                                    className={`w-full rounded-lg px-4 py-2 text-sm font-medium text-center transition-colors ${
-                                        type === option.value
-                                            ? 'bg-black text-white dark:bg-indigo-500 dark:text-white'
-                                            : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white/90'
-                                    }`}
-                                >
-                                    {option.label}
-                                </Link>
-                            ))}
-                        </div>
                         <Link
-                            href={`/todos/create${type === 'note' ? '?type=note' : ''}`}
+                            href="/todos/create"
                             className="w-full sm:w-auto"
                         >
                             <Button className="w-full gap-2 bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
                                 <Plus className="w-4 h-4" />
-                                {isNoteView ? 'New Note' : 'New Todo'}
+                                New Todo
                             </Button>
                         </Link>
                     </div>
@@ -308,33 +271,31 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                 {/* Filters */}
                 <div className="space-y-4">
                     {/* Status Filters */}
-                    {!isNoteView && (
-                        <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
-                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                {[
-                                    { key: null, label: 'All' },
-                                    { key: 'pending', label: 'Pending' },
-                                    { key: 'completed', label: 'Completed' },
-                                    { key: 'urgent', label: 'Urgent' },
-                                    { key: 'not_urgent', label: 'Not Urgent' },
-                                    { key: 'important', label: 'Important' },
-                                    { key: 'not_important', label: 'Not Important' },
-                                ].map(({ key, label }) => (
-                                    <Link
-                                        key={key || 'all'}
-                                        href={buildUrl({ filter: key })}
-                                        className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                                            filter === key
-                                                ? 'bg-black text-white hover:bg-gray-800 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                        }`}
-                                    >
-                                        {label}
-                                    </Link>
-                                ))}
-                            </div>
+                    <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                            {[
+                                { key: null, label: 'All' },
+                                { key: 'pending', label: 'Pending' },
+                                { key: 'completed', label: 'Completed' },
+                                { key: 'urgent', label: 'Urgent' },
+                                { key: 'not_urgent', label: 'Not Urgent' },
+                                { key: 'important', label: 'Important' },
+                                { key: 'not_important', label: 'Not Important' },
+                            ].map(({ key, label }) => (
+                                <Link
+                                    key={key || 'all'}
+                                    href={buildUrl({ filter: key })}
+                                    className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                        filter === key
+                                            ? 'bg-black text-white hover:bg-gray-800 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                                    }`}
+                                >
+                                    {label}
+                                </Link>
+                            ))}
                         </div>
-                    )}
+                    </div>
 
                     {/* Tag Filters */}
                     {tags && tags.length > 0 && (
@@ -385,17 +346,11 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
 
                 {/* Todos List */}
                 {visibleTodos.length > 0 ? (
-                    <div
-                        className={`[column-fill:_balance] [column-gap:1rem] ${
-                            isNoteView
-                                ? 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5'
-                                : 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4'
-                        }`}
-                    >
+                    <div className="[column-fill:_balance] [column-gap:1rem] columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
                         {visibleTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
                             const descriptionPreview = getDescriptionPreview(todo.description);
-                            const dueDateLabel = !isNoteView && todo.due_date ? formatDueDateLabel(todo.due_date) : null;
+                            const dueDateLabel = todo.due_date ? formatDueDateLabel(todo.due_date) : null;
                             const showDueBadge = Boolean(dueDateLabel && !todo.is_completed);
                             const overdue = showDueBadge && isOverdue(todo.due_date);
                             const dueSoon = showDueBadge && !overdue && isDueSoon(todo.due_date);
@@ -404,24 +359,22 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                 <div key={todo.id} className="mb-4" style={{ breakInside: 'avoid' }}>
                                     <article
                                         className={`group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-700/70 dark:bg-gray-900/60 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-                                            !isNoteView && todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
+                                            todo.is_completed ? 'ring-2 ring-green-200/60 dark:ring-green-700/40' : ''
                                         }`}
                                     >
                                         <div className="flex h-full flex-col p-4">
-                                            <div className={`flex items-start ${isNoteView ? 'justify-end' : 'justify-between'} gap-2`}>
-                                                {!isNoteView && (
-                                                    <button
-                                                        onClick={() => handleToggle(todo)}
-                                                        className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
-                                                            todo.is_completed
-                                                                ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                                : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
-                                                        }`}
-                                                        disabled={toggleForm.processing}
-                                                    >
-                                                        {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
-                                                    </button>
-                                                )}
+                                            <div className="flex items-start justify-between gap-2">
+                                                <button
+                                                    onClick={() => handleToggle(todo)}
+                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
+                                                        todo.is_completed
+                                                            ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                            : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
+                                                    }`}
+                                                    disabled={toggleForm.processing}
+                                                >
+                                                    {todo.is_completed ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                                                </button>
                                                 <div className="flex gap-1 text-gray-500 dark:text-gray-400">
                                                     <Link
                                                         href={`/todos/${todo.id}`}
@@ -445,7 +398,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             </div>
 
                                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                {!isNoteView && todo.is_completed === false && todo.priority && (
+                                                {todo.is_completed === false && todo.priority && (
                                                     <span
                                                         className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide"
                                                         style={{
@@ -477,7 +430,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                             <div className="mt-4 flex-1 space-y-2">
                                                 <h3
                                                     className={`text-lg font-semibold leading-snug ${
-                                                        !isNoteView && todo.is_completed
+                                                        todo.is_completed
                                                             ? 'text-gray-500 line-through dark:text-gray-500'
                                                             : 'text-gray-900 dark:text-gray-100'
                                                     }`}
@@ -487,7 +440,7 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                                 {descriptionPreview && (
                                                     <p
                                                         className={`text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2 ${
-                                                            !isNoteView && todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
+                                                            todo.is_completed ? 'text-gray-500 dark:text-gray-500' : ''
                                                         }`}
                                                     >
                                                         {descriptionPreview}
@@ -513,19 +466,17 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                 ) : (
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-center py-12">
-                            <div className="text-6xl mb-4">{isNoteView ? '🗒️' : '📝'}</div>
+                            <div className="text-6xl mb-4">📝</div>
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                {isNoteView ? 'No notes yet' : 'No todos yet'}
+                                No todos yet
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 mb-6">
-                                {isNoteView
-                                    ? 'Capture your first idea by creating a note.'
-                                    : 'Get started by creating your first todo item.'}
+                                Get started by creating your first todo item.
                             </p>
-                            <Link href={`/todos/create${isNoteView ? '?type=note' : ''}`}>
+                            <Link href="/todos/create">
                                 <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                     <Plus className="w-5 h-5 mr-2" />
-                                    {isNoteView ? 'Create Your First Note' : 'Create Your First Todo'}
+                                    Create Your First Todo
                                 </button>
                             </Link>
                         </div>
@@ -542,11 +493,11 @@ export default function Index({ todos, tags, filter, selectedTag, selectedType }
                                 appendNextRef.current = true;
                                 router.get(nextPageUrl, {}, { preserveScroll: true, preserveState: true, only: ['todos'] });
                             } else if (hasMoreLocal) {
-                                setAccItems((prev) => filteredTodos.slice(0, Math.min(prev.length + NOTES_PAGE_SIZE, filteredTodos.length)));
+                                setAccItems((prev) => filteredTodos.slice(0, Math.min(prev.length + PAGE_CHUNK_SIZE, filteredTodos.length)));
                             }
                         }}
                     >
-                        Load more notes
+                        Load more todos
                     </Button>
                 </div>
             )}

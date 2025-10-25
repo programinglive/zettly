@@ -132,7 +132,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Capture details, choose tags, and attach files to keep your work organized.</p>
                             </div>
                             <Link
-                                href={isNote ? '/todos?type=note' : '/todos'}
+                                href={isNote ? '/notes' : '/todos'}
                                 className="inline-flex items-center justify-center gap-2 text-sm font-medium text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
                             >
                                 <ArrowLeft className="w-4 h-4" />
@@ -272,7 +272,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                             </div>
 
                             <div className="flex flex-col-reverse gap-3 pt-6 border-t border-gray-200 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-end">
-                                <Link href={isNote ? '/todos?type=note' : '/todos'} className="sm:w-auto">
+                                <Link href={isNote ? '/notes' : '/todos'} className="sm:w-auto">
                                     <Button
                                         type="button"
                                         variant="outline"
