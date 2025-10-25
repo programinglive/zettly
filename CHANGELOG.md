@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.9](https://github.com/programinglive/todo/compare/v0.4.8...v0.4.9) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* auto-subscribe after permission granted ([e7519a9](https://github.com/programinglive/todo/commit/e7519a942b89bbb3ae1359f29a196a73bd551fbf))
+
 ### [0.4.8](https://github.com/programinglive/todo/compare/v0.4.7...v0.4.8) (2025-10-25)
 
 
