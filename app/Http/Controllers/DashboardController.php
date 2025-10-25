@@ -42,31 +42,6 @@ class DashboardController extends Controller
 
         $todos = $todosQuery->get();
 
-        $notArchivedTodos = $user->todos()->notArchived()->tasks();
-
-        $activeTodos = $todos->filter(fn (Todo $todo) => ! $todo->is_completed);
-
-        $stats = [
-            'important_urgent' => $activeTodos
-                ->where('importance', Todo::IMPORTANCE_IMPORTANT)
-                ->where('priority', Todo::PRIORITY_URGENT)
-                ->count(),
-            'important_not_urgent' => $activeTodos
-                ->where('importance', Todo::IMPORTANCE_IMPORTANT)
-                ->where('priority', Todo::PRIORITY_NOT_URGENT)
-                ->count(),
-            'not_important_urgent' => $activeTodos
-                ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
-                ->where('priority', Todo::PRIORITY_URGENT)
-                ->count(),
-            'not_important_not_urgent' => $activeTodos
-                ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
-                ->where('priority', Todo::PRIORITY_NOT_URGENT)
-                ->count(),
-            'completed' => (clone $notArchivedTodos)->where('is_completed', true)->count(),
-            'archived' => $user->todos()->archived()->count(),
-        ];
-
         $availableTags = $user->tags()
             ->orderBy('name')
             ->get(['id', 'name', 'color']);
@@ -81,7 +56,6 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'todos' => $todos,
-            'stats' => $stats,
             'filters' => [
                 'tags' => $selectedTagIds,
             ],

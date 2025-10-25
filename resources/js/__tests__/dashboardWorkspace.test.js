@@ -94,15 +94,10 @@ test('profile settings page no longer renders workspace preferences section', ()
     );
 });
 
-test('dashboard tablet layout keeps three-column workspace and flexible stats bar', () => {
+test('dashboard matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
         dashboardSource.includes('2xl:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)]'),
         'Expected matrix workspace to switch to three columns at the 2xl breakpoint.'
-    );
-
-    assert.ok(
-        dashboardSource.includes('md:flex md:flex-wrap md:items-stretch'),
-        'Expected stats bar to switch from grid to flex layout on tablets.'
     );
 });
 
