@@ -50,6 +50,13 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         
         // Create FormData to handle file uploads
         const formData = new FormData();
+
+        // Add CSRF token for Inertia FormData submissions
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            formData.append('_token', csrfToken);
+        }
+
         formData.append('type', data.type);
         formData.append('title', data.title);
         formData.append('description', data.description);
