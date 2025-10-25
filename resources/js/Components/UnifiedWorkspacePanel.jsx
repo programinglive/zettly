@@ -50,8 +50,8 @@ export default function UnifiedWorkspacePanel({
     }, [notes]);
 
     return (
-        <div className="bg-white dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm">
-            <div className="flex flex-col gap-4 border-b border-gray-200/70 dark:border-slate-800/60 p-4 sm:p-5">
+        <div className="flex h-full flex-col gap-4">
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/60 sm:p-5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Workspace</h2>
@@ -75,7 +75,7 @@ export default function UnifiedWorkspacePanel({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-full border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 p-1">
+                <div className="mt-4 flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 p-1 dark:border-slate-800 dark:bg-slate-900/60">
                     {[
                         { key: 'todos', label: 'Todos' },
                         { key: 'notes', label: 'Notes' },
@@ -96,7 +96,7 @@ export default function UnifiedWorkspacePanel({
                 </div>
             </div>
 
-            <div className="p-4 sm:p-5">
+            <div className="flex-1 min-h-0">
                 {activeTab === 'todos' ? (
                     <TodosPanel
                         todos={todos}
@@ -105,52 +105,54 @@ export default function UnifiedWorkspacePanel({
                         subtitle="Filter, search, and jump into your tasks."
                     />
                 ) : (
-                    <div className="space-y-4">
-                        {notes.length ? (
-                            notes.slice(0, 5).map((note) => (
-                                <div
-                                    key={note.id}
-                                    className="rounded-xl border border-gray-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/50 p-4 shadow-sm transition hover:border-indigo-200 dark:hover:border-indigo-500/40"
-                                >
-                                    <Link
-                                        href={`/todos/${note.id}`}
-                                        className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-300"
+                    <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/60 sm:p-5">
+                        <div className="space-y-4 overflow-y-auto pr-1">
+                            {notes.length ? (
+                                notes.slice(0, 5).map((note) => (
+                                    <div
+                                        key={note.id}
+                                        className="rounded-xl border border-gray-200 dark:border-slate-800 bg-white/90 p-4 shadow-sm transition hover:border-indigo-200 dark:bg-slate-900/50 dark:hover:border-indigo-500/40"
                                     >
-                                        {note.title || 'Untitled note'}
-                                    </Link>
-                                    {note.description && (
-                                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                                            {buildNotePreview(note)}
-                                        </p>
-                                    )}
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                                            {note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}
-                                        </span>
-                                        {Array.isArray(note.tags) && note.tags.length > 0 && note.tags.slice(0, 3).map((tag) => (
-                                            <TagBadge key={tag.id} tag={tag} />
-                                        ))}
-                                        {Array.isArray(note.tags) && note.tags.length > 3 && (
-                                            <span className="text-[11px] text-gray-400 dark:text-gray-500">+{note.tags.length - 3}</span>
+                                        <Link
+                                            href={`/todos/${note.id}`}
+                                            className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-300"
+                                        >
+                                            {note.title || 'Untitled note'}
+                                        </Link>
+                                        {note.description && (
+                                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                                                {buildNotePreview(note)}
+                                            </p>
                                         )}
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                                                {note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}
+                                            </span>
+                                            {Array.isArray(note.tags) && note.tags.length > 0 && note.tags.slice(0, 3).map((tag) => (
+                                                <TagBadge key={tag.id} tag={tag} />
+                                            ))}
+                                            {Array.isArray(note.tags) && note.tags.length > 3 && (
+                                                <span className="text-[11px] text-gray-400 dark:text-gray-500">+{note.tags.length - 3}</span>
+                                            )}
+                                        </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center dark:border-slate-800 dark:bg-slate-900/40">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">No notes yet. Capture your next idea.</p>
+                                    <Link
+                                        href="/todos/create?type=note"
+                                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        New Note
+                                    </Link>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="rounded-xl border border-dashed border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/40 p-6 text-center">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">No notes yet. Capture your next idea.</p>
-                                <Link
-                                    href="/todos/create?type=note"
-                                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    New Note
-                                </Link>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
                         {noteTagSummary.length > 0 && (
-                            <div className="flex flex-wrap gap-2 border-t border-gray-200 dark:border-slate-800 pt-4">
+                            <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4 dark:border-slate-800">
                                 {noteTagSummary.map((tag) => (
                                     <TagBadge key={tag.id} tag={tag} />
                                 ))}

@@ -94,7 +94,7 @@ test('profile settings page renders workspace preferences section', () => {
 
 test('dashboard matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
-        dashboardSource.includes('2xl:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)]'),
+        dashboardSource.includes('2xl:grid-cols-[minmax(260px,340px)_minmax(0,1fr)_minmax(260px,320px)]'),
         'Expected matrix workspace to switch to three columns at the 2xl breakpoint.'
     );
 });

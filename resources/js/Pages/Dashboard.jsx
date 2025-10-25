@@ -371,12 +371,12 @@ export default function Dashboard({
     };
 
     const renderMatrixWorkspace = () => (
-        <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(260px,320px)_minmax(0,1.1fr)_minmax(260px,320px)] 2xl:items-start">
-            <div className="2xl:h-[720px]">
+        <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(260px,340px)_minmax(0,1fr)_minmax(260px,320px)] 2xl:items-stretch">
+            <div className="flex flex-col h-full">
                 <UnifiedWorkspacePanel todos={tasks} notes={notes} tags={availableTags} />
             </div>
-            <div className="2xl:h-[720px]">
-                <div className="h-full overflow-visible 2xl:overflow-hidden">
+            <div className="flex flex-col h-full">
+                <div className="flex-1 min-h-0 overflow-hidden rounded-2xl">
                     <div className="h-full overflow-y-auto pr-1">
                         <EisenhowerMatrix
                             todos={tasks}
@@ -387,7 +387,7 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
-            <div className="2xl:h-[720px]">
+            <div className="flex flex-col h-full">
                 <ContextPanel selectedTask={selectedTask} linkedTodos={aggregateLinkedTodos} />
             </div>
         </div>

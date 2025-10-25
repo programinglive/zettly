@@ -48,6 +48,8 @@ const sortTodos = (list) =>
         return 0;
     });
 
+const MAX_VISIBLE_TODOS = 5;
+
 export default function TodosPanel({ todos = [], allTags = [], hideCreate = false, subtitle }) {
     const safeTodos = Array.isArray(todos) ? todos : [];
     const [searchTerm, setSearchTerm] = useState('');
@@ -94,8 +96,13 @@ export default function TodosPanel({ todos = [], allTags = [], hideCreate = fals
                 const createdAt = normalizeDate(todo?.created_at);
                 return createdAt && !isSameDay(createdAt, today);
             })
-        ).slice(0, 10);
+        );
     }, [filteredTodos]);
+
+    const visibleToday = todayTodos.slice(0, MAX_VISIBLE_TODOS);
+    const remainingSlots = Math.max(MAX_VISIBLE_TODOS - visibleToday.length, 0);
+    const visibleRecent = recentTodos.slice(0, remainingSlots);
+    const hiddenCount = Math.max(filteredTodos.length - (visibleToday.length + visibleRecent.length), 0);
 
     const usedTags = useMemo(() => {
         const tagSet = new Set();
@@ -179,14 +186,14 @@ export default function TodosPanel({ todos = [], allTags = [], hideCreate = fals
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
                 {/* Today's Todos */}
-                {todayTodos.length > 0 && (
+                {visibleToday.length > 0 && (
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-2 mb-3">
                             <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Today</h3>
                         </div>
                         <div className="space-y-2">
-                            {todayTodos.map((todo) => (
+                            {visibleToday.map((todo) => (
                                 <Link key={todo.id} href={`/todos/${todo.id}`}>
                                     <div className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
                                         <h4 className={`text-sm font-medium ${
@@ -230,14 +237,14 @@ export default function TodosPanel({ todos = [], allTags = [], hideCreate = fals
                 )}
 
                 {/* Recent Todos */}
-                {recentTodos.length > 0 && (
+                {visibleRecent.length > 0 && (
                     <div className="p-4">
                         <div className="flex items-center gap-2 mb-3">
                             <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Recent</h3>
                         </div>
                         <div className="space-y-2">
-                            {recentTodos.map((todo) => (
+                            {visibleRecent.map((todo) => (
                                 <Link key={todo.id} href={`/todos/${todo.id}`}>
                                     <div className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
                                         <h4 className={`text-sm font-medium ${
@@ -260,6 +267,17 @@ export default function TodosPanel({ todos = [], allTags = [], hideCreate = fals
                                 </Link>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {hiddenCount > 0 && (
+                    <div className="border-t border-gray-200 bg-gray-50 p-3 text-center text-xs font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">
+                        <Link
+                            href="/todos"
+                            className="inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                        >
+                            +{hiddenCount} more
+                        </Link>
                     </div>
                 )}
 

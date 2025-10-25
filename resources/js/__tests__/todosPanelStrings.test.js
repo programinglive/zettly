@@ -37,3 +37,10 @@ test('todos panel empty state message', () => {
         'Empty state should reference todos rather than notes.'
     );
 });
+
+test('todos panel exposes hidden count indicator', () => {
+    assert.ok(
+        componentSource.includes("+{hiddenCount} more"),
+        'Expected todos sidebar to advertise hidden items with a "+N more" link.'
+    );
+});
