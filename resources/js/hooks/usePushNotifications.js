@@ -69,7 +69,8 @@ export function usePushNotifications() {
             setPermission(result);
 
             if (result === 'granted') {
-                const subscribed = await subscribe();
+                // Pass true to skip state check since we just got permission
+                const subscribed = await subscribe(true);
                 console.debug('[push] Subscribe after permission granted', subscribed);
                 return true;
             }
@@ -81,8 +82,9 @@ export function usePushNotifications() {
         }
     }, [isSupported]);
 
-    const subscribe = useCallback(async () => {
-        if (!isSupported || permission !== 'granted') {
+    const subscribe = useCallback(async (permissionGranted = false) => {
+        const hasPermission = permissionGranted || permission === 'granted';
+        if (!isSupported || !hasPermission) {
             return false;
         }
 
