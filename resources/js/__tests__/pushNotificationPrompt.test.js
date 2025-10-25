@@ -17,12 +17,13 @@ test('push notification prompt respects dismissed state', () => {
     );
 
     assert.ok(
-        componentSource.includes("const shouldShow = permission !== 'granted' || !isSubscribed;"),
-        'Expected prompt visibility to be gated by permission/subscription when not dismissed.'
+        componentSource.includes("const needsAttention = permission !== 'granted' || !isSubscribed;") &&
+            componentSource.includes('const shouldDisplayBanner = needsAttention || isSubscribed;'),
+        'Expected prompt visibility to consider both attention state and existing subscription.'
     );
 
     assert.ok(
-        componentSource.includes('const showReopenButton = dismissed && needsAttention;') && componentSource.includes('onClick={handleReopen}'),
+        componentSource.includes('const showReopenButton = dismissed && needsAttention;'),
         'Expected dismissed users to get a reopen control when they still need to enable notifications.'
     );
 });

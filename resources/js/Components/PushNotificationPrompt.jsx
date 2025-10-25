@@ -75,9 +75,10 @@ export default function PushNotificationPrompt() {
             return;
         }
 
-        const shouldShow = permission !== 'granted' || !isSubscribed;
-        console.debug('[push-prompt] Should show?', shouldShow, { permission, isSubscribed });
-        setVisible(shouldShow);
+        const needsAttention = permission !== 'granted' || !isSubscribed;
+        const shouldDisplayBanner = needsAttention || isSubscribed;
+        console.debug('[push-prompt] Should show banner?', shouldDisplayBanner, { permission, isSubscribed });
+        setVisible(shouldDisplayBanner);
     }, [isSupported, permission, isSubscribed, dismissed]);
 
     const handleDismiss = useCallback(() => {
@@ -202,9 +203,9 @@ export default function PushNotificationPrompt() {
         return null;
     }
 
-    const showEnableActions = permission === 'default' && !isSubscribed;
+    const showEnableActions = !isSubscribed;
     const showDeniedActions = permission === 'denied';
-    const showEnabledActions = permission === 'granted' || isSubscribed;
+    const showEnabledActions = isSubscribed;
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:w-80">
