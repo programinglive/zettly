@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.27](https://github.com/programinglive/todo/compare/v0.3.26...v0.3.27) (2025-10-25)
+
+
+### ✨ Features
+
+* split todos and notes views ([5cc6096](https://github.com/programinglive/todo/commit/5cc6096e10e84068447ea1fdf0762ef5fd2c75bd))
+
 ### [0.3.26](https://github.com/programinglive/todo/compare/v0.3.25...v0.3.26) (2025-10-25)
 
 
