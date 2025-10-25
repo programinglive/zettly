@@ -49,9 +49,18 @@ export default function PushNotificationPrompt() {
             setDismissed(hidden);
         };
 
-        window.addEventListener('storage', handleStorage);
+        const handleExternalDismiss = () => {
+            setDismissed(true);
+            setVisible(false);
+        };
 
-        return () => window.removeEventListener('storage', handleStorage);
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener('zettly:push-prompt-dismiss', handleExternalDismiss);
+
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener('zettly:push-prompt-dismiss', handleExternalDismiss);
+        };
     }, []);
 
     useEffect(() => {

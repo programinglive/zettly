@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff, LayoutDashboard, Columns } from 'lucide-react';
+import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff, LayoutDashboard, Columns, Bell } from 'lucide-react';
+import { Switch } from '@headlessui/react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import { Input } from '../../Components/ui/input';
 import useWorkspacePreference from '../../hooks/useWorkspacePreference';
 import { WORKSPACE_OPTIONS } from '../../constants/workspace';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token }) {
     const user = auth.user;
@@ -29,6 +31,23 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
     const [visibleTokens, setVisibleTokens] = useState(new Set());
     const [workspaceView, setWorkspaceView] = useWorkspacePreference(user.workspace_view);
+    const { isSupported, isSubscribed, isLoading, requestPermission, unsubscribe, permission } = usePushNotifications();
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const storageKey = 'zettly-notifications-dismissed';
+        const previousValue = window.localStorage.getItem(storageKey);
+        window.localStorage.setItem(storageKey, '1');
+        window.dispatchEvent(new Event('zettly:push-prompt-dismiss'));
+        return () => {
+            if (previousValue === null) {
+                window.localStorage.removeItem(storageKey);
+            } else {
+                window.localStorage.setItem(storageKey, previousValue);
+                window.dispatchEvent(new Event('zettly:push-prompt-dismiss'));
+            }
+        };
+    }, []);
 
     const workspaceCards = useMemo(() => (
         WORKSPACE_OPTIONS.map((option) => {
@@ -111,6 +130,18 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
     const handleTokenVisibilityToggle = (tokenId) => {
         toggleTokenVisibility(tokenId);
     };
+
+    const handleNotificationToggle = async (desiredState) => {
+        if (isLoading || permission === 'denied') return;
+        if (desiredState) {
+            await requestPermission();
+        } else {
+            await unsubscribe();
+        }
+    };
+
+    const permissionDenied = permission === 'denied';
+    const siteHost = typeof window !== 'undefined' ? window.location.host : 'this site';
 
     return (
         <AppLayout title="Profile">
@@ -384,6 +415,55 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                         )}
                     </CardContent>
                 </Card>
+
+                {isSupported && (
+                    <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <CardHeader>
+                            <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                <Bell className="w-5 h-5 mr-2 text-indigo-500" />
+                                Push Notifications
+                            </CardTitle>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Enable push notifications for real-time updates on this device.
+                            </p>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="space-y-1">
+                                    <p className="font-medium text-slate-900 dark:text-slate-100">
+                                        {permissionDenied ? 'Notifications blocked' : isSubscribed ? 'Notifications enabled' : 'Notifications disabled'}
+                                    </p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                                        {permissionDenied
+                                            ? `Notifications are blocked in your browser settings for ${siteHost}. Re-enable them and reload to subscribe again.`
+                                            : isSubscribed
+                                            ? 'You will receive web push alerts for todos and reminders on this device.'
+                                            : 'Turn on notifications to receive updates without keeping this page open.'}
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={isSubscribed}
+                                    onChange={handleNotificationToggle}
+                                    disabled={isLoading || permissionDenied}
+                                    className={`${
+                                        isSubscribed
+                                            ? 'bg-indigo-600'
+                                            : permissionDenied
+                                            ? 'bg-gray-300'
+                                            : 'bg-gray-200'
+                                    } relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900`}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className={`${
+                                            isSubscribed ? 'translate-x-5' : 'translate-x-0'
+                                        } pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition`}
+                                    />
+                                </Switch>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <CardHeader>

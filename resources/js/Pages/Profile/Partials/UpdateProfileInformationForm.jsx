@@ -2,9 +2,10 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
+import { Switch, Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useEffect } from 'react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -12,8 +13,34 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
-    const { isSupported, isSubscribed, isLoading, requestPermission, unsubscribe } =
-        usePushNotifications();
+    const {
+        isSupported,
+        isSubscribed,
+        isLoading,
+        requestPermission,
+        unsubscribe,
+        permission,
+    } = usePushNotifications();
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const storageKey = 'zettly-notifications-dismissed';
+        const previousValue = window.localStorage.getItem(storageKey);
+        window.localStorage.setItem(storageKey, '1');
+        window.dispatchEvent(new Event('zettly:push-prompt-dismiss'));
+
+        return () => {
+            if (previousValue === null) {
+                window.localStorage.removeItem(storageKey);
+            } else {
+                window.localStorage.setItem(storageKey, previousValue);
+                window.dispatchEvent(new Event('zettly:push-prompt-dismiss'));
+            }
+        };
+    }, []);
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -26,6 +53,21 @@ export default function UpdateProfileInformation({
 
         patch(route('profile.update'));
     };
+
+    const handleToggle = async (desiredState) => {
+        if (isLoading) {
+            return;
+        }
+
+        if (desiredState) {
+            await requestPermission();
+        } else {
+            await unsubscribe();
+        }
+    };
+
+    const permissionDenied = permission === 'denied';
+    const siteHost = typeof window !== 'undefined' ? window.location.host : 'this site';
 
     return (
         <section className={className}>
@@ -120,34 +162,47 @@ export default function UpdateProfileInformation({
                         </h2>
 
                         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Manage push notifications for real-time updates.
+                            Enable push notifications on this device to receive updates even when the app is closed.
                         </p>
                     </header>
 
-                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-                        <div>
+                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-slate-900">
+                        <div className="space-y-1">
                             <p className="font-medium text-gray-900 dark:text-gray-100">
-                                {isSubscribed ? 'Notifications Enabled' : 'Notifications Disabled'}
+                                {permissionDenied
+                                    ? 'Notifications blocked'
+                                    : isSubscribed
+                                    ? 'Notifications enabled'
+                                    : 'Notifications disabled'}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {isSubscribed
-                                    ? 'You will receive push notifications on this device.'
-                                    : 'Enable to receive push notifications.'}
+                                {permissionDenied
+                                    ? `Notifications are blocked in your browser settings for ${siteHost}. Update the permission and reload to enable them again.`
+                                    : isSubscribed
+                                    ? 'You will receive web push alerts for todos and reminders on this device.'
+                                    : 'Turn on notifications to receive updates without keeping this page open.'}
                             </p>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={isSubscribed ? unsubscribe : requestPermission}
-                            disabled={isLoading}
-                            className={`rounded-lg px-4 py-2 font-medium transition ${
+                        <Switch
+                            checked={isSubscribed}
+                            onChange={handleToggle}
+                            disabled={isLoading || permissionDenied}
+                            className={`${
                                 isSubscribed
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200 disabled:bg-red-50 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
-                                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
-                            }`}
+                                    ? 'bg-indigo-600'
+                                    : permissionDenied
+                                    ? 'bg-gray-300'
+                                    : 'bg-gray-200'
+                            } relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900`}
                         >
-                            {isLoading ? 'Loading...' : isSubscribed ? 'Disable' : 'Enable'}
-                        </button>
+                            <span
+                                aria-hidden="true"
+                                className={`${
+                                    isSubscribed ? 'translate-x-5' : 'translate-x-0'
+                                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition`}
+                            />
+                        </Switch>
                     </div>
                 </section>
             )}
