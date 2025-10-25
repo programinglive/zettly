@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.26](https://github.com/programinglive/todo/compare/v0.3.25...v0.3.26) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* polish manage tags mobile layout ([6fef69d](https://github.com/programinglive/todo/commit/6fef69d262e3fa0771234d4c439a50e0623c412f))
+
 ### [0.3.25](https://github.com/programinglive/todo/compare/v0.3.24...v0.3.25) (2025-10-25)
 
 
