@@ -105,13 +105,33 @@ export function usePushNotifications() {
             });
             console.debug('[push] PushManager.subscribe returned', subscription.endpoint);
 
-            await axios.post('/push-subscriptions', {
-                endpoint: subscription.endpoint,
-                keys: {
-                    auth: arrayBufferToBase64(subscription.getKey('auth')),
-                    p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (!csrfToken) {
+                console.warn('Push subscription could not locate CSRF token meta tag.');
+            }
+
+            await axios.post(
+                '/push-subscriptions',
+                {
+                    endpoint: subscription.endpoint,
+                    keys: {
+                        auth: arrayBufferToBase64(subscription.getKey('auth')),
+                        p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+                    },
                 },
-            });
+                csrfToken
+                    ? {
+                          headers: {
+                              'X-CSRF-TOKEN': csrfToken,
+                              Accept: 'application/json',
+                          },
+                      }
+                    : {
+                          headers: {
+                              Accept: 'application/json',
+                          },
+                      }
+            );
             console.debug('[push] Stored subscription with backend');
 
             setIsSubscribed(true);
