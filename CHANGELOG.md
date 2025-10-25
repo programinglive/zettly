@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.31](https://github.com/programinglive/todo/compare/v0.3.30...v0.3.31) (2025-10-25)
+
+
+### ♻️ Refactors
+
+* streamline todo detail actions ([d5e2e73](https://github.com/programinglive/todo/commit/d5e2e739051829a203013c5bdf9b6bfa976b2b5b))
+
 ### [0.3.30](https://github.com/programinglive/todo/compare/v0.3.29...v0.3.30) (2025-10-25)
 
 
