@@ -23,6 +23,9 @@ const WORKSPACE_OPTIONS = [
 ];
 
 const WORKSPACE_STORAGE_KEY = 'dashboard-workspace-view';
+// eslint-disable-next-line tailwindcss/no-contradicting-classname
+const STATS_BAR_BASE_CLASSES = 'flex flex-wrap items-stretch gap-3 md:flex-nowrap sm:grid sm:grid-cols-3 sm:gap-2';
+const STATS_BAR_TABLET_CLASSES = 'md:flex md:flex-wrap md:items-stretch md:gap-3';
 
 const startOfDay = (date) => {
     const copy = new Date(date);
@@ -548,8 +551,9 @@ export default function Dashboard({
                 {/* Bottom Stats Bar - Fixed on mobile/tablet, sticky on desktop */}
                 <div className="sticky bottom-6 left-0 right-0 z-20 mt-8 md:static md:mt-12 md:z-auto lg:sticky lg:mt-8 lg:z-10">
                     <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 shadow-lg border-t border-white/60 dark:border-slate-800/60 md:rounded-3xl md:border md:border-white/40 md:dark:border-slate-800/60 md:px-6 lg:rounded-t-3xl lg:border-0 lg:border-t lg:px-4 lg:mx-0">
-                        <div className="flex flex-wrap items-stretch gap-3 sm:grid sm:grid-cols-3 sm:gap-2 md:flex md:flex-wrap md:items-stretch md:gap-3 md:flex-nowrap">
-                            {[
+                        <div className={STATS_BAR_BASE_CLASSES}>
+                            <div className={STATS_BAR_TABLET_CLASSES}>
+                                {[
                                 {
                                     label: 'Q1 · Do First',
                                     description: 'Important & Urgent',
@@ -631,6 +635,7 @@ export default function Dashboard({
                                     </div>
                                 </Link>
                             ))}
+                            </div>
                         </div>
                     </div>
                 </div>
