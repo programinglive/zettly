@@ -425,8 +425,13 @@ export default function Dashboard({
 
                 {/* Main Layout */}
                 <div className="flex flex-col 2xl:flex-row gap-6 flex-1 2xl:items-start">
-                    {/* Left Sidebar - Above content on mobile/tablet, sidebar on desktop */}
-                    <aside className="w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4">
+                    {/* Main Content - prioritized on mobile */}
+                    <main className="w-full 2xl:flex-1 2xl:min-w-0 order-1">
+                        {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
+                    </main>
+
+                    {/* Left Sidebar - hidden on small screens */}
+                    <aside className="hidden 2xl:block w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4 order-2">
                         {/* Tag Filters */}
                         <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
                             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -485,15 +490,10 @@ export default function Dashboard({
                         {/* Due Date Calendar */}
                         <DueDateCalendar tasks={tasks} />
                     </aside>
-
-                    {/* Main Content - Grows to fill available space */}
-                    <main className="w-full 2xl:flex-1 2xl:min-w-0">
-                        {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
-                    </main>
                 </div>
 
-                {/* Bottom Stats Bar - Fixed on mobile/tablet, sticky on desktop */}
-                <div className="sticky bottom-6 left-0 right-0 z-20 mt-8 md:static md:mt-12 md:z-auto lg:sticky lg:mt-8 lg:z-10">
+                {/* Bottom Stats Bar - scrolls naturally on mobile, sticky on large screens */}
+                <div className="mt-8 md:mt-12 lg:sticky lg:bottom-6 lg:left-0 lg:right-0 lg:z-10 lg:mt-8">
                     <div className="backdrop-blur-lg bg-white/90 dark:bg-slate-950/80 p-4 shadow-lg border-t border-white/60 dark:border-slate-800/60 md:rounded-3xl md:border md:border-white/40 md:dark:border-slate-800/60 md:px-6 lg:rounded-t-3xl lg:border-0 lg:border-t lg:px-4 lg:mx-0">
                         <div className={STATS_BAR_BASE_CLASSES}>
                             <div className={STATS_BAR_TABLET_CLASSES}>

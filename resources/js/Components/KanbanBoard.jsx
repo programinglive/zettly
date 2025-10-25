@@ -559,21 +559,26 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         >
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Todo Board</h2>
-                    <div className="flex space-x-3">
-                        <Link href="/todos">
-                            <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                                <Eye className="w-4 h-4 mr-2" />
-                                View All
-                            </button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Todo Board</h2>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage priorities and capture new tasks in one place.</p>
+                    </div>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                        <Link
+                            href="/todos"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                        >
+                            <Eye className="w-4 h-4" />
+                            View All
                         </Link>
                         {showCreateButton && (
-                            <Link href="/todos/create">
-                                <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    New Todo
-                                </button>
+                            <Link
+                                href="/todos/create"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                            >
+                                <Plus className="w-4 h-4" />
+                                New Todo
                             </Link>
                         )}
                     </div>
