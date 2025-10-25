@@ -14,18 +14,34 @@ const shouldSkipPrompt = () => {
     return Boolean(isStandalone || dismissed);
 };
 
+const isIosDevice = () => {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+};
+
 export default function PwaInstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [visible, setVisible] = useState(false);
+    const [promptMode, setPromptMode] = useState(null); // "event" | "ios"
 
     useEffect(() => {
         if (shouldSkipPrompt()) {
             return undefined;
         }
 
+        if (isIosDevice()) {
+            setPromptMode('ios');
+            setVisible(true);
+        }
+
         const handler = (event) => {
             event.preventDefault();
             setDeferredPrompt(event);
+            setPromptMode('event');
             setVisible(true);
         };
 
@@ -61,10 +77,35 @@ export default function PwaInstallPrompt() {
         window.localStorage.setItem(STORAGE_KEY, '1');
         setVisible(false);
         setDeferredPrompt(null);
+        setPromptMode(null);
     }, []);
 
     if (!visible) {
         return null;
+    }
+
+    if (promptMode === 'ios') {
+        return (
+            <div className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:w-80">
+                <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Install Zettly</h3>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Tap the share button <span aria-hidden="true">(⌄)</span> and choose <strong>Add to Home Screen</strong> to install Zettly on your iPhone or iPad.
+                        </p>
+                    </div>
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={handleDismiss}
+                            className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
