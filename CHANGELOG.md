@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.6](https://github.com/programinglive/todo/compare/v0.4.5...v0.4.6) (2025-10-25)
+
+
+### 🐛 Bug Fixes
+
+* ensure dismissed push notification prompt stays hidden ([2fd2f3e](https://github.com/programinglive/todo/commit/2fd2f3e81415285cbd3e832843e6587b0a696b95))
+
 ### [0.4.5](https://github.com/programinglive/todo/compare/v0.4.4...v0.4.5) (2025-10-25)
 
 
