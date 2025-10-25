@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.8](https://github.com/programinglive/todo/compare/v0.4.7...v0.4.8) (2025-10-25)
+
+
+### 🧹 Chores
+
+* reduce push hook logging ([e34f1d3](https://github.com/programinglive/todo/commit/e34f1d3fbf223e1f9f935a32f3730dc740eb43eb))
+
 ### [0.4.7](https://github.com/programinglive/todo/compare/v0.4.6...v0.4.7) (2025-10-25)
 
 
