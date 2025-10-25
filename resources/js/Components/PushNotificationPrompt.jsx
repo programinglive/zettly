@@ -89,6 +89,14 @@ export default function PushNotificationPrompt() {
         setTestStatus('idle');
     }, []);
 
+    const handleReopen = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(STORAGE_KEY);
+        }
+        setDismissed(false);
+        setVisible(true);
+    }, []);
+
     const handleEnable = useCallback(async () => {
         const granted = await requestPermission();
         if (!granted) {
@@ -148,10 +156,34 @@ export default function PushNotificationPrompt() {
         return 'Enable push notifications to get real-time updates without keeping this page open.';
     }, [isSupported, permission, isSubscribed, showTestButton]);
 
+    const needsAttention = permission !== 'granted' || !isSubscribed;
+
     console.debug('[push-prompt] Render check', { isSupported, visible });
-    if (!isSupported || !visible) {
-        console.debug('[push-prompt] Not rendering (isSupported:', isSupported, 'visible:', visible, ')');
+
+    if (!isSupported) {
+        console.debug('[push-prompt] Not rendering (unsupported)');
         return null;
+    }
+
+    if (!visible) {
+        const showReopenButton = dismissed && needsAttention;
+        console.debug('[push-prompt] Not rendering banner (visible false). Show reopen?', showReopenButton);
+
+        if (!showReopenButton) {
+            return null;
+        }
+
+        return (
+            <div className="fixed bottom-4 right-4 z-50">
+                <button
+                    type="button"
+                    onClick={handleReopen}
+                    className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Enable notifications
+                </button>
+            </div>
+        );
     }
 
     const showEnableActions = permission === 'default' && !isSubscribed;
