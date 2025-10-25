@@ -1,13 +1,16 @@
 import React from 'react';
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import './bootstrap';
 import '@programinglive/zettly-editor/styles';
 import '../css/app.css';
 
 import { ThemeProvider } from './Components/theme-provider';
 
-const pages = import.meta.glob('./Pages/**/*.jsx');
+registerSW({ immediate: true });
+
+const pages = import.meta.glob('./Pages/**/*.jsx', { eager: false });
 
 createInertiaApp({
     resolve: async (name) => {
