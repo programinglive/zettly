@@ -91,12 +91,33 @@ Todos are automatically sorted by priority on all pages, ensuring urgent and hig
 ## Usage
 
 Visit the application in your browser and start managing your todos! The interface is intuitive:
-
 - Create new todos with priority levels and tags
 - Switch to note mode when you just need to jot something down—notes never require a priority and stay separate from your actionable task list
 - Link related todos together
 - Upload attachments on the todo show page (image preview supported)
 - All destructive actions (e.g., deleting todos, tags, attachments) use a reusable confirmation modal for consistency
+
+### Progressive Web App (PWA)
+
+Zettly ships with an installable PWA experience so you can keep the dashboard on your home screen and continue working while offline. A service worker and manifest are bundled during `npm run build` and activated automatically in production.
+
+#### Install (Desktop / Android)
+1. Browse to your deployed Zettly instance using Chrome, Edge, or another Chromium browser over HTTPS.
+2. When the in-app banner appears, click **Install app** or use the browser’s menu (usually `⋮` → **Install app**).
+3. The app opens in its own window and will update automatically on the next publish.
+
+#### Install on iPhone / iPad (Safari requirement)
+Apple Safari does not fire the `beforeinstallprompt` event, so the banner inside Zettly provides manual guidance instead. To complete the install:
+1. Open the site in Safari (Chrome/Firefox on iOS cannot add PWAs to the home screen).
+2. Tap the **Share** button (square with the ↑ arrow).
+3. Choose **Add to Home Screen** and optionally rename the shortcut.
+4. Tap **Add**. The Zettly icon should now appear on your home screen.
+
+> ℹ️ **Troubleshooting**
+> - Ensure you are using HTTPS (or a LAN IP while testing)  – iOS will not install PWAs from `http://localhost`.
+> - Disable Private Browsing; the Add to Home Screen option is hidden there.
+> - Confirm the icon loads by visiting `/apple-touch-icon.png`. If it 404s, Safari will skip the install icon.
+> - If the option is missing, remove any previous shortcut created for the same domain and refresh.
 
 ## Zettly Editor debug logging
 
