@@ -1,4 +1,4 @@
-import React, { useMemo, lazy, Suspense, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, lazy, Suspense, useState, useCallback } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Filter, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -6,23 +6,10 @@ import DashboardLayout from '../Layouts/DashboardLayout';
 import TodosPanel from '../Components/NotesPanel';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
+import useWorkspacePreference from '../hooks/useWorkspacePreference';
 
 const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
-const WORKSPACE_OPTIONS = [
-    {
-        id: 'matrix',
-        label: 'Eisenhower Matrix',
-        blurb: 'Prioritize by urgency & importance',
-    },
-    {
-        id: 'kanban',
-        label: 'Kanban Board',
-        blurb: 'Organize by priority lanes',
-    },
-];
-
-const WORKSPACE_STORAGE_KEY = 'dashboard-workspace-view';
 // eslint-disable-next-line tailwindcss/no-contradicting-classname
 const STATS_BAR_BASE_CLASSES = 'flex flex-wrap items-stretch gap-3 md:flex-nowrap sm:grid sm:grid-cols-3 sm:gap-2';
 const STATS_BAR_TABLET_CLASSES = 'md:flex md:flex-wrap md:items-stretch md:gap-3';
@@ -290,21 +277,10 @@ export default function Dashboard({
     filters = { tags: [] },
     availableTags = [],
     notes = [],
+    preferences = {},
 }) {
     const [selectedTaskId, setSelectedTaskId] = useState(null);
-    const [workspaceView, setWorkspaceView] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'matrix';
-        }
-
-        return window.localStorage.getItem(WORKSPACE_STORAGE_KEY) || 'matrix';
-    });
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            window.localStorage.setItem(WORKSPACE_STORAGE_KEY, workspaceView);
-        }
-    }, [workspaceView]);
+    const [workspaceView] = useWorkspacePreference(preferences?.workspace_view);
 
     const selectedTagIds = useMemo(
         () => (filters?.tags ?? []).map((id) => Number(id)).filter((id) => !Number.isNaN(id)),
@@ -451,38 +427,6 @@ export default function Dashboard({
                 <div className="flex flex-col 2xl:flex-row gap-6 flex-1 2xl:items-start">
                     {/* Left Sidebar - Above content on mobile/tablet, sidebar on desktop */}
                     <aside className="w-full 2xl:w-80 2xl:flex-shrink-0 space-y-4">
-                        {/* Workspace Focus */}
-                        <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-                            <div className="mb-3">
-                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Workspace</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Switch between views</p>
-                            </div>
-                            <div className="space-y-2">
-                                {WORKSPACE_OPTIONS.map((option) => {
-                                    const isActive = workspaceView === option.id;
-                                    return (
-                                        <button
-                                            key={option.id}
-                                            type="button"
-                                            onClick={() => setWorkspaceView(option.id)}
-                                            className={`w-full rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 text-left ${
-                                                isActive
-                                                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm focus-visible:ring-indigo-500 dark:border-indigo-400 dark:bg-indigo-500'
-                                                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-300 dark:hover:bg-slate-800'
-                                            }`}
-                                        >
-                                            <div className="flex flex-col">
-                                                <span>{option.label}</span>
-                                                <span className={`text-xs font-normal ${isActive ? 'text-indigo-100 dark:text-indigo-100/90' : 'text-gray-400 dark:text-gray-500'}`}>
-                                                    {option.blurb}
-                                                </span>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
                         {/* Tag Filters */}
                         <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
                             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">

@@ -42,6 +42,19 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit');
     }
 
+    public function updateWorkspacePreference(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'workspace_view' => ['required', 'string', 'in:matrix,kanban'],
+        ]);
+
+        $user = $request->user();
+        $user->workspace_view = $request->input('workspace_view');
+        $user->save();
+
+        return back(status: 303, fallback: route('dashboard'));
+    }
+
     /**
      * Delete the user's account.
      */

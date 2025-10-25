@@ -26,7 +26,6 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
     });
 
     const [visibleTokens, setVisibleTokens] = useState(new Set());
-
     const handleSubmit = (e) => {
         e.preventDefault();
         patch('/profile');
@@ -145,7 +144,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                 </section>
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <Card className="hidden lg:block rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardHeader>
                             <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
                                 <User className="w-5 h-5 mr-2 text-indigo-500" />
@@ -200,6 +199,15 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    defaultValue={user.email}
+                                    autoComplete="username"
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    aria-hidden="true"
+                                />
                                 <div className="space-y-2">
                                     <label htmlFor="current_password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Current Password
@@ -207,6 +215,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     <Input
                                         id="current_password"
                                         type="password"
+                                        autoComplete="current-password"
                                         value={passwordForm.data.current_password}
                                         onChange={(e) => passwordForm.setData('current_password', e.target.value)}
                                         className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.current_password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
@@ -222,6 +231,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     <Input
                                         id="password"
                                         type="password"
+                                        autoComplete="new-password"
                                         value={passwordForm.data.password}
                                         onChange={(e) => passwordForm.setData('password', e.target.value)}
                                         className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
@@ -237,6 +247,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     <Input
                                         id="password_confirmation"
                                         type="password"
+                                        autoComplete="new-password"
                                         value={passwordForm.data.password_confirmation}
                                         onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
                                         className={`rounded-xl border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 ${passwordForm.errors.password_confirmation ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}

@@ -87,6 +87,9 @@ class DashboardController extends Controller
             ],
             'availableTags' => $availableTags,
             'notes' => $notes,
+            'preferences' => [
+                'workspace_view' => $user->workspace_view ?? null,
+            ],
         ]);
     }
 }

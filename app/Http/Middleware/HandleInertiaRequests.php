@@ -34,6 +34,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'preferences' => [
+                'workspace_view' => $request->user()?->workspace_view,
+            ],
         ];
     }
 }
