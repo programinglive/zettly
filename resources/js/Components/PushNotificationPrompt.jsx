@@ -15,8 +15,20 @@ export default function PushNotificationPrompt() {
         unsubscribe,
     } = usePushNotifications();
     const showTestButton = String(import.meta.env.VITE_ENABLE_PUSH_TEST_BUTTON).toLowerCase() === 'true';
-    const [visible, setVisible] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
+    const [dismissed, setDismissed] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.localStorage.getItem(STORAGE_KEY) === '1';
+    });
+    const [visible, setVisible] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.localStorage.getItem(STORAGE_KEY) !== '1';
+    });
     const [testStatus, setTestStatus] = useState('idle');
 
     useEffect(() => {
@@ -24,16 +36,32 @@ export default function PushNotificationPrompt() {
             return;
         }
 
-        const stored = window.localStorage.getItem(STORAGE_KEY) === '1';
-        setDismissed(stored);
+        const handleStorage = (event) => {
+            if (event.key !== STORAGE_KEY) {
+                return;
+            }
+
+            const hidden = event.newValue === '1';
+            setDismissed(hidden);
+        };
+
+        window.addEventListener('storage', handleStorage);
+
+        return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
     useEffect(() => {
         if (!isSupported) {
+            setVisible(false);
             return;
         }
 
-        const shouldShow = !dismissed || permission === 'granted' || isSubscribed;
+        if (dismissed) {
+            setVisible(false);
+            return;
+        }
+
+        const shouldShow = permission !== 'granted' || !isSubscribed;
         setVisible(shouldShow);
     }, [isSupported, permission, isSubscribed, dismissed]);
 
