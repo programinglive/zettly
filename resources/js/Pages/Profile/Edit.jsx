@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff, LayoutDashboard, Columns } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import { Input } from '../../Components/ui/input';
+import useWorkspacePreference from '../../hooks/useWorkspacePreference';
+import { WORKSPACE_OPTIONS } from '../../constants/workspace';
 
 export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token }) {
     const user = auth.user;
@@ -26,6 +28,18 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
     });
 
     const [visibleTokens, setVisibleTokens] = useState(new Set());
+    const [workspaceView, setWorkspaceView] = useWorkspacePreference(user.workspace_view);
+
+    const workspaceCards = useMemo(() => (
+        WORKSPACE_OPTIONS.map((option) => {
+            const isActive = workspaceView === option.id;
+
+            return {
+                ...option,
+                isActive,
+            };
+        })
+    ), [workspaceView]);
     const handleSubmit = (e) => {
         e.preventDefault();
         patch('/profile');
@@ -143,7 +157,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                     </div>
                 </section>
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                     <Card className="hidden lg:block rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <CardHeader>
                             <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -368,6 +382,53 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                 </div>
                             )
                         )}
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <CardHeader>
+                        <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            <LayoutDashboard className="w-5 h-5 mr-2 text-violet-500" />
+                            Workspace View Preference
+                        </CardTitle>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Choose how your dashboard opens by default. You can still switch views on the dashboard at any time.
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {workspaceCards.map((option) => (
+                                <button
+                                    key={option.id}
+                                    type="button"
+                                    onClick={() => setWorkspaceView(option.id)}
+                                    className={`group flex h-full flex-col items-start gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-violet-500 sm:p-5 ${
+                                        option.isActive
+                                            ? 'border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-400/80 dark:bg-violet-500/10 dark:text-violet-100'
+                                            : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/60 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-violet-500/60 dark:hover:bg-violet-500/5'
+                                    }`}
+                                >
+                                    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+                                        option.isActive
+                                            ? 'border-violet-500/80 bg-violet-100 text-violet-900 dark:border-violet-400/60 dark:bg-violet-500/20 dark:text-violet-100'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                    }`}>
+                                        {option.id === 'matrix' ? <Columns className="h-3.5 w-3.5" /> : <LayoutDashboard className="h-3.5 w-3.5" />}
+                                        {option.label}
+                                    </span>
+                                    <p className={`text-sm font-semibold ${option.isActive ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-slate-200'}`}>
+                                        {option.label}
+                                    </p>
+                                    <p className={`text-sm leading-6 ${option.isActive ? 'text-slate-800/80 dark:text-slate-200/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                                        {option.blurb}
+                                    </p>
+                                    <span className={`mt-auto inline-flex items-center gap-2 text-xs font-medium ${option.isActive ? 'text-violet-600 dark:text-violet-300' : 'text-slate-400 group-hover:text-violet-500 dark:text-slate-500 dark:group-hover:text-violet-400'}`}>
+                                        {option.isActive ? 'Selected' : 'Select view'}
+                                        <ArrowLeft className={`h-3.5 w-3.5 -rotate-90 transition ${option.isActive ? 'text-violet-500' : 'text-slate-400 group-hover:text-violet-500'}`} />
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </div>

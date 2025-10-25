@@ -59,7 +59,7 @@ export default function AppLayout({
                 )}
 
                 {/* Navigation */}
-                <nav className="border-b bg-white/95 backdrop-blur dark:bg-slate-900/80 transition-colors">
+                <nav className="relative z-40 border-b bg-white/95 backdrop-blur dark:bg-slate-900/80 transition-colors">
                     <div className={resolvedNavClassName}>
                         {resolvedVariant === 'public' ? (
                             <>

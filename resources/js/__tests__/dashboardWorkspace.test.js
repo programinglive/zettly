@@ -77,20 +77,20 @@ test('dashboard no longer renders workspace selector card', () => {
     );
 });
 
-test('profile settings page no longer renders workspace preferences section', () => {
+test('profile settings page renders workspace preferences section', () => {
     assert.ok(
-        !profileSource.includes("import { WORKSPACE_OPTIONS } from '../../constants/workspace';"),
-        'Expected profile settings to remove workspace options constants import.'
+        profileSource.includes("import { WORKSPACE_OPTIONS } from '../../constants/workspace';"),
+        'Expected profile settings to import workspace options constants.'
     );
 
     assert.ok(
-        !profileSource.includes('Workspace Preferences'),
-        'Expected workspace preferences section to be removed from profile settings.'
+        profileSource.includes('Workspace View Preference'),
+        'Expected workspace preference heading to be present on profile settings.'
     );
 
     assert.ok(
-        !profileSource.includes('useWorkspacePreference'),
-        'Expected profile settings to stop using the workspace preference hook.'
+        profileSource.includes('useWorkspacePreference'),
+        'Expected profile settings to use the workspace preference hook.'
     );
 });
 
