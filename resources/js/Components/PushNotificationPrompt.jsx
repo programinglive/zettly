@@ -167,23 +167,39 @@ export default function PushNotificationPrompt() {
 
     if (!visible) {
         const showReopenButton = dismissed && needsAttention;
-        console.debug('[push-prompt] Not rendering banner (visible false). Show reopen?', showReopenButton);
+        const showManageButton = !needsAttention && isSubscribed;
+        console.debug('[push-prompt] Not rendering banner (visible false). Show reopen?', showReopenButton, 'Show manage?', showManageButton);
 
-        if (!showReopenButton) {
-            return null;
+        if (showReopenButton) {
+            return (
+                <div className="fixed bottom-4 right-4 z-50">
+                    <button
+                        type="button"
+                        onClick={handleReopen}
+                        className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Enable notifications
+                    </button>
+                </div>
+            );
         }
 
-        return (
-            <div className="fixed bottom-4 right-4 z-50">
-                <button
-                    type="button"
-                    onClick={handleReopen}
-                    className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Enable notifications
-                </button>
-            </div>
-        );
+        if (showManageButton) {
+            return (
+                <div className="fixed bottom-4 right-4 z-50">
+                    <button
+                        type="button"
+                        onClick={handleDisable}
+                        className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-lg transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        disabled={isLoading}
+                    >
+                        Disable notifications
+                    </button>
+                </div>
+            );
+        }
+
+        return null;
     }
 
     const showEnableActions = permission === 'default' && !isSubscribed;
