@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.14](https://github.com/programinglive/todo/compare/v0.4.13...v0.4.14) (2025-10-26)
+
+
+### 🐛 Bug Fixes
+
+* render todo context inside shadcn drawer ([3444742](https://github.com/programinglive/todo/commit/3444742781f7da204023a180e78acba72f5893b1))
+* tighten workspace sidebar layout ([23c623d](https://github.com/programinglive/todo/commit/23c623dd4dd6198ef68271774e6a1cc71907736c))
+
 ### [0.4.13](https://github.com/programinglive/todo/compare/v0.4.12...v0.4.13) (2025-10-25)
 
 
