@@ -75,6 +75,36 @@ The project follows standard open-source practices. Refer to the following docum
 ### Editor Credits
 - Built with the [@programinglive/zettly-editor](https://github.com/programinglive/zettly-editor) package — explore the editor source and examples in that repository.
 
+### Search Powered by Algolia
+
+The Zettly project proudly uses Algolia to deliver fast, typo-tolerant search across todos, notes, and tags.
+
+> **Dear Algolia Open Source Team,**
+>
+> My name is Mahatma Mahardhika. I lead a developer community in Indonesia focused on helping students and early-career developers learn programming through real, open-source projects that support the “Golden Indonesia 2045” vision.
+>
+> I’m developing Zettly — an open-source, privacy-first note-taking app that helps learners capture ideas, link notes using the Zettelkasten method, and organize tasks with the Eisenhower Matrix. It’s fully public, non-commercial, and designed as a teaching tool.
+>
+> - Main site: https://programinglive.com
+> - Project: https://github.com/programinglive/zettly
+> - Demo: https://zettly.programinglive.com
+>
+> Search is at the core of Zettly. We chose Algolia for its speed, typo tolerance, and developer-friendly API. Algolia would power global note search, tag and language filters, and “Did you mean” features—making it easier for students to explore their notes and learn how modern search works. We also plan to include clear integration examples in our open documentation for educational use.
+>
+> Zettly also includes a reusable open-source editor component, `@programinglive/zettly-editor`, built with TipTap and Shadcn UI for writing and formatting notes.
+>
+> - Editor: https://github.com/programinglive/zettly-editor
+> - Demo: https://zettly-editor.programinglive.com
+>
+> Zettly is open, community-driven, and educational. We will display the “Search by Algolia” attribution and document the integration so contributors can learn from it. This project directly supports developer education and aligns with Algolia’s mission to empower open-source communities.
+>
+> Thank you for considering our request. Algolia’s support would greatly enhance how learners discover and connect knowledge through Zettly.
+>
+> Warm regards,
+>
+> Mahatma Mahardhika  
+> mahatma.mahardhika@programinglive.com
+
 ### Layout & Navigation
 - 🧭 **Public Marketing Layout** – The landing experience uses `PublicLayout.jsx`, a centered design with a marketing-focused navbar, internal anchors, and a theme toggle without exposing account information.
 - 📊 **Authenticated App Shell** – Signed-in pages share `DashboardLayout.jsx`, which wraps the fluid-width `AppLayout.jsx` so dashboard, todos, and other tools stretch edge-to-edge while keeping account menus handy.
@@ -140,6 +170,60 @@ To inspect TipTap lifecycle and toolbar state during development, the app integr
 - No `.env` keys are required for this flow.
 - Styling overrides in `resources/css/app.css` remove the editor surface/footer borders so only the outer card border remains. Adjust those selectors if you change the wrapper layout.
 - The same stylesheet now also ensures toolbar buttons keep their active colors in both light and dark themes via the `:root:not(.dark) [data-zettly-editor-toolbar] button[data-state=on]` override.
+
+## Algolia Search Configuration
+
+Zettly uses Algolia for full-text search across todos, notes, and tags. The integration uses the native Algolia PHP v4 client (no Scout Extended dependency).
+
+### Setup
+
+1. **Create Algolia indexes** in your [Algolia Dashboard](https://www.algolia.com/dashboard):
+   - `zettly_todos` (or your preferred name)
+   - `zettly_notes`
+   - `zettly_tags`
+
+2. **Set environment variables** in `.env`:
+   ```env
+   # Admin key (for server-side indexing)
+   ALGOLIA_APP_ID=your_algolia_app_id
+   ALGOLIA_ADMIN_KEY=your_algolia_admin_key
+
+   # Search key (for client-side search)
+   VITE_ALGOLIA_APP_ID=your_algolia_app_id
+   VITE_ALGOLIA_SEARCH_KEY=your_algolia_search_key
+
+   # Index names
+   VITE_ALGOLIA_INDEX_TODOS=zettly_todos
+   VITE_ALGOLIA_INDEX_NOTES=zettly_notes
+   VITE_ALGOLIA_INDEX_TAGS=zettly_tags
+   ```
+
+3. **Import existing data** (one-time):
+   ```bash
+   php artisan algolia:import
+   ```
+   Use `--clear` to clear indexes before importing:
+   ```bash
+   php artisan algolia:import --clear
+   ```
+
+### How It Works
+
+- **Server-side indexing**: Model observers (`TodoObserver`, `TagObserver`) automatically sync records to Algolia when created, updated, or deleted.
+- **Client-side search**: The `NavbarSearch` component queries Algolia using the search-only API key, filtering by `user_id` for privacy.
+- **Mobile & Desktop**: Search is available on both desktop (navbar center) and mobile (search icon in navbar, expands below).
+- **Attribution**: The search dropdown displays a "Search by Algolia" badge linking to Algolia's site as required for open-source sponsorship.
+
+### API Keys
+
+- **Application ID & Admin Key**: Found in [Algolia Dashboard](https://www.algolia.com/dashboard) → **Settings > API Keys**. Use the **Admin API Key** for server-side indexing.
+- **Search-Only API Key**: Use this for client-side queries (already restricted to search operations).
+
+### Troubleshooting
+
+- If search shows "Search unavailable", verify `VITE_ALGOLIA_*` variables are set and indexes exist.
+- Run `php artisan algolia:import` to re-sync all data.
+- Check Laravel logs for indexing errors.
 
 ## Gemini integration
 

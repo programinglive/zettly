@@ -12,11 +12,9 @@ export function usePushNotifications() {
 
     useEffect(() => {
         const supported = 'serviceWorker' in navigator && 'PushManager' in window;
-        console.debug('[push] Support check', { supported });
         setIsSupported(supported);
 
         if (!supported) {
-            console.debug('[push] Push not supported in browser');
             return;
         }
 
@@ -33,7 +31,6 @@ export function usePushNotifications() {
                     return null;
                 }
 
-                console.debug('[push] Service worker registration found');
                 return registration;
             })
             .then((registration) => {
@@ -42,7 +39,6 @@ export function usePushNotifications() {
                 }
 
                 return registration.pushManager.getSubscription().then((existing) => {
-                    console.debug('[push] Existing subscription found?', Boolean(existing));
                     setIsSubscribed(Boolean(existing));
                 });
             })
@@ -66,13 +62,11 @@ export function usePushNotifications() {
 
         try {
             const result = await Notification.requestPermission();
-            console.debug('[push] Notification permission result', result);
             setPermission(result);
 
             if (result === 'granted') {
                 // Pass true to skip state check since we just got permission
-                const subscribed = await subscribe(true);
-                console.debug('[push] Subscribe after permission granted', subscribed);
+                await subscribe(true);
                 return true;
             }
 
@@ -97,14 +91,12 @@ export function usePushNotifications() {
                 console.warn('Cannot subscribe to push: no service worker registration');
                 return false;
             }
-            console.debug('[push] Using service worker registration', registration.scope);
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(
                     document.querySelector('meta[name="vapid-public-key"]')?.content || ''
                 ),
             });
-            console.debug('[push] PushManager.subscribe returned', subscription.endpoint);
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             if (!csrfToken) {
@@ -133,8 +125,6 @@ export function usePushNotifications() {
                           },
                       }
             );
-            console.debug('[push] Stored subscription with backend');
-
             setIsSubscribed(true);
             return true;
         } catch (error) {
@@ -174,11 +164,9 @@ export function usePushNotifications() {
 
                 await subscription.unsubscribe();
                 setIsSubscribed(false);
-                console.debug('[push] Unsubscribed and removed backend subscription');
                 return true;
             }
 
-            console.debug('[push] No subscription found during unsubscribe; clearing state');
             setIsSubscribed(false);
             return true;
         } catch (error) {

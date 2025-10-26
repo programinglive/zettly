@@ -2,9 +2,9 @@ import React from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 
 import { ModeToggle } from '../Components/mode-toggle';
+import NavbarSearch from '../Components/NavbarSearch';
 import Footer from '../Components/Footer';
 import PwaInstallPrompt from '../Components/PwaInstallPrompt';
-import PushNotificationPrompt from '../Components/PushNotificationPrompt';
 
 export default function AppLayout({
     children,
@@ -13,11 +13,15 @@ export default function AppLayout({
     navClassName,
     variant,
 }) {
+    const ALGOLIA_ATTRIBUTION_URL =
+        'https://www.algolia.com/?utm_source=zettly&utm_medium=referral&utm_campaign=oss_search';
+
     const page = usePage();
     const { auth, flash } = page.props;
     const { url } = page;
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [desktopMenuOpen, setDesktopMenuOpen] = React.useState(false);
+    const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
 
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
@@ -40,7 +44,19 @@ export default function AppLayout({
         <>
             <Head title={title || 'Zettly'} />
             <PwaInstallPrompt />
-            {isAuthenticated && <PushNotificationPrompt />}
+
+            {/* Search Loading Overlay */}
+            <div
+                id="search-loading-overlay"
+                style={{ display: 'none' }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            >
+                <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Searching…</p>
+                </div>
+            </div>
+
             <div className="min-h-screen bg-white dark:bg-slate-950 font-sans antialiased transition-colors">
                 {/* Flash Messages */}
                 {(flash?.success || flash?.error) && (
@@ -68,7 +84,7 @@ export default function AppLayout({
 
                 {/* Navigation */}
                 <nav className="relative z-40 border-b bg-white/95 backdrop-blur dark:bg-slate-900/80 transition-colors">
-                    <div className={resolvedNavClassName}>
+                    <div className={`${resolvedNavClassName} relative`}>
                         {resolvedVariant === 'public' ? (
                             <>
                                 <div className="flex items-center justify-between h-16">
@@ -128,162 +144,208 @@ export default function AppLayout({
                                 )}
                             </>
                         ) : (
-                            <div className="flex justify-between h-16">
-                                <div className="flex items-center">
-                                    <Link href={brandHref}>
-                                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                            📝 Zettly
-                                        </h1>
-                                    </Link>
-                                </div>
-                                
-                                <div className="hidden md:flex items-center space-x-4">
-                                    <ModeToggle />
+                            <>
+                                <div className="flex h-16 items-center justify-between">
+                                    <div className="flex items-center">
+                                        <Link href={brandHref}>
+                                            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                                📝 Zettly
+                                            </h1>
+                                        </Link>
+                                    </div>
                                     {auth?.user ? (
-                                        <div className="flex items-center space-x-4">
+                                        <div className="hidden md:flex flex-1 items-center justify-center px-6 lg:px-10">
+                                            <NavbarSearch className="w-full max-w-2xl" />
+                                        </div>
+                                    ) : null}
+
+                                    <div className="hidden md:flex items-center space-x-4">
+                                        <ModeToggle />
+                                        {auth?.user ? (
+                                            <div className="flex items-center space-x-4">
+                                                <div className="relative">
+                                                    <button 
+                                                        onClick={() => setDesktopMenuOpen(!desktopMenuOpen)}
+                                                        className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                                    >
+                                                        <span>Welcome, {auth.user.name}!</span>
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </button>
+                                                    
+                                                    {desktopMenuOpen && (
+                                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-700 z-50">
+                                                            <div className="py-1">
+                                                                <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
+                                                                    Account Menu
+                                                                </div>
+                                                                <Link href="/dashboard" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
+                                                                    </svg>
+                                                                    Dashboard
+                                                                </Link>
+                                                                <Link href="/todos" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                                    </svg>
+                                                                    My Todos
+                                                                </Link>
+                                                                <Link href="/notes" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
+                                                                    </svg>
+                                                                    My Notes
+                                                                </Link>
+                                                                <Link href="/todos/archived" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v2H3zM3 18h18v2H3z" />
+                                                                    </svg>
+                                                                    Archived
+                                                                </Link>
+                                                                <Link href="/manage/tags" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                                    </svg>
+                                                                    Manage Tags
+                                                                </Link>
+                                                                <Link href="/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                    </svg>
+                                                                    Profile
+                                                                </Link>
+                                                                <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleLogout}
+                                                                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800"
+                                                                >
+                                                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                                        </svg>
+                                                                        Logout
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="md:hidden flex items-center space-x-2">
+                                        <ModeToggle />
+                                        {auth?.user ? (
+                                            <button
+                                                onClick={() => {
+                                                    setMobileSearchOpen((prev) => !prev);
+                                                    if (mobileMenuOpen) {
+                                                        setMobileMenuOpen(false);
+                                                    }
+                                                }}
+                                                className={`inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium transition-colors ${
+                                                    mobileSearchOpen
+                                                        ? 'bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-gray-100 shadow-sm'
+                                                        : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800'
+                                                }`}
+                                                aria-label="Search"
+                                                aria-pressed={mobileSearchOpen}
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </button>
+                                        ) : null}
+                                        {auth?.user ? (
                                             <div className="relative">
                                                 <button 
-                                                    onClick={() => setDesktopMenuOpen(!desktopMenuOpen)}
-                                                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800"
                                                 >
-                                                    <span>Welcome, {auth.user.name}!</span>
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                                     </svg>
                                                 </button>
                                                 
-                                                {desktopMenuOpen && (
-                                                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-700 z-50">
+                                                {mobileMenuOpen && (
+                                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-800 z-50">
                                                         <div className="py-1">
-                                                            <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
-                                                                Account Menu
+                                                            <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-slate-800">
+                                                                {auth.user.name}
                                                             </div>
-                                                            <Link href="/dashboard" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
-                                                                </svg>
+                                                            <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                 Dashboard
                                                             </Link>
-                                                            <Link href="/todos" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                                </svg>
+                                                            <Link href="/todos" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                 My Todos
                                                             </Link>
-                                                            <Link href="/notes" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
-                                                                </svg>
+                                                            <Link href="/notes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                 My Notes
                                                             </Link>
-                                                            <Link href="/todos/archived" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v2H3zM3 18h18v2H3z" />
-                                                                </svg>
-                                                                Archived
-                                                            </Link>
-                                                            <Link href="/manage/tags" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                                                </svg>
+                                                            <Link href="/manage/tags" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                 Manage Tags
                                                             </Link>
-                                                            <Link href="/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                </svg>
+                                                            <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                 Profile
                                                             </Link>
-                                                            <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleLogout}
-                                                                className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800"
-                                                            >
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                                    </svg>
+                                                            <form method="POST" action="/logout" className="block">
+                                                                <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
+                                                                <button type="submit" className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-800">
                                                                     Logout
-                                                            </button>
+                                                                </button>
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
+                                        ) : (
+                                            <div className="relative">
+                                                <button 
+                                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                                    </svg>
+                                                </button>
+                                                
+                                                {mobileMenuOpen && (
+                                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-800 z-50">
+                                                        <div className="py-1">
+                                                            <Link href="#hero-cta" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
+                                                                Get Started
+                                                            </Link>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {mobileSearchOpen && auth?.user ? (
+                                        <div className="md:hidden absolute left-0 right-0 top-full z-40 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 shadow-lg rounded-b-lg">
+                                            <div className="mb-2 flex items-center justify-between gap-2">
+                                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMobileSearchOpen(false)}
+                                                    className="inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-200"
+                                                    aria-label="Close search"
+                                                >
+                                                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <NavbarSearch className="w-full" />
                                         </div>
                                     ) : null}
                                 </div>
-
-                                <div className="md:hidden flex items-center space-x-2">
-                                    <ModeToggle />
-                                    {auth?.user ? (
-                                        <div className="relative">
-                                            <button 
-                                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                                </svg>
-                                            </button>
-                                            
-                                            {mobileMenuOpen && (
-                                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-800 z-50">
-                                                    <div className="py-1">
-                                                        <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-slate-800">
-                                                            {auth.user.name}
-                                                        </div>
-                                                        <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            Dashboard
-                                                        </Link>
-                                                        <Link href="/todos" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            My Todos
-                                                        </Link>
-                                                        <Link href="/notes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            My Notes
-                                                        </Link>
-                                                        <Link href="/manage/tags" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            Manage Tags
-                                                        </Link>
-                                                        <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            Profile
-                                                        </Link>
-                                                        <form method="POST" action="/logout" className="block">
-                                                            <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
-                                                            <button type="submit" className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                Logout
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <button 
-                                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                                </svg>
-                                            </button>
-                                            
-                                            {mobileMenuOpen && (
-                                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-800 z-50">
-                                                    <div className="py-1">
-                                                        <Link href="#hero-cta" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                            Get Started
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            </>
                         )}
                     </div>
                 </nav>

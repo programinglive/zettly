@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Todo;
+use App\Models\Tag;
+use App\Observers\TodoObserver;
+use App\Observers\TagObserver;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register model observers for Algolia indexing
+        Todo::observe(TodoObserver::class);
+        Tag::observe(TagObserver::class);
+
         Storage::extend('gcs', function ($app, $config) {
             $clientOptions = [];
 
