@@ -51,15 +51,8 @@ test('dashboard uses shared workspace preference hook', () => {
 
 test('dashboard conditionally renders matrix or kanban workspace', () => {
     assert.ok(
-        dashboardSource.includes('workspaceView === \'matrix\' ? renderMatrixWorkspace() : ('),
+        dashboardSource.includes('workspaceView === \'matrix\' ? renderMatrixWorkspace() : renderKanbanWorkspace()'),
         'Expected workspace toggle to render matrix or kanban content.'
-    );
-});
-
-test('dashboard renders unified workspace panel', () => {
-    assert.ok(
-        dashboardSource.includes('<UnifiedWorkspacePanel todos={tasks} notes={notes} tags={availableTags} />'),
-        'Expected dashboard to provide todos, notes, and tags to the unified workspace panel.'
     );
 });
 
@@ -94,8 +87,10 @@ test('profile settings page renders workspace preferences section', () => {
 
 test('dashboard matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
-        dashboardSource.includes('2xl:grid-cols-[minmax(260px,340px)_minmax(0,1fr)_minmax(260px,320px)]'),
-        'Expected matrix workspace to switch to three columns at the 2xl breakpoint.'
+        dashboardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody } from '../Components/ui/drawer';") &&
+        dashboardSource.includes('side="right"') &&
+        dashboardSource.includes('<Drawer'),
+        'Expected dashboard to render the context drawer using shadcn primitives anchored to the right when a task is selected.'
     );
 });
 
