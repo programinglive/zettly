@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.22](https://github.com/programinglive/todo/compare/v0.4.21...v0.4.22) (2025-10-26)
+
+
+### 🐛 Bug Fixes
+
+* pwa tablet screen size optimization for full-screen display on android tablets and ipads ([fd418e1](https://github.com/programinglive/todo/commit/fd418e1358e7b2b1abddeacaedd88922bd220133))
+
 ### [0.4.21](https://github.com/programinglive/todo/compare/v0.4.20...v0.4.21) (2025-10-26)
 
 
