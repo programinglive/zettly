@@ -31,12 +31,17 @@ Detects:
 - Applies full-width layout on tablets in PWA mode
 - Maintains responsive max-width for web browsers
 
-### 5. Hero CTA Refinement (`resources/js/Pages/Home/Index.jsx`)
+### 5. Landscape-first Orientation (`resources/js/hooks/usePwaMode.js`)
+- When a tablet launches the PWA standalone, the hook now requests a temporary landscape lock via the Screen Orientation API
+- After ~1.5 seconds, the lock is released so the user can rotate back to portrait if desired
+- Fallback logging handles browsers without orientation locking support
+
+### 6. Hero CTA Refinement (`resources/js/Pages/Home/Index.jsx`)
 - On mobile, wraps CTA buttons in a stacked card for readable touch targets
 - On desktop, removes the card styling so buttons appear as inline pills (matching original look)
 - Ensures dark mode and light mode parity across breakpoints
 
-### 6. CSS Improvements (`resources/css/app.css`)
+### 7. CSS Improvements (`resources/css/app.css`)
 - Added safe-area-inset padding for notched devices
 - Ensured full viewport height on PWA (`html, body, #app { height: 100%; width: 100%; }`)
 

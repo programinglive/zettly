@@ -242,9 +242,9 @@ export default function Index({ todos, tags, filter, selectedTag }) {
     };
 
     return (
-        <AppLayout title="Todos">
+        <AppLayout title="Todos" contentClassName="w-full px-4 sm:px-6 lg:px-10 xl:px-12">
             <Head title="My Todos" />
-            <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 pb-10">
+            <div className="w-full mx-auto space-y-6 pb-10">
                 {/* Header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
@@ -346,7 +346,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
 
                 {/* Todos List */}
                 {visibleTodos.length > 0 ? (
-                    <div className="[column-fill:_balance] [column-gap:1rem] columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
+                    <div className="[column-fill:_balance] [column-gap:1.25rem] columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5">
                         {visibleTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
                             const descriptionPreview = getDescriptionPreview(todo.description);
