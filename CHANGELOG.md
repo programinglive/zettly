@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.23](https://github.com/programinglive/todo/compare/v0.4.22...v0.4.23) (2025-10-26)
+
+
+### 🐛 Bug Fixes
+
+* add console logging to usePwaMode hook for tablet detection troubleshooting ([ad8cb9d](https://github.com/programinglive/todo/commit/ad8cb9ddda6a0db49e5d75dbbd3c7f01b2dc7be7))
+
 ### [0.4.22](https://github.com/programinglive/todo/compare/v0.4.21...v0.4.22) (2025-10-26)
 
 
