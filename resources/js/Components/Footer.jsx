@@ -46,9 +46,9 @@ export default function Footer() {
                     </nav>
                 </div>
 
-                <div className="mt-12 flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-400 sm:flex-row sm:items-center sm:justify-between">
-                    <p>© {year} Zettly. All rights reserved.</p>
-                    <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
+                <div className="mt-12 flex flex-col gap-3 text-xs text-gray-500 dark:text-gray-400 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-center sm:text-left">© {year} Zettly. All rights reserved.</p>
+                    <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:items-center sm:gap-4 sm:text-right">
                         <p>
                             Have questions? Email{' '}
                             <a href="mailto:mahatma.mahardhika@programinglive.com" className="text-blue-600 dark:text-blue-400 hover:underline">
@@ -56,7 +56,7 @@ export default function Footer() {
                             </a>
                         </p>
                         {appVersion && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-500 dark:border-gray-700 dark:text-gray-300">
+                            <span className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100/70 px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-slate-800/70 dark:text-gray-300">
                                 <span className="text-gray-400 dark:text-gray-500">Version</span>
                                 <span className="font-semibold text-gray-700 dark:text-gray-100">v{appVersion}</span>
                             </span>

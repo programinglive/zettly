@@ -25,40 +25,44 @@ export default function Index({ message }) {
 
                     <div id="hero-cta" className="flex flex-col items-center gap-4 mb-8 sm:mb-10">
                         {!auth?.user ? (
-                            <div className="flex items-center gap-3 whitespace-nowrap rounded-full border border-indigo-100 bg-indigo-50 px-3 py-2 shadow-sm dark:border-indigo-900 dark:bg-indigo-950/60">
-                                <Link
-                                    href="/register"
-                                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 sm:px-6 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                                >
-                                    <UserPlus className="w-4 h-4" />
-                                    Get Started
-                                </Link>
-                                <span className="text-sm text-indigo-700 dark:text-indigo-200">or</span>
-                                <Link
-                                    href="/login"
-                                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
-                                >
-                                    <LogIn className="w-4 h-4" />
-                                    Sign in
-                                </Link>
+                            <div className="w-full max-w-sm rounded-2xl border border-indigo-100 bg-indigo-50/80 p-4 shadow-sm backdrop-blur-sm dark:border-indigo-900 dark:bg-indigo-950/70 sm:w-auto sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none dark:sm:border-none dark:sm:bg-transparent dark:sm:shadow-none dark:sm:backdrop-blur-none">
+                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-center">
+                                    <Link
+                                        href="/register"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 sm:w-auto"
+                                    >
+                                        <UserPlus className="w-4 h-4" />
+                                        Get Started
+                                    </Link>
+                                    <span className="text-center text-sm text-indigo-700 dark:text-indigo-200 sm:w-auto">or</span>
+                                    <Link
+                                        href="/login"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200 sm:w-auto"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        Sign in
+                                    </Link>
+                                </div>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-3 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                                <Link
-                                    href="/dashboard"
-                                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 sm:px-6 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                                >
-                                    <LayoutDashboard className="w-4 h-4" />
-                                    Open Dashboard
-                                </Link>
-                                <span className="text-sm text-gray-500 dark:text-gray-300">or</span>
-                                <Link
-                                    href="/todos"
-                                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition hover:text-gray-900 dark:text-gray-200 dark:hover:text-white"
-                                >
-                                    <CheckSquare className="w-4 h-4" />
-                                    View my todos
-                                </Link>
+                            <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/80 sm:w-auto sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none dark:sm:border-none dark:sm:bg-transparent dark:sm:shadow-none dark:sm:backdrop-blur-none">
+                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-center">
+                                    <Link
+                                        href="/dashboard"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 sm:w-auto"
+                                    >
+                                        <LayoutDashboard className="w-4 h-4" />
+                                        Open Dashboard
+                                    </Link>
+                                    <span className="text-center text-sm text-gray-500 dark:text-gray-300 sm:w-auto">or</span>
+                                    <Link
+                                        href="/todos"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition hover:text-gray-900 dark:text-gray-200 dark:hover:text-white sm:w-auto"
+                                    >
+                                        <CheckSquare className="w-4 h-4" />
+                                        View my todos
+                                    </Link>
+                                </div>
                             </div>
                         )}
                     </div>

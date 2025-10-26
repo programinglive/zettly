@@ -11,8 +11,8 @@ When installing Zettly as a PWA on Android tablets, the app was opening in small
 ## Solution
 
 ### 1. Updated Web Manifest (`public/site.webmanifest`)
-- Added `"prefer_related_applications": false` to ensure PWA takes priority
-- Kept `"orientation": "portrait-primary"` but added viewport optimization
+- Added `"prefer_related_applications": false` to ensure the PWA takes priority
+- Set `"orientation": "any"` so installed PWAs can rotate between portrait and landscape on tablets
 
 ### 2. Enhanced Viewport Meta Tag (`resources/views/app.blade.php`)
 ```html
@@ -28,10 +28,15 @@ Detects:
 
 ### 4. Updated AppLayout (`resources/js/Layouts/AppLayout.jsx`)
 - Uses `usePwaMode()` hook to detect tablet + PWA mode
-- Applies full-width layout (`w-full`) for PWA on tablets
+- Applies full-width layout on tablets in PWA mode
 - Maintains responsive max-width for web browsers
 
-### 5. CSS Improvements (`resources/css/app.css`)
+### 5. Hero CTA Refinement (`resources/js/Pages/Home/Index.jsx`)
+- On mobile, wraps CTA buttons in a stacked card for readable touch targets
+- On desktop, removes the card styling so buttons appear as inline pills (matching original look)
+- Ensures dark mode and light mode parity across breakpoints
+
+### 6. CSS Improvements (`resources/css/app.css`)
 - Added safe-area-inset padding for notched devices
 - Ensured full viewport height on PWA (`html, body, #app { height: 100%; width: 100%; }`)
 
