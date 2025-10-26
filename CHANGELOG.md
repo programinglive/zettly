@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.26](https://github.com/programinglive/todo/compare/v0.4.25...v0.4.26) (2025-10-26)
+
+
+### ♻️ Refactors
+
+* unify Create and Edit page headers with sticky z-index and remove duplicate actions ([b22b136](https://github.com/programinglive/todo/commit/b22b136f448cbbcbae2ca5f23ad1fc9c89ed6451))
+
 ### [0.4.25](https://github.com/programinglive/todo/compare/v0.4.24...v0.4.25) (2025-10-26)
 
 
