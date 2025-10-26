@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.17](https://github.com/programinglive/todo/compare/v0.4.16...v0.4.17) (2025-10-26)
+
 ### [0.4.16](https://github.com/programinglive/todo/compare/v0.4.15...v0.4.16) (2025-10-26)
+
+### 🐛 Bug Fixes
+
+* polish desktop navbar search alignment and styling for Algolia results
+* remove legacy push notification prompt component now handled via profile settings
 
 ### [0.4.15](https://github.com/programinglive/todo/compare/v0.4.14...v0.4.15) (2025-10-26)
 
