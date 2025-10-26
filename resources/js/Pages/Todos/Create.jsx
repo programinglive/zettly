@@ -132,7 +132,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         <AppLayout title={isNote ? 'Create Note' : 'Create Todo'}>
             <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="sticky top-0 z-10 space-y-4 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80">
+                    <CardHeader className="sticky top-0 z-50 space-y-4 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <CardTitle className="text-2xl text-gray-900 dark:text-white">{isNote ? 'Create New Note' : 'Create New Todo'}</CardTitle>
