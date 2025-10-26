@@ -22,11 +22,25 @@ export default function usePwaMode() {
             return isTabletUA || screenWidth >= 768;
         };
 
-        setIsTablet(isTabletDevice());
+        const isTabletValue = isTabletDevice();
+        setIsTablet(isTabletValue);
+
+        // Debug logging
+        if (typeof window !== 'undefined') {
+            console.log('[usePwaMode]', {
+                isStandalone: isStandaloneMode,
+                isTablet: isTabletValue,
+                userAgent: window.navigator.userAgent,
+                screenWidth: window.innerWidth,
+                displayMode: window.matchMedia?.('(display-mode: standalone)')?.matches ? 'standalone' : 'browser',
+            });
+        }
 
         // Listen for orientation changes
         const handleOrientationChange = () => {
-            setIsTablet(isTabletDevice());
+            const newIsTablet = isTabletDevice();
+            setIsTablet(newIsTablet);
+            console.log('[usePwaMode] Orientation changed, isTablet:', newIsTablet);
         };
 
         window.addEventListener('orientationchange', handleOrientationChange);
