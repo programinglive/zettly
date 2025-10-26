@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.24](https://github.com/programinglive/todo/compare/v0.4.23...v0.4.24) (2025-10-26)
+
+
+### 🐛 Bug Fixes
+
+* enable tablet landscape and clean desktop CTA styling ([5fdd54b](https://github.com/programinglive/todo/commit/5fdd54bf6b7adea1a25ba7a1cad601be460bdba6))
+
 ### [0.4.23](https://github.com/programinglive/todo/compare/v0.4.22...v0.4.23) (2025-10-26)
 
 
