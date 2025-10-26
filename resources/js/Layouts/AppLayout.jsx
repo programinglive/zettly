@@ -5,6 +5,7 @@ import { ModeToggle } from '../Components/mode-toggle';
 import NavbarSearch from '../Components/NavbarSearch';
 import Footer from '../Components/Footer';
 import PwaInstallPrompt from '../Components/PwaInstallPrompt';
+import usePwaMode from '../hooks/usePwaMode';
 
 export default function AppLayout({
     children,
@@ -19,16 +20,23 @@ export default function AppLayout({
     const page = usePage();
     const { auth, flash } = page.props;
     const { url } = page;
+    const { isStandalone, isTablet } = usePwaMode();
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [desktopMenuOpen, setDesktopMenuOpen] = React.useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
 
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
+    
+    // For PWA on tablets, use full width; otherwise use responsive max-width
     const defaultContentClassName = isAuthenticated
+        ? 'w-full px-4 sm:px-6 lg:px-8'
+        : isStandalone && isTablet
         ? 'w-full px-4 sm:px-6 lg:px-8'
         : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
     const defaultNavClassName = isAuthenticated
+        ? 'w-full px-4 sm:px-6 lg:px-8'
+        : isStandalone && isTablet
         ? 'w-full px-4 sm:px-6 lg:px-8'
         : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
 

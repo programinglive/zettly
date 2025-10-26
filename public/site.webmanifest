@@ -34,5 +34,6 @@
     "display": "standalone",
     "start_url": "/",
     "scope": "/",
-    "orientation": "portrait-primary"
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
 }

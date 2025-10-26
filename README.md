@@ -133,7 +133,7 @@ Zettly ships with an installable PWA experience so you can keep the dashboard on
 
 #### Install (Desktop / Android)
 1. Browse to your deployed Zettly instance using Chrome, Edge, or another Chromium browser over HTTPS.
-2. When the in-app banner appears, click **Install app** or use the browser’s menu (usually `⋮` → **Install app**).
+2. When the in-app banner appears, click **Install app** or use the browser's menu (usually `⋮` → **Install app**).
 3. The app opens in its own window and will update automatically on the next publish.
 
 #### Install on iPhone / iPad (Safari requirement)
@@ -143,11 +143,21 @@ Apple Safari does not fire the `beforeinstallprompt` event, so the banner inside
 3. Choose **Add to Home Screen** and optionally rename the shortcut.
 4. Tap **Add**. The Zettly icon should now appear on your home screen.
 
+#### Tablet Support
+When installed on tablets (iPad, Android tablets), Zettly automatically detects the device and uses the full screen width for an optimized experience. The app:
+- Detects tablet devices via user agent (iPad/Android) or screen width ≥ 768px
+- Detects PWA standalone mode via the `(display-mode: standalone)` media query
+- Applies full-width layout on tablets in PWA mode
+- Respects safe-area insets for notched devices (iPhone X+, modern Android devices)
+
+See `.windsurf/docs/PWA_TABLET_FIX.md` for implementation details.
+
 > ℹ️ **Troubleshooting**
 > - Ensure you are using HTTPS (or a LAN IP while testing)  – iOS will not install PWAs from `http://localhost`.
 > - Disable Private Browsing; the Add to Home Screen option is hidden there.
 > - Confirm the icon loads by visiting `/apple-touch-icon.png`. If it 404s, Safari will skip the install icon.
 > - If the option is missing, remove any previous shortcut created for the same domain and refresh.
+> - On tablets, if the app still appears small, try uninstalling and reinstalling the PWA after clearing browser cache.
 
 ## Zettly Editor debug logging
 
