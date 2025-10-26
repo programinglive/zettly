@@ -33,7 +33,13 @@ test('navbar search renders Algolia attribution badge', () => {
 test('navbar search input uses updated pill styling', () => {
     assert.match(
         componentSource,
-        /className="pl-9 h-11 rounded-full border border-border\/60 bg-white\/95 shadow-sm/,
+        /className="pl-9 h-11 rounded-full border border-border\/60 bg-white\/95 text-foreground shadow-sm/,
         'Expected search input to use pill-shaped styling with subtle shadow.'
+    );
+
+    assert.match(
+        componentSource,
+        /dark:bg-slate-900\/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:border-slate-700/,
+        'Expected search input to include dark theme styling tokens.'
     );
 });

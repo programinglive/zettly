@@ -23,7 +23,7 @@ return [
         'id' => env('ALGOLIA_APP_ID'),
         'secret' => env('ALGOLIA_ADMIN_KEY'),
         'indices' => [
-            'search' => env('ALGOLIA_INDEX_SEARCH', env('VITE_ALGOLIA_INDEX_TODOS')),
+            'search' => env('ALGOLIA_INDEX_SEARCH', 'zettly_search_local'),
         ],
     ],
 
