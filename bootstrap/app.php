@@ -21,6 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
+
+        // Exclude broadcast authentication from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            '/broadcasting/auth',
+            'broadcasting/auth',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);
