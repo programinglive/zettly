@@ -92,6 +92,22 @@ const normalizeSnapshotForPersist = (snapshot, nameFallback = 'Untitled drawing'
 
         if (next.document.store && typeof next.document.store === 'object') {
             const store = { ...next.document.store };
+            
+            // Fix image assets with null URLs
+            Object.keys(store).forEach(key => {
+                const asset = store[key];
+                if (asset && asset.type === 'image' && asset.props && asset.props.url === null) {
+                    // Remove or replace null URLs with empty string or placeholder
+                    store[key] = {
+                        ...asset,
+                        props: {
+                            ...asset.props,
+                            url: '' // Set to empty string instead of null
+                        }
+                    };
+                }
+            });
+            
             const documentNode = store['document:document'];
             if (documentNode && typeof documentNode === 'object') {
                 const updatedNode = { ...documentNode };

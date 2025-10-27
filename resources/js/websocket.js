@@ -58,9 +58,24 @@ try {
                                 .post('/broadcasting/auth', payload, { withCredentials: true })
                                 .then((res) => {
                                     const data = res?.data;
+                                    // Check if response is actually JSON
                                     if (typeof data === 'string') {
-                                        console.error('[WebSocket] Auth returned non-JSON body (string)');
-                                        return callback(true, { error: 'Invalid JSON from auth endpoint' });
+                                        console.error('[WebSocket] Auth returned non-JSON body (string):', data);
+                                        // Try to parse if it's supposed to be JSON
+                                        try {
+                                            const parsed = JSON.parse(data);
+                                            console.log('[WebSocket] Authorized channel (parsed):', channel.name);
+                                            callback(false, parsed);
+                                        } catch (e) {
+                                            console.error('[WebSocket] Failed to parse string response:', e);
+                                            callback(true, { error: 'Invalid response from auth endpoint' });
+                                        }
+                                        return;
+                                    }
+                                    if (!data || typeof data !== 'object') {
+                                        console.error('[WebSocket] Auth returned invalid response:', data);
+                                        callback(true, { error: 'Invalid response from auth endpoint' });
+                                        return;
                                     }
                                     console.log('[WebSocket] Authorized channel:', channel.name);
                                     callback(false, data);
@@ -68,8 +83,19 @@ try {
                                 .catch((err) => {
                                     const status = err?.response?.status;
                                     const respData = err?.response?.data;
-                                    console.error('[WebSocket] Authorization failed', { status, respData });
-                                    callback(true, respData || { error: 'Authorization failed' });
+                                    console.error('[WebSocket] Authorization failed', { 
+                                        status, 
+                                        respData,
+                                        channel: channel.name,
+                                        url: '/broadcasting/auth'
+                                    });
+                                    // If we get HTML response (like a login page), it means user is not authenticated
+                                    if (typeof respData === 'string' && respData.includes('<html')) {
+                                        console.error('[WebSocket] User appears to be unauthenticated');
+                                        callback(true, { error: 'User not authenticated' });
+                                    } else {
+                                        callback(true, respData || { error: 'Authorization failed' });
+                                    }
                                 });
                         } else {
                             // Fallback to fetch
