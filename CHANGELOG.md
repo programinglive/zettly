@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.30](https://github.com/programinglive/todo/compare/v0.5.29...v0.5.30) (2025-10-27)
+
+
+### ✨ Features
+
+* add real drawing channel subscription test ([3674fd1](https://github.com/programinglive/todo/commit/3674fd1d3c3fdc03929592df43a73b3b446956da))
+
 ### [0.5.29](https://github.com/programinglive/todo/compare/v0.5.28...v0.5.29) (2025-10-27)
 
 
