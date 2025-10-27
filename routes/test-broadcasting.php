@@ -102,28 +102,55 @@ Route::post('/broadcasting/auth', function (Request $request) {
 })->middleware(['web', 'auth']);
 
 /**
- * Helper function to authorize channel access using Laravel's channel system
+ * Helper function to validate channel authorization
  */
 function authorizeChannel($channelName, $user) {
-    // Handle private-drawings.{id} channels
-    if (preg_match('/^private-drawings\.(\d+)$/', $channelName, $matches)) {
-        $drawingId = $matches[1];
+    // Allow test channels for debugging
+    if (str_starts_with($channelName, 'private-test.')) {
+        \Log::info('Broadcast auth: Test channel allowed', [
+            'channel_name' => $channelName,
+            'user_id' => $user->id,
+        ]);
+        return true;
+    }
+    
+    // For private drawing channels, check if user owns the drawing
+    if (str_starts_with($channelName, 'private-drawings.') && $user) {
+        $drawingId = str_replace('private-drawings.', '', $channelName);
+        
+        // Check if drawing exists and user owns it
         $drawing = \App\Models\Drawing::find($drawingId);
         
         if (!$drawing) {
-            \Log::error('Drawing not found', ['drawing_id' => $drawingId]);
+            \Log::error('Broadcast auth: Drawing not found', [
+                'drawing_id' => $drawingId,
+                'user_id' => $user->id,
+            ]);
             return false;
         }
         
-        return $drawing && $drawing->user_id === $user->id;
+        if ($drawing->user_id !== $user->id) {
+            \Log::error('Broadcast auth: User does not own drawing', [
+                'drawing_id' => $drawingId,
+                'drawing_owner' => $drawing->user_id,
+                'user_id' => $user->id,
+            ]);
+            return false;
+        }
+        
+        \Log::info('Broadcast auth: Drawing access granted', [
+            'drawing_id' => $drawingId,
+            'user_id' => $user->id,
+        ]);
+        
+        return true;
     }
     
-    // Handle test channels
-    if (preg_match('/^private-test\./', $channelName)) {
-        return true; // Allow authenticated users to access test channels
-    }
+    \Log::error('Broadcast auth: Unsupported channel pattern', [
+        'channel_name' => $channelName,
+        'user_id' => $user->id,
+    ]);
     
-    \Log::warning('Unknown channel pattern', ['channel_name' => $channelName]);
     return false;
 }
 
