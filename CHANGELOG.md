@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.5](https://github.com/programinglive/todo/compare/v0.5.4...v0.5.5) (2025-10-27)
+
+
+### ✨ Features
+
+* add artisan command to test Pusher connection ([efd3bf1](https://github.com/programinglive/todo/commit/efd3bf1ac678673f0ecc42c8a622ac452140d3ab))
+
 ### [0.5.4](https://github.com/programinglive/todo/compare/v0.5.3...v0.5.4) (2025-10-27)
 
 
