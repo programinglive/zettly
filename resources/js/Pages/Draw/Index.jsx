@@ -188,6 +188,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const saveTimeoutRef = useRef(null);
     const pendingLoadRef = useRef(null);
     const drawingCacheRef = useRef(new Map());
+    const activeIdRef = useRef(null);
 
     // Ensure event listeners are overridden and restore on cleanup
     useEffect(() => {
@@ -345,7 +346,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             // Always load fresh data when switching drawings to avoid stale cache issues
             // But keep cache for performance optimization
             const cached = drawingCacheRef.current.get(id);
-            if (cached && activeId === id) {
+            if (cached && activeIdRef.current === id) {
                 // Only use cache if it's the currently active drawing (for saves/reloads)
                 loadDrawingIntoEditor(cached);
                 return;
@@ -374,7 +375,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 setLoadingDrawing(false);
             }
         },
-        [loadDrawingIntoEditor, activeId],
+        [loadDrawingIntoEditor],
     );
 
     const handleCreateDrawing = useCallback(async () => {
@@ -502,7 +503,12 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         if (activeId) {
             loadDrawing(activeId);
         }
-    }, [activeId, loadDrawing]);
+    }, [activeId]); // Remove loadDrawing dependency to prevent infinite loop
+
+    // Update activeIdRef when activeId changes
+    useEffect(() => {
+        activeIdRef.current = activeId;
+    }, [activeId]);
 
     useEffect(() => {
         return () => {
