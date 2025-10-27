@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.31](https://github.com/programinglive/todo/compare/v0.5.30...v0.5.31) (2025-10-27)
+
+
+### 📝 Documentation
+
+* add comprehensive WebSocket fix summary ([a35047c](https://github.com/programinglive/todo/commit/a35047c02289975474f4280f0e13f9288dd02fee))
+
 ### [0.5.30](https://github.com/programinglive/todo/compare/v0.5.29...v0.5.30) (2025-10-27)
 
 
