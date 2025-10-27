@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff, LayoutDashboard, Columns, Bell } from 'lucide-react';
+import { User, Mail, Key, ArrowLeft, Plus, Copy, Trash2, Eye, EyeOff, LayoutDashboard, Columns, Bell, Bug } from 'lucide-react';
 import { Switch } from '@headlessui/react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -31,6 +31,12 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
     const [visibleTokens, setVisibleTokens] = useState(new Set());
     const [workspaceView, setWorkspaceView] = useWorkspacePreference(user.workspace_view);
+    const [debugMode, setDebugMode] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('zettly-debug-mode') === 'true';
+        }
+        return false;
+    });
     const { isSupported, isSubscribed, isLoading, requestPermission, unsubscribe, permission } = usePushNotifications();
 
     useEffect(() => {
@@ -140,6 +146,17 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
         } else {
             const result = await unsubscribe();
             console.debug('[profile-toggle] unsubscribe result:', result);
+        }
+    };
+
+    const handleDebugToggle = (enabled) => {
+        setDebugMode(enabled);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('zettly-debug-mode', enabled.toString());
+            // Dispatch event to notify other components
+            window.dispatchEvent(new CustomEvent('zettly:debug-mode-changed', { 
+                detail: { enabled } 
+            }));
         }
     };
 
@@ -511,6 +528,54 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     </span>
                                 </button>
                             ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <CardHeader>
+                        <CardTitle className="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            <Bug className="w-5 h-5 mr-2 text-orange-500" />
+                            Debug Settings
+                        </CardTitle>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Enable debug mode to see detailed technical information and testing tools throughout the application.
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col gap-1">
+                                    <label htmlFor="debug-mode" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Debug Mode
+                                    </label>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Shows technical details, WebSocket diagnostics, and testing tools
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="debug-mode"
+                                    checked={debugMode}
+                                    onChange={handleDebugToggle}
+                                    className={`${
+                                        debugMode ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'
+                                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2`}
+                                >
+                                    <span
+                                        className={`${
+                                            debugMode ? 'translate-x-6' : 'translate-x-1'
+                                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                    />
+                                </Switch>
+                            </div>
+                            
+                            {debugMode && (
+                                <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                                    <p className="text-sm text-orange-800 dark:text-orange-200">
+                                        <strong>Debug mode enabled!</strong> You'll now see technical information and testing tools throughout the application.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

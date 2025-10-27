@@ -1,12 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { CheckCircle, XCircle, AlertCircle, RefreshCw, Play, TestTube, Copy, Check } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, RefreshCw, Play, TestTube, Copy, Check, Bug } from 'lucide-react';
 
 export default function WebSocketTest() {
     const page = usePage();
     const [testResults, setTestResults] = useState({});
     const [isRunning, setIsRunning] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [debugMode, setDebugMode] = useState(false);
+
+    // Check debug mode setting from localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const checkDebugMode = () => {
+                setDebugMode(localStorage.getItem('zettly-debug-mode') === 'true');
+            };
+            
+            checkDebugMode();
+            
+            // Listen for debug mode changes
+            window.addEventListener('zettly:debug-mode-changed', checkDebugMode);
+            
+            return () => {
+                window.removeEventListener('zettly:debug-mode-changed', checkDebugMode);
+            };
+        }
+    }, []);
+
+    // If debug mode is disabled, show minimal message
+    if (!debugMode) {
+        return (
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="text-center py-12">
+                    <Bug className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        Debug Mode Disabled
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Enable debug mode in your profile settings to see WebSocket diagnostics and testing tools.
+                    </p>
+                    <a 
+                        href="/profile"
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Enable Debug Mode
+                    </a>
+                </div>
+            </div>
+        );
+    }
 
     const version = page?.props?.appVersion ?? import.meta.env.VITE_APP_VERSION ?? 'unknown';
 

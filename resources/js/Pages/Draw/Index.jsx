@@ -312,8 +312,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 return;
             }
 
+            // Always load fresh data when switching drawings to avoid stale cache issues
+            // But keep cache for performance optimization
             const cached = drawingCacheRef.current.get(id);
-            if (cached) {
+            if (cached && activeId === id) {
+                // Only use cache if it's the currently active drawing (for saves/reloads)
                 loadDrawingIntoEditor(cached);
                 return;
             }
@@ -321,19 +324,27 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             setLoadingDrawing(true);
             try {
                 const { data } = await window.axios.get(route('draw.show', { drawing: id }));
-                drawingCacheRef.current.set(id, data.drawing);
-                loadDrawingIntoEditor(data.drawing);
+                const freshDrawing = data.drawing;
+                
+                // Update cache with fresh data
+                drawingCacheRef.current.set(id, freshDrawing);
+                loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
-                console.error(error);
+                console.error('Failed to load drawing:', error);
                 setSaveStatus((prev) => ({
                     ...prev,
                     error: 'Unable to load this drawing. Please try again.',
                 }));
+                // If network fails, try to use cached version as fallback
+                if (cached) {
+                    console.log('Using cached version as fallback');
+                    loadDrawingIntoEditor(cached);
+                }
             } finally {
                 setLoadingDrawing(false);
             }
         },
-        [loadDrawingIntoEditor],
+        [loadDrawingIntoEditor, activeId],
     );
 
     const handleCreateDrawing = useCallback(async () => {
