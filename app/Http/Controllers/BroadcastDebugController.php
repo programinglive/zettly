@@ -29,7 +29,7 @@ class BroadcastDebugController extends Controller
             'user_authenticated' => Auth::check(),
             'user_id' => Auth::id(),
             'session_driver' => config('session.driver'),
-            'csrf_token_configured' => !empty(config('session.encrypt')) && config('session.encrypt') === true,
+            'csrf_token_configured' => config('session.encrypt') === true || config('app.env') === 'production',
         ]);
     }
 
