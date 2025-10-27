@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.24](https://github.com/programinglive/todo/compare/v0.5.23...v0.5.24) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* handle 302 redirects and improve authentication status ([4819659](https://github.com/programinglive/todo/commit/481965920c1bb0df5cac4cc9d078f7ff31051284))
+
 ### [0.5.23](https://github.com/programinglive/todo/compare/v0.5.22...v0.5.23) (2025-10-27)
 
 
