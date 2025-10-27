@@ -2,8 +2,18 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\BroadcastDebugController;
 
-Route::get('/test-broadcasting', function () {
+Route::get('/test-broadcasting', [BroadcastDebugController::class, 'index']);
+
+Route::post('/test-broadcasting-auth', [BroadcastDebugController::class, 'testAuth'])->middleware(['web', 'auth']);
+
+Route::post('/test-broadcasting-debug', [BroadcastDebugController::class, 'debug'])->middleware(['web']);
+
+Route::post('/test-broadcasting-simulate', [BroadcastDebugController::class, 'simulateAuth'])->middleware(['web', 'auth']);
+
+// Original simple test routes
+Route::get('/test-broadcasting-simple', function () {
     return response()->json([
         'broadcast_driver' => config('broadcasting.default'),
         'pusher_configured' => !empty(config('broadcasting.connections.pusher.key')),
@@ -13,7 +23,7 @@ Route::get('/test-broadcasting', function () {
     ]);
 });
 
-Route::post('/test-broadcasting-auth', function (Request $request) {
+Route::post('/test-broadcasting-auth-simple', function (Request $request) {
     $channelName = $request->input('channel_name');
     $socketId = $request->input('socket_id');
     

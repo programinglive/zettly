@@ -50,6 +50,18 @@ class DrawingController extends Controller
         ], 201);
     }
 
+    public function test(Drawing $drawing): Response
+    {
+        if ($drawing->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return Inertia::render('Draw/WebSocketTest', [
+            'drawing' => $drawing,
+            'appVersion' => config('app.version', 'unknown'),
+        ]);
+    }
+
     public function show(Drawing $drawing): JsonResponse
     {
         if ($drawing->user_id !== Auth::id()) {
