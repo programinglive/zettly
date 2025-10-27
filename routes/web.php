@@ -22,6 +22,10 @@ Route::get('/test/pusher-ui', function () {
     return Inertia::render('Test/PusherTest');
 })->name('test.pusher.ui');
 
+Route::get('/debug/broadcast', [App\Http\Controllers\BroadcastDebugController::class, 'debug'])
+    ->middleware(['web'])
+    ->name('debug.broadcast');
+
 Route::get('/legal/terms', function () {
     return Inertia::render('Legal/Terms');
 })->name('legal.terms');
