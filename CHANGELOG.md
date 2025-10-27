@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.33](https://github.com/programinglive/todo/compare/v0.5.32...v0.5.33) (2025-10-27)
+
+
+### ✨ Features
+
+* add environment information and fix channel name ([71cf88c](https://github.com/programinglive/todo/commit/71cf88c8338b492dbaa9cce802e7ad29c6f5e30d))
+
 ### [0.5.32](https://github.com/programinglive/todo/compare/v0.5.31...v0.5.32) (2025-10-27)
 
 
