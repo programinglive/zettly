@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.12](https://github.com/programinglive/todo/compare/v0.5.11...v0.5.12) (2025-10-27)
+
+
+### ✨ Features
+
+* add version display to authenticated user menu ([f55491e](https://github.com/programinglive/todo/commit/f55491e73e229b5cd5e07d40e55beef6549da3f7))
+
 ### [0.5.11](https://github.com/programinglive/todo/compare/v0.5.10...v0.5.11) (2025-10-27)
 
 
