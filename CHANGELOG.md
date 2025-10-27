@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.17](https://github.com/programinglive/todo/compare/v0.5.16...v0.5.17) (2025-10-27)
+
+
+### ✨ Features
+
+* implement TLDraw real-time sync with Pusher integration ([24d2001](https://github.com/programinglive/todo/commit/24d20011a181784e455784c18ac8566ce07ad470))
+
 ### [0.5.16](https://github.com/programinglive/todo/compare/v0.5.15...v0.5.16) (2025-10-27)
 
 
