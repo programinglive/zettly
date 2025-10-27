@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.14](https://github.com/programinglive/todo/compare/v0.5.13...v0.5.14) (2025-10-27)
+
+
+### ✨ Features
+
+* add comprehensive SystemStatus component to dashboard ([db97f92](https://github.com/programinglive/todo/commit/db97f92b65329200eb569c7d5b0095e7fd736625))
+
 ### [0.5.13](https://github.com/programinglive/todo/compare/v0.5.12...v0.5.13) (2025-10-27)
 
 
