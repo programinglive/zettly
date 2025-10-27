@@ -13,6 +13,4 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('drawings.{drawing}', function ($user, Drawing $drawing) {
-    return $user->id === $drawing->user_id;
-});
+Broadcast::channel('drawings.{drawing}', \App\Broadcasting\DrawingChannel::class);

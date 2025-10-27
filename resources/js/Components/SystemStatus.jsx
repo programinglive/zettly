@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
 import { CheckCircle, XCircle, AlertCircle, Info, RefreshCw } from 'lucide-react';
 
 export default function SystemStatus() {
+    const page = usePage();
+
     const [status, setStatus] = useState({
         version: import.meta.env.VITE_APP_VERSION || '0.5.13',
         websocket: { status: 'checking', message: 'Testing...' },
@@ -50,18 +53,11 @@ export default function SystemStatus() {
     };
 
     const checkAuthentication = () => {
-        try {
-            const page = window.__inertia_page;
-            const isAuthenticated = Boolean(page?.props?.auth?.user);
-            
-            if (isAuthenticated) {
-                return { status: 'success', message: `Logged in as ${page.props.auth.user.name}` };
-            } else {
-                return { status: 'warning', message: 'Not authenticated' };
-            }
-        } catch (error) {
-            return { status: 'error', message: 'Cannot determine auth status' };
+        const isAuthenticated = Boolean(page?.props?.auth?.user);
+        if (isAuthenticated) {
+            return { status: 'success', message: `Logged in as ${page.props.auth.user.name}` };
         }
+        return { status: 'warning', message: 'Not authenticated' };
     };
 
     const checkAlgolia = () => {
