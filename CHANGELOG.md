@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.43](https://github.com/programinglive/todo/compare/v0.5.42...v0.5.43) (2025-10-27)
+
+
+### ✨ Features
+
+* make WebSocket console logging toggleable via debug mode ([d8b869c](https://github.com/programinglive/todo/commit/d8b869ca7e6d83a65cbf304194a93d180037cd4b))
+
 ### [0.5.42](https://github.com/programinglive/todo/compare/v0.5.41...v0.5.42) (2025-10-27)
 
 
