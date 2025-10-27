@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.46](https://github.com/programinglive/todo/compare/v0.5.45...v0.5.46) (2025-10-27)
+
+
+### ✨ Features
+
+* add drawing selector dropdown to canvas header ([55d848f](https://github.com/programinglive/todo/commit/55d848f9a8122e7e93c4ebbeced07757c102aaa3))
+
 ### [0.5.45](https://github.com/programinglive/todo/compare/v0.5.44...v0.5.45) (2025-10-27)
 
 
