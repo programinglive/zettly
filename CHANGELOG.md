@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.29](https://github.com/programinglive/todo/compare/v0.5.28...v0.5.29) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* add custom broadcasting auth route and error handling ([aa3f317](https://github.com/programinglive/todo/commit/aa3f3175992e6f8c45c13a0f2fedeef7fee5c6a4))
+
 ### [0.5.28](https://github.com/programinglive/todo/compare/v0.5.27...v0.5.28) (2025-10-27)
 
 
