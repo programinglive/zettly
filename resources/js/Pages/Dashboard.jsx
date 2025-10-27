@@ -5,6 +5,7 @@ import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool } fr
 import DashboardLayout from '../Layouts/DashboardLayout';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
+import SystemStatus from '../Components/SystemStatus';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
 import { Drawer, DrawerContent, DrawerClose, DrawerBody } from '../Components/ui/drawer';
 
@@ -516,6 +517,7 @@ export default function Dashboard({
                     <span className="sr-only">Toggle quick create menu</span>
                 </button>
             </div>
+            <SystemStatus />
         </DashboardLayout>
     );
 }
