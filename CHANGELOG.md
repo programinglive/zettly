@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.16](https://github.com/programinglive/todo/compare/v0.5.15...v0.5.16) (2025-10-27)
+
+
+### 🧹 Chores
+
+* align version display with shared appVersion ([48444ec](https://github.com/programinglive/todo/commit/48444ecba15610e2fc8ba47e3454657b1348f248))
+
 ### [0.5.15](https://github.com/programinglive/todo/compare/v0.5.14...v0.5.15) (2025-10-27)
 
 
