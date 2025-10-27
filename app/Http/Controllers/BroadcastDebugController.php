@@ -19,6 +19,8 @@ class BroadcastDebugController extends Controller
             'timestamp' => now()->toISOString(),
             'app_version' => config('app.version', 'unknown'),
             'laravel_version' => app()->version(),
+            'environment' => config('app.env', 'unknown'),
+            'debug_mode' => config('app.debug', false),
             'broadcast_driver' => config('broadcasting.default'),
             'pusher_configured' => !empty(config('broadcasting.connections.pusher.key')),
             'pusher_key' => config('broadcasting.connections.pusher.key') ? substr(config('broadcasting.connections.pusher.key'), 0, 8) . '...' : null,

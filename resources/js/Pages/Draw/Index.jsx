@@ -498,7 +498,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             return () => {};
         }
 
-        const channelName = `drawings.${activeDrawing.id}`;
+        const channelName = `private-drawings.${activeDrawing.id}`;
         console.log('[WebSocket] Setting up listener for channel:', channelName);
         
         const channel = window.Echo.private(channelName);

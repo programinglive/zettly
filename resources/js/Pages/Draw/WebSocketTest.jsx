@@ -27,6 +27,7 @@ export default function WebSocketTest() {
         }).join('\n');
 
         const fullReport = `WebSocket Integration Test Results - ${new Date().toISOString()}\n` +
+                          `Environment: ${testResults.server?.details?.environment?.toUpperCase() || 'UNKNOWN'}\n` +
                           `Version: ${version}\n` +
                           `${'='.repeat(50)}\n${allResults}`;
 
@@ -51,35 +52,37 @@ export default function WebSocketTest() {
     };
 
     const testServerConfig = async () => {
-        const response = await fetch('/test-broadcasting');
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        try {
+            const response = await axios.get('/test-broadcasting');
+            const data = response.data;
+            
+            // Check for critical issues
+            const issues = [];
+            if (data.broadcast_driver !== 'pusher') {
+                issues.push(`Broadcast driver is "${data.broadcast_driver}" instead of "pusher"`);
+            }
+            if (!data.pusher_configured) {
+                issues.push('Pusher is not configured');
+            }
+            if (!data.user_authenticated) {
+                issues.push('User is not authenticated');
+            }
+            
+            return {
+                status: issues.length > 0 ? 'warning' : 'success',
+                message: issues.length > 0 
+                    ? `Issues: ${issues.join(', ')}`
+                    : `Environment: ${data.environment?.toUpperCase() || 'UNKNOWN'}, Version: ${data.app_version}, Pusher: ✓`,
+                details: data,
+                issues: issues.length > 0 ? issues : undefined
+            };
+        } catch (error) {
+            return {
+                status: 'error',
+                message: `Failed to fetch server config: ${error.message}`,
+                details: { error: error.message }
+            };
         }
-        const data = await response.json();
-        
-        // Check for critical issues
-        const issues = [];
-        if (data.broadcast_driver !== 'pusher') {
-            issues.push(`Broadcast driver is "${data.broadcast_driver}" instead of "pusher"`);
-        }
-        if (data.app_version === 'unknown') {
-            issues.push('App version is unknown - server may not be updated');
-        }
-        if (!data.csrf_token_configured) {
-            issues.push('CSRF token not configured');
-        }
-        
-        const status = issues.length > 0 ? 'error' : (data.pusher_configured ? 'success' : 'warning');
-        const message = issues.length > 0 
-            ? `Issues: ${issues.join(', ')}`
-            : `v${data.app_version}, Pusher: ${data.pusher_configured ? '✓' : '✗'}`;
-        
-        return {
-            status,
-            message,
-            details: data,
-            issues
-        };
     };
 
     const testAuthEndpoint = async () => {
