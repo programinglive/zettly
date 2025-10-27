@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.15](https://github.com/programinglive/todo/compare/v0.5.14...v0.5.15) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* improve websocket authorization for draw updates ([b974ef7](https://github.com/programinglive/todo/commit/b974ef78623299874b2fa788180c56d06d28f329))
+
 ### [0.5.14](https://github.com/programinglive/todo/compare/v0.5.13...v0.5.14) (2025-10-27)
 
 
