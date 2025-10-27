@@ -30,6 +30,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    href={route('todos.index')}
+                                    active={route().current('todos.*')}
+                                >
+                                    Todos
+                                </NavLink>
+                                <NavLink
+                                    href={route('notes.index')}
+                                    active={route().current('notes.index')}
+                                >
+                                    Notes
+                                </NavLink>
+                                <NavLink
+                                    href={route('draw.index')}
+                                    active={route().current('draw.*')}
+                                >
+                                    Draw
+                                </NavLink>
                             </div>
                         </div>
 
@@ -133,6 +151,24 @@ export default function AuthenticatedLayout({ header, children }) {
                             active={route().current('dashboard')}
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('todos.index')}
+                            active={route().current('todos.*')}
+                        >
+                            Todos
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('notes.index')}
+                            active={route().current('notes.index')}
+                        >
+                            Notes
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('draw.index')}
+                            active={route().current('draw.*')}
+                        >
+                            Draw
                         </ResponsiveNavLink>
                     </div>
 

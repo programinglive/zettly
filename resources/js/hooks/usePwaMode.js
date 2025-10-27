@@ -29,21 +29,10 @@ export default function usePwaMode() {
         const isTabletValue = isTabletDevice();
         setIsTablet(isTabletValue);
 
-        // Debug logging
-        console.log('[usePwaMode]', {
-            isStandalone: isStandaloneMode,
-            isTablet: isTabletValue,
-            userAgent: window.navigator.userAgent,
-            screenWidth: window.innerWidth,
-            displayMode: window.matchMedia?.('(display-mode: standalone)')?.matches ? 'standalone' : 'browser',
-            orientationType: window.screen?.orientation?.type ?? 'unsupported',
-        });
-
         // Listen for orientation changes
         const handleOrientationChange = () => {
             const newIsTablet = isTabletDevice();
             setIsTablet(newIsTablet);
-            console.log('[usePwaMode] Orientation changed, isTablet:', newIsTablet, 'type:', window.screen?.orientation?.type);
         };
 
         window.addEventListener('orientationchange', handleOrientationChange);
@@ -66,7 +55,6 @@ export default function usePwaMode() {
 
         const orientation = window.screen?.orientation;
         if (!orientation || typeof orientation.lock !== 'function') {
-            console.log('[usePwaMode] Screen Orientation API not available');
             return () => {};
         }
 
@@ -80,26 +68,21 @@ export default function usePwaMode() {
 
             const currentType = orientation.type ?? '';
             if (currentType.startsWith('landscape')) {
-                console.log('[usePwaMode] Already in landscape orientation');
                 return;
             }
 
             orientation
                 .lock('landscape')
                 .then(() => {
-                    console.log('[usePwaMode] Locked orientation to landscape');
                     if (typeof orientation.unlock === 'function') {
                         unlockTimer = window.setTimeout(() => {
                             if (!cancelled) {
                                 orientation.unlock();
-                                console.log('[usePwaMode] Orientation unlocked to allow rotation');
                             }
                         }, 1500);
                     }
                 })
-                .catch((error) => {
-                    console.warn('[usePwaMode] Failed to lock orientation', error);
-                });
+                .catch(() => {});
         };
 
         requestLandscape();

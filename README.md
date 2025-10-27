@@ -2,6 +2,39 @@
 
 Zettly is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, TailwindCSS, and shadcn/ui. Create, manage, and track your todos with a beautiful and responsive interface.
 
+## Bug Fixes
+
+### Infinite Loop in Drawing Editor (2025-10-27)
+
+**Problem**: The drawing page (`/draw`) was causing infinite re-renders due to a dependency chain in React hooks:
+- `loadDrawingIntoEditor` depended on `persistDrawing`
+- `persistDrawing` recreated when `activeDrawing` changed
+- This caused `loadDrawing` to recreate, triggering the useEffect infinitely
+
+**Solution**: 
+- Removed `persistDrawing` from the dependency array of `loadDrawingIntoEditor` 
+- Added explanatory comment about the fix
+- Created regression tests to prevent future infinite loops
+
+**Files Changed**:
+- `resources/js/Pages/Draw/Index.jsx` - Fixed useCallback dependencies
+- `resources/js/__tests__/DrawInfiniteLoopTest.test.js` - Added regression tests
+
+### Passive Event Listener Warnings in Drawing Editor (2025-10-27)
+
+**Problem**: TLDraw was generating "Unable to preventDefault inside passive event listener" warnings in the console, which occurs when canvas-based applications try to prevent default behavior on passive event listeners.
+
+**Solution**:
+- Moved event listener override to module level to run before TLDraw initializes
+- Added comprehensive console.error suppression for all passive event listener warnings
+- Configured touch, wheel, and pointer events to be non-passive to allow preventDefault
+- Added proper cleanup functions to restore original behavior when component unmounts
+- Added regression tests to ensure the fix remains in place
+
+**Files Changed**:
+- `resources/js/Pages/Draw/Index.jsx` - Added module-level passive event listener handling
+- `resources/js/__tests__/DrawPassiveEventFixTest.test.js` - Added regression tests
+
 ## Quick Start
 
 ### Installation
@@ -62,6 +95,7 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
   - Eisenhower Matrix in the center (drag tasks between quadrants; urgency/importance auto-adjust)
   - Context panel on the right that surfaces linked todos and metadata for the selected task
   - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
+- ✅ **Draw Workspace** - Open the TLDraw-powered canvas alongside Todos and Notes, create multiple sketches, and enjoy automatic autosave with persistent storage
 
 ## Open Source Resources
 

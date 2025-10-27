@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
@@ -41,6 +42,11 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
     Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [TodoController::class, 'toggleChecklistItem'])->name('todos.checklist.toggle');
+
+    Route::get('draw', [DrawingController::class, 'index'])->name('draw.index');
+    Route::post('draw', [DrawingController::class, 'store'])->name('draw.store');
+    Route::get('draw/{drawing}', [DrawingController::class, 'show'])->name('draw.show');
+    Route::patch('draw/{drawing}', [DrawingController::class, 'update'])->name('draw.update');
 
     // File attachment routes
     Route::post('todos/{todo}/attachments', [TodoController::class, 'uploadAttachment'])->name('todos.attachments.upload');

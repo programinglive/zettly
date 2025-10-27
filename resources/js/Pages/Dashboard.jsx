@@ -1,6 +1,6 @@
 import React, { useMemo, lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
@@ -495,6 +495,14 @@ export default function Dashboard({
                     >
                         <FileText className="h-4 w-4" />
                         New Note
+                    </Link>
+                    <Link
+                        href="/draw"
+                        onClick={handleFabClose}
+                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-600/30 transition hover:bg-violet-500"
+                    >
+                        <PenTool className="h-4 w-4" />
+                        Open Draw
                     </Link>
                 </div>
                 <button

@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import './bootstrap';
 import '@programinglive/zettly-editor/styles';
 import '../css/app.css';
+import 'tldraw/tldraw.css';
 
 import { ThemeProvider } from './Components/theme-provider';
 
