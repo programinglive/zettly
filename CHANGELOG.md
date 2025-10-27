@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.7](https://github.com/programinglive/todo/compare/v0.5.6...v0.5.7) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* add web middleware to broadcasting routes for authentication ([28b3c29](https://github.com/programinglive/todo/commit/28b3c29c6391bb086957c73424e5f352b58f408c))
+
 ### [0.5.6](https://github.com/programinglive/todo/compare/v0.5.5...v0.5.6) (2025-10-27)
 
 
