@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.26](https://github.com/programinglive/todo/compare/v0.5.25...v0.5.26) (2025-10-27)
+
+
+### ✨ Features
+
+* comprehensive WebSocket debugging and test page ([03e927b](https://github.com/programinglive/todo/commit/03e927b390c0ee421353165af91a7fda12c6ef23))
+
 ### [0.5.25](https://github.com/programinglive/todo/compare/v0.5.24...v0.5.25) (2025-10-27)
 
 
