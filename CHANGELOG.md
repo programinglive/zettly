@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.39](https://github.com/programinglive/todo/compare/v0.5.38...v0.5.39) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* allow test channels in WebSocket authorization ([2a7fc90](https://github.com/programinglive/todo/commit/2a7fc908ee7d84b8f37cdc72da5125c8c4685c04))
+* correct test channel name to avoid double private- prefix ([093b109](https://github.com/programinglive/todo/commit/093b109880ef0b5e8f19a6dd046b6abffafffb33))
+* remove problematic .bind() calls causing t.bind error ([e7ed698](https://github.com/programinglive/todo/commit/e7ed698ccf4eccae17a70b94f5047d34c519d554))
+
 ### [0.5.38](https://github.com/programinglive/todo/compare/v0.5.37...v0.5.38) (2025-10-27)
 
 
