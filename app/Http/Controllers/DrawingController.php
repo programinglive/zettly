@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DrawingUpdated;
 use App\Models\Drawing;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,6 +41,9 @@ class DrawingController extends Controller
             'document' => $validated['document'],
         ]);
 
+        // Broadcast the new drawing
+        broadcast(new DrawingUpdated($drawing));
+
         return response()->json([
             'success' => true,
             'drawing' => $drawing,
@@ -72,6 +76,9 @@ class DrawingController extends Controller
         $validated = $validator->validate();
 
         $drawing->update($validated);
+
+        // Broadcast the updated drawing
+        broadcast(new DrawingUpdated($drawing));
 
         return response()->json([
             'success' => true,

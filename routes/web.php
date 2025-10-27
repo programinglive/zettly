@@ -5,6 +5,7 @@ use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PusherTestController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\UploadTestController;
@@ -16,6 +17,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/developer', function () {
     return Inertia::render('Developer');
 })->name('developer');
+
+Route::get('/test/pusher-ui', function () {
+    return Inertia::render('Test/PusherTest');
+})->name('test.pusher.ui');
 
 Route::get('/legal/terms', function () {
     return Inertia::render('Legal/Terms');
@@ -82,6 +87,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
     Route::delete('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
     Route::post('/push/test', [\App\Http\Controllers\PushSubscriptionController::class, 'test'])->name('push.test');
+
+    // Pusher test routes (for development/testing)
+    Route::get('/test/pusher', [PusherTestController::class, 'test'])->name('test.pusher');
+    Route::post('/test/pusher/broadcast', [PusherTestController::class, 'testBroadcast'])->name('test.pusher.broadcast');
 });
 
 require __DIR__.'/auth.php';

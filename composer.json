@@ -19,6 +19,7 @@
         "league/flysystem-google-cloud-storage": "^3.0",
         "minishlink/web-push": "^9.0",
         "opcodesio/log-viewer": "^3.19",
+        "pusher/pusher-php-server": "^7.2",
         "sentry/sentry-laravel": "^4.16",
         "tightenco/ziggy": "^2.0"
     },

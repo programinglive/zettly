@@ -105,9 +105,43 @@ The `/draw` experience introduces a multi-document sketching surface powered by 
 - **Multiple drawings per user** with lazy loading and caching for fast context switches.
 - **Autosave every keystroke** – snapshots queue up and debounce writes to the server, with persisted metadata stored in the new `drawings` table.
 - **Cross-session continuity** – drawings are restored on demand, including title edits, undo history, and last-saved status.
+- **Live updates** – changes are synchronized in real-time across multiple tabs/devices using WebSockets.
 - **Robust migration & seeding** – run `php artisan migrate` after updating to create the supporting schema; no seed data is required.
 
 > ℹ️ **Optional TLDraw License**: Set `VITE_TLDRAW_LICENSE_KEY` in `.env` if you have a commercial key. Leaving it blank falls back to the open core features.
+
+#### Live Update Configuration
+
+To enable real-time collaboration across tabs/devices:
+
+1. **Configure Pusher** (or compatible WebSocket service):
+   ```env
+   # Add to your .env file
+   PUSHER_APP_ID=your_pusher_app_id
+   PUSHER_APP_KEY=your_pusher_app_key
+   PUSHER_APP_SECRET=your_pusher_app_secret
+   PUSHER_HOST=your_pusher_host  # Optional: for self-hosted
+   PUSHER_PORT=443
+   PUSHER_SCHEME=https
+   PUSHER_APP_CLUSTER=mt1
+   ```
+
+2. **Install dependencies** (already included):
+   ```bash
+   composer require pusher/pusher-php-server
+   npm install --save-dev laravel-echo pusher-js
+   ```
+
+3. **Update broadcasting configuration**:
+   ```bash
+   php artisan config:clear
+   ```
+
+The live update system:
+- Broadcasts changes on private channels (`drawings.{id}`) for security
+- Deduplicates updates from the same client to prevent infinite loops
+- Automatically reconnects if the connection is lost
+- Shows real-time changes without requiring page refresh
 
 Behind the scenes, the app guards against runaway renders and browser warnings by:
 

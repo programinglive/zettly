@@ -475,6 +475,45 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         };
     }, [activeDrawing?.id, activeDrawing?.title, queueSave]);
 
+    // WebSocket listener for live updates
+    useEffect(() => {
+        if (!activeDrawing?.id || !window.Echo) {
+            return () => {};
+        }
+
+        const channel = window.Echo.private(`drawings.${activeDrawing.id}`);
+
+        channel.listen('.DrawingUpdated', (e) => {
+            // Don't update if this is the same drawing that was just saved by this client
+            const lastSavedByThisClient = saveStatus.lastSavedAt;
+            const serverUpdatedAt = new Date(e.updated_at);
+            
+            if (lastSavedByThisClient && serverUpdatedAt <= new Date(lastSavedByThisClient)) {
+                return; // Ignore updates that are from this client
+            }
+
+            // Update the drawing if it's different from what we have
+            if (e.document && JSON.stringify(e.document) !== JSON.stringify(activeDrawing.document)) {
+                loadDrawingIntoEditor({
+                    id: e.id,
+                    title: e.title,
+                    document: e.document,
+                    updated_at: e.updated_at,
+                });
+            }
+
+            // Update the drawings list if title changed
+            setDrawings(prev => prev.map(d => 
+                d.id === e.id ? { ...d, title: e.title, updated_at: e.updated_at } : d
+            ));
+        });
+
+        return () => {
+            channel.stopListening('.DrawingUpdated');
+            window.Echo.leaveChannel(`drawings.${activeDrawing.id}`);
+        };
+    }, [activeDrawing?.id, activeDrawing?.document, loadDrawingIntoEditor, saveStatus.lastSavedAt]);
+
     const statusBadge = useMemo(() => {
         if (saveStatus.isSaving) {
             return (
