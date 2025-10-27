@@ -188,9 +188,7 @@ Zettly uses Algolia for full-text search across todos, notes, and tags. The inte
 ### Setup
 
 1. **Create Algolia indexes** in your [Algolia Dashboard](https://www.algolia.com/dashboard):
-   - `zettly_todos` (or your preferred name)
-   - `zettly_notes`
-   - `zettly_tags`
+   - `zettly_search`
 
 2. **Set environment variables** in `.env`:
    ```env
