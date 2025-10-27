@@ -185,7 +185,7 @@ export default function WebSocketTest() {
         }
         
         return new Promise((resolve) => {
-            const testChannel = window.Echo.private('private-test.123');
+            const testChannel = window.Echo.private('test.123'); // Echo.private() will add private- prefix
             let subscriptionResolved = false;
             
             const timeout = setTimeout(() => {
