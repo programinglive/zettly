@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.40](https://github.com/programinglive/todo/compare/v0.5.39...v0.5.40) (2025-10-27)
+
+
+### ✨ Features
+
+* add sponsors section to homepage ([1879018](https://github.com/programinglive/todo/commit/1879018e1583bb416bc1513b501849984614ca54))
+
 ### [0.5.39](https://github.com/programinglive/todo/compare/v0.5.38...v0.5.39) (2025-10-27)
 
 
