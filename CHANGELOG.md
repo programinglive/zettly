@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.23](https://github.com/programinglive/todo/compare/v0.5.22...v0.5.23) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* revert to Laravel's built-in broadcasting routes ([9c5418a](https://github.com/programinglive/todo/commit/9c5418a01d0f5b21dc2dfa2b4ae881eec02dd422))
+
 ### [0.5.22](https://github.com/programinglive/todo/compare/v0.5.21...v0.5.22) (2025-10-27)
 
 
