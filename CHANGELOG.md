@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.2](https://github.com/programinglive/todo/compare/v0.5.1...v0.5.2) (2025-10-27)
+
+
+### ✨ Features
+
+* implement real-time live updates for drawing workspace ([a941497](https://github.com/programinglive/todo/commit/a941497caa1c33691288677093747eaf20111e8e))
+
 ### [0.5.1](https://github.com/programinglive/todo/compare/v0.4.28...v0.5.1) (2025-10-27)
 
 
