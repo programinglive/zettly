@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.21](https://github.com/programinglive/todo/compare/v0.5.20...v0.5.21) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* implement custom broadcast authentication with better debugging ([7765e71](https://github.com/programinglive/todo/commit/7765e71066102b327759acc2c8cf08686e4b06d0))
+
 ### [0.5.20](https://github.com/programinglive/todo/compare/v0.5.19...v0.5.20) (2025-10-27)
 
 
