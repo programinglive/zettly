@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.27](https://github.com/programinglive/todo/compare/v0.4.26...v0.4.27) (2025-10-27)
+
+
+### 🧹 Chores
+
+* bump dev workflow server dependency ([beefe47](https://github.com/programinglive/todo/commit/beefe470a514cfdd7ad53dc48dcf7ce53859750f))
+
 ### [0.4.26](https://github.com/programinglive/todo/compare/v0.4.25...v0.4.26) (2025-10-26)
 
 
