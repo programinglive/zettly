@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.22](https://github.com/programinglive/todo/compare/v0.5.21...v0.5.22) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* move system status to bottom left and fix 500 error ([c2adb94](https://github.com/programinglive/todo/commit/c2adb94a496c5f93abf0f83467433f27d9f7a165))
+
 ### [0.5.21](https://github.com/programinglive/todo/compare/v0.5.20...v0.5.21) (2025-10-27)
 
 
