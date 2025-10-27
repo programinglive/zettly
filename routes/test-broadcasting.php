@@ -48,6 +48,17 @@ Route::post('/broadcasting/auth', function (Request $request) {
     }
 
     try {
+        // Validate channel authorization using Laravel's channel system
+        $isAuthorized = authorizeChannel($channelName, auth()->user());
+        
+        if (!$isAuthorized) {
+            \Log::error('Broadcast auth: Channel access denied', [
+                'channel_name' => $channelName,
+                'user_id' => auth()->id(),
+            ]);
+            return response()->json(['error' => 'Channel access denied'], 403);
+        }
+
         $stringToSign = $socketId . ':' . $channelName;
         $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
         $authSignature = $pusherKey . ':' . $signature;
@@ -85,6 +96,32 @@ Route::post('/broadcasting/auth', function (Request $request) {
         ], 500);
     }
 })->middleware(['web', 'auth']);
+
+/**
+ * Helper function to authorize channel access using Laravel's channel system
+ */
+function authorizeChannel($channelName, $user) {
+    // Handle private-drawings.{id} channels
+    if (preg_match('/^private-drawings\.(\d+)$/', $channelName, $matches)) {
+        $drawingId = $matches[1];
+        $drawing = \App\Models\Drawing::find($drawingId);
+        
+        if (!$drawing) {
+            \Log::error('Drawing not found', ['drawing_id' => $drawingId]);
+            return false;
+        }
+        
+        return $drawing && $drawing->user_id === $user->id;
+    }
+    
+    // Handle test channels
+    if (preg_match('/^private-test\./', $channelName)) {
+        return true; // Allow authenticated users to access test channels
+    }
+    
+    \Log::warning('Unknown channel pattern', ['channel_name' => $channelName]);
+    return false;
+}
 
 // Simple test route for debugging auth responses (no conflicts with Laravel's default)
 Route::post('/test-broadcasting-auth-simple', function (Request $request) {
