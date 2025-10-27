@@ -1,6 +1,9 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
+// Log version for debugging
+console.log('🚀 Zettly v0.5.20 - WebSocket Module Loaded');
+
 // Configure Pusher
 window.Pusher = Pusher;
 
@@ -62,17 +65,25 @@ try {
 
                             // Prefer axios (configured in bootstrap.js) to ensure cookies and CSRF are sent
                             if (window.axios) {
+                                console.log('[WebSocket] Attempting authorization for channel:', channel.name);
+                                console.log('[WebSocket] Auth endpoint:', '/broadcasting/auth');
+                                console.log('[WebSocket] Payload:', payload);
+                                
                                 window.axios
                                     .post('/broadcasting/auth', payload, { withCredentials: true })
                                     .then((res) => {
                                         const data = res?.data;
                                         const status = res?.status;
+                                        const headers = res?.headers;
                                         
-                                        // Log response details for debugging
-                                        console.log('[WebSocket] Auth response:', {
+                                        // Log full response details for debugging
+                                        console.log('[WebSocket] Full auth response:', {
                                             status,
+                                            statusText: res?.statusText,
+                                            headers,
                                             data,
                                             dataType: typeof data,
+                                            dataLength: typeof data === 'string' ? data.length : 'N/A',
                                             channel: channel.name
                                         });
                                         
@@ -80,11 +91,12 @@ try {
                                         if (typeof data === 'string') {
                                             if (data.trim() === '') {
                                                 console.error('[WebSocket] Auth returned empty string response');
+                                                console.error('[WebSocket] This usually means the server returned an error page or the route is not properly configured');
                                                 callback(true, { error: 'Empty response from auth endpoint' });
                                                 return;
                                             }
                                             
-                                            console.error('[WebSocket] Auth returned non-JSON body (string):', data);
+                                            console.error('[WebSocket] Auth returned non-JSON body (string):', data.substring(0, 200) + (data.length > 200 ? '...' : ''));
                                             // Try to parse if it's supposed to be JSON
                                             try {
                                                 const parsed = JSON.parse(data);
@@ -111,10 +123,12 @@ try {
                                         const respData = err?.response?.data;
                                         console.error('[WebSocket] Authorization failed', { 
                                             status, 
+                                            statusText: err?.response?.statusText,
                                             respData,
                                             channel: channel.name,
                                             url: '/broadcasting/auth',
-                                            responseType: typeof respData
+                                            responseType: typeof respData,
+                                            headers: err?.response?.headers
                                         });
                                         
                                         // If we get HTML response (like a login page), it means user is not authenticated

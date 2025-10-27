@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class BroadcastServiceProvider extends ServiceProvider
@@ -12,8 +13,9 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Use Laravel's default broadcast routes with web and auth middleware
-        Broadcast::routes(['middleware' => ['web', 'auth']]);
+        // Use custom broadcast auth route with proper middleware
+        Route::post('/broadcasting/auth', [App\Http\Controllers\BroadcastAuthController::class, 'authenticate'])
+            ->middleware(['web', 'auth']);
 
         require base_path('routes/channels.php');
     }
