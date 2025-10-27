@@ -2,9 +2,9 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 // Log version for debugging with cache busting
-const version = import.meta.env.VITE_APP_VERSION || '0.5.36';
+const version = 'v0.5.37'; // This will be updated by git tag
 const timestamp = Date.now();
-console.log(`🚀 Zettly v${version} (${timestamp}) - WebSocket Module Loaded`);
+console.log(`🚀 Zettly ${version} (${timestamp}) - WebSocket Module Loaded`);
 
 // Force cache invalidation for Service Worker
 if ('serviceWorker' in navigator) {

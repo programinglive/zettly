@@ -59,10 +59,6 @@ Route::post('/broadcasting/auth', function (Request $request) {
             return response()->json(['error' => 'Channel access denied'], 403);
         }
 
-        $stringToSign = $socketId . ':' . $channelName;
-        $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
-        $authSignature = $pusherKey . ':' . $signature;
-
         $channelData = [
             'user_id' => auth()->id(),
             'user_info' => [
@@ -70,15 +66,23 @@ Route::post('/broadcasting/auth', function (Request $request) {
             ]
         ];
 
+        // IMPORTANT: For private channels, we must sign: socket_id:channel_name:channel_data
+        $channelDataJson = json_encode($channelData);
+        $stringToSign = $socketId . ':' . $channelName . ':' . $channelDataJson;
+        $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
+        $authSignature = $pusherKey . ':' . $signature;
+
         $response = [
             'auth' => $authSignature,
-            'channel_data' => json_encode($channelData)
+            'channel_data' => $channelDataJson
         ];
 
         \Log::info('Broadcast auth: Success', [
             'channel_name' => $channelName,
             'socket_id' => $socketId,
             'user_id' => auth()->id(),
+            'string_to_sign' => $stringToSign,
+            'signature' => $signature,
         ]);
 
         return response()->json($response);
@@ -150,10 +154,6 @@ Route::post('/test-broadcasting-auth-simple', function (Request $request) {
         return response()->json(['error' => 'Pusher not configured'], 500);
     }
 
-    $stringToSign = $socketId . ':' . $channelName;
-    $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
-    $authSignature = $pusherKey . ':' . $signature;
-
     $channelData = [
         'user_id' => auth()->id(),
         'user_info' => [
@@ -161,9 +161,22 @@ Route::post('/test-broadcasting-auth-simple', function (Request $request) {
         ]
     ];
 
+    // IMPORTANT: For private channels, we must sign: socket_id:channel_name:channel_data
+    $channelDataJson = json_encode($channelData);
+    $stringToSign = $socketId . ':' . $channelName . ':' . $channelDataJson;
+    $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
+    $authSignature = $pusherKey . ':' . $signature;
+
     return response()->json([
         'auth' => $authSignature,
-        'channel_data' => json_encode($channelData)
+        'channel_data' => $channelDataJson,
+        'debug' => [
+            'channel_name' => $channelName,
+            'socket_id' => $socketId,
+            'string_to_sign' => $stringToSign,
+            'signature_generated' => true,
+            'user_authenticated' => true
+        ]
     ]);
 })->middleware(['web', 'auth']);
 
