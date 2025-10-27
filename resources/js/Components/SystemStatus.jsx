@@ -166,7 +166,7 @@ export default function SystemStatus() {
     );
 
     return (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 left-4 z-50">
             <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
                 {/* Status Summary */}
                 <div className="flex items-center gap-2 p-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
