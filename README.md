@@ -73,12 +73,13 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 
 - **PHPUnit**
   ```bash
-  vendor\\bin\\phpunit --stop-on-failure
+  php artisan test
   ```
-- **Frontend filtering helper** (Node test runner)
+- **Frontend regression suites** (Node test runner)
   ```bash
-  node --test resources/js/Pages/Todos/__tests__/filterTodos.test.js
+  npm run test:js
   ```
+  The Node test suite now includes targeted regression coverage for the drawing workspace to ensure we never reintroduce the infinite render loop or passive event listener warnings on the TLDraw canvas.
 
 ## Features
 
@@ -96,6 +97,24 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
   - Context panel on the right that surfaces linked todos and metadata for the selected task
   - ✅ **Notes Mode** - Capture lightweight notes without due dates or priorities alongside your actionable todos
 - ✅ **Draw Workspace** - Open the TLDraw-powered canvas alongside Todos and Notes, create multiple sketches, and enjoy automatic autosave with persistent storage
+
+### Drawing Workspace
+
+The `/draw` experience introduces a multi-document sketching surface powered by TLDraw. Key capabilities:
+
+- **Multiple drawings per user** with lazy loading and caching for fast context switches.
+- **Autosave every keystroke** – snapshots queue up and debounce writes to the server, with persisted metadata stored in the new `drawings` table.
+- **Cross-session continuity** – drawings are restored on demand, including title edits, undo history, and last-saved status.
+- **Robust migration & seeding** – run `php artisan migrate` after updating to create the supporting schema; no seed data is required.
+
+> ℹ️ **Optional TLDraw License**: Set `VITE_TLDRAW_LICENSE_KEY` in `.env` if you have a commercial key. Leaving it blank falls back to the open core features.
+
+Behind the scenes, the app guards against runaway renders and browser warnings by:
+
+- Normalising snapshots before persisting them so corrupted TLDraw payloads are rejected gracefully.
+- Debouncing save operations and flushing pending writes when switching drawings.
+- Overriding passive event listeners up-front so TLDraw can call `preventDefault()` without triggering console spam.
+- Shipping regression tests (`DrawInfiniteLoopTest` and `DrawPassiveEventFixTest`) that enforce these guardrails during every CI run.
 
 ## Open Source Resources
 
