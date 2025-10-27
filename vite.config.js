@@ -20,19 +20,49 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'prompt',
-            strategies: 'injectManifest',
-            srcDir: 'resources/js',
-            filename: 'sw.js',
-            outDir: 'public',
-            injectManifest: {
-                globPatterns: [],
-                injectionPoint: undefined,
+            strategies: 'generateSW',
+            manifest: {
+                name: 'Zettly',
+                short_name: 'Zettly',
+                description: 'A modern todo and note-taking application',
+                theme_color: '#6366f1',
+                background_color: '#ffffff',
+                display: 'standalone',
+                orientation: 'portrait',
+                scope: '/',
+                start_url: '/',
+                icons: [
+                    {
+                        src: '/android-chrome-192x192.png',
+                        sizes: '192x192',
+                        type: 'image/png'
+                    },
+                    {
+                        src: '/android-chrome-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png'
+                    }
+                ]
             },
-            manifest: false,
-            scope: '/',
             devOptions: {
                 enabled: false,
             },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/api\.algolia\.net\/.*/i,
+                        handler: 'NetworkFirst',
+                        options: {
+                            cacheName: 'algolia-api-cache',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                            }
+                        }
+                    }
+                ]
+            }
         }),
     ],
     resolve: {

@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { CheckCircle, XCircle, AlertCircle, Info, RefreshCw } from 'lucide-react';
 
 export default function SystemStatus() {
     const page = usePage();
 
-    const resolveVersion = () =>
-        page?.props?.appVersion ?? import.meta.env.VITE_APP_VERSION ?? 'unknown';
+    const version = useMemo(() => 
+        page?.props?.appVersion ?? import.meta.env.VITE_APP_VERSION ?? 'unknown',
+        [page?.props?.appVersion]
+    );
 
     const [status, setStatus] = useState({
-        version: resolveVersion(),
+        version,
         websocket: { status: 'checking', message: 'Testing...' },
         pusher: { status: 'checking', message: 'Testing...' },
         authentication: { status: 'checking', message: 'Testing...' },
@@ -93,7 +95,7 @@ export default function SystemStatus() {
         setIsRefreshing(true);
         
         const newStatus = {
-            version: resolveVersion(),
+            version,
             websocket: checkWebSocket(),
             pusher: checkPusher(),
             authentication: checkAuthentication(),
