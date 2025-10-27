@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.44](https://github.com/programinglive/todo/compare/v0.5.43...v0.5.44) (2025-10-27)
+
+
+### ✨ Features
+
+* complete debug mode console suppression and fix drawing errors ([78867d1](https://github.com/programinglive/todo/commit/78867d10271c0e622ce02cbb0d1b133c9750ba48))
+
+
+### 🐛 Bug Fixes
+
+* resolve infinite loop requests in drawing switching ([602dfa3](https://github.com/programinglive/todo/commit/602dfa37ee8908e0a086bc053524220f7c1fcfa9))
+
 ### [0.5.43](https://github.com/programinglive/todo/compare/v0.5.42...v0.5.43) (2025-10-27)
 
 
