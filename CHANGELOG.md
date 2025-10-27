@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.10](https://github.com/programinglive/todo/compare/v0.5.9...v0.5.10) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* prevent infinite WebSocket reconnection loops ([ecb191e](https://github.com/programinglive/todo/commit/ecb191e39c89968724340e9137c56ba3ff2f5efe))
+
 ### [0.5.9](https://github.com/programinglive/todo/compare/v0.5.8...v0.5.9) (2025-10-27)
 
 
