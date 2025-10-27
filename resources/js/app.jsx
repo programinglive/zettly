@@ -8,15 +8,27 @@ import 'tldraw/tldraw.css';
 
 import { ThemeProvider } from './Components/theme-provider';
 
+// Debug mode helper function
+const isDebugMode = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('zettly-debug-mode') === 'true';
+    }
+    return false;
+};
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
             .register('/sw.js', { scope: '/' })
             .then((registration) => {
-                console.debug('Service worker registered', registration.scope);
+                if (isDebugMode()) {
+                    console.debug('Service worker registered', registration.scope);
+                }
             })
             .catch((error) => {
-                console.error('Service worker registration failed', error);
+                if (isDebugMode()) {
+                    console.error('Service worker registration failed', error);
+                }
             });
     });
 }

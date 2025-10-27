@@ -11,7 +11,7 @@ const drawIndexPath = join(__dirname, '..', 'Pages', 'Draw', 'Index.jsx');
 const drawIndexSource = readFileSync(drawIndexPath, 'utf8');
 
 test('Draw Index prevents infinite loop in loadDrawingIntoEditor', () => {
-    // Check that loadDrawingIntoEditor has empty dependency array
+    // Check that loadDrawingIntoEditor has only persistDrawing dependency
     const loadDrawingIntoEditorMatch = drawIndexSource.match(
         /const loadDrawingIntoEditor = useCallback\([\s\S]*?\}, \[(.*?)\]/
     );
@@ -24,8 +24,8 @@ test('Draw Index prevents infinite loop in loadDrawingIntoEditor', () => {
     const dependencies = loadDrawingIntoEditorMatch[1].trim();
     assert.strictEqual(
         dependencies,
-        '',
-        'Expected loadDrawingIntoEditor to have empty dependency array to prevent infinite loop'
+        'persistDrawing',
+        'Expected loadDrawingIntoEditor to only have persistDrawing dependency to prevent infinite loop'
     );
 });
 

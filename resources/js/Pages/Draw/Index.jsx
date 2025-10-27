@@ -15,6 +15,32 @@ const TldrawComponent = lazy(() => import('tldraw').then((module) => ({ default:
 
 const TL_DRAW_LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY;
 
+// Debug mode helper functions
+const isDebugMode = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('zettly-debug-mode') === 'true';
+    }
+    return false;
+};
+
+const debugLog = (...args) => {
+    if (isDebugMode()) {
+        console.log(...args);
+    }
+};
+
+const debugWarn = (...args) => {
+    if (isDebugMode()) {
+        console.warn(...args);
+    }
+};
+
+const debugError = (...args) => {
+    if (isDebugMode()) {
+        console.error(...args);
+    }
+};
+
 // Prevent passive event listener warnings globally for TLDraw
 // This must run before TLDraw initializes
 const originalAddEventListener = EventTarget.prototype.addEventListener;
@@ -47,16 +73,20 @@ const restoreEventListeners = () => {
 // Override immediately
 overrideEventListeners();
 
-// Suppress passive event listener warnings from TLDraw
+// Suppress passive event listener warnings from TLDraw (only in non-debug mode)
 const originalConsoleError = console.error;
 console.error = (...args) => {
     const message = args[0];
     if (typeof message === 'string' && 
         (message.includes('Unable to preventDefault inside passive event listener') ||
          message.includes('passive event listener'))) {
-        return; // Suppress passive event listener warnings
+        // Always suppress passive event listener warnings
+        return;
     }
-    originalConsoleError(...args);
+    // Only show other errors if debug mode is enabled
+    if (isDebugMode()) {
+        originalConsoleError(...args);
+    }
 };
 
 const cloneSnapshot = (snapshot) => {
@@ -221,7 +251,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     setSaveStatus((prev) => ({ ...prev, isSaving: false }));
                 }
             } catch (error) {
-                console.error(error);
+                debugError(error);
                 setSaveStatus((prev) => ({
                     ...prev,
                     isSaving: false,
@@ -303,7 +333,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         }
 
         editor.history.clear();
-    }, []);
+    }, [persistDrawing]);
 
     const loadDrawing = useCallback(
         async (id) => {
@@ -330,14 +360,14 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 drawingCacheRef.current.set(id, freshDrawing);
                 loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
-                console.error('Failed to load drawing:', error);
+                debugError('Failed to load drawing:', error);
                 setSaveStatus((prev) => ({
                     ...prev,
                     error: 'Unable to load this drawing. Please try again.',
                 }));
                 // If network fails, try to use cached version as fallback
                 if (cached) {
-                    console.log('Using cached version as fallback');
+                    debugLog('Using cached version as fallback');
                     loadDrawingIntoEditor(cached);
                 }
             } finally {
@@ -369,7 +399,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             setActiveId(data.drawing.id);
             loadDrawingIntoEditor(data.drawing);
         } catch (error) {
-            console.error(error);
+            debugError(error);
             setSaveStatus((prev) => ({
                 ...prev,
                 error: 'Unable to create a new drawing right now.',
@@ -434,7 +464,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 window.indexedDB.deleteDatabase(db.name);
             }
         } catch (error) {
-            console.warn('Could not clear TLDraw IndexedDB:', error);
+            debugWarn('Could not clear TLDraw IndexedDB:', error);
         }
 
         const rawSnapshot = editor.getSnapshot();
@@ -505,40 +535,40 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     // WebSocket listener for live updates
     useEffect(() => {
         if (!activeDrawing?.id || !window.Echo) {
-            console.log('[WebSocket] Skipping listener - activeDrawing:', !!activeDrawing?.id, 'Echo:', !!window.Echo);
+            debugLog('[WebSocket] Skipping listener - activeDrawing:', !!activeDrawing?.id, 'Echo:', !!window.Echo);
             return () => {};
         }
 
         const channelName = `drawings.${activeDrawing.id}`;
-        console.log('[WebSocket] Setting up listener for channel:', channelName);
+        debugLog('[WebSocket] Setting up listener for channel:', channelName);
         
         const channel = window.Echo.private(channelName);
 
         // Log subscription success
         channel.subscribed(() => {
-            console.log('[WebSocket] Successfully subscribed to:', channelName);
+            debugLog('[WebSocket] Successfully subscribed to:', channelName);
         });
 
         // Log subscription error
         channel.error((error) => {
-            console.error('[WebSocket] Subscription error for', channelName, ':', error);
+            debugError('[WebSocket] Subscription error for', channelName, ':', error);
         });
 
         channel.listen('.DrawingUpdated', (e) => {
-            console.log('[WebSocket] Received DrawingUpdated event:', e);
+            debugLog('[WebSocket] Received DrawingUpdated event:', e);
             
             // Don't update if this is the same drawing that was just saved by this client
             const lastSavedByThisClient = saveStatus.lastSavedAt;
             const serverUpdatedAt = new Date(e.updated_at);
             
             if (lastSavedByThisClient && serverUpdatedAt <= new Date(lastSavedByThisClient)) {
-                console.log('[WebSocket] Ignoring update from this client');
+                debugLog('[WebSocket] Ignoring update from this client');
                 return; // Ignore updates that are from this client
             }
 
             // Update the drawing if it's different from what we have
             if (e.document && JSON.stringify(e.document) !== JSON.stringify(activeDrawing.document)) {
-                console.log('[WebSocket] Updating drawing with new data');
+                debugLog('[WebSocket] Updating drawing with new data');
                 loadDrawingIntoEditor({
                     id: e.id,
                     title: e.title,
@@ -546,7 +576,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     updated_at: e.updated_at,
                 });
             } else {
-                console.log('[WebSocket] No update needed - document is the same');
+                debugLog('[WebSocket] No update needed - document is the same');
             }
 
             // Update the drawings list if title changed
@@ -556,7 +586,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         });
 
         return () => {
-            console.log('[WebSocket] Cleaning up listener for:', channelName);
+            debugLog('[WebSocket] Cleaning up listener for:', channelName);
             channel.stopListening('.DrawingUpdated');
             window.Echo.leaveChannel(channelName);
         };

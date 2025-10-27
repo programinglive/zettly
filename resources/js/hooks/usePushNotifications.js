@@ -2,6 +2,26 @@ import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import * as Sentry from '@sentry/react';
 
+// Debug mode helper function
+const isDebugMode = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('zettly-debug-mode') === 'true';
+    }
+    return false;
+};
+
+const debugWarn = (...args) => {
+    if (isDebugMode()) {
+        console.warn(...args);
+    }
+};
+
+const debugError = (...args) => {
+    if (isDebugMode()) {
+        console.error(...args);
+    }
+};
+
 export function usePushNotifications() {
     const [permission, setPermission] = useState(() =>
         typeof Notification === 'undefined' ? 'default' : Notification.permission
@@ -24,7 +44,7 @@ export function usePushNotifications() {
             .getRegistration()
             .then((registration) => {
                 if (!registration) {
-                    console.warn('No active service worker registration; push disabled');
+                    debugWarn('No active service worker registration; push disabled');
                     if (!cancelled) {
                         setIsSupported(false);
                     }
@@ -43,7 +63,7 @@ export function usePushNotifications() {
                 });
             })
             .catch((error) => {
-                console.error('Failed to inspect push subscription', error);
+                debugError('Failed to inspect push subscription', error);
                 if (!cancelled) {
                     setIsSupported(false);
                 }
@@ -56,7 +76,7 @@ export function usePushNotifications() {
 
     const requestPermission = useCallback(async () => {
         if (!isSupported) {
-            console.warn('Push notifications not supported');
+            debugWarn('Push notifications not supported');
             return false;
         }
 
@@ -72,7 +92,7 @@ export function usePushNotifications() {
 
             return false;
         } catch (error) {
-            console.error('Failed to request notification permission', error);
+            debugError('Failed to request notification permission', error);
             return false;
         }
     }, [isSupported]);
@@ -88,7 +108,7 @@ export function usePushNotifications() {
         try {
             const registration = await navigator.serviceWorker.getRegistration();
             if (!registration) {
-                console.warn('Cannot subscribe to push: no service worker registration');
+                debugWarn('Cannot subscribe to push: no service worker registration');
                 return false;
             }
             const subscription = await registration.pushManager.subscribe({
@@ -100,7 +120,7 @@ export function usePushNotifications() {
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             if (!csrfToken) {
-                console.warn('Push subscription could not locate CSRF token meta tag.');
+                debugWarn('Push subscription could not locate CSRF token meta tag.');
             }
 
             await axios.post(
@@ -128,7 +148,7 @@ export function usePushNotifications() {
             setIsSubscribed(true);
             return true;
         } catch (error) {
-            console.error('Failed to subscribe to push notifications', error);
+            debugError('Failed to subscribe to push notifications', error);
             Sentry.captureException(error, {
                 tags: {
                     component: 'usePushNotifications',
@@ -170,7 +190,7 @@ export function usePushNotifications() {
             setIsSubscribed(false);
             return true;
         } catch (error) {
-            console.error('Failed to unsubscribe from push notifications', error);
+            debugError('Failed to unsubscribe from push notifications', error);
             Sentry.captureException(error, {
                 tags: {
                     component: 'usePushNotifications',
