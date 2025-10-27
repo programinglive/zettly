@@ -62,7 +62,7 @@ export default function SystemStatus() {
         if (isAuthenticated) {
             return { status: 'success', message: `Logged in as ${page.props.auth.user.name}` };
         }
-        return { status: 'warning', message: 'Not authenticated' };
+        return { status: 'error', message: 'Not authenticated - WebSocket will not work' };
     };
 
     const checkAlgolia = () => {
@@ -163,7 +163,7 @@ export default function SystemStatus() {
 
     const allChecksPass = Object.values(status).every(
         item => typeof item === 'object' ? item.status === 'success' || item.status === 'info' : true
-    );
+    ) && status.authentication.status === 'success';
 
     return (
         <div className="fixed bottom-4 left-4 z-50">

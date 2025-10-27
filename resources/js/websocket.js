@@ -135,6 +135,9 @@ try {
                                         if (typeof respData === 'string' && respData.includes('<html')) {
                                             console.error('[WebSocket] User appears to be unauthenticated - received HTML response');
                                             callback(true, { error: 'User not authenticated' });
+                                        } else if (status === 302) {
+                                            console.error('[WebSocket] User not authenticated - received redirect to login');
+                                            callback(true, { error: 'User not authenticated' });
                                         } else if (status === 419) {
                                             console.error('[WebSocket] CSRF token mismatch');
                                             callback(true, { error: 'CSRF token expired' });
