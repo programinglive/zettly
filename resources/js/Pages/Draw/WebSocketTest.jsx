@@ -264,7 +264,7 @@ export default function WebSocketTest() {
         
         // Get the drawing ID from the page props or use a default
         const drawingId = page?.props?.drawing?.id || 2;
-        const channelName = `private-drawings.${drawingId}`;
+        const channelName = `drawings.${drawingId}`; // Echo.private() will add private- prefix
         
         return new Promise((resolve) => {
             const testChannel = window.Echo.private(channelName);
