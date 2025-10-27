@@ -30,9 +30,9 @@ test('Draw Index prevents infinite loop in loadDrawingIntoEditor', () => {
 });
 
 test('Draw Index has proper useEffect dependencies for loadDrawing', () => {
-    // Check that the useEffect calling loadDrawing only depends on activeId (not loadDrawing to prevent infinite loop)
+    // Check that the useEffect calling loadDrawing only depends on drawings, activeDrawing, and loadDrawing
     const useEffectMatch = drawIndexSource.match(
-        /useEffect\(\(\) => \{[\s\S]*?loadDrawing\(activeId\)[\s\S]*?\}, \[(.*?)\]/
+        /useEffect\(\(\) => \{[\s\S]*?loadDrawing\(drawings\[0\]\.id\)[\s\S]*?\}, \[(.*?)\]/
     );
     
     assert.ok(
@@ -42,13 +42,18 @@ test('Draw Index has proper useEffect dependencies for loadDrawing', () => {
     
     const dependencies = useEffectMatch[1].split(',').map(d => d.trim());
     assert.ok(
-        dependencies.includes('activeId'),
-        'Expected useEffect to depend on activeId'
+        dependencies.includes('drawings'),
+        'Expected useEffect to depend on drawings'
     );
     
     assert.ok(
-        !dependencies.includes('loadDrawing'),
-        'Expected useEffect to NOT depend on loadDrawing to prevent infinite loop'
+        dependencies.includes('activeDrawing'),
+        'Expected useEffect to depend on activeDrawing'
+    );
+    
+    assert.ok(
+        dependencies.includes('loadDrawing'),
+        'Expected useEffect to depend on loadDrawing'
     );
 });
 

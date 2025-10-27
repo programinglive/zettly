@@ -170,7 +170,6 @@ const formatTimestamp = (value) => {
 
 export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const [drawings, setDrawings] = useState(initialDrawings);
-    const [activeId, setActiveId] = useState(initialDrawings[0]?.id ?? null);
     const [activeDrawing, setActiveDrawing] = useState(null);
     const [titleDraft, setTitleDraft] = useState('');
     const [loadingDrawing, setLoadingDrawing] = useState(false);
@@ -188,7 +187,6 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const saveTimeoutRef = useRef(null);
     const pendingLoadRef = useRef(null);
     const drawingCacheRef = useRef(new Map());
-    const activeIdRef = useRef(null);
 
     // Ensure event listeners are overridden and restore on cleanup
     useEffect(() => {
@@ -346,7 +344,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             // Always load fresh data when switching drawings to avoid stale cache issues
             // But keep cache for performance optimization
             const cached = drawingCacheRef.current.get(id);
-            if (cached && activeIdRef.current === id) {
+            if (cached && activeDrawing?.id === id) {
                 // Only use cache if it's the currently active drawing (for saves/reloads)
                 loadDrawingIntoEditor(cached);
                 return;
@@ -375,7 +373,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 setLoadingDrawing(false);
             }
         },
-        [loadDrawingIntoEditor],
+        [loadDrawingIntoEditor, activeDrawing?.id],
     );
 
     const handleCreateDrawing = useCallback(async () => {
@@ -442,18 +440,6 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         [],
     );
 
-    const handleSelectDrawing = useCallback(
-        (id) => {
-            if (id === activeId) {
-                return;
-            }
-
-            flushPendingSave();
-            setActiveId(id);
-        },
-        [activeId, flushPendingSave],
-    );
-
     const handleEditorMount = useCallback(async (editor) => {
         editorRef.current = editor;
 
@@ -494,21 +480,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     }, []);
 
     useEffect(() => {
-        if (!activeId && drawings.length > 0) {
-            setActiveId(drawings[0].id);
+        // Only load the first drawing once per session - no switching
+        if (drawings.length > 0 && !activeDrawing) {
+            loadDrawing(drawings[0].id);
         }
-    }, [activeId, drawings]);
-
-    useEffect(() => {
-        if (activeId) {
-            loadDrawing(activeId);
-        }
-    }, [activeId]); // Remove loadDrawing dependency to prevent infinite loop
-
-    // Update activeIdRef when activeId changes
-    useEffect(() => {
-        activeIdRef.current = activeId;
-    }, [activeId]);
+    }, [drawings, activeDrawing, loadDrawing]);
 
     useEffect(() => {
         return () => {
@@ -641,60 +617,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     </p>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[280px,1fr]">
-                    <Card className="h-full">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-medium">Your sketches</CardTitle>
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={handleCreateDrawing}
-                                disabled={creating || !editorReady}
-                            >
-                                {creating ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Plus className="mr-2 h-4 w-4" />
-                                )}
-                                New drawing
-                            </Button>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            {drawings.length === 0 ? (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    No drawings yet. Create your first drawing to get started.
-                                </p>
-                            ) : (
-                                <ul className="space-y-2">
-                                    {drawings.map((drawing) => {
-                                        const isActive = drawing.id === activeId;
-
-                                        return (
-                                            <li key={drawing.id}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleSelectDrawing(drawing.id)}
-                                                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:border-indigo-500 hover:bg-indigo-50/60 dark:hover:border-indigo-400 dark:hover:bg-indigo-500/10 ${
-                                                        isActive
-                                                            ? 'border-indigo-500 bg-indigo-50/80 font-medium dark:border-indigo-400 dark:bg-indigo-500/10'
-                                                            : 'border-gray-200 dark:border-slate-800'
-                                                    }`}
-                                                >
-                                                    <div className="truncate font-medium text-gray-900 dark:text-gray-100">
-                                                        {drawing.title}
-                                                    </div>
-                                                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        Updated {formatTimestamp(drawing.updated_at)}
-                                                    </div>
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            )}
-                        </CardContent>
-                    </Card>
-
+                <div className="grid gap-6 lg:grid-cols-1">
                     <Card className="flex h-[75vh] flex-col overflow-hidden">
                         <CardHeader className="space-y-4 border-b border-gray-100 pt-4 pb-4 dark:border-slate-800">
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
