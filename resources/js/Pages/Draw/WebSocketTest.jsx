@@ -185,7 +185,7 @@ export default function WebSocketTest() {
         }
         
         return new Promise((resolve) => {
-            const testChannel = window.Echo.private('test-channel');
+            const testChannel = window.Echo.private('private-test.123');
             let subscriptionResolved = false;
             
             const timeout = setTimeout(() => {
@@ -193,7 +193,7 @@ export default function WebSocketTest() {
                     subscriptionResolved = true;
                     testChannel.unsubscribe();
                     resolve({
-                        status: 'warning',
+                        status: 'error',
                         message: 'Subscription timeout after 5 seconds (this may be normal for test channels)',
                         details: {
                             note: 'Test channels may not work without actual Pusher connection',
@@ -203,54 +203,62 @@ export default function WebSocketTest() {
                 }
             }, 5000);
             
-            // Listen for subscription success
+            // Enhanced subscription success handler
             testChannel.subscribed(() => {
                 if (!subscriptionResolved) {
                     subscriptionResolved = true;
                     clearTimeout(timeout);
-                    testChannel.unsubscribe();
+                    console.log('[WebSocket Test] Test channel subscription successful');
                     resolve({
                         status: 'success',
-                        message: 'Channel subscription successful'
+                        message: 'Test channel subscription successful',
+                        details: {
+                            channel_name: 'private-test.123',
+                            note: 'Test channel working correctly'
+                        }
                     });
                 }
             });
             
-            // Listen for subscription errors - this might not be available in all versions
-            try {
-                if (typeof testChannel.subscriptionError === 'function') {
-                    testChannel.subscriptionError((error) => {
-                        if (!subscriptionResolved) {
-                            subscriptionResolved = true;
-                            clearTimeout(timeout);
-                            testChannel.unsubscribe();
-                            resolve({
-                                status: 'error',
-                                message: `Subscription error: ${error?.message || 'Unknown error'}`
-                            });
+            // Enhanced subscription error handler
+            testChannel.error((error) => {
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
+                    clearTimeout(timeout);
+                    console.error('[WebSocket Test] Test channel subscription error:', error);
+                    resolve({
+                        status: 'error',
+                        message: `Channel error: ${error?.message || 'Unknown error'}`,
+                        details: {
+                            error: error,
+                            channel_name: 'private-test.123',
+                            suggestion: 'Check browser console for more details'
                         }
                     });
                 }
-            } catch (e) {
-                // subscriptionError method not available, continue with timeout
-            }
+            });
             
-            // Also listen for general errors
-            try {
-                testChannel.error((error) => {
-                    if (!subscriptionResolved) {
-                        subscriptionResolved = true;
-                        clearTimeout(timeout);
-                        testChannel.unsubscribe();
-                        resolve({
-                            status: 'error',
-                            message: `Channel error: ${error?.message || 'Unknown error'}`
-                        });
-                    }
-                });
-            } catch (e) {
-                // error method not available, continue with timeout
-            }
+            // Add additional debugging for Pusher events
+            testChannel.bind('pusher:subscription_succeeded', (data) => {
+                console.log('[WebSocket Test] Pusher subscription succeeded:', data);
+            });
+            
+            testChannel.bind('pusher:subscription_error', (error) => {
+                console.error('[WebSocket Test] Pusher subscription error:', error);
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
+                    clearTimeout(timeout);
+                    resolve({
+                        status: 'error',
+                        message: `Pusher subscription error: ${error?.message || 'Unknown error'}`,
+                        details: {
+                            error: error,
+                            channel_name: 'private-test.123',
+                            type: 'pusher_subscription_error'
+                        }
+                    });
+                }
+            });
         });
     };
 
