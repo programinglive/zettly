@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.28](https://github.com/programinglive/todo/compare/v0.4.27...v0.4.28) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* infinite loop and passive event listener warnings in drawing editor ([00fd1e4](https://github.com/programinglive/todo/commit/00fd1e49a64dea7966f8443780bcb7cf14bfc543))
+
 ### [0.4.27](https://github.com/programinglive/todo/compare/v0.4.26...v0.4.27) (2025-10-27)
 
 
