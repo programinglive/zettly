@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.41](https://github.com/programinglive/todo/compare/v0.5.40...v0.5.41) (2025-10-27)
+
+
+### ✨ Features
+
+* add debug mode toggle and fix drawing switching ([befbfc3](https://github.com/programinglive/todo/commit/befbfc34e1fe3a17600896b199b4545924e688cc))
+
 ### [0.5.40](https://github.com/programinglive/todo/compare/v0.5.39...v0.5.40) (2025-10-27)
 
 
