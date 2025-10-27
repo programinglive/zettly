@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.38](https://github.com/programinglive/todo/compare/v0.5.37...v0.5.38) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* correct HMAC signature for Pusher private channels ([f1a399a](https://github.com/programinglive/todo/commit/f1a399aa197ce37a75fc073b5edeadb5ca895d0d))
+
 ### [0.5.37](https://github.com/programinglive/todo/compare/v0.5.36...v0.5.37) (2025-10-27)
 
 
