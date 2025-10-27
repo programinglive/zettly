@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.34](https://github.com/programinglive/todo/compare/v0.5.33...v0.5.34) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* remove duplicate private prefix from channel names ([b416976](https://github.com/programinglive/todo/commit/b4169769b8dd5705d903f5093664d41cb7290956))
+
 ### [0.5.33](https://github.com/programinglive/todo/compare/v0.5.32...v0.5.33) (2025-10-27)
 
 
