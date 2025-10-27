@@ -18,8 +18,13 @@ class DrawingChannel
     /**
      * Authenticate the user's access to the channel.
      */
-    public function join(User $user, Drawing $drawing): bool
+    public function join(?User $user, Drawing $drawing): bool
     {
+        // If user is not authenticated, deny access
+        if (!$user) {
+            return false;
+        }
+        
         return $drawing->user_id === $user->id;
     }
 }

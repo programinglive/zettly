@@ -18,11 +18,21 @@ Broadcast::channel('drawings.{drawing}', \App\Broadcasting\DrawingChannel::class
 
 // TLDraw sync channels
 Broadcast::channel('tldraw-{drawingId}', function ($user, $drawingId) {
+    // If user is not authenticated, deny access
+    if (!$user) {
+        return false;
+    }
+    
     $drawing = Drawing::find($drawingId);
     return $drawing && $drawing->user_id === $user->id;
 });
 
 Broadcast::channel('tldraw-{drawingId}-presence', function ($user, $drawingId) {
+    // If user is not authenticated, deny access
+    if (!$user) {
+        return false;
+    }
+    
     $drawing = Drawing::find($drawingId);
     if (!$drawing || $drawing->user_id !== $user->id) {
         return false;
@@ -31,7 +41,7 @@ Broadcast::channel('tldraw-{drawingId}-presence', function ($user, $drawingId) {
     return [
         'id' => $user->id,
         'name' => $user->name,
-        'color' => $this->getUserColor($user->id),
+        'color' => getUserColor($user->id),
     ];
 });
 
