@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.13](https://github.com/programinglive/todo/compare/v0.5.12...v0.5.13) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* simplify broadcast authentication to use Laravel defaults ([edee952](https://github.com/programinglive/todo/commit/edee952ec836ab70a8d166268f5d237f771d36a6))
+
 ### [0.5.12](https://github.com/programinglive/todo/compare/v0.5.11...v0.5.12) (2025-10-27)
 
 
