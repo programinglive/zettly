@@ -44,14 +44,27 @@ class BroadcastDebugController extends Controller
                         
                         // Check if user owns the drawing
                         $user = Auth::user();
-                        if ($user && $user->drawings()->where('id', $drawingId)->exists()) {
-                            $data['channel_auth'] = 'authorized';
-                            $data['drawing_id'] = $drawingId;
-                            $data['user_owns_drawing'] = true;
+                        if ($user) {
+                            try {
+                                $drawing = \App\Models\Drawing::find($drawingId);
+                                if ($drawing && $drawing->user_id === $user->id) {
+                                    $data['channel_auth'] = 'authorized';
+                                    $data['drawing_id'] = $drawingId;
+                                    $data['drawing_owner_id'] = $drawing->user_id;
+                                    $data['user_owns_drawing'] = true;
+                                } else {
+                                    $data['channel_auth'] = 'unauthorized';
+                                    $data['drawing_id'] = $drawingId;
+                                    $data['drawing_owner_id'] = $drawing?->user_id;
+                                    $data['user_owns_drawing'] = false;
+                                    $data['reason'] = $drawing ? 'User does not own this drawing' : 'Drawing not found';
+                                }
+                            } catch (\Exception $e) {
+                                $data['channel_auth_error'] = $e->getMessage();
+                            }
                         } else {
                             $data['channel_auth'] = 'unauthorized';
-                            $data['drawing_id'] = $drawingId;
-                            $data['user_owns_drawing'] = false;
+                            $data['reason'] = 'User not authenticated';
                         }
                     } else {
                         $data['channel_auth'] = 'unknown_channel_format';
