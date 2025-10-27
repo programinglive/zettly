@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.32](https://github.com/programinglive/todo/compare/v0.5.31...v0.5.32) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* add missing draw.show route to resolve Ziggy error ([1149937](https://github.com/programinglive/todo/commit/11499374896ce83ef5c0cb7103cbc64bca8b8743))
+
 ### [0.5.31](https://github.com/programinglive/todo/compare/v0.5.30...v0.5.31) (2025-10-27)
 
 
