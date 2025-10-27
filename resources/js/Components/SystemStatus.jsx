@@ -5,8 +5,11 @@ import { CheckCircle, XCircle, AlertCircle, Info, RefreshCw } from 'lucide-react
 export default function SystemStatus() {
     const page = usePage();
 
+    const resolveVersion = () =>
+        page?.props?.appVersion ?? import.meta.env.VITE_APP_VERSION ?? 'unknown';
+
     const [status, setStatus] = useState({
-        version: import.meta.env.VITE_APP_VERSION || '0.5.13',
+        version: resolveVersion(),
         websocket: { status: 'checking', message: 'Testing...' },
         pusher: { status: 'checking', message: 'Testing...' },
         authentication: { status: 'checking', message: 'Testing...' },
@@ -90,7 +93,7 @@ export default function SystemStatus() {
         setIsRefreshing(true);
         
         const newStatus = {
-            version: import.meta.env.VITE_APP_VERSION || '0.5.13',
+            version: resolveVersion(),
             websocket: checkWebSocket(),
             pusher: checkPusher(),
             authentication: checkAuthentication(),
