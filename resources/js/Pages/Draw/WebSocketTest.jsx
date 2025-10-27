@@ -435,7 +435,31 @@ export default function WebSocketTest() {
                                          testName === 'realAuth' ? 'Real Broadcasting Auth' :
                                          testName === 'websocket' ? 'WebSocket Connection' :
                                          testName === 'channel' ? 'Channel Subscription (Test)' :
-                                         testName === 'realDrawing' ? 'Channel Subscription (Real Drawing)' : testName}
+                                         testName === 'realDrawing' ? <div className="mb-4">
+                                            <svg
+                                                className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
+                                                viewBox="0 0 100 32"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <rect width="32" height="32" rx="6" fill="#FF6B6B"/>
+                                                <path
+                                                    d="M8 16L12 12L16 16L20 12L24 16"
+                                                    stroke="white"
+                                                    strokeWidth="2.5"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                                <path
+                                                    d="M8 20L12 16L16 20L20 16L24 20"
+                                                    stroke="white"
+                                                    strokeWidth="2.5"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                                <text x="38" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B6B">tldraw</text>
+                                            </svg>
+                                        </div> : testName}
                                     </span>
                                     <span className={`text-sm ${getStatusColor(result.status)}`}>
                                         {result.message}
