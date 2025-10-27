@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.36](https://github.com/programinglive/todo/compare/v0.5.35...v0.5.36) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* add proper channel authorization to broadcasting auth ([bd467b7](https://github.com/programinglive/todo/commit/bd467b734d0589ae1c376a676614febe202ecd77))
+* enhance WebSocket debugging for channel subscriptions ([a3e38d7](https://github.com/programinglive/todo/commit/a3e38d788dbbf877c6ffc5ead7d4ad2ef8dce753))
+
 ### [0.5.35](https://github.com/programinglive/todo/compare/v0.5.34...v0.5.35) (2025-10-27)
 
 
