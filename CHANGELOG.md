@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.37](https://github.com/programinglive/todo/compare/v0.5.36...v0.5.37) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* enable comprehensive Pusher debugging and force cache refresh ([24f9ee7](https://github.com/programinglive/todo/commit/24f9ee76445951177da034880b4c3dc407910698))
+
 ### [0.5.36](https://github.com/programinglive/todo/compare/v0.5.35...v0.5.36) (2025-10-27)
 
 
