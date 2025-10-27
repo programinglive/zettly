@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.27](https://github.com/programinglive/todo/compare/v0.5.26...v0.5.27) (2025-10-27)
+
+
+### ✨ Features
+
+* add copy button and fix channel subscription test ([886f13a](https://github.com/programinglive/todo/commit/886f13ae7a6e7754024febd01c8b303d35f6dda0))
+
 ### [0.5.26](https://github.com/programinglive/todo/compare/v0.5.25...v0.5.26) (2025-10-27)
 
 
