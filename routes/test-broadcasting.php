@@ -12,6 +12,80 @@ Route::post('/test-broadcasting-debug', [BroadcastDebugController::class, 'debug
 
 Route::post('/test-broadcasting-simulate', [BroadcastDebugController::class, 'simulateAuth'])->middleware(['web', 'auth']);
 
+// Custom broadcasting auth route - properly configured
+Route::post('/broadcasting/auth', function (Request $request) {
+    $channelName = $request->input('channel_name');
+    $socketId = $request->input('socket_id');
+    
+    \Log::info('Custom broadcasting auth called', [
+        'channel_name' => $channelName,
+        'socket_id' => $socketId,
+        'user_authenticated' => auth()->check(),
+        'user_id' => auth()->id(),
+    ]);
+    
+    if (!$channelName || !$socketId) {
+        \Log::error('Broadcast auth: Missing parameters', [
+            'channel_name' => $channelName,
+            'socket_id' => $socketId,
+        ]);
+        return response()->json(['error' => 'Missing channel_name or socket_id'], 400);
+    }
+    
+    // Validate user is authenticated
+    if (!auth()->check()) {
+        \Log::error('Broadcast auth: User not authenticated');
+        return response()->json(['error' => 'User not authenticated'], 403);
+    }
+    
+    // Get Pusher configuration
+    $pusherKey = config('broadcasting.connections.pusher.key');
+    $pusherSecret = config('broadcasting.connections.pusher.secret');
+    
+    if (!$pusherKey || !$pusherSecret) {
+        \Log::error('Broadcast auth: Pusher not configured');
+        return response()->json(['error' => 'Pusher not configured'], 500);
+    }
+
+    try {
+        $stringToSign = $socketId . ':' . $channelName;
+        $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
+        $authSignature = $pusherKey . ':' . $signature;
+
+        $channelData = [
+            'user_id' => auth()->id(),
+            'user_info' => [
+                'name' => auth()->user()->name,
+            ]
+        ];
+
+        $response = [
+            'auth' => $authSignature,
+            'channel_data' => json_encode($channelData)
+        ];
+
+        \Log::info('Broadcast auth: Success', [
+            'channel_name' => $channelName,
+            'socket_id' => $socketId,
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json($response);
+
+    } catch (\Exception $e) {
+        \Log::error('Broadcast auth: Exception', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'channel_name' => $channelName,
+            'socket_id' => $socketId,
+        ]);
+
+        return response()->json([
+            'error' => 'Authorization failed: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['web', 'auth']);
+
 // Simple test route for debugging auth responses (no conflicts with Laravel's default)
 Route::post('/test-broadcasting-auth-simple', function (Request $request) {
     $channelName = $request->input('channel_name');
