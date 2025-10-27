@@ -1,9 +1,20 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-// Log version for debugging
-const version = import.meta.env.VITE_APP_VERSION || '0.5.24';
-console.log(`🚀 Zettly v${version} - WebSocket Module Loaded`);
+// Log version for debugging with cache busting
+const version = import.meta.env.VITE_APP_VERSION || '0.5.36';
+const timestamp = Date.now();
+console.log(`🚀 Zettly v${version} (${timestamp}) - WebSocket Module Loaded`);
+
+// Force cache invalidation for Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+            console.log('[WebSocket] Unregistering service worker to force cache refresh');
+            registration.unregister();
+        });
+    });
+}
 
 // Configure Pusher
 window.Pusher = Pusher;
@@ -45,6 +56,10 @@ try {
         console.warn('[WebSocket] Pusher app key not configured. Live updates disabled.');
         window.Echo = null;
     } else {
+        // Enable Pusher debug mode
+        Pusher.logToConsole = true;
+        console.log('[WebSocket] Pusher debug logging enabled');
+        
         // Check if user is authenticated before initializing Echo
         const isAuthenticated = document.querySelector('meta[name="user-id"]')?.content || 
                                document.querySelector('meta[name="csrf-token"]')?.content;
@@ -53,6 +68,7 @@ try {
             console.warn('[WebSocket] User not authenticated. Live updates disabled.');
             window.Echo = null;
         } else {
+            console.log('[WebSocket] Initializing Echo with Pusher');
             window.Echo = new Echo({
                 broadcaster: 'pusher',
                 key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -64,118 +80,46 @@ try {
                                 channel_name: channel.name,
                             };
 
+                            console.log('[WebSocket] === AUTHORIZATION START ===');
+                            console.log('[WebSocket] Channel:', channel.name);
+                            console.log('[WebSocket] Socket ID:', socketId);
+                            console.log('[WebSocket] Payload:', payload);
+
                             // Prefer axios (configured in bootstrap.js) to ensure cookies and CSRF are sent
                             if (window.axios) {
-                                console.log('[WebSocket] Attempting authorization for channel:', channel.name);
-                                console.log('[WebSocket] Auth endpoint:', '/broadcasting/auth');
-                                console.log('[WebSocket] Payload:', payload);
+                                console.log('[WebSocket] Using axios for authorization');
                                 
                                 window.axios
                                     .post('/broadcasting/auth', payload, { withCredentials: true })
                                     .then((res) => {
                                         const data = res?.data;
                                         const status = res?.status;
-                                        const headers = res?.headers;
                                         
-                                        // Log full response details for debugging
-                                        console.log('[WebSocket] Full auth response:', {
-                                            status,
-                                            statusText: res?.statusText,
-                                            headers,
-                                            data,
-                                            dataType: typeof data,
-                                            dataLength: typeof data === 'string' ? data.length : 'N/A',
-                                            channel: channel.name
-                                        });
-                                        
-                                        // Check if response is actually JSON
-                                        if (typeof data === 'string') {
-                                            if (data.trim() === '') {
-                                                console.error('[WebSocket] Auth returned empty string response');
-                                                console.error('[WebSocket] This usually means the server returned an error page or the route is not properly configured');
-                                                callback(true, { error: 'Empty response from auth endpoint' });
-                                                return;
-                                            }
-                                            
-                                            console.error('[WebSocket] Auth returned non-JSON body (string):', data.substring(0, 200) + (data.length > 200 ? '...' : ''));
-                                            // Try to parse if it's supposed to be JSON
-                                            try {
-                                                const parsed = JSON.parse(data);
-                                                console.log('[WebSocket] Authorized channel (parsed):', channel.name);
-                                                callback(false, parsed);
-                                            } catch (e) {
-                                                console.error('[WebSocket] Failed to parse string response:', e);
-                                                callback(true, { error: 'Invalid response from auth endpoint' });
-                                            }
-                                            return;
-                                        }
+                                        console.log('[WebSocket] === AUTH RESPONSE ===');
+                                        console.log('[WebSocket] Status:', status);
+                                        console.log('[WebSocket] Data:', data);
+                                        console.log('[WebSocket] Channel data type:', typeof data?.channel_data);
+                                        console.log('[WebSocket] Channel data valid JSON:', data?.channel_data && typeof data.channel_data === 'string' ? 'YES' : 'NO');
                                         
                                         if (!data || typeof data !== 'object') {
-                                            console.error('[WebSocket] Auth returned invalid response:', data);
+                                            console.error('[WebSocket] Invalid response format');
                                             callback(true, { error: 'Invalid response from auth endpoint' });
                                             return;
                                         }
                                         
-                                        console.log('[WebSocket] Authorized channel:', channel.name);
+                                        console.log('[WebSocket] ✅ Authorization successful');
                                         callback(false, data);
                                     })
                                     .catch((err) => {
-                                        const status = err?.response?.status;
-                                        const respData = err?.response?.data;
-                                        console.error('[WebSocket] Authorization failed', { 
-                                            status, 
-                                            statusText: err?.response?.statusText,
-                                            respData,
-                                            channel: channel.name,
-                                            url: '/broadcasting/auth',
-                                            responseType: typeof respData,
-                                            headers: err?.response?.headers
-                                        });
-                                        
-                                        // If we get HTML response (like a login page), it means user is not authenticated
-                                        if (typeof respData === 'string' && respData.includes('<html')) {
-                                            console.error('[WebSocket] User appears to be unauthenticated - received HTML response');
-                                            callback(true, { error: 'User not authenticated' });
-                                        } else if (status === 302) {
-                                            console.error('[WebSocket] User not authenticated - received redirect to login');
-                                            callback(true, { error: 'User not authenticated' });
-                                        } else if (status === 419) {
-                                            console.error('[WebSocket] CSRF token mismatch');
-                                            callback(true, { error: 'CSRF token expired' });
-                                        } else if (status === 401) {
-                                            console.error('[WebSocket] User not authenticated');
-                                            callback(true, { error: 'User not authenticated' });
-                                        } else {
-                                            callback(true, respData || { error: 'Authorization failed' });
-                                        }
+                                        console.error('[WebSocket] === AUTH ERROR ===');
+                                        console.error('[WebSocket] Error:', err);
+                                        console.error('[WebSocket] Status:', err?.response?.status);
+                                        console.error('[WebSocket] Response data:', err?.response?.data);
+                                        callback(true, err?.response?.data || { error: 'Authorization failed' });
                                     });
                             } else {
-                                // Fallback to fetch
-                                const token = document.querySelector('meta[name="csrf-token"]')?.content;
-                                fetch('/broadcasting/auth', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': token || '',
-                                    },
-                                    body: JSON.stringify(payload),
-                                    credentials: 'same-origin',
-                                })
-                                    .then(async (r) => {
-                                        const text = await r.text();
-                                        try {
-                                            const json = JSON.parse(text);
-                                            console.log('[WebSocket] Authorized channel:', channel.name);
-                                            callback(false, json);
-                                        } catch (e) {
-                                            console.error('[WebSocket] Auth returned non-JSON body');
-                                            callback(true, { error: 'Invalid JSON from auth endpoint' });
-                                        }
-                                    })
-                                    .catch((e) => {
-                                        console.error('[WebSocket] Authorization request error', e);
-                                        callback(true, { error: 'Authorization request failed' });
-                                    });
+                                console.error('[WebSocket] Axios not available');
+                                callback(true, { error: 'Axios not available' });
                             }
                         },
                     };
@@ -183,17 +127,33 @@ try {
                 ...pusherOptions,
             });
             
-            // Log connection status for debugging
-            window.Echo.connector.pusher.connection.bind('connected', () => {
-                console.log('[WebSocket] Connected to Pusher');
+            // Enhanced connection status logging
+            window.Echo.connector.pusher.connection.bind('connecting', () => {
+                console.log('[WebSocket] 🔄 Connecting to Pusher...');
             });
             
-            window.Echo.connector.pusher.connection.bind('error', (err) => {
-                console.error('[WebSocket] Connection error:', err);
+            window.Echo.connector.pusher.connection.bind('connected', () => {
+                console.log('[WebSocket] ✅ Connected to Pusher');
+                console.log('[WebSocket] Connection ID:', window.Echo.connector.pusher.connection.socket_id);
             });
             
             window.Echo.connector.pusher.connection.bind('disconnected', () => {
-                console.warn('[WebSocket] Disconnected from Pusher');
+                console.log('[WebSocket] ❌ Disconnected from Pusher');
+            });
+            
+            window.Echo.connector.pusher.connection.bind('error', (err) => {
+                console.error('[WebSocket] 💥 Connection error:', err);
+                console.error('[WebSocket] Error details:', {
+                    type: err?.type,
+                    error: err?.error?.data,
+                    code: err?.error?.data?.code,
+                    message: err?.error?.data?.message
+                });
+            });
+            
+            // Log all Pusher events for debugging
+            window.Echo.connector.pusher.bind_global((eventName, data) => {
+                console.log(`[WebSocket] 📡 Pusher event: ${eventName}`, data);
             });
         }
     }
