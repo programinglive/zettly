@@ -188,6 +188,110 @@ export default function Index({ message }) {
                 <p className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
                     Built for devs who code, create, and conquer — one task at a time.
                 </p>
+
+                {/* Sponsors Section */}
+                <section className="mt-16 mb-8">
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                            Proudly Powered By
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                            We're grateful for these amazing technologies that make Zettly possible.
+                        </p>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                        {/* Algolia Sponsor */}
+                        <a 
+                            href="https://www.algolia.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
+                        >
+                            <div className="mb-4">
+                                <svg
+                                    className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
+                                    viewBox="0 0 110 32"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M8.5 4.5C3.8 4.5 0 8.3 0 13s3.8 8.5 8.5 8.5 8.5-3.8 8.5-8.5-3.8-8.5-8.5-8.5zm0 13c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"
+                                        fill="#003DFF"
+                                    />
+                                    <text x="25" y="22" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#003DFF">Algolia</text>
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Algolia
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                                Powerful search API that delivers instant, relevant search results across all your drawings and content.
+                            </p>
+                            <div className="mt-4 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                algolia.com →
+                            </div>
+                        </a>
+
+                        {/* tldraw Sponsor */}
+                        <a 
+                            href="https://tldraw.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
+                        >
+                            <div className="mb-4">
+                                <svg
+                                    className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
+                                    viewBox="0 0 100 32"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <rect width="32" height="32" rx="6" fill="#FF6B6B"/>
+                                    <path
+                                        d="M8 16L12 12L16 16L20 12L24 16"
+                                        stroke="white"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        d="M8 20L12 16L16 20L20 16L24 20"
+                                        stroke="white"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <text x="38" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B6B">tldraw</text>
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                tldraw
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                                Open-source drawing library that provides the core canvas technology for our collaborative drawing experience.
+                            </p>
+                            <div className="mt-4 text-xs text-red-600 dark:text-red-400 font-medium">
+                                tldraw.com →
+                            </div>
+                        </a>
+                    </div>
+
+                    {/* Call to Action */}
+                    <div className="mt-8 text-center">
+                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-full">
+                            <span className="text-sm text-blue-700 dark:text-blue-300">
+                                Interested in sponsoring Zettly?
+                            </span>
+                            <a 
+                                href="mailto:sponsor@zettly.com"
+                                className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                            >
+                                Get in touch
+                            </a>
+                        </div>
+                    </div>
+                </section>
             </div>
         </PublicLayout>
     );
