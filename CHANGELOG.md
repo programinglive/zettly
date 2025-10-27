@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.9](https://github.com/programinglive/todo/compare/v0.5.8...v0.5.9) (2025-10-27)
+
+
+### ✨ Features
+
+* add broadcast authentication debug endpoint ([c54185b](https://github.com/programinglive/todo/commit/c54185b665d8b6f0d8c236b395ad2696e6c317dc))
+
+
+### 🐛 Bug Fixes
+
+* add missing drawings relationship and improve broadcast auth debugging ([f27579a](https://github.com/programinglive/todo/commit/f27579a6f723e01883282d4b27207efee29f4b3c))
+
 ### [0.5.8](https://github.com/programinglive/todo/compare/v0.5.7...v0.5.8) (2025-10-27)
 
 ### [0.5.7](https://github.com/programinglive/todo/compare/v0.5.6...v0.5.7) (2025-10-27)
