@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('draw', [DrawingController::class, 'store'])->name('draw.store');
     Route::get('/drawings/{drawing}/edit', [DrawingController::class, 'show'])->name('drawings.edit');
     Route::get('/drawings/{drawing}/test', [DrawingController::class, 'test'])->name('drawings.test');
+    Route::get('/drawings/{drawing}', [DrawingController::class, 'show'])->name('draw.show');
     Route::patch('draw/{drawing}', [DrawingController::class, 'update'])->name('draw.update');
 
     // File attachment routes
