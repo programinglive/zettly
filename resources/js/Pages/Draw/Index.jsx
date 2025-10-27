@@ -478,28 +478,48 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     // WebSocket listener for live updates
     useEffect(() => {
         if (!activeDrawing?.id || !window.Echo) {
+            console.log('[WebSocket] Skipping listener - activeDrawing:', !!activeDrawing?.id, 'Echo:', !!window.Echo);
             return () => {};
         }
 
-        const channel = window.Echo.private(`drawings.${activeDrawing.id}`);
+        const channelName = `drawings.${activeDrawing.id}`;
+        console.log('[WebSocket] Setting up listener for channel:', channelName);
+        
+        const channel = window.Echo.private(channelName);
+
+        // Log subscription success
+        channel.subscribed(() => {
+            console.log('[WebSocket] Successfully subscribed to:', channelName);
+        });
+
+        // Log subscription error
+        channel.error((error) => {
+            console.error('[WebSocket] Subscription error for', channelName, ':', error);
+        });
 
         channel.listen('.DrawingUpdated', (e) => {
+            console.log('[WebSocket] Received DrawingUpdated event:', e);
+            
             // Don't update if this is the same drawing that was just saved by this client
             const lastSavedByThisClient = saveStatus.lastSavedAt;
             const serverUpdatedAt = new Date(e.updated_at);
             
             if (lastSavedByThisClient && serverUpdatedAt <= new Date(lastSavedByThisClient)) {
+                console.log('[WebSocket] Ignoring update from this client');
                 return; // Ignore updates that are from this client
             }
 
             // Update the drawing if it's different from what we have
             if (e.document && JSON.stringify(e.document) !== JSON.stringify(activeDrawing.document)) {
+                console.log('[WebSocket] Updating drawing with new data');
                 loadDrawingIntoEditor({
                     id: e.id,
                     title: e.title,
                     document: e.document,
                     updated_at: e.updated_at,
                 });
+            } else {
+                console.log('[WebSocket] No update needed - document is the same');
             }
 
             // Update the drawings list if title changed
@@ -509,8 +529,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         });
 
         return () => {
+            console.log('[WebSocket] Cleaning up listener for:', channelName);
             channel.stopListening('.DrawingUpdated');
-            window.Echo.leaveChannel(`drawings.${activeDrawing.id}`);
+            window.Echo.leaveChannel(channelName);
         };
     }, [activeDrawing?.id, activeDrawing?.document, loadDrawingIntoEditor, saveStatus.lastSavedAt]);
 

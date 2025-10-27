@@ -13,7 +13,8 @@ const drawIndexSource = readFileSync(drawIndexPath, 'utf8');
 test('Draw Index includes WebSocket listener for live updates', () => {
     // Check that WebSocket listener is implemented
     assert.ok(
-        drawIndexSource.includes('window.Echo.private(`drawings.${activeDrawing.id}`)'),
+        drawIndexSource.includes('window.Echo.private(') &&
+        drawIndexSource.includes('drawings.${activeDrawing.id}'),
         'Expected to find WebSocket private channel listener for drawing updates'
     );
     
@@ -27,6 +28,13 @@ test('Draw Index includes WebSocket listener for live updates', () => {
     assert.ok(
         drawIndexSource.includes('window.Echo.leaveChannel'),
         'Expected to properly clean up WebSocket channels on unmount'
+    );
+    
+    // Check that debugging logs are added
+    assert.ok(
+        drawIndexSource.includes('[WebSocket]') &&
+        drawIndexSource.includes('console.log'),
+        'Expected to include WebSocket debugging logs'
     );
 });
 
