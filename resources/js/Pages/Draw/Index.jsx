@@ -440,6 +440,18 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         [],
     );
 
+    const handleSelectDrawing = useCallback(
+        (id) => {
+            if (activeDrawing?.id === id) {
+                return; // Already on this drawing
+            }
+
+            flushPendingSave();
+            loadDrawing(id);
+        },
+        [activeDrawing?.id, flushPendingSave, loadDrawing],
+    );
+
     const handleEditorMount = useCallback(async (editor) => {
         editorRef.current = editor;
 
@@ -623,29 +635,58 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="space-y-1">
                                     <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                                        {activeDrawing ? 'Canvas settings' : 'No drawing selected'}
+                                        Canvas
                                     </CardTitle>
                                     {statusBadge}
                                 </div>
-                                {activeDrawing ? (
-                                    <div className="flex w-full flex-col gap-2 text-sm lg:w-auto lg:flex-row lg:items-center">
+                                <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
+                                    {/* Drawing Selector */}
+                                    <div className="flex flex-col gap-1">
                                         <label
-                                            htmlFor="drawing-title"
+                                            htmlFor="drawing-selector"
                                             className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                                         >
-                                            Title
+                                            Sketch
                                         </label>
-                                        <Input
-                                            id="drawing-title"
-                                            value={titleDraft}
-                                            onChange={(event) => setTitleDraft(event.target.value)}
-                                            onBlur={handleTitleBlur}
-                                            onKeyDown={handleTitleKeyDown}
-                                            className="lg:w-64"
-                                            placeholder="Name your drawing"
-                                        />
+                                        <select
+                                            id="drawing-selector"
+                                            value={activeDrawing?.id || ''}
+                                            onChange={(e) => handleSelectDrawing(e.target.value)}
+                                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                                        >
+                                            {drawings.length === 0 ? (
+                                                <option value="">No sketches</option>
+                                            ) : (
+                                                drawings.map((drawing) => (
+                                                    <option key={drawing.id} value={drawing.id}>
+                                                        {drawing.title}
+                                                    </option>
+                                                ))
+                                            )}
+                                        </select>
                                     </div>
-                                ) : null}
+                                    
+                                    {/* Title Input */}
+                                    {activeDrawing ? (
+                                        <div className="flex flex-col gap-1">
+                                            <label
+                                                htmlFor="drawing-title"
+                                                className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                                            >
+                                                Title
+                                            </label>
+                                            <Input
+                                                id="drawing-title"
+                                                value={titleDraft}
+                                                onChange={(event) => setTitleDraft(event.target.value)}
+                                                onBlur={handleTitleBlur}
+                                                onKeyDown={handleTitleKeyDown}
+                                                className="lg:w-64"
+                                                placeholder="Name your drawing"
+                                            />
+                                        </div>
+                                    ) : null}
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="relative flex-1 overflow-hidden p-0">
