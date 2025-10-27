@@ -16,7 +16,8 @@ export default function SystemStatus() {
         pusher: { status: 'checking', message: 'Testing...' },
         authentication: { status: 'checking', message: 'Testing...' },
         algolia: { status: 'checking', message: 'Testing...' },
-        environment: { status: 'checking', message: 'Testing...' }
+        environment: { status: 'checking', message: 'Testing...' },
+        server: { status: 'checking', message: 'Testing...' }
     });
     const [isExpanded, setIsExpanded] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -91,6 +92,22 @@ export default function SystemStatus() {
         }
     };
 
+    const checkServer = async () => {
+        try {
+            const response = await fetch('/test-broadcasting');
+            if (!response.ok) {
+                return { status: 'error', message: `HTTP ${response.status}` };
+            }
+            const data = await response.json();
+            return { 
+                status: data.pusher_configured ? 'success' : 'warning', 
+                message: `v${data.app_version || 'unknown'}, Pusher: ${data.pusher_configured ? '✓' : '✗'}` 
+            };
+        } catch (error) {
+            return { status: 'error', message: error.message };
+        }
+    };
+
     const runChecks = async () => {
         setIsRefreshing(true);
         
@@ -100,7 +117,8 @@ export default function SystemStatus() {
             pusher: checkPusher(),
             authentication: checkAuthentication(),
             algolia: checkAlgolia(),
-            environment: checkEnvironment()
+            environment: checkEnvironment(),
+            server: await checkServer()
         };
         
         setStatus(newStatus);
@@ -228,6 +246,14 @@ export default function SystemStatus() {
                             <span className="font-medium">Environment:</span>
                             <span className={getStatusColor(status.environment.status)}>
                                 {status.environment.message}
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-xs">
+                            {getStatusIcon(status.server.status)}
+                            <span className="font-medium">Server:</span>
+                            <span className={getStatusColor(status.server.status)}>
+                                {status.server.message}
                             </span>
                         </div>
                         

@@ -2,7 +2,8 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 // Log version for debugging
-console.log('🚀 Zettly v0.5.20 - WebSocket Module Loaded');
+const version = import.meta.env.VITE_APP_VERSION || '0.5.24';
+console.log(`🚀 Zettly v${version} - WebSocket Module Loaded`);
 
 // Configure Pusher
 window.Pusher = Pusher;
