@@ -16,7 +16,8 @@ export default function WebSocketTest() {
                                    testName === 'auth' ? 'Test Auth Endpoint' :
                                    testName === 'realAuth' ? 'Real Broadcasting Auth' :
                                    testName === 'websocket' ? 'WebSocket Connection' :
-                                   testName === 'channel' ? 'Channel Subscription' : testName;
+                                   testName === 'channel' ? 'Channel Subscription (Test)' :
+                                   testName === 'realDrawing' ? 'Channel Subscription (Real Drawing)' : testName;
             
             let resultText = `${testDisplayName}: ${result.message}\n`;
             if (result.details) {
@@ -182,35 +183,49 @@ export default function WebSocketTest() {
         
         return new Promise((resolve) => {
             const testChannel = window.Echo.private('test-channel');
+            let subscriptionResolved = false;
             
             const timeout = setTimeout(() => {
-                testChannel.unsubscribe();
-                resolve({
-                    status: 'error',
-                    message: 'Subscription timeout after 5 seconds'
-                });
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
+                    testChannel.unsubscribe();
+                    resolve({
+                        status: 'warning',
+                        message: 'Subscription timeout after 5 seconds (this may be normal for test channels)',
+                        details: {
+                            note: 'Test channels may not work without actual Pusher connection',
+                            suggestion: 'Try testing with a real drawing channel instead'
+                        }
+                    });
+                }
             }, 5000);
             
             // Listen for subscription success
             testChannel.subscribed(() => {
-                clearTimeout(timeout);
-                testChannel.unsubscribe();
-                resolve({
-                    status: 'success',
-                    message: 'Channel subscription successful'
-                });
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
+                    clearTimeout(timeout);
+                    testChannel.unsubscribe();
+                    resolve({
+                        status: 'success',
+                        message: 'Channel subscription successful'
+                    });
+                }
             });
             
             // Listen for subscription errors - this might not be available in all versions
             try {
                 if (typeof testChannel.subscriptionError === 'function') {
                     testChannel.subscriptionError((error) => {
-                        clearTimeout(timeout);
-                        testChannel.unsubscribe();
-                        resolve({
-                            status: 'error',
-                            message: `Subscription error: ${error?.message || 'Unknown error'}`
-                        });
+                        if (!subscriptionResolved) {
+                            subscriptionResolved = true;
+                            clearTimeout(timeout);
+                            testChannel.unsubscribe();
+                            resolve({
+                                status: 'error',
+                                message: `Subscription error: ${error?.message || 'Unknown error'}`
+                            });
+                        }
                     });
                 }
             } catch (e) {
@@ -220,12 +235,112 @@ export default function WebSocketTest() {
             // Also listen for general errors
             try {
                 testChannel.error((error) => {
+                    if (!subscriptionResolved) {
+                        subscriptionResolved = true;
+                        clearTimeout(timeout);
+                        testChannel.unsubscribe();
+                        resolve({
+                            status: 'error',
+                            message: `Channel error: ${error?.message || 'Unknown error'}`
+                        });
+                    }
+                });
+            } catch (e) {
+                // error method not available, continue with timeout
+            }
+        });
+    };
+
+    const testRealDrawingSubscription = async () => {
+        if (!window.Echo) {
+            return {
+                status: 'error',
+                message: 'Echo not initialized'
+            };
+        }
+        
+        // Get the drawing ID from the page props or use a default
+        const drawingId = page?.props?.drawing?.id || 2;
+        const channelName = `private-drawings.${drawingId}`;
+        
+        return new Promise((resolve) => {
+            const testChannel = window.Echo.private(channelName);
+            let subscriptionResolved = false;
+            
+            const timeout = setTimeout(() => {
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
+                    testChannel.unsubscribe();
+                    resolve({
+                        status: 'warning',
+                        message: `Real drawing subscription timeout after 5 seconds`,
+                        details: {
+                            channel_name: channelName,
+                            drawing_id: drawingId,
+                            note: 'This may indicate an issue with the actual drawing channel'
+                        }
+                    });
+                }
+            }, 5000);
+            
+            // Listen for subscription success
+            testChannel.subscribed(() => {
+                if (!subscriptionResolved) {
+                    subscriptionResolved = true;
                     clearTimeout(timeout);
                     testChannel.unsubscribe();
                     resolve({
-                        status: 'error',
-                        message: `Channel error: ${error?.message || 'Unknown error'}`
+                        status: 'success',
+                        message: `Real drawing channel subscription successful`,
+                        details: {
+                            channel_name: channelName,
+                            drawing_id: drawingId
+                        }
                     });
+                }
+            });
+            
+            // Listen for subscription errors
+            try {
+                if (typeof testChannel.subscriptionError === 'function') {
+                    testChannel.subscriptionError((error) => {
+                        if (!subscriptionResolved) {
+                            subscriptionResolved = true;
+                            clearTimeout(timeout);
+                            testChannel.unsubscribe();
+                            resolve({
+                                status: 'error',
+                                message: `Real drawing subscription error: ${error?.message || 'Unknown error'}`,
+                                details: {
+                                    channel_name: channelName,
+                                    drawing_id: drawingId,
+                                    error: error?.message
+                                }
+                            });
+                        }
+                    });
+                }
+            } catch (e) {
+                // subscriptionError method not available, continue with timeout
+            }
+            
+            // Also listen for general errors
+            try {
+                testChannel.error((error) => {
+                    if (!subscriptionResolved) {
+                        subscriptionResolved = true;
+                        clearTimeout(timeout);
+                        testChannel.unsubscribe();
+                        resolve({
+                            status: 'error',
+                            message: `Real drawing channel error: ${error?.message || 'Unknown error'}`,
+                            details: {
+                                channel_name: channelName,
+                                drawing_id: drawingId,
+                                error: error?.message
+                            }
+                        });
+                    }
                 });
             } catch (e) {
                 // error method not available, continue with timeout
@@ -241,6 +356,7 @@ export default function WebSocketTest() {
         await runTest('realAuth', testRealBroadcastingAuth);
         await runTest('websocket', testWebSocketConnection);
         await runTest('channel', testChannelSubscription);
+        await runTest('realDrawing', testRealDrawingSubscription);
         
         setIsRunning(false);
     };
@@ -329,7 +445,8 @@ export default function WebSocketTest() {
                                          testName === 'auth' ? 'Test Auth Endpoint' :
                                          testName === 'realAuth' ? 'Real Broadcasting Auth' :
                                          testName === 'websocket' ? 'WebSocket Connection' :
-                                         testName === 'channel' ? 'Channel Subscription' : testName}
+                                         testName === 'channel' ? 'Channel Subscription (Test)' :
+                                         testName === 'realDrawing' ? 'Channel Subscription (Real Drawing)' : testName}
                                     </span>
                                     <span className={`text-sm ${getStatusColor(result.status)}`}>
                                         {result.message}
