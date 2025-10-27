@@ -19,13 +19,18 @@ if (import.meta.env.VITE_PUSHER_APP_CLUSTER) {
     pusherOptions.cluster = import.meta.env.VITE_PUSHER_APP_CLUSTER;
 }
 
-// Add custom host if available
+// Add custom host if available (for self-hosted or specific configurations)
 if (import.meta.env.VITE_PUSHER_HOST) {
     pusherOptions.wsHost = import.meta.env.VITE_PUSHER_HOST;
     pusherOptions.wssHost = import.meta.env.VITE_PUSHER_HOST;
     pusherOptions.wsPort = import.meta.env.VITE_PUSHER_PORT ?? 80;
     pusherOptions.wssPort = import.meta.env.VITE_PUSHER_PORT ?? 443;
     pusherOptions.forceTLS = (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https';
+    pusherOptions.enabledTransports = ['ws', 'wss'];
+    pusherOptions.disableStats = true;
+} else {
+    // Use standard Pusher hosts when no custom host is specified
+    pusherOptions.forceTLS = true;
     pusherOptions.enabledTransports = ['ws', 'wss'];
     pusherOptions.disableStats = true;
 }
@@ -49,6 +54,10 @@ try {
         
         window.Echo.connector.pusher.connection.bind('error', (err) => {
             console.error('[WebSocket] Connection error:', err);
+        });
+        
+        window.Echo.connector.pusher.connection.bind('disconnected', () => {
+            console.warn('[WebSocket] Disconnected from Pusher');
         });
     }
 } catch (error) {
