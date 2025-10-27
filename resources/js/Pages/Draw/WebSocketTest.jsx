@@ -1,13 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { CheckCircle, XCircle, AlertCircle, RefreshCw, Play, TestTube } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, RefreshCw, Play, TestTube, Copy, Check } from 'lucide-react';
 
 export default function WebSocketTest() {
     const page = usePage();
     const [testResults, setTestResults] = useState({});
     const [isRunning, setIsRunning] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const version = page?.props?.appVersion ?? import.meta.env.VITE_APP_VERSION ?? 'unknown';
+
+    const copyAllResults = () => {
+        const allResults = Object.entries(testResults).map(([testName, result]) => {
+            const testDisplayName = testName === 'server' ? 'Server Configuration' :
+                                   testName === 'auth' ? 'Test Auth Endpoint' :
+                                   testName === 'realAuth' ? 'Real Broadcasting Auth' :
+                                   testName === 'websocket' ? 'WebSocket Connection' :
+                                   testName === 'channel' ? 'Channel Subscription' : testName;
+            
+            let resultText = `${testDisplayName}: ${result.message}\n`;
+            if (result.details) {
+                resultText += `Details: ${JSON.stringify(result.details, null, 2)}\n`;
+            }
+            return resultText;
+        }).join('\n');
+
+        const fullReport = `WebSocket Integration Test Results - ${new Date().toISOString()}\n` +
+                          `Version: ${version}\n` +
+                          `${'='.repeat(50)}\n${allResults}`;
+
+        navigator.clipboard.writeText(fullReport).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
 
     const runTest = async (testName, testFunction) => {
         setTestResults(prev => ({ ...prev, [testName]: { status: 'running', message: 'Testing...' } }));
@@ -30,10 +56,28 @@ export default function WebSocketTest() {
         }
         const data = await response.json();
         
+        // Check for critical issues
+        const issues = [];
+        if (data.broadcast_driver !== 'pusher') {
+            issues.push(`Broadcast driver is "${data.broadcast_driver}" instead of "pusher"`);
+        }
+        if (data.app_version === 'unknown') {
+            issues.push('App version is unknown - server may not be updated');
+        }
+        if (!data.csrf_token_configured) {
+            issues.push('CSRF token not configured');
+        }
+        
+        const status = issues.length > 0 ? 'error' : (data.pusher_configured ? 'success' : 'warning');
+        const message = issues.length > 0 
+            ? `Issues: ${issues.join(', ')}`
+            : `v${data.app_version}, Pusher: ${data.pusher_configured ? '✓' : '✗'}`;
+        
         return {
-            status: data.pusher_configured ? 'success' : 'warning',
-            message: `v${data.app_version}, Pusher: ${data.pusher_configured ? '✓' : '✗'}`,
-            details: data
+            status,
+            message,
+            details: data,
+            issues
         };
     };
 
@@ -143,11 +187,11 @@ export default function WebSocketTest() {
                 testChannel.unsubscribe();
                 resolve({
                     status: 'error',
-                    message: 'Subscription timeout'
+                    message: 'Subscription timeout after 5 seconds'
                 });
             }, 5000);
             
-            // This will be called when subscription succeeds or fails
+            // Listen for subscription success
             testChannel.subscribed(() => {
                 clearTimeout(timeout);
                 testChannel.unsubscribe();
@@ -157,14 +201,35 @@ export default function WebSocketTest() {
                 });
             });
             
-            testChannel.subscriptionError((error) => {
-                clearTimeout(timeout);
-                testChannel.unsubscribe();
-                resolve({
-                    status: 'error',
-                    message: `Subscription error: ${error?.message || 'Unknown error'}`
+            // Listen for subscription errors - this might not be available in all versions
+            try {
+                if (typeof testChannel.subscriptionError === 'function') {
+                    testChannel.subscriptionError((error) => {
+                        clearTimeout(timeout);
+                        testChannel.unsubscribe();
+                        resolve({
+                            status: 'error',
+                            message: `Subscription error: ${error?.message || 'Unknown error'}`
+                        });
+                    });
+                }
+            } catch (e) {
+                // subscriptionError method not available, continue with timeout
+            }
+            
+            // Also listen for general errors
+            try {
+                testChannel.error((error) => {
+                    clearTimeout(timeout);
+                    testChannel.unsubscribe();
+                    resolve({
+                        status: 'error',
+                        message: `Channel error: ${error?.message || 'Unknown error'}`
+                    });
                 });
-            });
+            } catch (e) {
+                // error method not available, continue with timeout
+            }
         });
     };
 
@@ -229,14 +294,24 @@ export default function WebSocketTest() {
                                     v{version}
                                 </span>
                             </div>
-                            <button
-                                onClick={runAllTests}
-                                disabled={isRunning}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <RefreshCw className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
-                                {isRunning ? 'Running Tests...' : 'Run All Tests'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={copyAllResults}
+                                    disabled={Object.keys(testResults).length === 0}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    {copied ? 'Copied!' : 'Copy Results'}
+                                </button>
+                                <button
+                                    onClick={runAllTests}
+                                    disabled={isRunning}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <RefreshCw className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
+                                    {isRunning ? 'Running Tests...' : 'Run All Tests'}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -260,6 +335,17 @@ export default function WebSocketTest() {
                                         {result.message}
                                     </span>
                                 </div>
+                                
+                                {result.issues && (
+                                    <div className="mb-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                                        <div className="text-sm text-red-700 dark:text-red-300 font-medium">Critical Issues:</div>
+                                        <ul className="text-sm text-red-600 dark:text-red-400 list-disc list-inside">
+                                            {result.issues.map((issue, index) => (
+                                                <li key={index}>{issue}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                                 
                                 {result.details && (
                                     <details className="mt-2">
