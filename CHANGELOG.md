@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.18](https://github.com/programinglive/todo/compare/v0.5.17...v0.5.18) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* resolve TLDraw validation errors and WebSocket auth issues ([a320b92](https://github.com/programinglive/todo/commit/a320b926d0bfad8d2083caea1352c9907cf3243c))
+
 ### [0.5.17](https://github.com/programinglive/todo/compare/v0.5.16...v0.5.17) (2025-10-27)
 
 
