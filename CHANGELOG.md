@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.35](https://github.com/programinglive/todo/compare/v0.5.34...v0.5.35) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* remove conflicting custom broadcasting auth route ([956dc55](https://github.com/programinglive/todo/commit/956dc552c0be337b9055a19555efdbfa6ac03196))
+* restore custom broadcasting auth route with proper configuration ([186de2c](https://github.com/programinglive/todo/commit/186de2cc3bfe88a854395ad9efe70a6082894453))
+
 ### [0.5.34](https://github.com/programinglive/todo/compare/v0.5.33...v0.5.34) (2025-10-27)
 
 
