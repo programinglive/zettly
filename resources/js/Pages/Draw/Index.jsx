@@ -533,7 +533,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             channel.stopListening('.DrawingUpdated');
             window.Echo.leaveChannel(channelName);
         };
-    }, [activeDrawing?.id, activeDrawing?.document, loadDrawingIntoEditor, saveStatus.lastSavedAt]);
+    }, [activeDrawing?.id, loadDrawingIntoEditor]);
 
     const statusBadge = useMemo(() => {
         if (saveStatus.isSaving) {
