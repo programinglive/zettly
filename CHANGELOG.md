@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.28](https://github.com/programinglive/todo/compare/v0.5.27...v0.5.28) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* configure broadcast driver and version properly ([06be773](https://github.com/programinglive/todo/commit/06be773ff8592ad5371cab5f0fb1cbe31945d8a2))
+
 ### [0.5.27](https://github.com/programinglive/todo/compare/v0.5.26...v0.5.27) (2025-10-27)
 
 
