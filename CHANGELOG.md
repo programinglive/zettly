@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.11](https://github.com/programinglive/todo/compare/v0.5.10...v0.5.11) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* resolve CSRF and authentication issues for broadcast routes ([735ddbb](https://github.com/programinglive/todo/commit/735ddbbfb84c4b10bd85bcbdcbbd4f1f5da7855c))
+
 ### [0.5.10](https://github.com/programinglive/todo/compare/v0.5.9...v0.5.10) (2025-10-27)
 
 
