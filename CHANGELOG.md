@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.25](https://github.com/programinglive/todo/compare/v0.5.24...v0.5.25) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* make version dynamic and add server debugging ([94ba5ff](https://github.com/programinglive/todo/commit/94ba5ffbf9e9dcd5136b1f9a5bbade98aa232766))
+
 ### [0.5.24](https://github.com/programinglive/todo/compare/v0.5.23...v0.5.24) (2025-10-27)
 
 
