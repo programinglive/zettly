@@ -237,28 +237,6 @@ export default function WebSocketTest() {
                     });
                 }
             });
-            
-            // Add additional debugging for Pusher events
-            testChannel.bind('pusher:subscription_succeeded', (data) => {
-                console.log('[WebSocket Test] Pusher subscription succeeded:', data);
-            });
-            
-            testChannel.bind('pusher:subscription_error', (error) => {
-                console.error('[WebSocket Test] Pusher subscription error:', error);
-                if (!subscriptionResolved) {
-                    subscriptionResolved = true;
-                    clearTimeout(timeout);
-                    resolve({
-                        status: 'error',
-                        message: `Pusher subscription error: ${error?.message || 'Unknown error'}`,
-                        details: {
-                            error: error,
-                            channel_name: 'private-test.123',
-                            type: 'pusher_subscription_error'
-                        }
-                    });
-                }
-            });
         });
     };
 
