@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.4](https://github.com/programinglive/todo/compare/v0.5.3...v0.5.4) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* resolve WebSocket connection error by using standard Pusher hosts ([ef9d5da](https://github.com/programinglive/todo/commit/ef9d5da98ea02b4bd6f2c7f3afc857634b4187dd))
+
 ### [0.5.3](https://github.com/programinglive/todo/compare/v0.5.2...v0.5.3) (2025-10-27)
 
 
