@@ -4,6 +4,20 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 
 ## Bug Fixes
 
+### Draw TypeError on navigation (2025-10-28)
+
+**Problem**: Returning to the `/draw` gallery triggered a runtime `TypeError: h is not a function`, crashing the TLDraw canvas.
+
+**Solution**:
+- Replaced the stale `setActiveId` call with the existing `setActiveDrawing` setter
+- Simplified the TLDraw component integration by removing problematic props (`onChange`, `inferDarkMode`)
+- Reduced the editor mount logic to essential setup to avoid invalid listener hookups
+- Added targeted Node-based regression tests under `tests/js/Draw.test.js`
+
+**Files Changed**:
+- `resources/js/Pages/Draw/Index.jsx`
+- `tests/js/Draw.test.js`
+
 ### Infinite Loop in Drawing Editor (2025-10-27)
 
 **Problem**: The drawing page (`/draw`) was causing infinite re-renders due to a dependency chain in React hooks:

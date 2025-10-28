@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     DefaultColorStyle,
     DefaultDashStyle,
@@ -9,7 +9,8 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import { Input } from '../../Components/ui/input';
-import { Loader2, Plus } from 'lucide-react';
+import { ChevronLeft, Download, Loader2, Plus, Trash2, Check, Edit, Eye } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 const TldrawComponent = lazy(() => import('tldraw').then((module) => ({ default: module.Tldraw })));
 
@@ -168,9 +169,140 @@ const formatTimestamp = (value) => {
     }
 };
 
+// Gallery view component
+const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle, creating }) => {
+    const [editingId, setEditingId] = useState(null);
+    const [editTitle, setEditTitle] = useState('');
+
+    // Local debounce for title autosave in gallery
+    const galleryTitleSaveTimeoutRef = useRef(null);
+
+    const autoSaveGalleryTitle = useCallback((id, title) => {
+        if (galleryTitleSaveTimeoutRef.current) {
+            clearTimeout(galleryTitleSaveTimeoutRef.current);
+        }
+        galleryTitleSaveTimeoutRef.current = setTimeout(() => {
+            const current = drawings.find(d => d.id === id)?.title ?? '';
+            const trimmed = title.trim();
+            if (trimmed && trimmed !== current) {
+                onEditTitle(id, trimmed);
+            }
+        }, 1000);
+    }, [drawings, onEditTitle]);
+
+    const handleEdit = (drawing) => {
+        setEditingId(drawing.id);
+        setEditTitle(drawing.title);
+    };
+
+    const handleSave = async (id) => {
+        if (editTitle.trim() && editTitle !== drawings.find(d => d.id === id)?.title) {
+            await onEditTitle(id, editTitle.trim());
+        }
+        setEditingId(null);
+        setEditTitle('');
+    };
+
+    const handleCancel = () => {
+        setEditingId(null);
+        setEditTitle('');
+    };
+
+    return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {drawings.map((drawing) => (
+                <Card key={drawing.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardHeader className="p-4 pb-2">
+                        <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3">
+                            <div className="text-gray-400 dark:text-gray-500 text-sm text-center">
+                                {drawing.title}
+                            </div>
+                        </div>
+                        <div className="flex items-start justify-between gap-2">
+                            {editingId === drawing.id ? (
+                                <Input
+                                    value={editTitle}
+                                    onChange={(e) => {
+                                    setEditTitle(e.target.value);
+                                    autoSaveGalleryTitle(drawing.id, e.target.value);
+                                }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSave(drawing.id);
+                                        if (e.key === 'Escape') handleCancel();
+                                    }}
+                                    onBlur={() => handleSave(drawing.id)}
+                                    className="text-sm h-7"
+                                    autoFocus
+                                />
+                            ) : (
+                                <CardTitle 
+                                    className="text-sm font-medium truncate flex-1"
+                                    onClick={() => onDrawingClick(drawing.id)}
+                                >
+                                    {drawing.title}
+                                </CardTitle>
+                            )}
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(drawing)}
+                                    className="h-7 w-7 p-0"
+                                >
+                                    <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => onDeleteDrawing(drawing.id)}
+                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>Last updated {formatTimestamp(drawing.updated_at)}</span>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onDrawingClick(drawing.id)}
+                                className="h-6 px-2 text-xs"
+                            >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Open
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+            <Card className="border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-6">
+                        <Button 
+                            onClick={() => router.get('/draw/create')}
+                            disabled={creating}
+                            className="w-full"
+                        >
+                            {creating ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Plus className="mr-2 h-4 w-4" />
+                            )}
+                            New Drawing
+                        </Button>
+                    </CardContent>
+                </Card>
+        </div>
+    );
+};
+
 export default function DrawIndex({ drawings: initialDrawings = [] }) {
+    const { props } = usePage();
+    const isGallery = !props.drawing; // If no drawing prop, we're on the gallery page
     const [drawings, setDrawings] = useState(initialDrawings);
-    const [activeDrawing, setActiveDrawing] = useState(null);
+    const [activeDrawing, setActiveDrawing] = useState(props.drawing || null);
     const [titleDraft, setTitleDraft] = useState('');
     const [loadingDrawing, setLoadingDrawing] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -182,6 +314,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const [editorReady, setEditorReady] = useState(false);
 
     const editorRef = useRef(null);
+    const suppressAutosaveRef = useRef(false);
     const blankSnapshotRef = useRef(null);
     const pendingSnapshotRef = useRef(null);
     const saveTimeoutRef = useRef(null);
@@ -196,9 +329,55 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         };
     }, []);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return () => {};
+        }
+
+        const handleWindowError = (event) => {
+            if (!event) return;
+            const error = event.error || new Error(event.message || 'Unknown window error');
+            debugError('[Draw] Capturing window error for Sentry:', error);
+            Sentry.captureException(error, {
+                tags: {
+                    component: 'DrawIndex',
+                    source: 'window.error',
+                },
+                extra: {
+                    filename: event.filename,
+                    lineno: event.lineno,
+                    colno: event.colno,
+                },
+            });
+        };
+
+        const handleUnhandledRejection = (event) => {
+            if (!event) return;
+            const reason = event.reason instanceof Error ? event.reason : new Error(`Unhandled rejection: ${event.reason}`);
+            debugError('[Draw] Capturing unhandled rejection for Sentry:', reason);
+            Sentry.captureException(reason, {
+                tags: {
+                    component: 'DrawIndex',
+                    source: 'window.unhandledrejection',
+                },
+            });
+        };
+
+        window.addEventListener('error', handleWindowError);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+        return () => {
+            window.removeEventListener('error', handleWindowError);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+    }, []);
+
     const persistDrawing = useCallback(
         async (id, payload, { announce = true } = {}) => {
+            debugLog('[Draw] persistDrawing called:', { id, payloadKeys: Object.keys(payload), announce });
+            
             if (!id) {
+                debugLog('[Draw] No drawing ID provided, skipping persist');
                 return;
             }
 
@@ -222,65 +401,96 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                       }
                     : payload;
 
-                const { data } = await window.axios.patch(route('draw.update', { drawing: id }), normalizedPayload);
+                debugLog('[Draw] Sending to server:', {
+                    id,
+                    hasDocument: !!normalizedPayload.document,
+                    documentType: typeof normalizedPayload.document,
+                    documentKeys: normalizedPayload.document ? Object.keys(normalizedPayload.document) : [],
+                    hasStore: !!normalizedPayload.document?.store,
+                    storeKeys: normalizedPayload.document?.store ? Object.keys(normalizedPayload.document.store) : [],
+                    shapeCount: normalizedPayload.document?.store ? 
+                        Object.keys(normalizedPayload.document.store).filter(key => key.startsWith('shape:')).length : 0
+                });
 
-                drawingCacheRef.current.set(id, data.drawing);
+                const { data } = await window.axios.patch(route('draw.update', { drawing: id }), normalizedPayload);
+                
+                debugLog('[Draw] ✅ SUCCESS! Server response:', data.status, data);
+                
+                // Show success alert for debugging
+                if (announce) {
+                    alert('✅ Drawing saved successfully to database! ID: ' + id + ' | Shapes: ' + (normalizedPayload.document?.store ? Object.keys(normalizedPayload.document.store).length : 0));
+                }
+                
+                // DISABLED: Don't update cache
+                // drawingCacheRef.current.set(id, data.drawing);
                 setActiveDrawing((previous) =>
                     previous && previous.id === id ? data.drawing : previous,
                 );
                 setDrawings((previous) =>
-                    previous.map((item) =>
-                        item.id === id
-                            ? {
-                                  ...item,
-                                  title: data.drawing.title,
-                                  updated_at: data.drawing.updated_at,
-                              }
-                            : item,
+                    previous.map((drawing) =>
+                        drawing.id === id ? data.drawing : drawing,
                     ),
                 );
-
-                if (announce) {
-                    setSaveStatus({
-                        isSaving: false,
-                        lastSavedAt: data.drawing.updated_at,
-                        error: null,
-                    });
-                } else {
-                    setSaveStatus((prev) => ({ ...prev, isSaving: false }));
-                }
+                setSaveStatus((prev) => ({
+                    ...prev,
+                    isSaving: false,
+                    lastSavedAt: data.drawing.updated_at,
+                    error: null,
+                }));
             } catch (error) {
-                debugError(error);
+                debugError('[Draw] Failed to persist drawing:', error);
+                Sentry.captureException(error, {
+                    tags: {
+                        component: 'DrawIndex',
+                        action: 'persistDrawing',
+                    },
+                    extra: {
+                        drawingId: id,
+                        hasDocument: !!payload?.document,
+                    },
+                });
                 setSaveStatus((prev) => ({
                     ...prev,
                     isSaving: false,
                     error: 'Failed to save drawing. Changes will retry shortly.',
                 }));
+                saveTimeoutRef.current = null;
             }
         },
-        [activeDrawing?.document, activeDrawing?.title],
+        [activeDrawing?.title],
     );
-
-    const flushPendingSave = useCallback(() => {
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-            saveTimeoutRef.current = null;
-        }
-
-        if (pendingSnapshotRef.current && activeDrawing?.id) {
-            const snapshot = pendingSnapshotRef.current;
-            pendingSnapshotRef.current = null;
-            persistDrawing(activeDrawing.id, { document: snapshot }, { announce: false });
-        }
-    }, [activeDrawing?.id, persistDrawing]);
 
     const queueSave = useCallback(
         (snapshot) => {
-            if (!activeDrawing?.id) {
+            if (suppressAutosaveRef.current) {
+                debugLog('[Draw] ⏸️ queueSave suppressed (initial load or cleanup)');
                 return;
             }
 
-            pendingSnapshotRef.current = snapshot;
+            if (!editorRef.current || isGallery || !activeDrawing?.id) {
+                debugLog('[Draw] ⏸️ queueSave blocked - missing editor or in gallery');
+                return;
+            }
+
+            const editor = editorRef.current;
+            const currentSnapshot = snapshot || editor.getSnapshot();
+            if (!currentSnapshot) {
+                debugWarn('[Draw] queueSave skipped - no snapshot available');
+                return;
+            }
+
+            const normalized = normalizeSnapshotForPersist(
+                currentSnapshot,
+                activeDrawing?.title || currentSnapshot?.document?.name || 'Untitled drawing'
+            );
+
+            debugLog('[Draw] 🚨 queueSave TRIGGERED!', {
+                hasSnapshot: !!snapshot,
+                normalizedKeys: Object.keys(normalized || {}),
+                timestamp: new Date().toISOString(),
+            });
+
+            pendingSnapshotRef.current = normalized;
             setSaveStatus((prev) => ({ ...prev, isSaving: true, error: null }));
 
             if (saveTimeoutRef.current) {
@@ -288,75 +498,212 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             }
 
             saveTimeoutRef.current = setTimeout(() => {
-                const payload = pendingSnapshotRef.current;
-                pendingSnapshotRef.current = null;
+                if (!editorRef.current || isGallery || suppressAutosaveRef.current) {
+                    debugLog('[Draw] ⏸️ Save cancelled - editor cleaned up or suppressed');
+                    return;
+                }
 
-                persistDrawing(activeDrawing.id, { document: payload });
-            }, 800);
+                debugLog('[Draw] Executing queued save with normalized snapshot');
+                persistDrawing(activeDrawing.id, { document: normalized.document });
+                saveTimeoutRef.current = null;
+            }, 1000);
         },
-        [activeDrawing?.id, persistDrawing],
+        [activeDrawing?.id, activeDrawing?.title, isGallery, persistDrawing]
     );
 
-    const loadDrawingIntoEditor = useCallback((drawing) => {
-        const sanitizedDrawing = drawing
-            ? {
-                  ...drawing,
-                  document: normalizeSnapshotForPersist(drawing.document, drawing.title),
-              }
-            : null;
-
-        if (drawing?.id && sanitizedDrawing?.document !== drawing?.document) {
-            drawingCacheRef.current.set(drawing.id, sanitizedDrawing);
-            // Call persistDrawing directly without dependency to avoid infinite loop
-            persistDrawing(drawing.id, { document: sanitizedDrawing.document }, { announce: false });
+    const flushPendingSave = useCallback(() => {
+        debugLog('[Draw] flushPendingSave called');
+        
+        if (saveTimeoutRef.current) {
+            debugLog('[Draw] Clearing save timeout and executing immediate save');
+            clearTimeout(saveTimeoutRef.current);
+            saveTimeoutRef.current = null;
+            
+            if (pendingSnapshotRef.current && activeDrawing?.id) {
+                const snapshot = pendingSnapshotRef.current;
+                pendingSnapshotRef.current = null;
+                debugLog('[Draw] Flushing pending save immediately');
+                persistDrawing(activeDrawing.id, { document: snapshot });
+            }
+        } else {
+            debugLog('[Draw] No pending save to flush');
         }
+    }, [activeDrawing?.id, persistDrawing]);
 
-        setActiveDrawing(sanitizedDrawing);
-        setTitleDraft(sanitizedDrawing?.title ?? '');
-        setSaveStatus((prev) => ({
-            ...prev,
-            lastSavedAt: sanitizedDrawing?.updated_at ?? prev.lastSavedAt,
-            error: null,
-        }));
+    const loadDrawingIntoEditor = useCallback(
+        (drawing, editorInstance = null) => {
+            debugLog('[Draw] loadDrawingIntoEditor called with drawing:', drawing?.id || 'null');
+            
+            // Use the passed editor instance or fall back to the ref
+            const editor = editorInstance || editorRef.current;
+            if (!editor) {
+                debugLog('[Draw] Editor not ready, setting pending load');
+                pendingLoadRef.current = { drawing };
+                return;
+            }
 
-        const editor = editorRef.current;
-        if (!editor) {
-            pendingLoadRef.current = sanitizedDrawing?.document ?? null;
-            return;
-        }
+            debugLog('[Draw] Original drawing document structure:', {
+                hasDocument: !!drawing?.document,
+                documentType: typeof drawing?.document,
+                hasNestedDocument: !!drawing?.document?.document,
+                hasStore: !!drawing?.document?.document?.store,
+                storeKeys: drawing?.document?.document?.store ? Object.keys(drawing.document.document.store) : []
+            });
 
-        const snapshot = sanitizedDrawing?.document ?? blankSnapshotRef.current;
-        if (snapshot) {
-            const normalizedSnapshot = normalizeSnapshotForPersist(snapshot, sanitizedDrawing?.title);
-            editor.loadSnapshot(cloneSnapshot(normalizedSnapshot));
-        }
+            // Extract the actual TLDraw document from the nested structure
+            const tldrawDocument = drawing?.document?.document || drawing?.document || {};
+            const actualStore = tldrawDocument?.store || {};
+            
+            debugLog('[Draw] Extracted TLDraw document:', {
+                hasTldrawDocument: !!tldrawDocument,
+                hasStore: !!actualStore,
+                storeKeys: Object.keys(actualStore),
+                shapeCount: Object.keys(actualStore).filter(key => key.startsWith('shape:')).length
+            });
 
-        editor.history.clear();
-    }, [persistDrawing]);
+            // Clear existing shapes before loading new snapshot
+            // Since we have an editor instance, we can proceed regardless of editorReady state
+            debugLog('[Draw] ✅ Editor instance available, proceeding with load...');
+            
+            // Get current shapes before clearing
+            const currentShapeIdsRaw = editor.getCurrentPageShapeIds();
+            const currentShapeIds = Array.isArray(currentShapeIdsRaw)
+                ? currentShapeIdsRaw
+                : Array.from(currentShapeIdsRaw ?? []);
+            debugLog('[Draw] Clearing existing shapes before loading new snapshot...');
+            debugLog('[Draw] Current shapes on page:', {
+                count: currentShapeIds.length,
+                shapeIds: currentShapeIds
+            });
+
+            if (currentShapeIds.length > 0) {
+                editor.deleteShapes(currentShapeIds);
+                debugLog('[Draw] Shapes deleted successfully');
+                
+                // Verify shapes are gone
+                const remainingShapesRaw = editor.getCurrentPageShapeIds();
+                const remainingShapes = Array.isArray(remainingShapesRaw)
+                    ? remainingShapesRaw
+                    : Array.from(remainingShapesRaw ?? []);
+                debugLog('[Draw] Remaining shapes after deletion:', remainingShapes.length);
+            } else {
+                debugLog('[Draw] No shapes to clear');
+            }
+
+            // Now load the new drawing
+            try {
+                // Get current snapshot from editor
+                const currentSnapshot = editor.getSnapshot();
+                
+                // Process the actual store that contains the shapes
+                if (actualStore && Object.keys(actualStore).length > 0) {
+                    debugLog('[Draw] 🎯 Processing store with records:', Object.keys(actualStore).length);
+                    
+                    const validStoredRecords = {};
+                    Object.entries(actualStore).forEach(([key, record]) => {
+                        debugLog('[Draw] Processing record:', { key, type: typeof record, isObject: typeof record === 'object' });
+                        
+                        // Include shape records - be more lenient with validation
+                        if (key.startsWith('shape:') && record && typeof record === 'object') {
+                            // Validate shape has required properties and no null values for critical fields
+                            const isValidShape = record.typeName && 
+                                (!record.props || record.props.url !== null) && // Filter out shapes with null URLs
+                                (!record.props || record.props.text !== null); // Filter out shapes with null text
+                            
+                            if (isValidShape) {
+                                validStoredRecords[key] = record;
+                                debugLog('[Draw] ✅ Found shape record:', { key, type: record.typeName || 'unknown' });
+                            } else {
+                                debugLog('[Draw] ⚠️ Skipping invalid shape:', { key, typeName: record.typeName, hasNullUrl: record.props?.url === null, hasNullText: record.props?.text === null });
+                            }
+                        } else if (key === 'document:document' && record && typeof record === 'object') {
+                            validStoredRecords[key] = record;
+                            debugLog('[Draw] ✅ Found document record:', { key });
+                        } else if (key.startsWith('shape:') || key.startsWith('document:')) {
+                            // Try to include any shape or document records
+                            validStoredRecords[key] = record;
+                            debugLog('[Draw] ✅ Added record:', { key, hasTypeName: !!record.typeName });
+                        } else {
+                            debugLog('[Draw] ⏭️ Skipping record:', { key, type: typeof record });
+                        }
+                    });
+                    
+                    debugLog('[Draw] 📊 Valid records collected:', {
+                        count: Object.keys(validStoredRecords).length,
+                        keys: Object.keys(validStoredRecords)
+                    });
+                    
+                    const snapshotToLoad = {
+                        ...currentSnapshot,
+                        document: {
+                            ...currentSnapshot.document,
+                            name: drawing?.title || 'Untitled drawing',
+                            // Use the tldraw document structure but merge with valid records
+                            ...tldrawDocument,
+                            store: {
+                                ...currentSnapshot.document?.store || {},
+                                ...validStoredRecords
+                            }
+                        }
+                    };
+                    
+                    debugLog('[Draw] 📋 Snapshot details:', {
+                        hasStore: !!snapshotToLoad.document.store,
+                        storeKeys: Object.keys(snapshotToLoad.document.store),
+                        validRecordsCount: Object.keys(validStoredRecords).length,
+                        documentExists: !!snapshotToLoad.document,
+                        documentName: snapshotToLoad.document.name
+                    });
+                    
+                    debugLog('[Draw] 🚀 Loading snapshot into editor...');
+                    editor.loadSnapshot(snapshotToLoad);
+                    debugLog('[Draw] ✅ Snapshot loaded successfully');
+                } else {
+                    debugLog('[Draw] ❌ No shapes to load - keeping editor empty');
+                }
+            } catch (error) {
+                debugError('[Draw] Failed to load drawing:', error);
+                // If loading fails, just keep the editor empty
+                debugLog('[Draw] Keeping editor empty due to load error');
+            }
+
+            debugLog('[Draw] loadDrawingIntoEditor completed');
+        },
+        [editorReady],
+    );
 
     const loadDrawing = useCallback(
         async (id) => {
+            debugLog('[Draw] loadDrawing called with id:', id);
+            
             if (!id) {
+                debugLog('[Draw] No id provided, loading null drawing');
                 loadDrawingIntoEditor(null);
                 return;
             }
 
-            // Always load fresh data when switching drawings to avoid stale cache issues
-            // But keep cache for performance optimization
-            const cached = drawingCacheRef.current.get(id);
-            if (cached && activeDrawing?.id === id) {
-                // Only use cache if it's the currently active drawing (for saves/reloads)
-                loadDrawingIntoEditor(cached);
-                return;
-            }
-
+            // DISABLED: Always load fresh data from server (no cache)
+            debugLog('[Draw] Cache disabled, loading fresh drawing from server...');
             setLoadingDrawing(true);
             try {
                 const { data } = await window.axios.get(route('draw.show', { drawing: id }));
                 const freshDrawing = data.drawing;
+                debugLog('[Draw] Fresh drawing loaded:', freshDrawing?.title);
+                debugLog('[Draw] Fresh drawing document structure:', {
+                    hasDocument: !!freshDrawing?.document,
+                    documentType: typeof freshDrawing?.document,
+                    hasStore: !!freshDrawing?.document?.store,
+                    storeKeys: freshDrawing?.document?.store ? Object.keys(freshDrawing.document.store) : [],
+                    shapeCount: freshDrawing?.document?.store ? 
+                        Object.keys(freshDrawing.document.store).filter(key => key.startsWith('shape:')).length : 0
+                });
                 
-                // Update cache with fresh data
-                drawingCacheRef.current.set(id, freshDrawing);
+                // DISABLED: Don't update cache
+                // drawingCacheRef.current.set(id, freshDrawing);
+                debugLog('[Draw] Setting active drawing to:', freshDrawing.id);
+                setActiveDrawing(freshDrawing);
+                setTitleDraft(freshDrawing.title);
+                debugLog('[Draw] Calling loadDrawingIntoEditor with fresh drawing...');
                 loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
                 debugError('Failed to load drawing:', error);
@@ -364,16 +711,12 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     ...prev,
                     error: 'Unable to load this drawing. Please try again.',
                 }));
-                // If network fails, try to use cached version as fallback
-                if (cached) {
-                    debugLog('Using cached version as fallback');
-                    loadDrawingIntoEditor(cached);
-                }
             } finally {
                 setLoadingDrawing(false);
+                debugLog('[Draw] loadDrawing completed');
             }
         },
-        [loadDrawingIntoEditor, activeDrawing?.id],
+        [loadDrawingIntoEditor],
     );
 
     const handleCreateDrawing = useCallback(async () => {
@@ -395,7 +738,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
             drawingCacheRef.current.set(data.drawing.id, data.drawing);
             setDrawings((prev) => [data.drawing, ...prev]);
-            setActiveId(data.drawing.id);
+            setActiveDrawing(data.drawing);
             loadDrawingIntoEditor(data.drawing);
         } catch (error) {
             debugError(error);
@@ -406,9 +749,27 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         } finally {
             setCreating(false);
         }
-    }, [drawings.length, flushPendingSave, loadDrawingIntoEditor]);
+    }, [drawings.length, loadDrawingIntoEditor]);
+
+    // Autosave status for title
+    const [titleSaveStatus, setTitleSaveStatus] = useState({ saving: false, lastSaved: null });
+    const titleSaveStatusRef = useRef(titleSaveStatus);
+
+    // Update ref when state changes
+    useEffect(() => {
+        titleSaveStatusRef.current = titleSaveStatus;
+    }, [titleSaveStatus]);
+
+    // Drawing title autosave timeout ref
+    const drawingTitleSaveTimeoutRef = useRef(null);
 
     const handleTitleBlur = useCallback(async () => {
+        // Cancel any pending autosave
+        if (drawingTitleSaveTimeoutRef.current) {
+            clearTimeout(drawingTitleSaveTimeoutRef.current);
+            drawingTitleSaveTimeoutRef.current = null;
+        }
+        
         if (!activeDrawing?.id) {
             return;
         }
@@ -430,6 +791,44 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         });
     }, [activeDrawing, persistDrawing, titleDraft]);
 
+    // Autosave drawing title with debounce
+    const autoSaveDrawingTitle = useCallback((title) => {
+        // Clear existing timeout
+        if (drawingTitleSaveTimeoutRef.current) {
+            clearTimeout(drawingTitleSaveTimeoutRef.current);
+        }
+        
+        // Show saving status
+        setTitleSaveStatus(prev => ({ saving: true, lastSaved: prev.lastSaved }));
+        
+        // Set new timeout to save after 1.5 seconds of inactivity
+        drawingTitleSaveTimeoutRef.current = setTimeout(async () => {
+            if (!activeDrawing?.id) return;
+            
+            const trimmed = title.trim();
+            if (!trimmed || trimmed === activeDrawing.title) {
+                setTitleDraft(activeDrawing.title);
+                setTitleSaveStatus(prev => ({ saving: false, lastSaved: prev.lastSaved }));
+                return;
+            }
+
+            debugLog('[Draw] Auto-saving drawing title:', { id: activeDrawing.id, title: trimmed });
+            
+            setActiveDrawing((prev) =>
+                prev ? { ...prev, title: trimmed } : prev,
+            );
+
+            const currentSnapshot = editorRef.current?.getSnapshot() ?? activeDrawing.document;
+            await persistDrawing(activeDrawing.id, {
+                title: trimmed,
+                document: normalizeSnapshotForPersist(currentSnapshot, trimmed),
+            });
+            
+            // Update status to show saved
+            setTitleSaveStatus({ saving: false, lastSaved: new Date() });
+        }, 1500);
+    }, [activeDrawing, persistDrawing]);
+
     const handleTitleKeyDown = useCallback(
         (event) => {
             if (event.key === 'Enter') {
@@ -440,91 +839,224 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         [],
     );
 
-    const handleSelectDrawing = useCallback(
-        (id) => {
-            if (activeDrawing?.id === id) {
-                return; // Already on this drawing
-            }
+    // Title autosave timeout ref
+    const titleSaveTimeoutRef = useRef(null);
 
-            flushPendingSave();
-            loadDrawing(id);
-        },
-        [activeDrawing?.id, flushPendingSave, loadDrawing],
-    );
-
-    const handleEditorMount = useCallback(async (editor) => {
-        editorRef.current = editor;
-
-        // Clear any corrupted TLDraw IndexedDB data
+    const handleEditTitle = useCallback(async (id, newTitle) => {
         try {
-            const dbs = await window.indexedDB.databases();
-            const tldrawDbs = dbs.filter(db => db.name && db.name.includes('TLDRAW'));
-            for (const db of tldrawDbs) {
-                window.indexedDB.deleteDatabase(db.name);
+            const { data } = await window.axios.patch(route('draw.update', { drawing: id }), {
+                title: newTitle,
+            });
+            
+            setDrawings(prev => prev.map(d => d.id === id ? data.drawing : d));
+            
+            // If this is the current active drawing, update it too
+            if (activeDrawing?.id === id) {
+                setActiveDrawing(data.drawing);
+                setTitleDraft(data.drawing.title);
             }
         } catch (error) {
-            debugWarn('Could not clear TLDraw IndexedDB:', error);
+            debugError('[Draw] Failed to edit title:', error);
+            Sentry.captureException(error, {
+                tags: {
+                    component: 'DrawIndex',
+                    action: 'handleEditTitle',
+                },
+                extra: {
+                    drawingId: id,
+                },
+            });
+        }
+    }, [activeDrawing?.id]);
+
+    // Autosave title with debounce
+    const autoSaveTitle = useCallback((id, title) => {
+        // Clear existing timeout
+        if (titleSaveTimeoutRef.current) {
+            clearTimeout(titleSaveTimeoutRef.current);
+        }
+        
+        // Set new timeout to save after 1 second of inactivity
+        titleSaveTimeoutRef.current = setTimeout(() => {
+            if (title.trim() && title !== drawings.find(d => d.id === id)?.title) {
+                debugLog('[Draw] Auto-saving title:', { id, title: title.trim() });
+                handleEditTitle(id, title.trim());
+            }
+        }, 1000);
+    }, [drawings, handleEditTitle]);
+
+    const handleSave = async (id) => {
+        // Immediate save for Enter key
+        if (titleSaveTimeoutRef.current) {
+            clearTimeout(titleSaveTimeoutRef.current);
+            titleSaveTimeoutRef.current = null;
+        }
+        
+        if (editTitle.trim() && editTitle !== drawings.find(d => d.id === id)?.title) {
+            await handleEditTitle(id, editTitle.trim());
+        }
+        setEditingId(null);
+        setEditTitle('');
+    };
+
+    const handleCancel = () => {
+        // Cancel any pending title save
+        if (titleSaveTimeoutRef.current) {
+            clearTimeout(titleSaveTimeoutRef.current);
+            titleSaveTimeoutRef.current = null;
+        }
+        
+        setEditingId(null);
+        setEditTitle('');
+    };
+
+    const handleDeleteDrawing = useCallback(async (id) => {
+        if (!confirm('Are you sure you want to delete this drawing? This action cannot be undone.')) {
+            return;
         }
 
-        const rawSnapshot = editor.getSnapshot();
-        const initialSnapshot = normalizeSnapshotForPersist(rawSnapshot, 'Untitled drawing');
-        blankSnapshotRef.current = initialSnapshot;
-        editor.loadSnapshot(cloneSnapshot(initialSnapshot));
-        setEditorReady(true);
-
-        editor.updateInstanceState({
-            isGridMode: true,
-            isPenMode: false,
-        });
-        editor.setStyleForNextShapes(DefaultColorStyle, 'black');
-        editor.setStyleForNextShapes(DefaultDashStyle, 'draw');
-        editor.setStyleForNextShapes(DefaultSizeStyle, 'm');
-        editor.setCurrentTool('draw');
-
-        if (pendingLoadRef.current) {
-            const normalizedPending = normalizeSnapshotForPersist(
-                pendingLoadRef.current,
-                activeDrawing?.title ?? 'Untitled drawing',
-            );
-            editor.loadSnapshot(cloneSnapshot(normalizedPending));
-            pendingLoadRef.current = null;
+        try {
+            await window.axios.delete(route('draw.destroy', { drawing: id }));
+            
+            setDrawings(prev => prev.filter(d => d.id !== id));
+            
+            // If we deleted the current drawing, go back to gallery
+            if (activeDrawing?.id === id) {
+                router.get('/draw');
+            }
+        } catch (error) {
+            debugError('Failed to delete drawing:', error);
+            Sentry.captureException(error, {
+                tags: {
+                    component: 'DrawIndex',
+                    action: 'handleDeleteDrawing',
+                },
+                extra: {
+                    drawingId: id,
+                },
+            });
         }
+    }, [activeDrawing]);
+
+    const handleDrawingClick = useCallback((id) => {
+        router.get(`/draw/${id}`);
     }, []);
 
+    const handleEditorMount = useCallback((editor) => {
+        debugLog('[Draw] Editor mounted');
+        
+        editorRef.current = editor;
+        
+        // Store cleanup function on editor for later use
+        editorRef.current._cleanup = () => {
+            debugLog('[Draw] Editor cleanup called');
+            suppressAutosaveRef.current = true;
+            
+            // Clear all timeouts and intervals
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
+            
+            if (titleSaveTimeoutRef.current) {
+                clearTimeout(titleSaveTimeoutRef.current);
+                titleSaveTimeoutRef.current = null;
+            }
+            
+            if (changeCheckIntervalRef.current) {
+                clearInterval(changeCheckIntervalRef.current);
+                changeCheckIntervalRef.current = null;
+            }
+        };
+        
+        setEditorReady(true);
+    }, []);
+
+    // Load drawing when component mounts (for single drawing view)
     useEffect(() => {
-        // Only load the first drawing once per session - no switching
-        if (drawings.length > 0 && !activeDrawing) {
-            loadDrawing(drawings[0].id);
+        if (!isGallery && activeDrawing && !editorReady) {
+            debugLog('[Draw] Single drawing view: loading drawing into editor');
+            loadDrawingIntoEditor(activeDrawing);
         }
-    }, [drawings, activeDrawing, loadDrawing]);
+    }, [isGallery, activeDrawing, editorReady, loadDrawingIntoEditor]);
 
     useEffect(() => {
         return () => {
             if (saveTimeoutRef.current) {
                 clearTimeout(saveTimeoutRef.current);
             }
+            if (titleSaveTimeoutRef.current) {
+                clearTimeout(titleSaveTimeoutRef.current);
+            }
+            if (drawingTitleSaveTimeoutRef.current) {
+                clearTimeout(drawingTitleSaveTimeoutRef.current);
+            }
         };
     }, []);
 
+    // When navigating back to gallery, ensure editor listeners/intervals are cleaned up
     useEffect(() => {
-        const editor = editorRef.current;
-        if (!editor || !activeDrawing?.id) {
-            return () => {};
+        if (isGallery) {
+            suppressAutosaveRef.current = true;
+            const cleanup = editorRef.current?._cleanup;
+            if (typeof cleanup === 'function') {
+                try {
+                    cleanup();
+                } catch (e) {
+                    debugWarn('[Draw] Editor cleanup error:', e);
+                }
+            }
+            editorRef.current = null;
+            setEditorReady(false);
         }
 
-        const removeListener = editor.store.listen(
-            () => {
-                const snapshot = editor.getSnapshot();
-                const normalized = normalizeSnapshotForPersist(snapshot, activeDrawing?.title);
-                queueSave(normalized);
-            },
-            { scope: 'document', source: 'user' },
-        );
-
         return () => {
-            removeListener?.();
+            suppressAutosaveRef.current = true;
+            const cleanup = editorRef.current?._cleanup;
+            if (typeof cleanup === 'function') {
+                try {
+                    cleanup();
+                } catch (_e) {}
+            }
         };
-    }, [activeDrawing?.id, activeDrawing?.title, queueSave]);
+    }, [isGallery]);
+
+    // Comprehensive cleanup on unmount and when switching to gallery
+    useEffect(() => {
+        return () => {
+            // Clear all timeouts
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
+            if (titleSaveTimeoutRef.current) {
+                clearTimeout(titleSaveTimeoutRef.current);
+                titleSaveTimeoutRef.current = null;
+            }
+            if (drawingTitleSaveTimeoutRef.current) {
+                clearTimeout(drawingTitleSaveTimeoutRef.current);
+                drawingTitleSaveTimeoutRef.current = null;
+            }
+
+            // Cleanup editor
+            const cleanup = editorRef.current?._cleanup;
+            if (typeof cleanup === 'function') {
+                try {
+                    cleanup();
+                } catch (_e) {}
+            }
+            editorRef.current = null;
+
+            // Clear refs
+            blankSnapshotRef.current = null;
+            pendingSnapshotRef.current = null;
+            pendingLoadRef.current = null;
+            drawingCacheRef.current?.clear();
+            suppressAutosaveRef.current = true;
+
+            debugLog('[Draw] 🧹 Comprehensive cleanup completed');
+        };
+    }, [isGallery]);
 
     // WebSocket listener for live updates
     useEffect(() => {
@@ -614,6 +1146,84 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         return null;
     }, [saveStatus]);
 
+    // Gallery view
+    if (isGallery) {
+        return (
+            <AppLayout title="Drawings">
+                <Head title="Drawings" />
+                <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+                            Drawings
+                        </h1>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Create and manage your drawings. Click on any drawing to open it in the editor.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-1">
+                        <Card className="flex flex-col overflow-hidden">
+                            <CardHeader className="space-y-4 border-b border-gray-100 pt-4 pb-4 dark:border-slate-800">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                            Your Drawings
+                                        </CardTitle>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {drawings.length} {drawings.length === 1 ? 'drawing' : 'drawings'}
+                                        </p>
+                                    </div>
+                                    <Button onClick={() => router.get('/draw/create')} disabled={creating}>
+                                        {creating ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Plus className="mr-2 h-4 w-4" />
+                                        )}
+                                        New Drawing
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-1 overflow-hidden p-6">
+                                {drawings.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                                        <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-4">
+                                            <Plus className="h-8 w-8 text-slate-400" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                                                No drawings yet
+                                            </h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                                Create your first drawing to get started.
+                                            </p>
+                                        </div>
+                                        <Button onClick={() => router.get('/draw/create')} disabled={creating}>
+                                            {creating ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Plus className="mr-2 h-4 w-4" />
+                                            )}
+                                            Create drawing
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <DrawingGallery
+                                        drawings={drawings}
+                                        onDrawingClick={handleDrawingClick}
+                                        onDeleteDrawing={handleDeleteDrawing}
+                                        onEditTitle={handleEditTitle}
+                                        creating={creating}
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
+
+    // Single drawing view
     return (
         <AppLayout title="Draw">
             <Head title="Draw" />
@@ -640,45 +1250,66 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                     {statusBadge}
                                 </div>
                                 <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
-                                    {/* Drawing Selector */}
-                                    <div className="flex flex-col gap-1">
-                                        <label
-                                            htmlFor="drawing-selector"
-                                            className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                                    {/* Back to Gallery */}
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => router.get('/draw')}
+                                        className="lg:w-auto"
+                                    >
+                                        ← Back to Gallery
+                                    </Button>
+                                    
+                                    {/* Debug Test Button */}
+                                    {process.env.NODE_ENV === 'development' && (
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => {
+                                                const editor = editorRef.current;
+                                                if (editor && activeDrawing?.id) {
+                                                    debugLog('[Draw] 🔧 Manual test: Triggering save');
+                                                    const snapshot = editor.getSnapshot();
+                                                    console.log('🔧 Manual test - Current snapshot:', snapshot);
+                                                    queueSave(snapshot);
+                                                } else {
+                                                    console.log('❌ Manual test failed - no editor or drawing');
+                                                }
+                                            }}
+                                            className="lg:w-auto text-xs"
                                         >
-                                            Sketch
-                                        </label>
-                                        <select
-                                            id="drawing-selector"
-                                            value={activeDrawing?.id || ''}
-                                            onChange={(e) => handleSelectDrawing(e.target.value)}
-                                            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                        >
-                                            {drawings.length === 0 ? (
-                                                <option value="">No sketches</option>
-                                            ) : (
-                                                drawings.map((drawing) => (
-                                                    <option key={drawing.id} value={drawing.id}>
-                                                        {drawing.title}
-                                                    </option>
-                                                ))
-                                            )}
-                                        </select>
-                                    </div>
+                                            🔧 Test Save
+                                        </Button>
+                                    )}
                                     
                                     {/* Title Input */}
                                     {activeDrawing ? (
                                         <div className="flex flex-col gap-1">
-                                            <label
-                                                htmlFor="drawing-title"
-                                                className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                                            >
-                                                Title
-                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <label
+                                                    htmlFor="drawing-title"
+                                                    className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                                                >
+                                                    Title
+                                                </label>
+                                                {titleSaveStatus.saving && (
+                                                    <div className="flex items-center gap-1 text-xs text-blue-500">
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                        Saving...
+                                                    </div>
+                                                )}
+                                                {!titleSaveStatus.saving && titleSaveStatus.lastSaved && (
+                                                    <div className="flex items-center gap-1 text-xs text-green-500">
+                                                        <Check className="h-3 w-3" />
+                                                        Saved
+                                                    </div>
+                                                )}
+                                            </div>
                                             <Input
                                                 id="drawing-title"
                                                 value={titleDraft}
-                                                onChange={(event) => setTitleDraft(event.target.value)}
+                                                onChange={(event) => {
+                                    setTitleDraft(event.target.value);
+                                    autoSaveDrawingTitle(event.target.value);
+                                }}
                                                 onBlur={handleTitleBlur}
                                                 onKeyDown={handleTitleKeyDown}
                                                 className="lg:w-64"
@@ -698,45 +1329,14 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                         </div>
                                     )}
                                 >
-                                    <div
-                                        className={`h-full w-full transition-opacity duration-200 ${
-                                            drawings.length === 0 ? 'pointer-events-none opacity-0' : 'opacity-100'
-                                        }`}
-                                    >
+                                    <div className="h-full w-full opacity-100">
                                         <TldrawComponent
                                             onMount={handleEditorMount}
                                             hideUi={false}
-                                            inferDarkMode
                                             licenseKey={TL_DRAW_LICENSE_KEY || undefined}
                                         />
                                     </div>
                                 </Suspense>
-
-                                {drawings.length === 0 && !loadingDrawing ? (
-                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-slate-950/70 text-center backdrop-blur-sm">
-                                        <div className="flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-300">
-                                            {!editorReady ? (
-                                                <>
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                    Loading drawing workspace…
-                                                </>
-                                            ) : (
-                                                'Ready to create your first drawing'
-                                            )}
-                                        </div>
-                                        <p className="max-w-sm text-sm text-slate-200">
-                                            Create a new drawing to start sketching. Your work will save automatically every few seconds.
-                                        </p>
-                                        <Button onClick={handleCreateDrawing} disabled={creating || !editorReady}>
-                                            {creating ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Plus className="mr-2 h-4 w-4" />
-                                            )}
-                                            Create drawing
-                                        </Button>
-                                    </div>
-                                ) : null}
 
                                 {loadingDrawing ? (
                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/70">
