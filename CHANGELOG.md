@@ -2,8 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.54](https://github.com/programinglive/todo/compare/v0.5.53...v0.5.54) (2025-10-28)
+
 ### [0.5.53](https://github.com/programinglive/todo/compare/v0.5.52...v0.5.53) (2025-10-28)
 
+
+### 🐛 Bug Fixes
+
+* ensure mobile account menu includes archived link by sharing navigation items with desktop menu
 
 ### ✅ Tests
 
