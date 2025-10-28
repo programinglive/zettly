@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### 🐛 Bug Fixes
 
 * gate system status widget behind debug flag ([8bf37a7](https://github.com/programinglive/todo/commit/8bf37a72d11f26d95622aaa1171bf9a41fb365f7))
+* display "Archived" badge on todo detail view when item is archived
 
 ### [0.5.57](https://github.com/programinglive/todo/compare/v0.5.56...v0.5.57) (2025-10-28)
 

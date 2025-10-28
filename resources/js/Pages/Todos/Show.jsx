@@ -22,6 +22,7 @@ export default function Show({ todo, availableTodos }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
     const isNote = (todo.type ?? '').toLowerCase() === 'note';
+    const isArchived = Boolean(todo.archived);
 
     const deriveChecklistItems = () => (todo.checklistItems || todo.checklist_items || []).map((item) => ({
         id: item.id,
@@ -217,6 +218,12 @@ export default function Show({ todo, availableTodos }) {
                                     style={{ backgroundColor: todo.priority_color ?? '#6B7280' }}
                                 >
                                     {todo.priority}
+                                </span>
+                            )}
+
+                            {isArchived && (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase text-white dark:bg-slate-200 dark:text-slate-900">
+                                    Archived
                                 </span>
                             )}
 

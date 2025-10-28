@@ -734,4 +734,21 @@ class TodoTest extends TestCase
             'deleted_at' => null,
         ]);
     }
+
+    public function test_archived_todo_shows_archived_badge(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'archived' => true,
+            'archived_at' => now()->subDay(),
+            'is_completed' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('todos.show', $todo));
+
+        $response->assertOk();
+        $response->assertSee('Archived', escape: false);
+    }
 }
