@@ -114,3 +114,20 @@ test('Draw Index exports default component correctly', () => {
         'Draw Index should have default export'
     );
 });
+
+test('Draw Gallery renders thumbnail image when available', () => {
+    const drawIndexContent = fs.readFileSync(
+        '/Users/mahardhika/code/project/mine/web/zettly/resources/js/Pages/Draw/Index.jsx',
+        'utf8'
+    );
+
+    const hasThumbnailMarkup = drawIndexContent.includes('drawing.thumbnail ? (')
+        && drawIndexContent.includes('<img')
+        && drawIndexContent.includes('alt={`${drawing.title} preview`}');
+
+    assert.strictEqual(
+        hasThumbnailMarkup,
+        true,
+        'Gallery should render drawing thumbnails when provided'
+    );
+});

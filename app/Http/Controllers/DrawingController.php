@@ -16,7 +16,7 @@ class DrawingController extends Controller
     public function index(Request $request): Response
     {
         $drawings = Drawing::query()
-            ->select(['id', 'title', 'updated_at'])
+            ->select(['id', 'title', 'updated_at', 'thumbnail'])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -39,6 +39,7 @@ class DrawingController extends Controller
             'user_id' => Auth::id(),
             'title' => $validated['title'],
             'document' => $validated['document'],
+            'thumbnail' => $request->input('thumbnail'),
         ]);
 
         // Broadcast the new drawing
@@ -70,7 +71,7 @@ class DrawingController extends Controller
 
         if ($request->expectsJson() && ! Inertia::isInertiaRequest($request)) {
             return response()->json([
-                'drawing' => $drawing->only(['id', 'title', 'document', 'updated_at']),
+                'drawing' => $drawing->only(['id', 'title', 'document', 'thumbnail', 'updated_at']),
             ]);
         }
 
@@ -88,8 +89,9 @@ class DrawingController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|nullable|string|max:255',
             'document' => 'sometimes|array',
+            'thumbnail' => 'sometimes|nullable|string',
         ])->after(function ($validator) use ($request) {
-            if (!$request->hasAny(['title', 'document'])) {
+            if (!$request->hasAny(['title', 'document', 'thumbnail'])) {
                 $validator->errors()->add('payload', 'At least one field (title or document) is required.');
             }
         });

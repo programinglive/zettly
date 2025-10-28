@@ -14,6 +14,7 @@ class Drawing extends Model
         'user_id',
         'title',
         'document',
+        'thumbnail',
     ];
 
     protected $casts = [

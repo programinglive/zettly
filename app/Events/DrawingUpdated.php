@@ -42,6 +42,7 @@ class DrawingUpdated implements ShouldBroadcast
             'id' => $this->drawing->id,
             'title' => $this->drawing->title,
             'document' => $this->drawing->document,
+            'thumbnail' => $this->drawing->thumbnail,
             'updated_at' => $this->drawing->updated_at?->toIso8601String(),
         ];
     }

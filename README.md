@@ -49,6 +49,22 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 - `resources/js/Pages/Draw/Index.jsx` - Added module-level passive event listener handling
 - `resources/js/__tests__/DrawPassiveEventFixTest.test.js` - Added regression tests
 
+### Drawing gallery lacked thumbnails (2025-10-28)
+
+**Problem**: The drawings list showed only solid placeholders, so users could not visually identify sketches before opening them.
+
+**Solution**:
+- Generate PNG previews from the TLDraw canvas via `editor.toImageDataUrl` whenever autosave runs
+- Persist the thumbnail in the `drawings` table (new `thumbnail` column) and expose it through API/websocket payloads
+- Render the preview image in the gallery cards and add regression coverage to ensure the markup remains in place
+
+**Files Changed**:
+- `resources/js/Pages/Draw/Index.jsx`
+- `app/Http/Controllers/DrawingController.php`
+- `app/Events/DrawingUpdated.php`
+- `database/migrations/2025_10_28_000001_add_thumbnail_to_drawings_table.php`
+- `tests/js/Draw.test.js`
+
 ## Quick Start
 
 ### Installation

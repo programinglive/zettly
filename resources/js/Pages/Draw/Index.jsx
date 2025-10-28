@@ -220,10 +220,19 @@ const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle
             {drawings.map((drawing) => (
                 <Card key={drawing.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
                     <CardHeader className="p-4 pb-2">
-                        <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3">
-                            <div className="text-gray-400 dark:text-gray-500 text-sm text-center">
-                                {drawing.title}
-                            </div>
+                        <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                            {drawing.thumbnail ? (
+                                <img
+                                    src={drawing.thumbnail}
+                                    alt={`${drawing.title} preview`}
+                                    className="h-full w-full object-contain"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div className="text-gray-400 dark:text-gray-500 text-sm text-center px-4">
+                                    {drawing.title}
+                                </div>
+                            )}
                         </div>
                         <div className="flex items-start justify-between gap-2">
                             {editingId === drawing.id ? (
@@ -285,22 +294,6 @@ const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle
                     </CardContent>
                 </Card>
             ))}
-            <Card className="border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-6">
-                        <Button 
-                            onClick={() => router.get('/draw/create')}
-                            disabled={creating}
-                            className="w-full"
-                        >
-                            {creating ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Plus className="mr-2 h-4 w-4" />
-                            )}
-                            New Drawing
-                        </Button>
-                    </CardContent>
-                </Card>
         </div>
     );
 };
@@ -331,6 +324,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const lastQueuedSnapshotRef = useRef(null);
     const lastPersistedSnapshotRef = useRef(null);
     const drawingCacheRef = useRef(new Map());
+    const lastGeneratedThumbnailRef = useRef(null);
 
     // Ensure event listeners are overridden and restore on cleanup
     useEffect(() => {
@@ -383,6 +377,38 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         };
     }, []);
 
+    const generateThumbnailFromEditor = useCallback(async () => {
+        if (!editorRef.current || isGallery) {
+            return null;
+        }
+
+        try {
+            const editor = editorRef.current;
+            const currentShapeIdsRaw = editor.getCurrentPageShapeIds();
+            const shapeIds = Array.isArray(currentShapeIdsRaw)
+                ? currentShapeIdsRaw
+                : Array.from(currentShapeIdsRaw ?? []);
+
+            if (!shapeIds.length) {
+                debugLog('[Draw] Thumbnail generation skipped - no shapes on canvas');
+                return null;
+            }
+
+            const { url } = await editor.toImageDataUrl(shapeIds, {
+                format: 'png',
+                background: false,
+                padding: 32,
+                scale: 1,
+            });
+
+            debugLog('[Draw] Generated thumbnail from editor');
+            return url;
+        } catch (error) {
+            debugWarn('[Draw] Failed to generate thumbnail:', error);
+            return null;
+        }
+    }, [isGallery]);
+
     const persistDrawing = useCallback(
         async (id, payload, { announce = true } = {}) => {
             debugLog('[Draw] persistDrawing called:', { id, payloadKeys: Object.keys(payload), announce });
@@ -410,6 +436,8 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     ? normalizeSnapshotForPersist(payload.document, documentName)
                     : null;
 
+                const thumbnail = payload?.thumbnail ?? lastGeneratedThumbnailRef.current ?? null;
+
                 debugLog('[Draw] Sending to server:', {
                     id,
                     hasDocument: !!normalizedPayload,
@@ -421,7 +449,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                         Object.keys(normalizedPayload.store).filter(key => key.startsWith('shape:')).length : 0
                 });
 
-                const payloadToSend = normalizedPayload ? { document: normalizedPayload } : {};
+                const payloadToSend = {
+                    ...(payload?.title ? { title: payload.title } : {}),
+                    ...(normalizedPayload ? { document: normalizedPayload } : {}),
+                    ...(thumbnail ? { thumbnail } : {}),
+                };
 
                 const { data } = await window.axios.patch(route('draw.update', { drawing: id }), payloadToSend);
                 
@@ -433,6 +465,19 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 setActiveDrawing((previous) =>
                     previous && previous.id === id ? data.drawing : previous,
                 );
+                setDrawings((prev) =>
+                    prev.map((drawing) =>
+                        drawing.id === id
+                            ? {
+                                  ...drawing,
+                                  title: data.drawing.title,
+                                  updated_at: data.drawing.updated_at,
+                                  thumbnail: data.drawing.thumbnail,
+                              }
+                            : drawing,
+                    ),
+                );
+                lastGeneratedThumbnailRef.current = null;
                 if (normalizedPayload) {
                     lastPersistedSnapshotRef.current = JSON.stringify(normalizedPayload);
                     lastQueuedSnapshotRef.current = lastPersistedSnapshotRef.current;
@@ -513,7 +558,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 clearTimeout(saveTimeoutRef.current);
             }
 
-            saveTimeoutRef.current = setTimeout(() => {
+            saveTimeoutRef.current = setTimeout(async () => {
                 if (!editorRef.current || isGallery || suppressAutosaveRef.current) {
                     debugLog('[Draw] ⏸️ Save cancelled - editor cleaned up or suppressed');
                     return;
@@ -523,18 +568,27 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 pendingSnapshotRef.current = null;
 
                 debugLog('[Draw] Executing queued save with normalized snapshot');
-                persistDrawing(activeDrawing.id, { document: snapshotToPersist });
+                let thumbnailPayload = {};
+                const generatedThumbnail = await generateThumbnailFromEditor();
+                if (generatedThumbnail && generatedThumbnail !== activeDrawing?.thumbnail) {
+                    lastGeneratedThumbnailRef.current = generatedThumbnail;
+                    thumbnailPayload = { thumbnail: generatedThumbnail };
+                }
+
+                await persistDrawing(activeDrawing.id, {
+                    document: snapshotToPersist,
+                    ...thumbnailPayload,
+                });
                 saveTimeoutRef.current = null;
             }, 1000);
         },
-        [activeDrawing?.id, activeDrawing?.title, isGallery, persistDrawing]
+        [activeDrawing?.id, activeDrawing?.title, activeDrawing?.thumbnail, generateThumbnailFromEditor, isGallery, persistDrawing]
     );
 
-    const flushPendingSave = useCallback(() => {
+    const flushPendingSave = useCallback(async () => {
         debugLog('[Draw] flushPendingSave called');
         
         if (saveTimeoutRef.current) {
-            debugLog('[Draw] Clearing save timeout and executing immediate save');
             clearTimeout(saveTimeoutRef.current);
             saveTimeoutRef.current = null;
             
@@ -542,12 +596,22 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 const snapshot = pendingSnapshotRef.current;
                 pendingSnapshotRef.current = null;
                 debugLog('[Draw] Flushing pending save immediately');
-                persistDrawing(activeDrawing.id, { document: snapshot });
+                const generatedThumbnail = await generateThumbnailFromEditor();
+                const thumbnailPayload = generatedThumbnail && generatedThumbnail !== activeDrawing?.thumbnail
+                    ? { thumbnail: generatedThumbnail }
+                    : {};
+                if (generatedThumbnail && generatedThumbnail !== activeDrawing?.thumbnail) {
+                    lastGeneratedThumbnailRef.current = generatedThumbnail;
+                }
+                await persistDrawing(activeDrawing.id, {
+                    document: snapshot,
+                    ...thumbnailPayload,
+                });
             }
         } else {
             debugLog('[Draw] No pending save to flush');
         }
-    }, [activeDrawing?.id, persistDrawing]);
+    }, [activeDrawing?.id, activeDrawing?.thumbnail, persistDrawing, generateThumbnailFromEditor]);
 
     const loadDrawingIntoEditor = useCallback(
         (drawing, editorInstance = null) => {
@@ -745,7 +809,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             return;
         }
 
-        flushPendingSave();
+        await flushPendingSave();
         setCreating(true);
 
         try {
@@ -1186,7 +1250,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
             // Update the drawings list if title changed
             setDrawings(prev => prev.map(d => 
-                d.id === e.id ? { ...d, title: e.title, updated_at: e.updated_at } : d
+                d.id === e.id ? { ...d, title: e.title, updated_at: e.updated_at, thumbnail: e.thumbnail } : d
             ));
         });
 
