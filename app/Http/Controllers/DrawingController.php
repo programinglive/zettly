@@ -62,10 +62,16 @@ class DrawingController extends Controller
         ]);
     }
 
-    public function show(Drawing $drawing): Response
+    public function show(Request $request, Drawing $drawing): Response|JsonResponse
     {
         if ($drawing->user_id !== Auth::id()) {
             abort(403);
+        }
+
+        if ($request->expectsJson() && ! Inertia::isInertiaRequest($request)) {
+            return response()->json([
+                'drawing' => $drawing->only(['id', 'title', 'document', 'updated_at']),
+            ]);
         }
 
         return Inertia::render('Draw/Index', [
@@ -80,9 +86,13 @@ class DrawingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|string|max:255',
-            'document' => 'required|array',
-        ]);
+            'title' => 'sometimes|nullable|string|max:255',
+            'document' => 'sometimes|array',
+        ])->after(function ($validator) use ($request) {
+            if (!$request->hasAny(['title', 'document'])) {
+                $validator->errors()->add('payload', 'At least one field (title or document) is required.');
+            }
+        });
 
         $validated = $validator->validate();
 

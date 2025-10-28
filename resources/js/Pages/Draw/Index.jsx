@@ -42,6 +42,13 @@ const debugError = (...args) => {
     }
 };
 
+// Simple production logger for important events only
+const prodLog = (...args) => {
+    if (!isDebugMode()) {
+        console.log('[ZETTLY]', ...args);
+    }
+};
+
 // Prevent passive event listener warnings globally for TLDraw
 // This must run before TLDraw initializes
 const originalAddEventListener = EventTarget.prototype.addEventListener;
@@ -304,6 +311,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const [drawings, setDrawings] = useState(initialDrawings);
     const [activeDrawing, setActiveDrawing] = useState(props.drawing || null);
     const [titleDraft, setTitleDraft] = useState('');
+    const lastActiveIdRef = useRef(null);
     const [loadingDrawing, setLoadingDrawing] = useState(false);
     const [creating, setCreating] = useState(false);
     const [saveStatus, setSaveStatus] = useState({
@@ -319,6 +327,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const pendingSnapshotRef = useRef(null);
     const saveTimeoutRef = useRef(null);
     const pendingLoadRef = useRef(null);
+    const changeCheckIntervalRef = useRef(null);
+    const lastQueuedSnapshotRef = useRef(null);
+    const lastPersistedSnapshotRef = useRef(null);
     const drawingCacheRef = useRef(new Map());
 
     // Ensure event listeners are overridden and restore on cleanup
@@ -375,6 +386,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const persistDrawing = useCallback(
         async (id, payload, { announce = true } = {}) => {
             debugLog('[Draw] persistDrawing called:', { id, payloadKeys: Object.keys(payload), announce });
+            prodLog('Drawing save started');
             
             if (!id) {
                 debugLog('[Draw] No drawing ID provided, skipping persist');
@@ -395,42 +407,36 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 }));
 
                 const normalizedPayload = payload?.document
-                    ? {
-                          ...payload,
-                          document: normalizeSnapshotForPersist(payload.document, documentName),
-                      }
-                    : payload;
+                    ? normalizeSnapshotForPersist(payload.document, documentName)
+                    : null;
 
                 debugLog('[Draw] Sending to server:', {
                     id,
-                    hasDocument: !!normalizedPayload.document,
-                    documentType: typeof normalizedPayload.document,
-                    documentKeys: normalizedPayload.document ? Object.keys(normalizedPayload.document) : [],
-                    hasStore: !!normalizedPayload.document?.store,
-                    storeKeys: normalizedPayload.document?.store ? Object.keys(normalizedPayload.document.store) : [],
-                    shapeCount: normalizedPayload.document?.store ? 
-                        Object.keys(normalizedPayload.document.store).filter(key => key.startsWith('shape:')).length : 0
+                    hasDocument: !!normalizedPayload,
+                    documentType: typeof normalizedPayload,
+                    documentKeys: normalizedPayload ? Object.keys(normalizedPayload) : [],
+                    hasStore: !!normalizedPayload?.store,
+                    storeKeys: normalizedPayload?.store ? Object.keys(normalizedPayload.store) : [],
+                    shapeCount: normalizedPayload?.store ? 
+                        Object.keys(normalizedPayload.store).filter(key => key.startsWith('shape:')).length : 0
                 });
 
-                const { data } = await window.axios.patch(route('draw.update', { drawing: id }), normalizedPayload);
+                const payloadToSend = normalizedPayload ? { document: normalizedPayload } : {};
+
+                const { data } = await window.axios.patch(route('draw.update', { drawing: id }), payloadToSend);
                 
                 debugLog('[Draw] ✅ SUCCESS! Server response:', data.status, data);
-                
-                // Show success alert for debugging
-                if (announce) {
-                    alert('✅ Drawing saved successfully to database! ID: ' + id + ' | Shapes: ' + (normalizedPayload.document?.store ? Object.keys(normalizedPayload.document.store).length : 0));
-                }
+                prodLog('Drawing saved successfully');
                 
                 // DISABLED: Don't update cache
                 // drawingCacheRef.current.set(id, data.drawing);
                 setActiveDrawing((previous) =>
                     previous && previous.id === id ? data.drawing : previous,
                 );
-                setDrawings((previous) =>
-                    previous.map((drawing) =>
-                        drawing.id === id ? data.drawing : drawing,
-                    ),
-                );
+                if (normalizedPayload) {
+                    lastPersistedSnapshotRef.current = JSON.stringify(normalizedPayload);
+                    lastQueuedSnapshotRef.current = lastPersistedSnapshotRef.current;
+                }
                 setSaveStatus((prev) => ({
                     ...prev,
                     isSaving: false,
@@ -462,6 +468,8 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
     const queueSave = useCallback(
         (snapshot) => {
+            debugLog('[Draw] queueSave called');
+            
             if (suppressAutosaveRef.current) {
                 debugLog('[Draw] ⏸️ queueSave suppressed (initial load or cleanup)');
                 return;
@@ -483,6 +491,12 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 currentSnapshot,
                 activeDrawing?.title || currentSnapshot?.document?.name || 'Untitled drawing'
             );
+            const serialized = JSON.stringify(normalized);
+
+            if (serialized === lastQueuedSnapshotRef.current) {
+                debugLog('[Draw] 🔁 queueSave skipped - snapshot already queued');
+                return;
+            }
 
             debugLog('[Draw] 🚨 queueSave TRIGGERED!', {
                 hasSnapshot: !!snapshot,
@@ -490,6 +504,8 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 timestamp: new Date().toISOString(),
             });
 
+            prodLog('Drawing change detected');
+            lastQueuedSnapshotRef.current = serialized;
             pendingSnapshotRef.current = normalized;
             setSaveStatus((prev) => ({ ...prev, isSaving: true, error: null }));
 
@@ -503,8 +519,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     return;
                 }
 
+                const snapshotToPersist = pendingSnapshotRef.current || normalized;
+                pendingSnapshotRef.current = null;
+
                 debugLog('[Draw] Executing queued save with normalized snapshot');
-                persistDrawing(activeDrawing.id, { document: normalized.document });
+                persistDrawing(activeDrawing.id, { document: snapshotToPersist });
                 saveTimeoutRef.current = null;
             }, 1000);
         },
@@ -547,7 +566,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 documentType: typeof drawing?.document,
                 hasNestedDocument: !!drawing?.document?.document,
                 hasStore: !!drawing?.document?.document?.store,
-                storeKeys: drawing?.document?.document?.store ? Object.keys(drawing.document.document.store) : []
+                storeKeys: drawing?.document?.document?.store ? Object.keys(drawing.document.document.store) : [],
+                shapeCount: drawing?.document?.document?.store ? 
+                    Object.keys(drawing.document.document.store).filter(key => key.startsWith('shape:')).length : 0
             });
 
             // Extract the actual TLDraw document from the nested structure
@@ -763,6 +784,56 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     // Drawing title autosave timeout ref
     const drawingTitleSaveTimeoutRef = useRef(null);
 
+    useEffect(() => {
+        if (activeDrawing?.document) {
+            const serialized = JSON.stringify(activeDrawing.document);
+            lastPersistedSnapshotRef.current = serialized;
+            lastQueuedSnapshotRef.current = serialized;
+        } else {
+            lastPersistedSnapshotRef.current = null;
+            lastQueuedSnapshotRef.current = null;
+        }
+    }, [activeDrawing?.id]);
+
+    useEffect(() => {
+        const currentId = activeDrawing?.id ?? null;
+        if (currentId !== lastActiveIdRef.current) {
+            lastActiveIdRef.current = currentId;
+            setTitleDraft(activeDrawing?.title ?? '');
+        }
+    }, [activeDrawing?.id, activeDrawing?.title]);
+
+    useEffect(() => {
+        if (!editorReady || !activeDrawing?.id) {
+            return undefined;
+        }
+
+        const interval = setInterval(() => {
+            if (!editorRef.current || suppressAutosaveRef.current) {
+                return;
+            }
+
+            try {
+                const snapshot = editorRef.current.getSnapshot();
+                const normalized = normalizeSnapshotForPersist(
+                    snapshot,
+                    activeDrawing?.title || snapshot?.document?.name || 'Untitled drawing'
+                );
+                const serialized = JSON.stringify(normalized);
+
+                if (serialized && serialized !== lastPersistedSnapshotRef.current) {
+                    debugLog('[Draw] Detected canvas change, queueing save');
+                    queueSave(snapshot);
+                }
+            } catch (error) {
+                debugError('[Draw] Failed to inspect snapshot for autosave', error);
+            }
+        }, 2000);
+
+        changeCheckIntervalRef.current = interval;
+        return () => clearInterval(interval);
+    }, [editorReady, activeDrawing?.id, queueSave]);
+
     const handleTitleBlur = useCallback(async () => {
         // Cancel any pending autosave
         if (drawingTitleSaveTimeoutRef.current) {
@@ -970,7 +1041,15 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         };
         
         setEditorReady(true);
-    }, []);
+        
+        // Check if there's a pending load and execute it
+        if (pendingLoadRef.current) {
+            debugLog('[Draw] Loading pending drawing after mount');
+            const { drawing } = pendingLoadRef.current;
+            pendingLoadRef.current = null;
+            loadDrawingIntoEditor(drawing, editor);
+        }
+    }, [loadDrawingIntoEditor]);
 
     // Load drawing when component mounts (for single drawing view)
     useEffect(() => {
@@ -1332,6 +1411,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                     <div className="h-full w-full opacity-100">
                                         <TldrawComponent
                                             onMount={handleEditorMount}
+                                            onChange={() => queueSave()}
                                             hideUi={false}
                                             licenseKey={TL_DRAW_LICENSE_KEY || undefined}
                                         />
@@ -1343,6 +1423,23 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                         <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
                                     </div>
                                 ) : null}
+
+                                {/* Bottom toolbar with Gallery button */}
+                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+                                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-zinc-700">
+                                        {saveStatus.lastSavedAt && (
+                                            <span className="text-xs text-green-600 dark:text-green-400">
+                                                Last saved: {new Date(saveStatus.lastSavedAt).toLocaleTimeString()}
+                                            </span>
+                                        )}
+                                        <button
+                                            onClick={() => router.get('/draw')}
+                                            className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                        >
+                                            Gallery
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
