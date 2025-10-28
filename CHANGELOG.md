@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.50](https://github.com/programinglive/todo/compare/v0.5.49...v0.5.50) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* **drawing:** resolve autosave and load issues ([850c3d8](https://github.com/programinglive/todo/commit/850c3d8fc3e63dc55f4ed49562020c07670f5256))
+
 ### [0.5.49](https://github.com/programinglive/todo/compare/v0.5.48...v0.5.49) (2025-10-28)
 
 
