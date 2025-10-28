@@ -196,6 +196,8 @@ The project follows standard open-source practices. Refer to the following docum
 
 The Zettly project proudly uses Algolia to deliver fast, typo-tolerant search across todos, notes, and tags.
 
+- Branding assets live in `public/images/`. The Algolia attribution and sponsor card now use the official full-blue SVG (`algolia.svg`), while the tldraw sponsor tile displays the latest community avatar (`tldraw.png`) sourced from GitHub. Keep these files intact to preserve required acknowledgements.
+
 > **Dear Algolia Open Source Team,**
 >
 > My name is Mahatma Mahardhika. I lead a developer community in Indonesia focused on helping students and early-career developers learn programming through real, open-source projects that support the “Golden Indonesia 2045” vision.

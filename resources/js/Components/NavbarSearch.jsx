@@ -419,9 +419,10 @@ export function NavbarSearch({ className }) {
                     >
                         <span>Search by</span>
                         <img
-                            src="https://status.algolia.com/static/media/algolia-logo-light.38a9c67b.svg"
+                            src="/images/algolia.svg"
                             alt="Algolia"
                             className="h-4"
+                            loading="lazy"
                         />
                     </a>
                 </div>

@@ -209,18 +209,12 @@ export default function Index({ message }) {
                             className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
                         >
                             <div className="mb-4">
-                                <svg
-                                    className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
-                                    viewBox="0 0 110 32"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M8.5 4.5C3.8 4.5 0 8.3 0 13s3.8 8.5 8.5 8.5 8.5-3.8 8.5-8.5-3.8-8.5-8.5-8.5zm0 13c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"
-                                        fill="#003DFF"
-                                    />
-                                    <text x="25" y="22" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#003DFF">Algolia</text>
-                                </svg>
+                                <img
+                                    src="/images/algolia.svg"
+                                    alt="Algolia official logo"
+                                    className="h-12 w-auto md:h-14 max-w-[176px] group-hover:scale-110 transition-transform duration-300"
+                                    loading="lazy"
+                                />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                                 Algolia
@@ -241,29 +235,12 @@ export default function Index({ message }) {
                             className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
                         >
                             <div className="mb-4">
-                                <svg
-                                    className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
-                                    viewBox="0 0 100 32"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <rect width="32" height="32" rx="6" fill="#FF6B6B"/>
-                                    <path
-                                        d="M8 16L12 12L16 16L20 12L24 16"
-                                        stroke="white"
-                                        strokeWidth="2.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M8 20L12 16L16 20L20 16L24 20"
-                                        stroke="white"
-                                        strokeWidth="2.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <text x="38" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B6B">tldraw</text>
-                                </svg>
+                                <img
+                                    src="/images/tldraw.png"
+                                    alt="tldraw logo"
+                                    className="h-12 w-auto md:h-14 max-w-[176px] rounded-xl group-hover:scale-110 transition-transform duration-300"
+                                    loading="lazy"
+                                />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                                 tldraw
@@ -284,7 +261,7 @@ export default function Index({ message }) {
                                 Interested in sponsoring Zettly?
                             </span>
                             <a 
-                                href="mailto:sponsor@zettly.com"
+                                href="mailto:mahatma.mahardhika@programinglive.com"
                                 className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >
                                 Get in touch
