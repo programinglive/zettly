@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.52](https://github.com/programinglive/todo/compare/v0.5.51...v0.5.52) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* refresh sponsor branding ([93d3c99](https://github.com/programinglive/todo/commit/93d3c99770c18f8da81161d3dd6d20174926a3fb))
+
 ### [0.5.51](https://github.com/programinglive/todo/compare/v0.5.50...v0.5.51) (2025-10-28)
 
 
