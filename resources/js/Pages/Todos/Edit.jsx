@@ -139,13 +139,13 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     return (
         <AppLayout title={`Edit ${todo.title}`}>
-            <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="sticky top-0 z-50 space-y-4 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <CardTitle className="text-2xl text-gray-900 dark:text-white">{isNote ? 'Edit Note' : 'Edit Todo'}</CardTitle>
-                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Update details, adjust priorities, and keep related tasks in sync.</p>
+                    <CardHeader className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:gap-10">
+                            <div className="space-y-3 lg:max-w-3xl">
+                                <CardTitle className="text-2xl text-gray-900 dark:text-white md:text-3xl">{isNote ? 'Edit Note' : 'Edit Todo'}</CardTitle>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Update details, adjust priorities, and keep related tasks in sync.</p>
                             </div>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                                 <Link
@@ -166,152 +166,155 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6 sm:p-8">
-                        <form id="edit-todo-form" onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Title <span className="text-red-500">*</span>
-                                </label>
-                                <Input
-                                    id="title"
-                                    type="text"
-                                    placeholder="Enter todo title..."
-                                    value={data.title}
-                                    onChange={(e) => setData('title', e.target.value)}
-                                    className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${errors.title ? 'border-red-500' : ''}`}
-                                />
-                                {errors.title && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.title}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tags
-                                </label>
-                                <TagSelector
-                                    availableTags={tags}
-                                    selectedTagIds={data.tag_ids}
-                                    onTagsChange={handleTagsChange}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Description
-                                </label>
-                                <div className="rounded-xl border border-transparent">
-                                    <ZettlyEditor
-                                        value={data.description || ''}
-                                        onChange={(value) => setData('description', value)}
-                                        debug={debugEnabled}
-                                        onDebugToggle={setDebugEnabled}
-                                        onDebugEvent={handleDebugEvent}
-                                    />
-                                </div>
-                                {errors.description && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
-                                )}
-                                <p className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to update this entry.</p>
-                            </div>
-
-                            {!isNote && (
-                                <>
+                    <CardContent className="p-6 sm:p-8 lg:px-10 lg:py-10">
+                        <form id="edit-todo-form" onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
+                            <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+                                <div className="space-y-6 lg:col-span-8">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Priority
-                                        </label>
-                                        <PrioritySelector
-                                            selectedPriority={data.priority}
-                                            selectedImportance={data.importance}
-                                            onChange={handlePriorityChange}
-                                            error={errors.priority || errors.importance}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label htmlFor="due_date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Due Date
+                                        <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Title <span className="text-red-500">*</span>
                                         </label>
                                         <Input
-                                            id="due_date"
-                                            type="date"
-                                            min={new Date().toISOString().slice(0, 10)}
-                                            value={data.due_date || ''}
-                                            onChange={(e) => setData('due_date', e.target.value)}
-                                            className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.due_date ? 'border-red-500' : ''}`}
+                                            id="title"
+                                            type="text"
+                                            placeholder="Enter todo title..."
+                                            value={data.title}
+                                            onChange={(e) => setData('title', e.target.value)}
+                                            className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${errors.title ? 'border-red-500' : ''}`}
                                         />
-                                        {errors.due_date && (
-                                            <p className="text-sm text-red-600 dark:text-red-400">{errors.due_date}</p>
+                                        {errors.title && (
+                                            <p className="text-sm text-red-600 dark:text-red-400">{errors.title}</p>
                                         )}
                                     </div>
-                                </>
-                            )}
 
-                            <ChecklistEditor
-                                items={data.checklist_items || []}
-                                onChange={(items) => setData('checklist_items', items)}
-                                errors={checklistErrors}
-                            />
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Description
+                                        </label>
+                                        <div className="rounded-xl border border-transparent">
+                                            <ZettlyEditor
+                                                value={data.description || ''}
+                                                onChange={(value) => setData('description', value)}
+                                                debug={debugEnabled}
+                                                onDebugToggle={setDebugEnabled}
+                                                onDebugEvent={handleDebugEvent}
+                                            />
+                                        </div>
+                                        {errors.description && (
+                                            <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
+                                        )}
+                                        <p className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to update this entry.</p>
+                                    </div>
 
-                            {todos && todos.length > 0 && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Link to Other Todos
-                                    </label>
-                                    <TodoSelector
-                                        availableTodos={todos}
-                                        selectedTodoIds={data.related_todo_ids}
-                                        selectedTodosData={(selectedLinkedTodos && selectedLinkedTodos.length) ? selectedLinkedTodos : (() => {
-                                            const merge = [...relatedList, ...linkedByList];
-                                            const map = new Map();
-                                            merge.forEach(t => map.set(t.id, t));
-                                            return Array.from(map.values());
-                                        })()}
-                                        onTodosChange={handleTodosChange}
+                                    <ChecklistEditor
+                                        items={data.checklist_items || []}
+                                        onChange={(items) => setData('checklist_items', items)}
+                                        errors={checklistErrors}
                                     />
+
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="is_completed"
+                                            checked={data.is_completed}
+                                            onChange={(e) => setData('is_completed', e.target.checked)}
+                                            className="border-gray-300 dark:border-gray-600"
+                                        />
+                                        <label
+                                            htmlFor="is_completed"
+                                            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                                        >
+                                            Mark as completed
+                                        </label>
+                                    </div>
+
+                                    {existingAttachments.length > 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Current Attachments
+                                            </label>
+                                            <AttachmentList
+                                                attachments={existingAttachments}
+                                                onAttachmentDeleted={handleAttachmentDeleted}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Add New Attachments
+                                        </label>
+                                        <FormFileUpload
+                                            files={attachmentFiles}
+                                            onFilesChange={setAttachmentFiles}
+                                        />
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="is_completed"
-                                    checked={data.is_completed}
-                                    onChange={(e) => setData('is_completed', e.target.checked)}
-                                    className="border-gray-300 dark:border-gray-600"
-                                />
-                                <label
-                                    htmlFor="is_completed"
-                                    className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                                >
-                                    Mark as completed
-                                </label>
-                            </div>
+                                <div className="mt-6 space-y-6 lg:col-span-4 lg:mt-0">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Tags
+                                        </label>
+                                        <TagSelector
+                                            availableTags={tags}
+                                            selectedTagIds={data.tag_ids}
+                                            onTagsChange={handleTagsChange}
+                                        />
+                                    </div>
 
-                            {/* Existing Attachments */}
-                            {existingAttachments.length > 0 && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Current Attachments
-                                    </label>
-                                    <AttachmentList 
-                                        attachments={existingAttachments}
-                                        onAttachmentDeleted={handleAttachmentDeleted}
-                                    />
+                                    {!isNote && (
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label htmlFor="due_date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Due Date
+                                                </label>
+                                                <Input
+                                                    id="due_date"
+                                                    type="date"
+                                                    min={new Date().toISOString().slice(0, 10)}
+                                                    value={data.due_date || ''}
+                                                    onChange={(e) => setData('due_date', e.target.value)}
+                                                    className={`bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white ${errors.due_date ? 'border-red-500' : ''}`}
+                                                />
+                                                {errors.due_date && (
+                                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.due_date}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Priority
+                                                </label>
+                                                <PrioritySelector
+                                                    selectedPriority={data.priority}
+                                                    selectedImportance={data.importance}
+                                                    onChange={handlePriorityChange}
+                                                    error={errors.priority || errors.importance}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {todos && todos.length > 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Link to Other Todos
+                                            </label>
+                                            <TodoSelector
+                                                availableTodos={todos}
+                                                selectedTodoIds={data.related_todo_ids}
+                                                selectedTodosData={(selectedLinkedTodos && selectedLinkedTodos.length) ? selectedLinkedTodos : (() => {
+                                                    const merge = [...relatedList, ...linkedByList];
+                                                    const map = new Map();
+                                                    merge.forEach(t => map.set(t.id, t));
+                                                    return Array.from(map.values());
+                                                })()}
+                                                onTodosChange={handleTodosChange}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-
-                            {/* New Attachments */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Add New Attachments
-                                </label>
-                                <FormFileUpload
-                                    files={attachmentFiles}
-                                    onFilesChange={setAttachmentFiles}
-                                />
                             </div>
-
                         </form>
                     </CardContent>
                 </Card>
