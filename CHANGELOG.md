@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 * prevent `/draw/create` from being misinterpreted as a drawing id by ordering routes correctly
 * remove redundant “Save now” shortcut buttons on todo create & edit pages
+* ensure todo tag selector appears directly beneath the title field for immediate visibility
+* remove obsolete todo/note type toggle from todo form to reflect page intent
 
 ### ✅ Tests
 

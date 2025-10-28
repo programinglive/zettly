@@ -111,23 +111,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         setData('importance', priority?.importance ?? null);
     };
 
-    const handleTypeChange = (type) => {
-        setData('type', type);
-        if (type === 'note') {
-            setData('priority', null);
-            setData('importance', null);
-            setData('due_date', '');
-        } else {
-            if (!data.priority || !data.importance) {
-                setData('priority', 'not_urgent');
-                setData('importance', 'not_important');
-            }
-            if (!data.due_date) {
-                setData('due_date', '');
-            }
-        }
-    };
-
     return (
         <AppLayout title={isNote ? 'Create Note' : 'Create Todo'}>
             <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
@@ -160,28 +143,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                     <CardContent className="p-6 sm:p-8">
                         <form id="create-todo-form" onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Type
-                                </label>
-                                <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
-                                    {[{ value: 'todo', label: 'Todo' }, { value: 'note', label: 'Note' }].map(option => (
-                                        <button
-                                            key={option.value}
-                                            type="button"
-                                            onClick={() => handleTypeChange(option.value)}
-                                            className={`w-full rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                                                data.type === option.value
-                                                    ? 'bg-black text-white dark:bg-white dark:text-black'
-                                                    : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                                            }`}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
                                 <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Title <span className="text-red-500">*</span>
                                 </label>
@@ -196,6 +157,17 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 {errors.title && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.title}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tags
+                                </label>
+                                <TagSelector
+                                    availableTags={tags}
+                                    selectedTagIds={data.tag_ids}
+                                    onTagsChange={handleTagsChange}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -254,17 +226,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                 onChange={(items) => setData('checklist_items', items)}
                                 errors={checklistErrors}
                             />
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tags
-                                </label>
-                                <TagSelector
-                                    availableTags={tags}
-                                    selectedTagIds={data.tag_ids}
-                                    onTagsChange={handleTagsChange}
-                                />
-                            </div>
 
                             {todos && todos.length > 0 && (
                                 <div className="space-y-2">

@@ -1,8 +1,26 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { router } from '@inertiajs/react';
+
+const normalizeId = (value) => String(value ?? '');
+
+export const computeTagBuckets = (availableTags = [], selectedTagIds = []) => {
+    const safeAvailable = Array.isArray(availableTags) ? availableTags : [];
+    const safeSelected = Array.isArray(selectedTagIds) ? selectedTagIds : [];
+    const selectedIdSet = new Set(safeSelected.map(normalizeId));
+
+    const selectedTags = safeAvailable.filter((tag) => selectedIdSet.has(normalizeId(tag.id)));
+    const availableTagsForSelection = safeAvailable.filter((tag) => !selectedIdSet.has(normalizeId(tag.id)));
+
+    return {
+        safeSelectedIds: safeSelected,
+        selectedIdSet,
+        selectedTags,
+        availableTagsForSelection,
+    };
+};
 
 export default function TagSelector({ availableTags, selectedTagIds, onTagsChange, className = '' }) {
     const [isCreating, setIsCreating] = useState(false);
@@ -11,13 +29,16 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
     const [isCreatingTag, setIsCreatingTag] = useState(false);
     const [error, setError] = useState('');
 
-    const selectedTags = availableTags.filter(tag => selectedTagIds.includes(tag.id));
-    const availableTagsForSelection = availableTags.filter(tag => !selectedTagIds.includes(tag.id));
+    const { safeSelectedIds, selectedIdSet, selectedTags, availableTagsForSelection } = useMemo(
+        () => computeTagBuckets(availableTags, selectedTagIds),
+        [availableTags, selectedTagIds]
+    );
 
     const handleTagToggle = (tagId) => {
-        const newSelectedIds = selectedTagIds.includes(tagId)
-            ? selectedTagIds.filter(id => id !== tagId)
-            : [...selectedTagIds, tagId];
+        const idKey = normalizeId(tagId);
+        const newSelectedIds = selectedIdSet.has(idKey)
+            ? safeSelectedIds.filter((id) => normalizeId(id) !== idKey)
+            : [...safeSelectedIds, tagId];
 
         onTagsChange(newSelectedIds);
     };
@@ -61,8 +82,9 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
                 const newTag = await response.json();
                 
                 // Add the new tag to selected tags (only if it was newly created)
-                if (response.status === 201 || !selectedTagIds.includes(newTag.id)) {
-                    onTagsChange([...selectedTagIds, newTag.id]);
+                const newTagKey = normalizeId(newTag.id);
+                if (response.status === 201 || !selectedIdSet.has(newTagKey)) {
+                    onTagsChange([...safeSelectedIds, newTag.id]);
                 }
                 
                 // Reset form
