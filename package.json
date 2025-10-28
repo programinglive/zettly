@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "todo-app",
-  "version": "0.5.46",
+  "version": "0.5.48",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -54,6 +54,8 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.2.3",
+    "@sentry/react": "^10.22.0",
+    "@sentry/tracing": "^7.120.4",
     "@tiptap/extension-code-block": "^3.7.2",
     "@tiptap/react": "^3.7.2",
     "@tiptap/starter-kit": "^3.7.2",

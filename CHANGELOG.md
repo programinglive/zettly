@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.48](https://github.com/programinglive/todo/compare/v0.5.46...v0.5.48) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* resolve Draw TypeError by replacing setActiveId and simplifying TLDraw integration ([d56ca28](https://github.com/programinglive/todo/commit/d56ca28f30080ff05ff281fed9037f6790b25976))
+
+### [0.5.47](https://github.com/programinglive/todo/compare/v0.5.46...v0.5.47) (2025-10-28)
+
 ### [0.5.46](https://github.com/programinglive/todo/compare/v0.5.45...v0.5.46) (2025-10-27)
 
 
