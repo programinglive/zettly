@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.59](https://github.com/programinglive/todo/compare/v0.5.58...v0.5.59) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* expand todo detail layout and avoid unused preloads ([a5c436e](https://github.com/programinglive/todo/commit/a5c436efcdc8d7b9208279047096dab53bf8debf))
+* show archived badge on todo details ([46231d1](https://github.com/programinglive/todo/commit/46231d1b79ab90dd1ec044c3839496f94d44993d))
+
 ### [0.5.58](https://github.com/programinglive/todo/compare/v0.5.57...v0.5.58) (2025-10-28)
 
 
