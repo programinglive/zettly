@@ -50,6 +50,18 @@ class DrawTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Draw/Index'));
     }
 
+    public function test_create_path_does_not_match_drawing_param_route(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/draw/create')
+            ->assertOk();
+
+        // If this route were erroneously matched to the {drawing} param,
+        // it would fail with a 404/422 or database binding error.
+    }
+
     public function test_user_can_load_individual_drawing(): void
     {
         $user = User::factory()->create();
