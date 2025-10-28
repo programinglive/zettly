@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.57](https://github.com/programinglive/todo/compare/v0.5.56...v0.5.57) (2025-10-28)
+
+
+### ♻️ Refactors
+
+* improve dashboard attachments and storage handling ([de272d1](https://github.com/programinglive/todo/commit/de272d1c085291b905077733239bfc38c933c196))
+
 ### [0.5.56](https://github.com/programinglive/todo/compare/v0.5.55...v0.5.56) (2025-10-28)
 
 
