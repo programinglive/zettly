@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.51](https://github.com/programinglive/todo/compare/v0.5.50...v0.5.51) (2025-10-28)
+
+
+### ✨ Features
+
+* **draw:** generate and display gallery thumbnails ([94a0a7e](https://github.com/programinglive/todo/commit/94a0a7efb5dfa7d4a2dd64d181fc62487131ad27))
+
 ### [0.5.50](https://github.com/programinglive/todo/compare/v0.5.49...v0.5.50) (2025-10-28)
 
 
