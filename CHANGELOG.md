@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.53](https://github.com/programinglive/todo/compare/v0.5.52...v0.5.53) (2025-10-28)
+
+
+### ✅ Tests
+
+* guard websocket diagnostics socket id ([7cc926f](https://github.com/programinglive/todo/commit/7cc926fae531a6cfe3c04b331f28e3d20908cecd))
+
 ### [0.5.52](https://github.com/programinglive/todo/compare/v0.5.51...v0.5.52) (2025-10-28)
 
 
