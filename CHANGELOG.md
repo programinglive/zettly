@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.56](https://github.com/programinglive/todo/compare/v0.5.55...v0.5.56) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* align account menus and tidy todo forms ([27460e5](https://github.com/programinglive/todo/commit/27460e5365b569a899c2b8eb7d14f197f4b6dfb1))
+* guard draw routes against non-numeric ids ([f7313f8](https://github.com/programinglive/todo/commit/f7313f8827d95a1bfd5ccaa8f40a71eea9fa8a4b))
+
+
+### 🧹 Chores
+
+* enable frontend sentry capture ([0b09e8d](https://github.com/programinglive/todo/commit/0b09e8d312c3dc355c66cb26b4dad48a5aac96aa))
+
+
+### ✨ Features
+
+* streamline todo forms ([0e638c0](https://github.com/programinglive/todo/commit/0e638c05703e901496538fbdd7e1bd152d9be01d))
+
+
+### 📝 Documentation
+
+* refresh legal contact emails ([748e3be](https://github.com/programinglive/todo/commit/748e3be5ef66eda94ac3c0fc42866e87a7a8fd7a))
+
 ### [0.5.55](https://github.com/programinglive/todo/compare/v0.5.54...v0.5.55) (2025-10-28)
 
 ### [0.5.54](https://github.com/programinglive/todo/compare/v0.5.53...v0.5.54) (2025-10-28)
