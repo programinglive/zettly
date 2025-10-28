@@ -67,7 +67,8 @@ class DrawTest extends TestCase
         $user = User::factory()->create();
         $drawing = Drawing::factory()->for($user)->create();
 
-        $response = $this->actingAs($user)->get(route('draw.show', $drawing));
+        $response = $this->actingAs($user)
+            ->getJson(route('draw.show', $drawing, absolute: false));
 
         $response
             ->assertOk()

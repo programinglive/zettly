@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PusherTestController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\UploadTestController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,7 +42,13 @@ Route::get('/dashboard', DashboardController::class)
 Route::middleware('auth')->group(function () {
     // Special routes that need to come before resource routes
     Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');
+    Route::get('todos/completed', [TodoController::class, 'completed'])->name('todos.completed');
+    Route::get('todos/deleted', [TodoController::class, 'deleted'])->name('todos.deleted');
     Route::post('todos/archive-completed', [TodoController::class, 'archiveCompleted'])->name('todos.archive-completed');
+    Route::post('todos/{todo}/restore', [TodoController::class, 'restore'])->name('todos.restore');
+    Route::post('todos/{todo}/restore-deleted', [TodoController::class, 'restoreDeleted'])->name('todos.restore-deleted');
+
+    Route::get('/system-status', SystemStatusController::class)->name('system.status');
 
     Route::get('notes', [TodoController::class, 'notes'])->name('notes.index');
     Route::resource('todos', TodoController::class);

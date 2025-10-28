@@ -842,6 +842,91 @@ class TodoController extends Controller
         ]);
     }
 
+    public function restore(Request $request, Todo $todo)
+    {
+        if ($todo->user_id !== Auth::id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            abort(403);
+        }
+
+        $todo->update([
+            'archived' => false,
+            'archived_at' => null,
+        ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Todo restored successfully',
+                'todo' => $todo->fresh(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Todo restored successfully!');
+    }
+
+    public function completed(Request $request)
+    {
+        $user = Auth::user();
+
+        $completedTodos = $user->todos()
+            ->completed()
+            ->notArchived()
+            ->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->orderByDesc('completed_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return Inertia::render('Todos/Completed', [
+            'todos' => $completedTodos,
+        ]);
+    }
+
+    public function deleted(Request $request)
+    {
+        $user = Auth::user();
+
+        $deletedTodos = $user->todos()
+            ->onlyTrashed()
+            ->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->orderByDesc('deleted_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return Inertia::render('Todos/Deleted', [
+            'todos' => $deletedTodos,
+        ]);
+    }
+
+    public function restoreDeleted(Request $request, $todoId)
+    {
+        $user = Auth::user();
+
+        /** @var Todo|null $todo */
+        $todo = $user->todos()->onlyTrashed()->where('id', $todoId)->first();
+
+        if (! $todo) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Todo not found or unauthorized'], 404);
+            }
+
+            return redirect()->back()->with('error', 'Todo not found or unauthorized');
+        }
+
+        $todo->restore();
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Todo restored successfully',
+                'todo' => $todo->fresh(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Todo restored successfully!');
+    }
+
     /**
             'todos' => $archivedTodos,
         ]);

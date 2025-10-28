@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\WebPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Inertia\Testing\AssertableInertia as AssertableInertia;
 use Tests\TestCase;
 
 class TodoTest extends TestCase
@@ -680,5 +681,57 @@ class TodoTest extends TestCase
 
         $this->assertSame('urgent', $todo->priority);
         $this->assertSame('#DC2626', $todo->priority_color);
+    }
+
+    public function test_user_can_view_completed_todos_page(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Completed Todo',
+            'is_completed' => true,
+            'completed_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('todos.completed'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Todos/Completed')
+            ->has('todos')
+            ->where('todos.data.0.title', 'Completed Todo')
+        );
+    }
+
+    public function test_user_can_view_deleted_items_page_and_restore(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Soft Deleted Todo',
+            'deleted_at' => now()->subHour(),
+        ]);
+        $todo->delete();
+
+        $response = $this->actingAs($user)
+            ->get(route('todos.deleted'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Todos/Deleted')
+            ->has('todos')
+        );
+
+        $restoreResponse = $this->actingAs($user)
+            ->post(route('todos.restore-deleted', $todo->id));
+
+        $restoreResponse->assertRedirect();
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'deleted_at' => null,
+        ]);
     }
 }

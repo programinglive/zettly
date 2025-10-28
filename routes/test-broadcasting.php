@@ -104,55 +104,63 @@ Route::post('/broadcasting/auth', function (Request $request) {
 /**
  * Helper function to validate channel authorization
  */
-function authorizeChannel($channelName, $user) {
-    // Allow test channels for debugging
-    if (str_starts_with($channelName, 'private-test.')) {
-        \Log::info('Broadcast auth: Test channel allowed', [
+if (! function_exists('authorizeChannel')) {
+    /**
+     * Determine if the current user may access a broadcast channel.
+     */
+    function authorizeChannel($channelName, $user)
+    {
+        // Allow test channels for debugging
+        if (str_starts_with($channelName, 'private-test.')) {
+            \Log::info('Broadcast auth: Test channel allowed', [
+                'channel_name' => $channelName,
+                'user_id' => $user->id,
+            ]);
+
+            return true;
+        }
+
+        // For private drawing channels, check if user owns the drawing
+        if (str_starts_with($channelName, 'private-drawings.') && $user) {
+            $drawingId = str_replace('private-drawings.', '', $channelName);
+            $drawing = \App\Models\Drawing::find($drawingId);
+
+            if (! $drawing) {
+                \Log::error('Broadcast auth: Drawing not found', [
+                    'drawing_id' => $drawingId,
+                    'user_id' => $user->id,
+                ]);
+
+                return false;
+            }
+
+            if ($drawing->user_id !== $user->id) {
+                \Log::error('Broadcast auth: User does not own drawing', [
+                    'drawing_id' => $drawingId,
+                    'drawing_owner' => $drawing->user_id,
+                    'user_id' => $user->id,
+                ]);
+
+                return false;
+            }
+
+            \Log::info('Broadcast auth: Drawing access granted', [
+                'drawing_id' => $drawingId,
+                'user_id' => $user->id,
+            ]);
+
+            return true;
+        }
+
+        \Log::error('Broadcast auth: Unsupported channel pattern', [
             'channel_name' => $channelName,
             'user_id' => $user->id,
         ]);
-        return true;
+
+        return false;
     }
-    
-    // For private drawing channels, check if user owns the drawing
-    if (str_starts_with($channelName, 'private-drawings.') && $user) {
-        $drawingId = str_replace('private-drawings.', '', $channelName);
-        
-        // Check if drawing exists and user owns it
-        $drawing = \App\Models\Drawing::find($drawingId);
-        
-        if (!$drawing) {
-            \Log::error('Broadcast auth: Drawing not found', [
-                'drawing_id' => $drawingId,
-                'user_id' => $user->id,
-            ]);
-            return false;
-        }
-        
-        if ($drawing->user_id !== $user->id) {
-            \Log::error('Broadcast auth: User does not own drawing', [
-                'drawing_id' => $drawingId,
-                'drawing_owner' => $drawing->user_id,
-                'user_id' => $user->id,
-            ]);
-            return false;
-        }
-        
-        \Log::info('Broadcast auth: Drawing access granted', [
-            'drawing_id' => $drawingId,
-            'user_id' => $user->id,
-        ]);
-        
-        return true;
-    }
-    
-    \Log::error('Broadcast auth: Unsupported channel pattern', [
-        'channel_name' => $channelName,
-        'user_id' => $user->id,
-    ]);
-    
-    return false;
 }
+
 
 // Simple test route for debugging auth responses (no conflicts with Laravel's default)
 Route::post('/test-broadcasting-auth-simple', function (Request $request) {

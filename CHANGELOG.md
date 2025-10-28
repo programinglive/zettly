@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [Unreleased]
+
+### 🐛 Bug Fixes
+
+* hide dashboard system status widget unless debug mode is enabled and expose authenticated `/system-status` health endpoint for tests
+
 ### [0.5.57](https://github.com/programinglive/todo/compare/v0.5.56...v0.5.57) (2025-10-28)
 
 

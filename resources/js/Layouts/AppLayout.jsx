@@ -49,6 +49,26 @@ export default function AppLayout({
             ),
         },
         {
+            href: '/todos/completed',
+            label: 'Completed',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V8a2 2 0 00-2-2h-5" />
+                </svg>
+            ),
+        },
+        {
+            href: '/todos/deleted',
+            label: 'Deleted',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 4h8" />
+                </svg>
+            ),
+        },
+        {
             href: '/notes',
             label: 'My Notes',
             icon: (

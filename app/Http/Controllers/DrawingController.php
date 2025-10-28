@@ -69,8 +69,9 @@ class DrawingController extends Controller
             abort(403);
         }
 
-        if ($request->expectsJson() && ! Inertia::isInertiaRequest($request)) {
+        if ($request->expectsJson() && ! $request->hasHeader('X-Inertia')) {
             return response()->json([
+                'success' => true,
                 'drawing' => $drawing->only(['id', 'title', 'document', 'thumbnail', 'updated_at']),
             ]);
         }

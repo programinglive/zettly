@@ -1,6 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePage } from '@inertiajs/react';
 import { CheckCircle, XCircle, AlertCircle, Info, RefreshCw } from 'lucide-react';
+
+const DEBUG_STORAGE_KEY = 'zettly-debug-mode';
+
+const readDebugPreference = () => {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    return window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
+};
 
 export default function SystemStatus() {
     const page = usePage();
@@ -10,6 +20,7 @@ export default function SystemStatus() {
         [page?.props?.appVersion]
     );
 
+    const [isDebugEnabled, setIsDebugEnabled] = useState(readDebugPreference);
     const [status, setStatus] = useState({
         version,
         websocket: { status: 'checking', message: 'Testing...' },
@@ -93,22 +104,53 @@ export default function SystemStatus() {
     };
 
     const checkServer = async () => {
-        try {
-            const response = await fetch('/test-broadcasting');
-            if (!response.ok) {
-                return { status: 'error', message: `HTTP ${response.status}` };
+        const endpoints = ['/system-status', '/test-broadcasting', '/test-broadcasting-simple'];
+        let lastError = null;
+
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    lastError = new Error(`HTTP ${response.status}`);
+                    continue;
+                }
+
+                const data = await response.json();
+                const appVersion = data.app_version ?? status.version ?? 'unknown';
+                const driver = data.broadcast_driver ?? 'unknown driver';
+                const env = data.environment ?? import.meta.env.MODE ?? 'unknown env';
+                const pusherConfigured = data.pusher_configured ?? false;
+                const messageParts = [`v${appVersion}`, driver, env];
+                if (typeof data.debug_mode === 'boolean') {
+                    messageParts.push(data.debug_mode ? 'debug on' : 'debug off');
+                }
+
+                return {
+                    status: pusherConfigured ? 'success' : 'warning',
+                    message: messageParts.join(' • '),
+                };
+            } catch (error) {
+                lastError = error;
             }
-            const data = await response.json();
-            return { 
-                status: data.pusher_configured ? 'success' : 'warning', 
-                message: `v${data.app_version || 'unknown'}, Pusher: ${data.pusher_configured ? '✓' : '✗'}` 
-            };
-        } catch (error) {
-            return { status: 'error', message: error.message };
         }
+
+        return {
+            status: 'error',
+            message: lastError?.message ?? 'Unable to reach status endpoints',
+        };
     };
 
-    const runChecks = async () => {
+    const runChecks = useCallback(async () => {
+        if (!isDebugEnabled) {
+            return;
+        }
+
         setIsRefreshing(true);
         
         const newStatus = {
@@ -123,12 +165,31 @@ export default function SystemStatus() {
         
         setStatus(newStatus);
         setIsRefreshing(false);
-    };
+    }, [isDebugEnabled, version]);
 
     useEffect(() => {
+        const handleDebugToggle = (event) => {
+            setIsDebugEnabled(Boolean(event.detail?.enabled));
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('zettly:debug-mode-changed', handleDebugToggle);
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('zettly:debug-mode-changed', handleDebugToggle);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isDebugEnabled) {
+            return undefined;
+        }
+
         runChecks();
-        
-        // Set up WebSocket listener to update status in real-time
+
         if (window.Echo) {
             const updateWebSocketStatus = () => {
                 setStatus(prev => ({
@@ -136,18 +197,24 @@ export default function SystemStatus() {
                     websocket: checkWebSocket()
                 }));
             };
-            
+
             window.Echo.connector.pusher.connection.bind('connected', updateWebSocketStatus);
             window.Echo.connector.pusher.connection.bind('disconnected', updateWebSocketStatus);
             window.Echo.connector.pusher.connection.bind('error', updateWebSocketStatus);
-            
+
             return () => {
                 window.Echo.connector.pusher.connection.unbind('connected', updateWebSocketStatus);
                 window.Echo.connector.pusher.connection.unbind('disconnected', updateWebSocketStatus);
                 window.Echo.connector.pusher.connection.unbind('error', updateWebSocketStatus);
             };
         }
-    }, []);
+
+        return undefined;
+    }, [isDebugEnabled, runChecks]);
+
+    if (!isDebugEnabled) {
+        return null;
+    }
 
     const getStatusIcon = (status) => {
         switch (status) {
