@@ -107,8 +107,6 @@ class AppServiceProvider extends ServiceProvider
             return new FilesystemAdapter($filesystem, $adapter, $config, $publicUrlGenerator);
         });
 
-        Vite::prefetch(concurrency: 3);
-
         Inertia::share('appVersion', static function () {
             $package = base_path('package.json');
 

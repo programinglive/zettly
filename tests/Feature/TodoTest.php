@@ -749,6 +749,11 @@ class TodoTest extends TestCase
         $response = $this->actingAs($user)->get(route('todos.show', $todo));
 
         $response->assertOk();
-        $response->assertSee('Archived', escape: false);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Todos/Show')
+            ->where('todo.id', $todo->id)
+            ->where('todo.archived', true)
+            ->where('todo.archived_at', $todo->archived_at->toJSON())
+        );
     }
 }

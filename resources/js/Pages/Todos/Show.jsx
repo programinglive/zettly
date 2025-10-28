@@ -120,7 +120,23 @@ export default function Show({ todo, availableTodos }) {
     const createdAt = useMemo(() => new Date(todo.created_at), [todo.created_at]);
     const updatedAt = useMemo(() => new Date(todo.updated_at), [todo.updated_at]);
     const completedAt = useMemo(() => (todo.completed_at ? new Date(todo.completed_at) : null), [todo.completed_at]);
-    const [extrasOpen, setExtrasOpen] = useState(false);
+    const [extrasOpen, setExtrasOpen] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.matchMedia('(min-width: 1024px)').matches;
+        }
+
+        return false;
+    });
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        if (window.matchMedia('(min-width: 1024px)').matches) {
+            setExtrasOpen(true);
+        }
+    }, []);
 
     const formatTimestamp = useMemo(() => {
         const formatter = new Intl.DateTimeFormat('en-US', {
@@ -175,7 +191,7 @@ export default function Show({ todo, availableTodos }) {
 
     return (
         <AppLayout title={todo.title}>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 pb-16 lg:pb-20">
                 <Head title={`${todo.title} · ${isNote ? 'Note' : 'Todo'} Details`} />
 
                 <Link
@@ -187,17 +203,27 @@ export default function Show({ todo, availableTodos }) {
                 </Link>
 
                 <article className="mt-6 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <header className="flex flex-col gap-4 border-b border-gray-200/60 px-5 py-6 dark:border-gray-800">
-                        <div className="space-y-2">
+                    <header className="flex flex-col gap-6 border-b border-gray-200/60 px-5 py-6 dark:border-gray-800 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:px-10 lg:py-10">
+                        <div className="space-y-4 lg:max-w-3xl">
                             <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200">
                                 {isNote ? 'Note' : 'Todo'}
                             </span>
-                            <h1 className="text-3xl font-semibold leading-snug text-gray-900 dark:text-white">
+                            <h1 className="text-3xl font-semibold leading-snug text-gray-900 dark:text-white md:text-4xl">
                                 {todo.title}
                             </h1>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                {metaRows.map((row, index) => (
+                                    <React.Fragment key={row.label}>
+                                        {index > 0 && <span className="text-gray-300">•</span>}
+                                        <span>
+                                            {row.label} {row.value}
+                                        </span>
+                                    </React.Fragment>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3 lg:max-w-sm lg:justify-end">
                             {!isNote && (
                                 <button
                                     onClick={handleToggle}
@@ -233,15 +259,9 @@ export default function Show({ todo, availableTodos }) {
                                 </span>
                             )}
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span>Updated {metaRows[1].value}</span>
-                            <span className="text-gray-300">•</span>
-                            <span>Created {metaRows[0].value}</span>
-                        </div>
                     </header>
 
-                    <div className="px-5 py-6 text-gray-700 dark:text-gray-200">
+                    <div className="px-5 py-6 text-gray-700 dark:text-gray-200 lg:px-10 lg:py-10">
                         <section>
                             {todo.description ? (
                                 <SanitizedHtml className="prose prose-slate max-w-none text-base dark:prose-invert" html={todo.description} />
@@ -253,7 +273,7 @@ export default function Show({ todo, availableTodos }) {
                         </section>
 
                         {(checklistItems.length > 0 || todo.tags?.length || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length)) && (
-                            <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800">
+                            <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800 lg:mt-12 lg:pt-6">
                                 <button
                                     type="button"
                                     onClick={() => setExtrasOpen((open) => !open)}
@@ -264,9 +284,9 @@ export default function Show({ todo, availableTodos }) {
                                 </button>
 
                                 {extrasOpen && (
-                                    <div className="mt-4 space-y-6">
+                                    <div className="mt-4 space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
                                         {checklistItems.length > 0 && (
-                                            <section className="space-y-3">
+                                            <section className="space-y-3 lg:col-span-2">
                                                 <div className="flex items-center justify-between">
                                                     <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Checklist</h2>
                                                     <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -331,7 +351,7 @@ export default function Show({ todo, availableTodos }) {
                             </div>
                         )}
 
-                        <div className="mt-10 flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-800 sm:flex-row sm:justify-end">
+                        <div className="mt-12 flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-800 sm:flex-row sm:justify-end lg:gap-4">
                             <Link href={`/todos/${todo.id}/edit`} className="sm:w-auto">
                                 <Button variant="outline" className="flex w-full items-center justify-center gap-2">
                                     <Edit className="h-4 w-4" />
