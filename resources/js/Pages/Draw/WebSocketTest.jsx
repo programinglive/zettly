@@ -135,7 +135,7 @@ export default function WebSocketTest() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
             },
             body: JSON.stringify({
-                socket_id: 'test.socket.id',
+                socket_id: '1234.5678',
                 channel_name: 'private-drawings.1'
             })
         });
@@ -161,7 +161,7 @@ export default function WebSocketTest() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
             },
             body: JSON.stringify({
-                socket_id: 'test.socket.id',
+                socket_id: '1234.5678',
                 channel_name: 'private-drawings.1'
             })
         });
