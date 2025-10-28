@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.55](https://github.com/programinglive/todo/compare/v0.5.54...v0.5.55) (2025-10-28)
+
 ### [0.5.54](https://github.com/programinglive/todo/compare/v0.5.53...v0.5.54) (2025-10-28)
+
+### 🐛 Bug Fixes
+
+* prevent `/draw/create` from being misinterpreted as a drawing id by ordering routes correctly
+* remove redundant “Save now” shortcut buttons on todo create & edit pages
+
+### ✅ Tests
+
+* add regression coverage for shared account navigation links
+* add todo action button tests to ensure duplicate buttons remain removed
 
 ### [0.5.53](https://github.com/programinglive/todo/compare/v0.5.52...v0.5.53) (2025-10-28)
 
