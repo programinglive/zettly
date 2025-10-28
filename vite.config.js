@@ -8,6 +8,16 @@ import { VitePWA } from 'vite-plugin-pwa';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Plugin to exclude test files from build
+const excludeTests = () => ({
+    name: 'exclude-tests',
+    resolveId(id) {
+        if (id.includes('.test.') || id.includes('__tests__')) {
+            return false;
+        }
+    }
+});
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -18,6 +28,7 @@ export default defineConfig({
             refresh: true,
         }),
         react(),
+        excludeTests(),
         VitePWA({
             registerType: 'prompt',
             strategies: 'generateSW',

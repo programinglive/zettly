@@ -62,14 +62,13 @@ class DrawingController extends Controller
         ]);
     }
 
-    public function show(Drawing $drawing): JsonResponse
+    public function show(Drawing $drawing): Response
     {
         if ($drawing->user_id !== Auth::id()) {
             abort(403);
         }
 
-        return response()->json([
-            'success' => true,
+        return Inertia::render('Draw/Index', [
             'drawing' => $drawing,
         ]);
     }
@@ -95,6 +94,24 @@ class DrawingController extends Controller
         return response()->json([
             'success' => true,
             'drawing' => $drawing,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Draw/Index');
+    }
+
+    public function destroy(Drawing $drawing): JsonResponse
+    {
+        if ($drawing->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $drawing->delete();
+
+        return response()->json([
+            'success' => true,
         ]);
     }
 }

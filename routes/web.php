@@ -54,10 +54,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('draw', [DrawingController::class, 'index'])->name('draw.index');
     Route::post('draw', [DrawingController::class, 'store'])->name('draw.store');
-    Route::get('/drawings/{drawing}/edit', [DrawingController::class, 'show'])->name('drawings.edit');
-    Route::get('/drawings/{drawing}/test', [DrawingController::class, 'test'])->name('drawings.test');
-    Route::get('/drawings/{drawing}', [DrawingController::class, 'show'])->name('draw.show');
+    Route::get('draw/{drawing}', [DrawingController::class, 'show'])->name('draw.show');
     Route::patch('draw/{drawing}', [DrawingController::class, 'update'])->name('draw.update');
+    Route::delete('draw/{drawing}', [DrawingController::class, 'destroy'])->name('draw.destroy');
+    Route::get('draw/create', [DrawingController::class, 'create'])->name('draw.create');
 
     // File attachment routes
     Route::post('todos/{todo}/attachments', [TodoController::class, 'uploadAttachment'])->name('todos.attachments.upload');
