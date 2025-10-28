@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
-import { LinkIcon, CheckCircle, Circle } from 'lucide-react';
+import { LinkIcon, CheckCircle, Circle, Paperclip, FileText } from 'lucide-react';
 import SanitizedHtml from './SanitizedHtml';
 import TagBadge from './TagBadge';
 import { cn } from '../utils';
@@ -13,6 +13,23 @@ const stripHtml = (html) => {
         return doc.body.textContent || '';
     }
     return html.replace(/<[^>]*>/g, ' ');
+};
+
+const formatFileSize = (bytes) => {
+    if (!Number.isFinite(bytes)) {
+        return '';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = bytes;
+    let index = 0;
+
+    while (size >= 1024 && index < units.length - 1) {
+        size /= 1024;
+        index += 1;
+    }
+
+    return `${size.toFixed(1)} ${units[index]}`;
 };
 
 export default function ContextPanel({ selectedTask = null, linkedTodos = [], className }) {
@@ -33,6 +50,8 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
     if (!selectedTask) {
         return null;
     }
+
+    const attachments = Array.isArray(selectedTask.attachments) ? selectedTask.attachments : [];
 
     return (
         <div
@@ -132,6 +151,53 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                     </div>
                 )}
             </section>
+
+            {attachments.length > 0 && (
+                <section>
+                    <div className="mb-3 flex items-center gap-2">
+                        <Paperclip className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Attachments ({attachments.length})
+                        </p>
+                    </div>
+                    <div className="space-y-2">
+                        {attachments.map((attachment) => {
+                            const isImage = (attachment?.type ?? '').toLowerCase() === 'image';
+                            const previewUrl = attachment?.thumbnail_url || attachment?.url;
+
+                            return (
+                                <a
+                                    key={attachment.id ?? attachment.file_path ?? attachment.url}
+                                    href={attachment?.url ?? '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-colors hover:border-indigo-300 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/60 dark:hover:border-indigo-500/40 dark:hover:bg-slate-800"
+                                >
+                                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-900">
+                                        {isImage && previewUrl ? (
+                                            <img
+                                                src={previewUrl}
+                                                alt={attachment?.original_name ?? 'Attachment preview'}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <FileText className="h-5 w-5 text-gray-500" />
+                                        )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                                            {attachment?.original_name ?? 'Attachment'}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {formatFileSize(Number(attachment?.file_size))}
+                                        </p>
+                                    </div>
+                                </a>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
 
             {relatedTodos.length > 0 && (
                 <section>

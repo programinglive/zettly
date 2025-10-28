@@ -7,7 +7,7 @@ import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 import SystemStatus from '../Components/SystemStatus';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
-import { Drawer, DrawerContent, DrawerClose, DrawerBody } from '../Components/ui/drawer';
+import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle } from '../Components/ui/drawer';
 
 const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
@@ -452,6 +452,7 @@ export default function Dashboard({
                     side="right"
                     className="w-full max-w-full border-none bg-transparent p-0 sm:max-w-lg"
                 >
+                    <DrawerTitle className="sr-only">Task context details</DrawerTitle>
                     <div className="flex items-center justify-end border-b border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
                         <DrawerClose asChild>
                             <button

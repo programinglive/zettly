@@ -10,10 +10,14 @@ const __dirname = dirname(__filename);
 const dashboardPath = join(__dirname, '..', 'Pages', 'Dashboard.jsx');
 const profilePath = join(__dirname, '..', 'Pages', 'Profile', 'Edit.jsx');
 const constantsPath = join(__dirname, '..', 'constants', 'workspace.js');
+const controllerPath = join(__dirname, '..', '..', '..', 'app', 'Http', 'Controllers', 'DashboardController.php');
+const contextPanelPath = join(__dirname, '..', 'Components', 'ContextPanel.jsx');
 
 const dashboardSource = readFileSync(dashboardPath, 'utf8');
 const profileSource = readFileSync(profilePath, 'utf8');
 const constantsSource = readFileSync(constantsPath, 'utf8');
+const controllerSource = readFileSync(controllerPath, 'utf8');
+const contextPanelSource = readFileSync(contextPanelPath, 'utf8');
 
 test('workspace constants expose options and storage key', () => {
     assert.ok(
@@ -56,6 +60,13 @@ test('dashboard conditionally renders matrix or kanban workspace', () => {
     );
 });
 
+test('dashboard context drawer provides accessible title', () => {
+    assert.ok(
+        dashboardSource.includes('<DrawerTitle className="sr-only">Task context details</DrawerTitle>'),
+        'Expected context drawer to include a visually hidden title for screen readers.'
+    );
+});
+
 test('dashboard no longer renders workspace selector card', () => {
     assert.ok(
         !/{!isDesktop && \(\s*<Link\s*href="\/profile"/.test(dashboardSource),
@@ -87,10 +98,32 @@ test('profile settings page renders workspace preferences section', () => {
 
 test('dashboard matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
-        dashboardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody } from '../Components/ui/drawer';") &&
+        dashboardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle } from '../Components/ui/drawer';") &&
         dashboardSource.includes('side="right"') &&
         dashboardSource.includes('<Drawer'),
         'Expected dashboard to render the context drawer using shadcn primitives anchored to the right when a task is selected.'
+    );
+});
+
+test('dashboard includes attachments when hydrating context drawer', () => {
+    assert.ok(
+        controllerSource.includes("->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])"),
+        'Expected dashboard controller to eager load attachments for todos.'
+    );
+
+    assert.ok(
+        controllerSource.includes('->each(function (Todo $todo) {'),
+        'Expected dashboard context panel to read attachments from the selected task.'
+    );
+
+    assert.ok(
+        contextPanelSource.includes('const attachments = Array.isArray(selectedTask.attachments)'),
+        'Expected context panel to compute attachments array from the selected task in the selectedTask attachments section.'
+    );
+
+    assert.ok(
+        contextPanelSource.includes('Attachments ({attachments.length})') && contextPanelSource.includes('<Paperclip'),
+        'Expected attachments section markup to render with paperclip icon and count.'
     );
 });
 

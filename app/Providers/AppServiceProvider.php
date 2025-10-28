@@ -58,7 +58,17 @@ class AppServiceProvider extends ServiceProvider
                     $clientOptions['keyFile'] = $keyFile;
                 }
             } elseif (! empty($config['key_file_path'])) {
-                $clientOptions['keyFilePath'] = $config['key_file_path'];
+                $resolvedPath = self::resolveGcsKeyFilePath($config['key_file_path']);
+
+                if ($resolvedPath === null) {
+                    throw new \RuntimeException(sprintf(
+                        'Google Cloud Storage key file not found. Checked configured path [%s] and common fallbacks. Update GOOGLE_CLOUD_STORAGE_KEY_FILE or place the JSON at storage/app/%s.',
+                        $config['key_file_path'],
+                        basename($config['key_file_path'])
+                    ));
+                }
+
+                $clientOptions['keyFilePath'] = $resolvedPath;
             }
 
             if (! empty($config['api_uri'])) {
@@ -110,5 +120,28 @@ class AppServiceProvider extends ServiceProvider
 
             return $contents['version'] ?? null;
         });
+    }
+
+    private static function resolveGcsKeyFilePath(string $configuredPath): ?string
+    {
+        $candidatePaths = [];
+
+        if ($configuredPath !== '') {
+            $candidatePaths[] = $configuredPath;
+
+            if (! str_starts_with($configuredPath, '/')) {
+                $candidatePaths[] = base_path($configuredPath);
+            }
+        }
+
+        $candidatePaths[] = storage_path('app/'.basename($configuredPath));
+
+        foreach ($candidatePaths as $path) {
+            if ($path && is_readable($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 }

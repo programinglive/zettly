@@ -192,6 +192,7 @@ GOOGLE_CLOUD_STORAGE_URL=https://storage.googleapis.com/your-bucket-name
 - **Disk Selection**: Update `.env` to set `TODO_ATTACHMENTS_DISK=gcs` and provide the bucket credentials above.
 - **Public Access**: Ensure the bucket grants appropriate read access when using public visibility.
 - **Uniform Bucket-Level Access (UBLA)**: If UBLA is enabled on your bucket, leave object-level ACLs to GCS. The application avoids setting per-object ACLs automatically, so no additional configuration is needed.
+- **Key File Placement**: If `GOOGLE_CLOUD_STORAGE_KEY_FILE` points to a relative path, the app will also look for the JSON under `storage/app/{filename}` as a convenience. Place the key there when developing locally.
 
 ### Dependencies
 - **Required**: Laravel Storage, GD extension, Lucide React (icons)
@@ -205,6 +206,7 @@ GOOGLE_CLOUD_STORAGE_URL=https://storage.googleapis.com/your-bucket-name
    - Check file size (max 10MB)
    - Verify storage permissions
    - Ensure storage link exists: `php artisan storage:link`
+   - Confirm the page includes the `<meta name="csrf-token">` tag; uploads require a valid CSRF token
 
 2. **Thumbnails Not Generated**
    - Check GD extension is installed

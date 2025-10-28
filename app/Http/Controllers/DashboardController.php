@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $todosQuery = $user->todos()
             ->notArchived()
             ->tasks()
-            ->with(['tags', 'relatedTodos', 'linkedByTodos'])
+            ->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])
             ->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE 
             WHEN priority = 'urgent' THEN 1 
@@ -41,6 +41,10 @@ class DashboardController extends Controller
         }
 
         $todos = $todosQuery->get();
+
+        $todos->each(function (Todo $todo) {
+            $todo->attachments->each(fn ($attachment) => $attachment->append(['url', 'thumbnail_url']));
+        });
 
         $availableTags = $user->tags()
             ->orderBy('name')

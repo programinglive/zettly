@@ -19,9 +19,23 @@ export default function FileUpload({ todoId, onUploadSuccess, className = '' }) 
         const formData = new FormData();
         formData.append('file', file);
 
+        let csrfToken = null;
+        if (typeof document !== 'undefined') {
+            csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || null;
+
+            if (csrfToken) {
+                formData.append('_token', csrfToken);
+            }
+        }
+
         try {
             await router.post(`/todos/${todoId}/attachments`, formData, {
                 forceFormData: true,
+                headers: csrfToken
+                    ? {
+                        'X-CSRF-TOKEN': csrfToken,
+                    }
+                    : undefined,
                 onSuccess: (page) => {
                     if (onUploadSuccess) {
                         onUploadSuccess();
