@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.49](https://github.com/programinglive/todo/compare/v0.5.48...v0.5.49) (2025-10-28)
+
+
+### ♻️ Refactors
+
+* clean up outdated tests and update controller, routes, and vite config ([31c28e0](https://github.com/programinglive/todo/commit/31c28e08bc0c65468971e1f61b7d44432753d70a))
+
 ### [0.5.48](https://github.com/programinglive/todo/compare/v0.5.46...v0.5.48) (2025-10-28)
 
 
