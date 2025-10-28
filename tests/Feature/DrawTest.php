@@ -37,6 +37,19 @@ class DrawTest extends TestCase
                 ->where('drawings.1.title', $drawings[1]->title));
     }
 
+    public function test_create_route_renders_page_without_conflict(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('draw.create'));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Draw/Index'));
+    }
+
     public function test_user_can_load_individual_drawing(): void
     {
         $user = User::factory()->create();

@@ -53,11 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [TodoController::class, 'toggleChecklistItem'])->name('todos.checklist.toggle');
 
     Route::get('draw', [DrawingController::class, 'index'])->name('draw.index');
+    Route::get('draw/create', [DrawingController::class, 'create'])->name('draw.create');
     Route::post('draw', [DrawingController::class, 'store'])->name('draw.store');
     Route::get('draw/{drawing}', [DrawingController::class, 'show'])->name('draw.show');
     Route::patch('draw/{drawing}', [DrawingController::class, 'update'])->name('draw.update');
     Route::delete('draw/{drawing}', [DrawingController::class, 'destroy'])->name('draw.destroy');
-    Route::get('draw/create', [DrawingController::class, 'create'])->name('draw.create');
 
     // File attachment routes
     Route::post('todos/{todo}/attachments', [TodoController::class, 'uploadAttachment'])->name('todos.attachments.upload');

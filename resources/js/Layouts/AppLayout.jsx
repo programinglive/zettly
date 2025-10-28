@@ -27,6 +27,76 @@ export default function AppLayout({
 
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
+
+    const accountNavigationLinks = [
+        {
+            href: '/dashboard',
+            label: 'Dashboard',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
+                </svg>
+            ),
+        },
+        {
+            href: '/todos',
+            label: 'My Todos',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            ),
+        },
+        {
+            href: '/notes',
+            label: 'My Notes',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
+                </svg>
+            ),
+        },
+        {
+            href: '/draw',
+            label: 'Draw',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/todos/archived',
+            label: 'Archived',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v2H3zM3 18h18v2H3z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/manage/tags',
+            label: 'Manage Tags',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/profile',
+            label: 'Profile',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            ),
+        },
+    ];
     
     // For PWA on tablets, use full width; otherwise use responsive max-width
     const defaultContentClassName = isAuthenticated
@@ -188,52 +258,16 @@ export default function AppLayout({
                                                                 <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
                                                                     Account Menu
                                                                 </div>
-                                                                    <Link href="/dashboard" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
-                                                                    </svg>
-                                                                    Dashboard
-                                                                </Link>
-                                                                <Link href="/todos" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                                    </svg>
-                                                                    My Todos
-                                                                </Link>
-                                                                <Link href="/notes" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
-                                                                    </svg>
-                                                                    My Notes
-                                                                </Link>
-                                                                <Link href="/draw" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                                                    </svg>
-                                                                    Draw
-                                                                </Link>
-                                                                <Link href="/todos/archived" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v2H3zM3 18h18v2H3z" />
-                                                                    </svg>
-                                                                    Archived
-                                                                </Link>
-                                                                <Link href="/manage/tags" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                                                    </svg>
-                                                                    Manage Tags
-                                                                </Link>
-                                                                <Link href="/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                    </svg>
-                                                                    Profile
-                                                                </Link>
+                                                                {accountNavigationLinks.map(({ href, label, icon }) => (
+                                                                    <Link
+                                                                        key={href}
+                                                                        href={href}
+                                                                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                                                    >
+                                                                        {icon}
+                                                                        {label}
+                                                                    </Link>
+                                                                ))}
                                                                 <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
                                                                 <button
                                                                     type="button"
@@ -293,24 +327,15 @@ export default function AppLayout({
                                                             <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-slate-800">
                                                                 {auth.user.name}
                                                             </div>
-                                                            <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                Dashboard
-                                                            </Link>
-                                                            <Link href="/todos" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                My Todos
-                                                            </Link>
-                                                            <Link href="/notes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                My Notes
-                                                            </Link>
-                                                            <Link href="/draw" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                Draw
-                                                            </Link>
-                                                            <Link href="/manage/tags" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                Manage Tags
-                                                            </Link>
-                                                            <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800">
-                                                                Profile
-                                                            </Link>
+                                                            {accountNavigationLinks.map(({ href, label }) => (
+                                                                <Link
+                                                                    key={href}
+                                                                    href={href}
+                                                                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                                >
+                                                                    {label}
+                                                                </Link>
+                                                            ))}
                                                             <form method="POST" action="/logout" className="block">
                                                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
                                                                 <button type="submit" className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-800">

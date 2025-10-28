@@ -238,17 +238,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                 {errors.description && (
                                     <p className="text-sm text-red-600 dark:text-red-400">{errors.description}</p>
                                 )}
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <span className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to update this entry.</span>
-                                    <Button
-                                        type="submit"
-                                        form="edit-todo-form"
-                                        disabled={processing}
-                                        className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                                    >
-                                        {processing ? 'Updating…' : 'Save now'}
-                                    </Button>
-                                </div>
+                                <p className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to update this entry.</p>
                             </div>
 
                             {!isNote && (
