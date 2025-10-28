@@ -56,7 +56,7 @@ export default function Terms() {
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">6. Contact</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        Questions about these terms can be sent to <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:legal@todoapp.test">legal@todoapp.test</a> or by opening an issue in our public repository.
+                        Questions about these terms can be sent to <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:mahatma.mahardhika@programinglive.com">mahatma.mahardhika@programinglive.com</a> or by opening an issue in our public repository.
                     </p>
                     <p className="text-gray-700 dark:text-gray-300">
                         For privacy-related questions, please review our <Link href="/legal/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</Link>.

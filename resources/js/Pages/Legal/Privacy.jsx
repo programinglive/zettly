@@ -42,7 +42,7 @@ export default function Privacy() {
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">4. Security</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        We aim to provide secure defaults. However, security updates and server hardening for self-hosted instances remain your responsibility. Report security issues by emailing <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:security@todoapp.test">security@todoapp.test</a>.
+                        We aim to provide secure defaults. However, security updates and server hardening for self-hosted instances remain your responsibility. Report security issues by emailing <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:security@programinglive.com">security@programinglive.com</a>.
                     </p>
                 </section>
 
@@ -63,7 +63,7 @@ export default function Privacy() {
                 <section className="space-y-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">7. Contact</h2>
                     <p className="text-gray-700 dark:text-gray-300">
-                        For questions related to privacy, contact <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:privacy@todoapp.test">privacy@todoapp.test</a> or open an issue in our repository. You can also review the <Link href="/legal/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link> for licensing information.
+                        For questions related to privacy, contact <a className="text-blue-600 dark:text-blue-400 hover:underline" href="mailto:mahatma.mahardhika@programinglive.com">mahatma.mahardhika@programinglive.com</a> or open an issue in our repository. You can also review the <Link href="/legal/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link> for licensing information.
                     </p>
                 </section>
             </div>
