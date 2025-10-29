@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.62](https://github.com/programinglive/todo/compare/v0.5.61...v0.5.62) (2025-10-29)
+
+
+### ✨ Features
+
+* add Sentry integration docs and commands ([9167c64](https://github.com/programinglive/todo/commit/9167c64ff75a37f871e0e647c2bc5b4dfc190d49))
+
 ### [0.5.61](https://github.com/programinglive/todo/compare/v0.5.60...v0.5.61) (2025-10-28)
 
 
