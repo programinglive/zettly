@@ -21,7 +21,7 @@
         "opcodesio/log-viewer": "^3.19",
         "pusher/pusher-php-server": "^7.2",
         "ratchet/pawl": "^0.4.3",
-        "sentry/sentry-laravel": "^4.16",
+        "sentry/sentry-laravel": "*",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

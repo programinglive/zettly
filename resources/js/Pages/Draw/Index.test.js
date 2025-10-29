@@ -1,23 +1,54 @@
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { renderHook, act } from '@testing-library/react';
-import { useCallback, useRef, useState } from 'react';
+// Lightweight axios mock for node:test without Jest globals
+const createAxiosMock = () => {
+    const calls = [];
+    let implementation = null;
 
-// Mock the normalizeSnapshotForPersist and cloneSnapshot functions
-const mockNormalizeSnapshotForPersist = (snapshot, title) => ({
-    ...snapshot,
-    meta: { ...snapshot?.meta, name: title || 'Untitled' }
-});
+    const get = async (url) => {
+        calls.push(url);
 
-const mockCloneSnapshot = (snapshot) => ({ ...snapshot });
+        if (implementation) {
+            return implementation(url);
+        }
 
-// Mock axios
-const mockAxios = {
-    get: jest.fn()
+        return { data: {} };
+    };
+
+    get.mockResolvedValue = (value) => {
+        implementation = async () => value;
+    };
+
+    get.mockRejectedValue = (error) => {
+        implementation = async () => {
+            throw error;
+        };
+    };
+
+    const wasCalled = () => calls.length > 0;
+    const calledWith = (expectedUrl) => calls.includes(expectedUrl);
+
+    const reset = () => {
+        calls.length = 0;
+        implementation = null;
+    };
+
+    return {
+        get,
+        wasCalled,
+        calledWith,
+        reset,
+    };
 };
+
+const mockAxios = createAxiosMock();
 
 // Mock route function
 const mockRoute = (name, params) => `/api/${name}/${params.drawing}`;
+
+beforeEach(() => {
+    mockAxios.reset();
+});
 
 // Test the drawing loading logic
 describe('Draw Index drawing switching', () => {
@@ -71,7 +102,7 @@ describe('Draw Index drawing switching', () => {
         activeId = 2;
         await loadDrawing(2);
 
-        assert.strictEqual(mockAxios.get.calledWith('/api/draw.show/2'), true);
+        assert.strictEqual(mockAxios.calledWith('/api/draw.show/2'), true);
         assert.strictEqual(loadedDrawing, drawing2);
         assert.strictEqual(loadingDrawing, false);
     });
@@ -115,7 +146,7 @@ describe('Draw Index drawing switching', () => {
         // Test reloading the same drawing (should use cache)
         await loadDrawing(1);
 
-        assert.strictEqual(mockAxios.get.called, false);
+        assert.strictEqual(mockAxios.wasCalled(), false);
         assert.strictEqual(loadedDrawing, drawing1);
     });
 
@@ -164,7 +195,7 @@ describe('Draw Index drawing switching', () => {
         // Test network error with fallback to cache
         await loadDrawing(1);
 
-        assert.strictEqual(mockAxios.get.calledWith('/api/draw.show/1'), true);
+        assert.strictEqual(mockAxios.calledWith('/api/draw.show/1'), true);
         assert.strictEqual(loadedDrawing, drawing1); // Should use cached fallback
         assert.strictEqual(loadingDrawing, false);
     });
