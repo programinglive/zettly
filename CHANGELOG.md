@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.1](https://github.com/programinglive/todo/compare/v0.6.0...v0.6.1) (2025-10-30)
+
+
+### 🐛 Bug Fixes
+
+* **todo:** include csrf token in edit form submissions ([4b9270a](https://github.com/programinglive/todo/commit/4b9270ab65b17964c3cb6285ab5a7a642d6d8098))
+
 ## [0.6.0](https://github.com/programinglive/todo/compare/v0.5.62...v0.6.0) (2025-10-29)
 
 ### [0.5.62](https://github.com/programinglive/todo/compare/v0.5.61...v0.5.62) (2025-10-29)
