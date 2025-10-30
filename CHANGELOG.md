@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### Unreleased
+### [0.6.3](https://github.com/programinglive/todo/compare/v0.6.2...v0.6.3) (2025-10-30)
+
 
 ### 🐛 Bug Fixes
 
-* **draw:** trim TLDraw broadcast payloads and add diagnostics to stay under Pusher size limits
+* reduce TLDraw broadcast payload size ([762f6a8](https://github.com/programinglive/todo/commit/762f6a8742f25a9a9f19d90cd55b4bb57f31a6c5))
 
 ### [0.6.2](https://github.com/programinglive/todo/compare/v0.6.1...v0.6.2) (2025-10-30)
 
