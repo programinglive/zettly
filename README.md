@@ -30,6 +30,18 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 - `resources/js/Pages/Todos/Edit.jsx`
 - `resources/js/__tests__/todoEditCsrf.test.js`
 
+### Login form returned 419 Page Expired (2025-10-30)
+
+**Problem**: Signing in on production produced a 419 error for similar reasons—the Inertia login form customized the payload but skipped the CSRF token, triggering Laravel's session expiration response.
+
+**Solution**:
+- Inject the CSRF token through the form transform right before calling `post`.
+- Added a regression test to lock the behavior in place.
+
+**Files Changed**:
+- `resources/js/Pages/Auth/Login.jsx`
+- `resources/js/__tests__/loginCsrf.test.js`
+
 ### Infinite Loop in Drawing Editor (2025-10-27)
 
 **Problem**: The drawing page (`/draw`) was causing infinite re-renders due to a dependency chain in React hooks:
