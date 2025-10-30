@@ -81,6 +81,10 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         // Always send multipart/form-data via POST + _method=PUT
         const formData = new FormData();
         formData.append('_method', 'PUT');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            formData.append('_token', csrfToken);
+        }
         formData.append('type', data.type);
         formData.append('title', (data.title || '').trim());
         formData.append('description', data.description || '');

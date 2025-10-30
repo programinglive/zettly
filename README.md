@@ -18,6 +18,18 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 - `resources/js/Pages/Draw/Index.jsx`
 - `tests/js/Draw.test.js`
 
+### Note saves returned 419 Page Expired (2025-10-30)
+
+**Problem**: Editing notes on production redirected to a blank page showing 419 "Page Expired" because the manual `FormData` submission from the edit screen omitted the CSRF token Laravel expects.
+
+**Solution**:
+- Include the current CSRF token in the edit form submission before dispatching the Inertia request.
+- Added a regression test to ensure the CSRF token continues to be included.
+
+**Files Changed**:
+- `resources/js/Pages/Todos/Edit.jsx`
+- `resources/js/__tests__/todoEditCsrf.test.js`
+
 ### Infinite Loop in Drawing Editor (2025-10-27)
 
 **Problem**: The drawing page (`/draw`) was causing infinite re-renders due to a dependency chain in React hooks:
