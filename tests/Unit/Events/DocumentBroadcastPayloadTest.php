@@ -50,6 +50,7 @@ class DocumentBroadcastPayloadTest extends TestCase
         $this->assertTrue($payload['document_too_large']);
         $this->assertGreaterThan(9000, $payload['document_size']);
         $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
+        $this->assertSame('payload_exceeds_limit', $payload['error']);
     }
 
     public function test_tldraw_update_includes_document_when_small(): void
@@ -65,6 +66,7 @@ class DocumentBroadcastPayloadTest extends TestCase
         $this->assertFalse($payload['document_too_large']);
         $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
         $this->assertSame($this->encodedSize($document), $payload['document_size']);
+        $this->assertNull($payload['error']);
     }
 
     public function test_tldraw_update_flags_large_document(): void

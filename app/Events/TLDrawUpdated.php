@@ -16,7 +16,7 @@ class TLDrawUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private const MAX_DOCUMENT_BYTES = 9000;
+    private const MAX_DOCUMENT_BYTES = 7500;
 
     public Drawing $drawing;
     public User $user;
@@ -25,6 +25,21 @@ class TLDrawUpdated implements ShouldBroadcast
     private bool $documentTooLarge = false;
     private ?int $documentBytes = null;
     private ?string $documentFingerprint = null;
+
+    public function documentTooLarge(): bool
+    {
+        return $this->documentTooLarge;
+    }
+
+    public function documentSize(): ?int
+    {
+        return $this->documentBytes;
+    }
+
+    public function documentFingerprint(): ?string
+    {
+        return $this->documentFingerprint;
+    }
 
     /**
      * Create a new event instance.
@@ -70,6 +85,7 @@ class TLDrawUpdated implements ShouldBroadcast
             'document_too_large' => $this->documentTooLarge,
             'document_size' => $this->documentBytes,
             'document_fingerprint' => $this->documentFingerprint,
+            'error' => $this->documentTooLarge ? 'payload_exceeds_limit' : null,
         ];
     }
 

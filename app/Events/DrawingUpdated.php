@@ -16,7 +16,7 @@ class DrawingUpdated implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    private const MAX_DOCUMENT_BYTES = 9000;
+    public const MAX_DOCUMENT_BYTES = 7000;
 
     public Drawing $drawing;
     public bool $documentChanged;
@@ -57,6 +57,7 @@ class DrawingUpdated implements ShouldBroadcast
             'document' => $this->documentPayload,
             'document_size' => $this->documentBytes,
             'document_too_large' => $this->documentTooLarge,
+            'error' => $this->documentTooLarge ? 'payload_exceeds_limit' : null,
         ];
 
         if ($this->documentFingerprint !== null) {

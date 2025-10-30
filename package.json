@@ -12,7 +12,7 @@
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "dev": "vite",
-    "release": "standard-version",
+    "release": "node ./scripts/run-release.mjs",
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major",

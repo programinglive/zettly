@@ -50,7 +50,12 @@ class SentryResolve extends Command
                     continue;
                 }
 
-                $issueId = $matchedIssues[0]['id'];
+                $issueId = $this->resolveIssueId($matchedIssues[0]);
+
+                if ($issueId === null) {
+                    $this->error("Failed to determine numeric issue ID for {$identifier}.");
+                    continue;
+                }
 
                 $client->request('PUT', "issues/{$issueId}/", [
                     'json' => ['status' => 'resolved'],
@@ -64,5 +69,33 @@ class SentryResolve extends Command
 
         $this->info('Done resolving issues.');
         return 0;
+    }
+
+    private function resolveIssueId(array $issue): ?string
+    {
+        $rawIssueId = $issue['id'] ?? null;
+
+        if ($rawIssueId !== null) {
+            $rawIssueId = (string) $rawIssueId;
+
+            if ($rawIssueId !== '' && ctype_digit($rawIssueId)) {
+                return $rawIssueId;
+            }
+        }
+
+        if (!empty($issue['permalink'])) {
+            $path = parse_url($issue['permalink'], PHP_URL_PATH);
+
+            if (is_string($path)) {
+                $segments = array_values(array_filter(explode('/', trim($path, '/'))));
+                $maybeIssueId = end($segments) ?: false;
+
+                if ($maybeIssueId && ctype_digit($maybeIssueId)) {
+                    return $maybeIssueId;
+                }
+            }
+        }
+
+        return null;
     }
 }

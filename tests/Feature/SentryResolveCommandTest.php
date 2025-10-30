@@ -125,6 +125,76 @@ class SentryResolveCommandTest extends TestCase
         $this->assertStringContainsString('Done resolving issues.', $output);
     }
 
+    public function test_resolves_issue_using_permalink_when_id_is_not_numeric(): void
+    {
+        $history = [];
+
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                [
+                    'id' => 'TODOAPP-2',
+                    'permalink' => 'https://sentry.io/organizations/test-org/issues/6927570568/',
+                ],
+            ])),
+            new Response(200, [], json_encode(['status' => 'resolved'])),
+        ]);
+
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+
+        $client = new Client([
+            'handler' => $stack,
+            'base_uri' => 'https://sentry.io/api/0/',
+        ]);
+
+        $this->registerCommandWith($client);
+
+        $exitCode = Artisan::call('sentry:resolve', ['identifier' => ['TODOAPP-2']]);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertCount(2, $history);
+
+        $secondRequest = $history[1]['request'];
+        $this->assertSame('PUT', $secondRequest->getMethod());
+        $this->assertSame('/api/0/issues/6927570568/', $secondRequest->getUri()->getPath());
+
+        $output = Artisan::output();
+        $this->assertStringContainsString('Resolved issue TODOAPP-2 (ID 6927570568).', $output);
+    }
+
+    public function test_warns_when_issue_id_cannot_be_determined(): void
+    {
+        $history = [];
+
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                [
+                    'id' => null,
+                    'permalink' => null,
+                ],
+            ])),
+        ]);
+
+        $stack = HandlerStack::create($mock);
+        $stack->push(Middleware::history($history));
+
+        $client = new Client([
+            'handler' => $stack,
+            'base_uri' => 'https://sentry.io/api/0/',
+        ]);
+
+        $this->registerCommandWith($client);
+
+        $exitCode = Artisan::call('sentry:resolve', ['identifier' => ['TODOAPP-2']]);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertCount(1, $history);
+
+        $output = Artisan::output();
+        $this->assertStringContainsString('Failed to determine numeric issue ID for TODOAPP-2.', $output);
+        $this->assertStringContainsString('Done resolving issues.', $output);
+    }
+
     private function setEnv(string $key, string $value): void
     {
         putenv("{$key}={$value}");
