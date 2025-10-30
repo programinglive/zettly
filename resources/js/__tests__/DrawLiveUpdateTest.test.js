@@ -57,9 +57,14 @@ test('Backend broadcasts drawing updates', () => {
         'Expected DrawingUpdated event to be imported in controller'
     );
     
-    // Check that events are broadcast on store and update
+    // Check that events are broadcast on store and update with change metadata
     assert.ok(
-        controllerSource.includes('broadcast(new DrawingUpdated($drawing))'),
-        'Expected to broadcast DrawingUpdated events on store and update'
+        controllerSource.includes('broadcast(new DrawingUpdated($drawing->fresh(), true));'),
+        'Expected create action to broadcast DrawingUpdated with document change flag'
+    );
+
+    assert.ok(
+        controllerSource.includes('broadcast(new DrawingUpdated($drawing, $documentChanged));'),
+        'Expected update action to broadcast DrawingUpdated with document change flag'
     );
 });

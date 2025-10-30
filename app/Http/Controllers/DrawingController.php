@@ -43,7 +43,7 @@ class DrawingController extends Controller
         ]);
 
         // Broadcast the new drawing
-        broadcast(new DrawingUpdated($drawing));
+        broadcast(new DrawingUpdated($drawing->fresh(), true));
 
         return response()->json([
             'success' => true,
@@ -99,10 +99,13 @@ class DrawingController extends Controller
 
         $validated = $validator->validate();
 
+        $documentChanged = array_key_exists('document', $validated);
+
         $drawing->update($validated);
+        $drawing->refresh();
 
         // Broadcast the updated drawing
-        broadcast(new DrawingUpdated($drawing));
+        broadcast(new DrawingUpdated($drawing, $documentChanged));
 
         return response()->json([
             'success' => true,

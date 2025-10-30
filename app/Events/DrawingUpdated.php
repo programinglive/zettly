@@ -6,9 +6,7 @@ use App\Models\Drawing;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -18,12 +16,24 @@ class DrawingUpdated implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct(public Drawing $drawing)
+    private const MAX_DOCUMENT_BYTES = 9000;
+
+    public Drawing $drawing;
+    public bool $documentChanged;
+
+    private ?array $documentPayload = null;
+    private bool $documentTooLarge = false;
+    private ?int $documentBytes = null;
+    private ?string $documentFingerprint = null;
+
+    public function __construct(Drawing $drawing, bool $documentChanged = false)
     {
-        //
+        $this->drawing = $drawing;
+        $this->documentChanged = $documentChanged;
+
+        if ($documentChanged) {
+            $this->prepareDocumentPayload($drawing->document);
+        }
     }
 
     /**
@@ -38,12 +48,49 @@ class DrawingUpdated implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        return [
+        $payload = [
             'id' => $this->drawing->id,
             'title' => $this->drawing->title,
-            'document' => $this->drawing->document,
             'thumbnail' => $this->drawing->thumbnail,
             'updated_at' => $this->drawing->updated_at?->toIso8601String(),
+            'document_changed' => $this->documentChanged,
+            'document' => $this->documentPayload,
+            'document_size' => $this->documentBytes,
+            'document_too_large' => $this->documentTooLarge,
         ];
+
+        if ($this->documentFingerprint !== null) {
+            $payload['document_fingerprint'] = $this->documentFingerprint;
+        }
+
+        return $payload;
+    }
+
+    private function prepareDocumentPayload(mixed $document): void
+    {
+        if ($document === null) {
+            return;
+        }
+
+        try {
+            $encoded = json_encode($document);
+
+            if ($encoded === false) {
+                return;
+            }
+
+            $length = strlen($encoded);
+            $this->documentBytes = $length;
+            $this->documentFingerprint = md5($encoded);
+
+            if ($length <= self::MAX_DOCUMENT_BYTES) {
+                $this->documentPayload = $document;
+                return;
+            }
+        } catch (\Throwable) {
+            return;
+        }
+
+        $this->documentTooLarge = true;
     }
 }

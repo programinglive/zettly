@@ -16,9 +16,15 @@ class TLDrawUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    private const MAX_DOCUMENT_BYTES = 9000;
+
     public Drawing $drawing;
     public User $user;
-    public array $document;
+
+    private ?array $documentPayload = null;
+    private bool $documentTooLarge = false;
+    private ?int $documentBytes = null;
+    private ?string $documentFingerprint = null;
 
     /**
      * Create a new event instance.
@@ -27,7 +33,7 @@ class TLDrawUpdated implements ShouldBroadcast
     {
         $this->drawing = $drawing;
         $this->user = $user;
-        $this->document = $document;
+        $this->prepareDocumentPayload($document);
     }
 
     /**
@@ -59,8 +65,33 @@ class TLDrawUpdated implements ShouldBroadcast
             'drawingId' => $this->drawing->id,
             'userId' => $this->user->id,
             'userName' => $this->user->name,
-            'document' => $this->document,
             'timestamp' => now()->timestamp,
+            'document' => $this->documentPayload,
+            'document_too_large' => $this->documentTooLarge,
+            'document_size' => $this->documentBytes,
+            'document_fingerprint' => $this->documentFingerprint,
         ];
+    }
+
+    private function prepareDocumentPayload(array $document): void
+    {
+        try {
+            $encoded = json_encode($document, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (\Throwable) {
+            $encoded = false;
+        }
+
+        if ($encoded !== false) {
+            $this->documentBytes = strlen($encoded);
+            $this->documentFingerprint = md5($encoded);
+
+            if ($this->documentBytes <= self::MAX_DOCUMENT_BYTES) {
+                $this->documentPayload = $document;
+                return;
+            }
+        }
+
+        $this->documentPayload = null;
+        $this->documentTooLarge = true;
     }
 }
