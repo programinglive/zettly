@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.4](https://github.com/programinglive/todo/compare/v0.6.3...v0.6.4) (2025-10-31)
+
+
+### 🐛 Bug Fixes
+
+* prevent oversize TLDraw broadcast payloads ([6ccaa4b](https://github.com/programinglive/todo/commit/6ccaa4b250cd2e2b6413a57b03fafafed226d466))
+
+
+### ✨ Features
+
+* add super administrator monitoring and PRD ([bde9553](https://github.com/programinglive/todo/commit/bde95539584a3d06172201fef8a9633c01228924))
+* enhance system monitor admin insights ([b08297e](https://github.com/programinglive/todo/commit/b08297ebf72303d8f11e69950edac119b5e983a0))
+
 ### [0.6.3](https://github.com/programinglive/todo/compare/v0.6.2...v0.6.3) (2025-10-30)
 
 
