@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
                 'name' => 'John Doe',
                 'password' => bcrypt('password123'),
                 'email_verified_at' => now(),
+                'role' => \App\Enums\UserRole::SUPER_ADMIN->value,
             ]
         );
 

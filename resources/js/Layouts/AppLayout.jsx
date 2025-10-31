@@ -19,6 +19,7 @@ export default function AppLayout({
 
     const page = usePage();
     const { auth, flash } = page.props;
+    const isSuperAdmin = auth?.user?.role === 'super_admin';
     const { url } = page;
     const { isStandalone, isTablet } = usePwaMode();
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -117,6 +118,18 @@ export default function AppLayout({
             ),
         },
     ];
+
+    if (isSuperAdmin) {
+        accountNavigationLinks.unshift({
+            href: '/admin/system-monitor',
+            label: 'System Monitor',
+            icon: (
+                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
+                </svg>
+            ),
+        });
+    }
     
     // For PWA on tablets, use full width; otherwise use responsive max-width
     const defaultContentClassName = isAuthenticated

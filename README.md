@@ -118,7 +118,13 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
    ```
    Running the seeders now creates todos that already have sample tags (Work, Personal, Important, Learning) attached, so the dashboard filters and tag-based features are immediately usable.
 
-5. **Start development server**
+   > **Super administrator access:** The `UserSeeder` promotes `john@example.com` to a super administrator. Sign in with that account (password `password123`) to use the monitoring tools. To elevate another account, run `php artisan tinker` and execute `\App\Models\User::where('email', 'you@example.com')->first()?->assignRole(\App\Enums\UserRole::SUPER_ADMIN);`.
+
+5. **Administration & Monitoring**
+   - Visit `/admin/system-monitor` (requires super administrator role) to inspect WebSocket status, Pusher credentials, authentication state, and server health from the browser.
+   - The System Monitor page embeds the same realtime diagnostics widget used on the dashboard, but it is permanently enabled for administrators.
+
+6. **Start development server**
    ```bash
    composer run dev
    ```

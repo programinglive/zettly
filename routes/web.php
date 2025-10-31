@@ -10,6 +10,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\UploadTestController;
+use App\Http\Controllers\Admin\SystemMonitorController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -83,6 +84,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/workspace-preference', [ProfileController::class, 'updateWorkspacePreference'])->name('profile.workspace-preference');
+
+    Route::middleware('super-admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('system-monitor', SystemMonitorController::class)->name('system-monitor');
+    });
 
     // API Token Management
     Route::post('/tokens', [ProfileController::class, 'createToken'])->name('tokens.create');

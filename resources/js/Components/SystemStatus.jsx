@@ -12,7 +12,7 @@ const readDebugPreference = () => {
     return window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
 };
 
-export default function SystemStatus() {
+export default function SystemStatus({ forceEnable = false, inline = false }) {
     const page = usePage();
 
     const version = useMemo(() => 
@@ -20,7 +20,7 @@ export default function SystemStatus() {
         [page?.props?.appVersion]
     );
 
-    const [isDebugEnabled, setIsDebugEnabled] = useState(readDebugPreference);
+    const [isDebugEnabled, setIsDebugEnabled] = useState(() => forceEnable ? true : readDebugPreference);
     const [status, setStatus] = useState({
         version,
         websocket: { status: 'checking', message: 'Testing...' },
@@ -30,7 +30,7 @@ export default function SystemStatus() {
         environment: { status: 'checking', message: 'Testing...' },
         server: { status: 'checking', message: 'Testing...' }
     });
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(inline);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const checkWebSocket = () => {
@@ -168,6 +168,11 @@ export default function SystemStatus() {
     }, [isDebugEnabled, version]);
 
     useEffect(() => {
+        if (forceEnable) {
+            setIsDebugEnabled(true);
+            return undefined;
+        }
+
         const handleDebugToggle = (event) => {
             setIsDebugEnabled(Boolean(event.detail?.enabled));
         };
@@ -181,7 +186,7 @@ export default function SystemStatus() {
                 window.removeEventListener('zettly:debug-mode-changed', handleDebugToggle);
             }
         };
-    }, []);
+    }, [forceEnable]);
 
     useEffect(() => {
         if (!isDebugEnabled) {
@@ -250,89 +255,97 @@ export default function SystemStatus() {
         item => typeof item === 'object' ? item.status === 'success' || item.status === 'info' : true
     ) && status.authentication.status === 'success';
 
+    const DetailedStatus = (
+        <div className="p-3 space-y-2">
+            <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">System Dependencies</div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.websocket.status)}
+                <span className="font-medium">WebSocket:</span>
+                <span className={getStatusColor(status.websocket.status)}>
+                    {status.websocket.message}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.pusher.status)}
+                <span className="font-medium">Pusher:</span>
+                <span className={getStatusColor(status.pusher.status)}>
+                    {status.pusher.message}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.authentication.status)}
+                <span className="font-medium">Authentication:</span>
+                <span className={getStatusColor(status.authentication.status)}>
+                    {status.authentication.message}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.algolia.status)}
+                <span className="font-medium">Algolia:</span>
+                <span className={getStatusColor(status.algolia.status)}>
+                    {status.algolia.message}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.environment.status)}
+                <span className="font-medium">Environment:</span>
+                <span className={getStatusColor(status.environment.status)}>
+                    {status.environment.message}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+                {getStatusIcon(status.server.status)}
+                <span className="font-medium">Server:</span>
+                <span className={getStatusColor(status.server.status)}>
+                    {status.server.message}
+                </span>
+            </div>
+            <div className="mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <Info className="h-3 w-3" />
+                    <span>Click refresh to recheck all systems</span>
+                </div>
+            </div>
+        </div>
+    );
+
+    const Summary = (
+        <div className="flex items-center gap-2 p-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+            {getStatusIcon(allChecksPass ? 'success' : 'warning')}
+            <span className="text-sm font-medium">
+                System Status: {allChecksPass ? 'Healthy' : 'Issues Detected'}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+                v{status.version}
+            </span>
+            <RefreshCw 
+                className={`h-4 w-4 text-gray-400 ml-2 ${isRefreshing ? 'animate-spin' : ''}`} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    runChecks();
+                }}
+            />
+        </div>
+    );
+
+    const Card = (
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+            {!inline && Summary}
+            {(inline || isExpanded) && (
+                <div className={!inline ? 'border-t border-gray-200 dark:border-slate-700' : ''}>
+                    {DetailedStatus}
+                </div>
+            )}
+        </div>
+    );
+
+    if (inline) {
+        return Card;
+    }
+
     return (
         <div className="fixed bottom-4 left-4 z-50">
-            <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
-                {/* Status Summary */}
-                <div className="flex items-center gap-2 p-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-                    {getStatusIcon(allChecksPass ? 'success' : 'warning')}
-                    <span className="text-sm font-medium">
-                        System Status: {allChecksPass ? 'Healthy' : 'Issues Detected'}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                        v{status.version}
-                    </span>
-                    <RefreshCw 
-                        className={`h-4 w-4 text-gray-400 ml-2 ${isRefreshing ? 'animate-spin' : ''}`} 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            runChecks();
-                        }}
-                    />
-                </div>
-
-                {/* Detailed Status */}
-                {isExpanded && (
-                    <div className="border-t border-gray-200 dark:border-slate-700 p-3 space-y-2">
-                        <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">System Dependencies</div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.websocket.status)}
-                            <span className="font-medium">WebSocket:</span>
-                            <span className={getStatusColor(status.websocket.status)}>
-                                {status.websocket.message}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.pusher.status)}
-                            <span className="font-medium">Pusher:</span>
-                            <span className={getStatusColor(status.pusher.status)}>
-                                {status.pusher.message}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.authentication.status)}
-                            <span className="font-medium">Authentication:</span>
-                            <span className={getStatusColor(status.authentication.status)}>
-                                {status.authentication.message}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.algolia.status)}
-                            <span className="font-medium">Algolia:</span>
-                            <span className={getStatusColor(status.algolia.status)}>
-                                {status.algolia.message}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.environment.status)}
-                            <span className="font-medium">Environment:</span>
-                            <span className={getStatusColor(status.environment.status)}>
-                                {status.environment.message}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs">
-                            {getStatusIcon(status.server.status)}
-                            <span className="font-medium">Server:</span>
-                            <span className={getStatusColor(status.server.status)}>
-                                {status.server.message}
-                            </span>
-                        </div>
-                        
-                        <div className="mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                <Info className="h-3 w-3" />
-                                <span>Click refresh to recheck all systems</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {Card}
         </div>
     );
 }

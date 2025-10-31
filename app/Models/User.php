@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'workspace_view',
+        'role',
     ];
 
     /**
@@ -47,7 +49,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'workspace_view' => 'string',
+            'role' => UserRole::class,
         ];
+    }
+
+    public function scopeSuperAdmins($query)
+    {
+        return $query->where('role', UserRole::SUPER_ADMIN->value);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === UserRole::SUPER_ADMIN;
+    }
+
+    public function assignRole(UserRole|string $role): void
+    {
+        $this->forceFill([
+            'role' => $role instanceof UserRole ? $role->value : $role,
+        ])->save();
     }
 
     public function todos()
