@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.8](https://github.com/programinglive/todo/compare/v0.6.7...v0.6.8) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
+* align debug mode toggle with notification switch styling and add comprehensive tests ([b956db1](https://github.com/programinglive/todo/commit/b956db1bc36115b04f28c3e798f10e9e23300593))
+
 ### [0.6.7](https://github.com/programinglive/todo/compare/v0.6.6...v0.6.7) (2025-11-02)
 
 
