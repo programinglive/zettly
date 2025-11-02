@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.7](https://github.com/programinglive/todo/compare/v0.6.6...v0.6.7) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
+* debug mode toggle className template literal syntax error ([a6ddb69](https://github.com/programinglive/todo/commit/a6ddb694d9556f3ea2ceead5398d64839212cf03))
+
 ### [0.6.6](https://github.com/programinglive/todo/compare/v0.6.5...v0.6.6) (2025-11-02)
 
 
