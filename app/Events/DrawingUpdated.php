@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Drawing;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -19,11 +18,15 @@ class DrawingUpdated implements ShouldBroadcast
     public const MAX_DOCUMENT_BYTES = 7000;
 
     public Drawing $drawing;
+
     public bool $documentChanged;
 
     private ?array $documentPayload = null;
+
     private bool $documentTooLarge = false;
+
     private ?int $documentBytes = null;
+
     private ?string $documentFingerprint = null;
 
     public function __construct(Drawing $drawing, bool $documentChanged = false)
@@ -42,7 +45,7 @@ class DrawingUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('drawings.' . $this->drawing->id),
+            new PrivateChannel('drawings.'.$this->drawing->id),
         ];
     }
 
@@ -86,6 +89,7 @@ class DrawingUpdated implements ShouldBroadcast
 
             if ($length <= self::MAX_DOCUMENT_BYTES) {
                 $this->documentPayload = $document;
+
                 return;
             }
         } catch (\Throwable) {

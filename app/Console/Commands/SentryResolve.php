@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use GuzzleHttp\Client;
+use Illuminate\Console\Command;
 
 class SentryResolve extends Command
 {
     protected $signature = 'sentry:resolve {identifier* : One or more Sentry issue identifiers (e.g., POS-CLINIC-P)}';
+
     protected $description = 'Resolve Sentry issues via the Sentry API';
 
     public function __construct(private ?Client $client = null)
@@ -17,18 +18,19 @@ class SentryResolve extends Command
 
     public function handle()
     {
-        $token   = env('SENTRY_TOKEN');
-        $org     = env('SENTRY_ORG');
+        $token = env('SENTRY_TOKEN');
+        $org = env('SENTRY_ORG');
         $project = env('SENTRY_PROJECT');
 
-        if (!$token || !$org || !$project) {
+        if (! $token || ! $org || ! $project) {
             $this->error('Set SENTRY_TOKEN, SENTRY_ORG, and SENTRY_PROJECT in the environment.');
+
             return 1;
         }
 
         $client = $this->client ?? new Client([
             'base_uri' => 'https://sentry.io/api/0/',
-            'headers'  => ['Authorization' => "Bearer {$token}"],
+            'headers' => ['Authorization' => "Bearer {$token}"],
         ]);
 
         foreach ($this->argument('identifier') as $identifier) {
@@ -47,6 +49,7 @@ class SentryResolve extends Command
 
                 if (empty($matchedIssues)) {
                     $this->warn("No matching issue found for identifier {$identifier}.");
+
                     continue;
                 }
 
@@ -54,6 +57,7 @@ class SentryResolve extends Command
 
                 if ($issueId === null) {
                     $this->error("Failed to determine numeric issue ID for {$identifier}.");
+
                     continue;
                 }
 
@@ -68,6 +72,7 @@ class SentryResolve extends Command
         }
 
         $this->info('Done resolving issues.');
+
         return 0;
     }
 
@@ -83,7 +88,7 @@ class SentryResolve extends Command
             }
         }
 
-        if (!empty($issue['permalink'])) {
+        if (! empty($issue['permalink'])) {
             $path = parse_url($issue['permalink'], PHP_URL_PATH);
 
             if (is_string($path)) {

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
 
 class BroadcastDebugController extends Controller
 {
@@ -22,8 +22,8 @@ class BroadcastDebugController extends Controller
             'environment' => config('app.env', 'unknown'),
             'debug_mode' => config('app.debug', false),
             'broadcast_driver' => config('broadcasting.default'),
-            'pusher_configured' => !empty(config('broadcasting.connections.pusher.key')),
-            'pusher_key' => config('broadcasting.connections.pusher.key') ? substr(config('broadcasting.connections.pusher.key'), 0, 8) . '...' : null,
+            'pusher_configured' => ! empty(config('broadcasting.connections.pusher.key')),
+            'pusher_key' => config('broadcasting.connections.pusher.key') ? substr(config('broadcasting.connections.pusher.key'), 0, 8).'...' : null,
             'pusher_app_id' => config('broadcasting.connections.pusher.app_id'),
             'pusher_cluster' => config('broadcasting.connections.pusher.options.cluster'),
             'broadcast_provider_registered' => class_exists(\App\Providers\BroadcastServiceProvider::class),
@@ -60,15 +60,15 @@ class BroadcastDebugController extends Controller
             try {
                 $channelName = $request->input('channel_name');
                 $socketId = $request->input('socket_id');
-                
+
                 // Check if this is a private channel
                 if (str_starts_with($channelName, 'private-')) {
                     $channelName = substr($channelName, 8); // Remove 'private-' prefix
-                    
+
                     // Parse channel name (e.g., 'drawings.2' -> drawing_id = 2)
                     if (str_starts_with($channelName, 'drawings.')) {
                         $drawingId = substr($channelName, 9); // Remove 'drawings.' prefix
-                        
+
                         // Check if user owns the drawing
                         $user = Auth::user();
                         if ($user) {
@@ -114,7 +114,7 @@ class BroadcastDebugController extends Controller
     {
         $channelName = $request->input('channel_name', 'private-drawings.1');
         $socketId = $request->input('socket_id', 'test.socket.id');
-        
+
         Log::info('Broadcast debug test auth', [
             'channel_name' => $channelName,
             'socket_id' => $socketId,
@@ -124,7 +124,7 @@ class BroadcastDebugController extends Controller
             'request_ip' => $request->ip(),
         ]);
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return response()->json([
                 'error' => 'User not authenticated',
                 'auth' => false,
@@ -132,30 +132,30 @@ class BroadcastDebugController extends Controller
                     'user_authenticated' => false,
                     'session_id' => session()->getId(),
                     'csrf_token' => $request->header('X-CSRF-TOKEN') ? 'present' : 'missing',
-                ]
+                ],
             ], 401);
         }
 
         try {
             // Test channel authorization
             $cleanChannelName = str_replace('private-', '', $channelName);
-            
+
             // Check if it's a drawings channel
             if (str_starts_with($cleanChannelName, 'drawings.')) {
                 $drawingId = substr($cleanChannelName, 9);
                 $drawing = \App\Models\Drawing::find($drawingId);
-                
-                if (!$drawing) {
+
+                if (! $drawing) {
                     return response()->json([
                         'error' => 'Drawing not found',
                         'auth' => false,
                         'debug' => [
                             'drawing_id' => $drawingId,
                             'drawing_exists' => false,
-                        ]
+                        ],
                     ], 404);
                 }
-                
+
                 if ($drawing->user_id !== Auth::id()) {
                     return response()->json([
                         'error' => 'Access denied - drawing belongs to different user',
@@ -164,7 +164,7 @@ class BroadcastDebugController extends Controller
                             'drawing_id' => $drawingId,
                             'drawing_user_id' => $drawing->user_id,
                             'current_user_id' => Auth::id(),
-                        ]
+                        ],
                     ], 403);
                 }
             }
@@ -172,21 +172,21 @@ class BroadcastDebugController extends Controller
             // Generate proper Pusher auth response
             $pusherKey = config('broadcasting.connections.pusher.key');
             $pusherSecret = config('broadcasting.connections.pusher.secret');
-            
-            if (!$pusherKey || !$pusherSecret) {
+
+            if (! $pusherKey || ! $pusherSecret) {
                 return response()->json([
                     'error' => 'Pusher not configured',
                     'auth' => false,
                     'debug' => [
                         'pusher_key' => $pusherKey ? 'configured' : 'missing',
                         'pusher_secret' => $pusherSecret ? 'configured' : 'missing',
-                    ]
+                    ],
                 ], 500);
             }
 
-            $stringToSign = $socketId . ':' . $channelName;
+            $stringToSign = $socketId.':'.$channelName;
             $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
-            $authSignature = $pusherKey . ':' . $signature;
+            $authSignature = $pusherKey.':'.$signature;
 
             return response()->json([
                 'auth' => $authSignature,
@@ -194,7 +194,7 @@ class BroadcastDebugController extends Controller
                     'user_id' => Auth::id(),
                     'user_info' => [
                         'name' => Auth::user()->name,
-                    ]
+                    ],
                 ],
                 'debug' => [
                     'channel_name' => $channelName,
@@ -202,7 +202,7 @@ class BroadcastDebugController extends Controller
                     'string_to_sign' => $stringToSign,
                     'signature_generated' => true,
                     'user_authenticated' => true,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -213,12 +213,12 @@ class BroadcastDebugController extends Controller
             ]);
 
             return response()->json([
-                'error' => 'Authorization failed: ' . $e->getMessage(),
+                'error' => 'Authorization failed: '.$e->getMessage(),
                 'auth' => false,
                 'debug' => [
                     'exception_type' => get_class($e),
                     'error_message' => $e->getMessage(),
-                ]
+                ],
             ], 500);
         }
     }

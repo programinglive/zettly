@@ -4,9 +4,7 @@ namespace App\Events;
 
 use App\Models\Drawing;
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -19,11 +17,15 @@ class TLDrawUpdated implements ShouldBroadcast
     private const MAX_DOCUMENT_BYTES = 7500;
 
     public Drawing $drawing;
+
     public User $user;
 
     private ?array $documentPayload = null;
+
     private bool $documentTooLarge = false;
+
     private ?int $documentBytes = null;
+
     private ?string $documentFingerprint = null;
 
     public function documentTooLarge(): bool
@@ -59,7 +61,7 @@ class TLDrawUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('tldraw-' . $this->drawing->id),
+            new PrivateChannel('tldraw-'.$this->drawing->id),
         ];
     }
 
@@ -103,6 +105,7 @@ class TLDrawUpdated implements ShouldBroadcast
 
             if ($this->documentBytes <= self::MAX_DOCUMENT_BYTES) {
                 $this->documentPayload = $document;
+
                 return;
             }
         }

@@ -24,7 +24,7 @@ class AlgoliaIndexer
      */
     public function indexModel(Model $model, string $indexName): void
     {
-        if (!$this->client) {
+        if (! $this->client) {
             return;
         }
 
@@ -37,7 +37,7 @@ class AlgoliaIndexer
      */
     public function deleteModel(Model $model, string $indexName, string $idField = 'id'): void
     {
-        if (!$this->client) {
+        if (! $this->client) {
             return;
         }
 
@@ -49,7 +49,7 @@ class AlgoliaIndexer
      */
     public function bulkIndex(iterable $models, string $indexName): void
     {
-        if (!$this->client || empty($models)) {
+        if (! $this->client || empty($models)) {
             return;
         }
 
@@ -75,7 +75,7 @@ class AlgoliaIndexer
      */
     public function clearIndex(string $indexName): void
     {
-        if (!$this->client) {
+        if (! $this->client) {
             return;
         }
 

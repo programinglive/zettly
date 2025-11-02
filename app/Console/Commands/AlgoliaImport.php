@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Todo;
 use App\Models\Tag;
+use App\Models\Todo;
 use App\Services\AlgoliaIndexer;
 use Illuminate\Console\Command;
 
@@ -15,12 +15,13 @@ class AlgoliaImport extends Command
 
     public function handle(): int
     {
-        $indexer = new AlgoliaIndexer();
+        $indexer = new AlgoliaIndexer;
 
         $searchIndex = config('scout.algolia.indices.search');
 
-        if (!$searchIndex) {
+        if (! $searchIndex) {
             $this->error('Algolia search index name not configured in config/scout.php');
+
             return 1;
         }
 

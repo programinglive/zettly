@@ -1,16 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\SystemMonitorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PusherTestController;
+use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
-use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\UploadTestController;
-use App\Http\Controllers\Admin\SystemMonitorController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

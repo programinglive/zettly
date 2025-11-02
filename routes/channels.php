@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Broadcast;
 use App\Models\Drawing;
+use Illuminate\Support\Facades\Broadcast;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,25 +19,26 @@ Broadcast::channel('drawings.{drawing}', \App\Broadcasting\DrawingChannel::class
 // TLDraw sync channels
 Broadcast::channel('tldraw-{drawingId}', function ($user, $drawingId) {
     // If user is not authenticated, deny access
-    if (!$user) {
+    if (! $user) {
         return false;
     }
-    
+
     $drawing = Drawing::find($drawingId);
+
     return $drawing && $drawing->user_id === $user->id;
 });
 
 Broadcast::channel('tldraw-{drawingId}-presence', function ($user, $drawingId) {
     // If user is not authenticated, deny access
-    if (!$user) {
+    if (! $user) {
         return false;
     }
-    
+
     $drawing = Drawing::find($drawingId);
-    if (!$drawing || $drawing->user_id !== $user->id) {
+    if (! $drawing || $drawing->user_id !== $user->id) {
         return false;
     }
-    
+
     return [
         'id' => $user->id,
         'name' => $user->name,
@@ -46,13 +47,14 @@ Broadcast::channel('tldraw-{drawingId}-presence', function ($user, $drawingId) {
 });
 
 // Helper function to generate consistent user colors
-if (!function_exists('getUserColor')) {
-    function getUserColor($userId) {
+if (! function_exists('getUserColor')) {
+    function getUserColor($userId)
+    {
         $colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
             '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
         ];
-        
+
         return $colors[$userId % count($colors)];
     }
 }

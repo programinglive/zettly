@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.6](https://github.com/programinglive/todo/compare/v0.6.5...v0.6.6) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
+* align PSR-3 logger signatures by refreshing composer dependencies
+
+
+### 🧹 Chores
+
+* adopt semver ranges for google/apiclient and sentry-laravel constraints
+
+
 ### [0.6.5](https://github.com/programinglive/todo/compare/v0.6.4...v0.6.5) (2025-11-02)
 
 

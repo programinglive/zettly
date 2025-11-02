@@ -9,7 +9,7 @@
         "php": "^8.2",
         "algolia/algoliasearch-client-php": "^4",
         "google-gemini-php/laravel": "^2.0",
-        "google/apiclient": "2.15",
+        "google/apiclient": "^2.15",
         "google/cloud-storage": "^1.32",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.31",
@@ -21,7 +21,7 @@
         "opcodesio/log-viewer": "^3.19",
         "pusher/pusher-php-server": "^7.2",
         "ratchet/pawl": "^0.4.3",
-        "sentry/sentry-laravel": "*",
+        "sentry/sentry-laravel": "^4.0",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

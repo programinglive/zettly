@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 use App\Http\Controllers\BroadcastDebugController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/test-broadcasting', [BroadcastDebugController::class, 'index']);
 
@@ -16,46 +16,50 @@ Route::post('/test-broadcasting-simulate', [BroadcastDebugController::class, 'si
 Route::post('/broadcasting/auth', function (Request $request) {
     $channelName = $request->input('channel_name');
     $socketId = $request->input('socket_id');
-    
+
     \Log::info('Custom broadcasting auth called', [
         'channel_name' => $channelName,
         'socket_id' => $socketId,
         'user_authenticated' => auth()->check(),
         'user_id' => auth()->id(),
     ]);
-    
-    if (!$channelName || !$socketId) {
+
+    if (! $channelName || ! $socketId) {
         \Log::error('Broadcast auth: Missing parameters', [
             'channel_name' => $channelName,
             'socket_id' => $socketId,
         ]);
+
         return response()->json(['error' => 'Missing channel_name or socket_id'], 400);
     }
-    
+
     // Validate user is authenticated
-    if (!auth()->check()) {
+    if (! auth()->check()) {
         \Log::error('Broadcast auth: User not authenticated');
+
         return response()->json(['error' => 'User not authenticated'], 403);
     }
-    
+
     // Get Pusher configuration
     $pusherKey = config('broadcasting.connections.pusher.key');
     $pusherSecret = config('broadcasting.connections.pusher.secret');
-    
-    if (!$pusherKey || !$pusherSecret) {
+
+    if (! $pusherKey || ! $pusherSecret) {
         \Log::error('Broadcast auth: Pusher not configured');
+
         return response()->json(['error' => 'Pusher not configured'], 500);
     }
 
     try {
         // Validate channel authorization using Laravel's channel system
         $isAuthorized = authorizeChannel($channelName, auth()->user());
-        
-        if (!$isAuthorized) {
+
+        if (! $isAuthorized) {
             \Log::error('Broadcast auth: Channel access denied', [
                 'channel_name' => $channelName,
                 'user_id' => auth()->id(),
             ]);
+
             return response()->json(['error' => 'Channel access denied'], 403);
         }
 
@@ -63,18 +67,18 @@ Route::post('/broadcasting/auth', function (Request $request) {
             'user_id' => auth()->id(),
             'user_info' => [
                 'name' => auth()->user()->name,
-            ]
+            ],
         ];
 
         // IMPORTANT: For private channels, we must sign: socket_id:channel_name:channel_data
         $channelDataJson = json_encode($channelData);
-        $stringToSign = $socketId . ':' . $channelName . ':' . $channelDataJson;
+        $stringToSign = $socketId.':'.$channelName.':'.$channelDataJson;
         $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
-        $authSignature = $pusherKey . ':' . $signature;
+        $authSignature = $pusherKey.':'.$signature;
 
         $response = [
             'auth' => $authSignature,
-            'channel_data' => $channelDataJson
+            'channel_data' => $channelDataJson,
         ];
 
         \Log::info('Broadcast auth: Success', [
@@ -96,7 +100,7 @@ Route::post('/broadcasting/auth', function (Request $request) {
         ]);
 
         return response()->json([
-            'error' => 'Authorization failed: ' . $e->getMessage()
+            'error' => 'Authorization failed: '.$e->getMessage(),
         ], 500);
     }
 })->middleware(['web', 'auth']);
@@ -161,31 +165,30 @@ if (! function_exists('authorizeChannel')) {
     }
 }
 
-
 // Simple test route for debugging auth responses (no conflicts with Laravel's default)
 Route::post('/test-broadcasting-auth-simple', function (Request $request) {
     $channelName = $request->input('channel_name');
     $socketId = $request->input('socket_id');
-    
+
     \Log::info('Test broadcast auth', [
         'channel_name' => $channelName,
         'socket_id' => $socketId,
         'user_authenticated' => auth()->check(),
         'user_id' => auth()->id(),
     ]);
-    
-    if (!auth()->check()) {
+
+    if (! auth()->check()) {
         return response()->json([
             'error' => 'User not authenticated',
-            'auth' => false
+            'auth' => false,
         ], 401);
     }
-    
+
     // Get Pusher configuration
     $pusherKey = config('broadcasting.connections.pusher.key');
     $pusherSecret = config('broadcasting.connections.pusher.secret');
-    
-    if (!$pusherKey || !$pusherSecret) {
+
+    if (! $pusherKey || ! $pusherSecret) {
         return response()->json(['error' => 'Pusher not configured'], 500);
     }
 
@@ -193,14 +196,14 @@ Route::post('/test-broadcasting-auth-simple', function (Request $request) {
         'user_id' => auth()->id(),
         'user_info' => [
             'name' => auth()->user()->name,
-        ]
+        ],
     ];
 
     // IMPORTANT: For private channels, we must sign: socket_id:channel_name:channel_data
     $channelDataJson = json_encode($channelData);
-    $stringToSign = $socketId . ':' . $channelName . ':' . $channelDataJson;
+    $stringToSign = $socketId.':'.$channelName.':'.$channelDataJson;
     $signature = hash_hmac('sha256', $stringToSign, $pusherSecret);
-    $authSignature = $pusherKey . ':' . $signature;
+    $authSignature = $pusherKey.':'.$signature;
 
     return response()->json([
         'auth' => $authSignature,
@@ -210,8 +213,8 @@ Route::post('/test-broadcasting-auth-simple', function (Request $request) {
             'socket_id' => $socketId,
             'string_to_sign' => $stringToSign,
             'signature_generated' => true,
-            'user_authenticated' => true
-        ]
+            'user_authenticated' => true,
+        ],
     ]);
 })->middleware(['web', 'auth']);
 
@@ -219,8 +222,8 @@ Route::post('/test-broadcasting-auth-simple', function (Request $request) {
 Route::get('/test-broadcasting-simple', function () {
     return response()->json([
         'broadcast_driver' => config('broadcasting.default'),
-        'pusher_configured' => !empty(config('broadcasting.connections.pusher.key')),
-        'pusher_key' => config('broadcasting.connections.pusher.key') ? substr(config('broadcasting.connections.pusher.key'), 0, 8) . '...' : null,
+        'pusher_configured' => ! empty(config('broadcasting.connections.pusher.key')),
+        'pusher_key' => config('broadcasting.connections.pusher.key') ? substr(config('broadcasting.connections.pusher.key'), 0, 8).'...' : null,
         'app_version' => config('app.version', 'unknown'),
         'laravel_version' => app()->version(),
     ]);

@@ -6,8 +6,8 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Services\WebPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Mockery;
-use Inertia\Testing\AssertableInertia as AssertableInertia;
 use Tests\TestCase;
 
 class TodoTest extends TestCase

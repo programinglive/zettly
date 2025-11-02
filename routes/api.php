@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\TodoController;
-use App\Http\Controllers\TagController;
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\TagController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 

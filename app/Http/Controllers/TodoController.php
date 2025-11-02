@@ -1141,6 +1141,7 @@ class TodoController extends Controller
         $thumbnail = @imagecreatetruecolor($newWidth, $newHeight);
         if (! $thumbnail) {
             imagedestroy($sourceImage);
+
             return;
         }
 

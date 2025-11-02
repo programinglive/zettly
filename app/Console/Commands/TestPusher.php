@@ -2,15 +2,14 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Broadcast;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Broadcast;
 
 class TestPusher extends Command
 {
     protected $signature = 'pusher:test {--detailed : Show detailed output}';
+
     protected $description = 'Test Pusher connection and configuration';
 
     public function handle()
@@ -48,7 +47,7 @@ class TestPusher extends Command
 
         foreach ($vars as $key => $value) {
             if ($value) {
-                $this->info("  ✓ {$key}: " . ($this->option('detailed') ? $value : '***SET***'));
+                $this->info("  ✓ {$key}: ".($this->option('detailed') ? $value : '***SET***'));
             } else {
                 $this->error("  ✗ {$key}: NOT SET");
             }
@@ -65,17 +64,17 @@ class TestPusher extends Command
 
         $pusherConfig = config('broadcasting.connections.pusher');
         if ($pusherConfig) {
-            $this->info("  ✓ Pusher configuration found");
-            
+            $this->info('  ✓ Pusher configuration found');
+
             if ($this->option('detailed')) {
                 $this->info("    App ID: {$pusherConfig['app_id']}");
                 $this->info("    App Key: {$pusherConfig['key']}");
-                $this->info("    App Secret: ***");
+                $this->info('    App Secret: ***');
                 $this->info("    Cluster: {$pusherConfig['options']['cluster']}");
-                $this->info("    Host: " . ($pusherConfig['options']['host'] ?? 'default'));
+                $this->info('    Host: '.($pusherConfig['options']['host'] ?? 'default'));
             }
         } else {
-            $this->error("  ✗ Pusher configuration not found");
+            $this->error('  ✗ Pusher configuration not found');
         }
         $this->line('');
     }
@@ -86,28 +85,28 @@ class TestPusher extends Command
 
         try {
             $broadcaster = Broadcast::driver('pusher');
-            
+
             if ($broadcaster instanceof PusherBroadcaster) {
                 $pusher = $broadcaster->getPusher();
-                
+
                 // Test connection by getting channels list
                 $channels = $pusher->get_channels();
-                
-                $this->info("  ✓ Pusher connection successful");
-                $this->info("  ✓ Connected to cluster: " . config('broadcasting.connections.pusher.options.cluster'));
-                
+
+                $this->info('  ✓ Pusher connection successful');
+                $this->info('  ✓ Connected to cluster: '.config('broadcasting.connections.pusher.options.cluster'));
+
                 if ($this->option('detailed')) {
-                    $this->info("  ✓ Channels count: " . ($channels->channels_count ?? 'N/A'));
+                    $this->info('  ✓ Channels count: '.($channels->channels_count ?? 'N/A'));
                 }
             } else {
-                $this->error("  ✗ Pusher broadcaster not found");
+                $this->error('  ✗ Pusher broadcaster not found');
             }
         } catch (\Exception $e) {
-            $this->error("  ✗ Pusher connection failed");
-            $this->error("    Error: " . $e->getMessage());
-            
+            $this->error('  ✗ Pusher connection failed');
+            $this->error('    Error: '.$e->getMessage());
+
             if ($this->option('detailed')) {
-                $this->error("    Trace: " . $e->getTraceAsString());
+                $this->error('    Trace: '.$e->getTraceAsString());
             }
         }
         $this->line('');
@@ -119,9 +118,9 @@ class TestPusher extends Command
 
         try {
             $broadcaster = Broadcast::driver('pusher');
-            
+
             // Test broadcasting to a test channel
-            $testChannel = 'test-channel-' . time();
+            $testChannel = 'test-channel-'.time();
             $testEvent = 'TestEvent';
             $testData = [
                 'message' => 'Test message from Artisan command',
@@ -130,28 +129,28 @@ class TestPusher extends Command
             ];
 
             $broadcaster->broadcast([$testChannel], $testEvent, $testData);
-            
-            $this->info("  ✓ Test broadcast sent successfully");
+
+            $this->info('  ✓ Test broadcast sent successfully');
             $this->info("  ✓ Channel: {$testChannel}");
             $this->info("  ✓ Event: {$testEvent}");
-            
+
             if ($this->option('detailed')) {
-                $this->info("  ✓ Data: " . json_encode($testData, JSON_PRETTY_PRINT));
+                $this->info('  ✓ Data: '.json_encode($testData, JSON_PRETTY_PRINT));
             }
 
             // Test private channel
-            $privateChannel = 'private-test-private-' . time();
+            $privateChannel = 'private-test-private-'.time();
             $broadcaster->broadcast([$privateChannel], 'PrivateTestEvent', $testData);
-            
-            $this->info("  ✓ Private channel broadcast sent");
+
+            $this->info('  ✓ Private channel broadcast sent');
             $this->info("  ✓ Private Channel: {$privateChannel}");
 
         } catch (\Exception $e) {
-            $this->error("  ✗ Broadcasting test failed");
-            $this->error("    Error: " . $e->getMessage());
-            
+            $this->error('  ✗ Broadcasting test failed');
+            $this->error('    Error: '.$e->getMessage());
+
             if ($this->option('detailed')) {
-                $this->error("    Trace: " . $e->getTraceAsString());
+                $this->error('    Trace: '.$e->getTraceAsString());
             }
         }
         $this->line('');

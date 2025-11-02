@@ -19,10 +19,10 @@ class CompressResponse
         if (strpos($request->header('Accept-Encoding'), 'gzip') !== false) {
             // Only compress text-based responses
             $contentType = $response->headers->get('Content-Type', '');
-            if (strpos($contentType, 'text') !== false || 
+            if (strpos($contentType, 'text') !== false ||
                 strpos($contentType, 'application/json') !== false ||
                 strpos($contentType, 'application/javascript') !== false) {
-                
+
                 $response->setContent(gzencode($response->getContent(), 9));
                 $response->headers->set('Content-Encoding', 'gzip');
                 $response->headers->set('Content-Length', strlen($response->getContent()));

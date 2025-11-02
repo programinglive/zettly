@@ -40,9 +40,8 @@ class WorkspacePreferenceTest extends TestCase
             ->withSession(['_token' => 'test-token'])
             ->get('/dashboard');
 
-        $response->assertInertia(fn ($page) =>
-            $page->component('Dashboard')
-                ->where('preferences.workspace_view', 'kanban')
+        $response->assertInertia(fn ($page) => $page->component('Dashboard')
+            ->where('preferences.workspace_view', 'kanban')
         );
     }
 }

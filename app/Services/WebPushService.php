@@ -65,6 +65,7 @@ class WebPushService
 
             if ($report->isSuccess()) {
                 $success++;
+
                 continue;
             }
 

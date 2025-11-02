@@ -2,16 +2,15 @@
 
 namespace App\Providers;
 
-use App\Models\Todo;
 use App\Models\Tag;
-use App\Observers\TodoObserver;
+use App\Models\Todo;
 use App\Observers\TagObserver;
+use App\Observers\TodoObserver;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Vite;
-use Inertia\Inertia;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 use League\Flysystem\Config as FlysystemConfig;
 use League\Flysystem\Filesystem;
 use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;
@@ -83,10 +82,9 @@ class AppServiceProvider extends ServiceProvider
             // per-object ACLs are not allowed and will cause 400 errors.
             $filesystem = new Filesystem($adapter);
 
-            $publicUrlGenerator = new class($config) implements PublicUrlGenerator {
-                public function __construct(private array $diskConfig)
-                {
-                }
+            $publicUrlGenerator = new class($config) implements PublicUrlGenerator
+            {
+                public function __construct(private array $diskConfig) {}
 
                 public function publicUrl(string $path, FlysystemConfig $config): string
                 {

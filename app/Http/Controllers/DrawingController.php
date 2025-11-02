@@ -92,7 +92,7 @@ class DrawingController extends Controller
             'document' => 'sometimes|array',
             'thumbnail' => 'sometimes|nullable|string',
         ])->after(function ($validator) use ($request) {
-            if (!$request->hasAny(['title', 'document', 'thumbnail'])) {
+            if (! $request->hasAny(['title', 'document', 'thumbnail'])) {
                 $validator->errors()->add('payload', 'At least one field (title or document) is required.');
             }
         });

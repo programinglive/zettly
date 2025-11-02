@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Broadcast;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
 
 class BroadcastServiceProvider extends ServiceProvider
 {
@@ -19,12 +19,12 @@ class BroadcastServiceProvider extends ServiceProvider
             // Broadcast::routes(['middleware' => ['web', 'auth']]);
 
             require base_path('routes/channels.php');
-            
+
             Log::info('BroadcastServiceProvider loaded successfully (custom routes only)');
         } catch (\Exception $e) {
             Log::error('BroadcastServiceProvider failed to load', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }

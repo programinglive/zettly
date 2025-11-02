@@ -4,7 +4,6 @@ namespace App\Events;
 
 use App\Models\Drawing;
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -17,7 +16,9 @@ class PresenceUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Drawing $drawing;
+
     public User $user;
+
     public array $presence;
 
     /**
@@ -38,8 +39,8 @@ class PresenceUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('tldraw-' . $this->drawing->id),
-            new PresenceChannel('tldraw-' . $this->drawing->id . '-presence'),
+            new PrivateChannel('tldraw-'.$this->drawing->id),
+            new PresenceChannel('tldraw-'.$this->drawing->id.'-presence'),
         ];
     }
 

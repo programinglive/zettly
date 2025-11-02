@@ -4,7 +4,6 @@ namespace App\Events;
 
 use App\Models\Drawing;
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -17,6 +16,7 @@ class UserLeftDrawing implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Drawing $drawing;
+
     public User $user;
 
     /**
@@ -36,8 +36,8 @@ class UserLeftDrawing implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('tldraw-' . $this->drawing->id),
-            new PresenceChannel('tldraw-' . $this->drawing->id . '-presence'),
+            new PrivateChannel('tldraw-'.$this->drawing->id),
+            new PresenceChannel('tldraw-'.$this->drawing->id.'-presence'),
         ];
     }
 
@@ -74,7 +74,7 @@ class UserLeftDrawing implements ShouldBroadcast
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
             '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
         ];
-        
+
         return $colors[$userId % count($colors)];
     }
 }

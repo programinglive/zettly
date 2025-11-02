@@ -5,7 +5,6 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -45,7 +44,7 @@ class LoginRequest extends FormRequest
         $credentials = $this->validated();
 
         $remember = (bool) ($this['remember'] ?? false);
-        
+
         // Try standard Laravel authentication first
         if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $remember)) {
             // If email auth fails, try with name field

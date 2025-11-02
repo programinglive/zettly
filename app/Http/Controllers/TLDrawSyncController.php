@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Drawing;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use App\Events\TLDrawUpdated;
 use App\Events\UserJoinedDrawing;
 use App\Events\UserLeftDrawing;
+use App\Models\Drawing;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class TLDrawSyncController extends Controller
 {
@@ -32,7 +32,7 @@ class TLDrawSyncController extends Controller
         $clientId = $request->input('client');
 
         // Extract drawing ID from room ID (format: drawing-{id})
-        if (!preg_match('/^drawing-(\d+)$/', $roomId, $matches)) {
+        if (! preg_match('/^drawing-(\d+)$/', $roomId, $matches)) {
             return response()->json(['error' => 'Invalid room format'], 400);
         }
 
@@ -275,7 +275,7 @@ class TLDrawSyncController extends Controller
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
             '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
         ];
-        
+
         return $colors[$userId % count($colors)];
     }
 }

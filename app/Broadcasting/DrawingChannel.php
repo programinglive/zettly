@@ -21,10 +21,10 @@ class DrawingChannel
     public function join(?User $user, Drawing $drawing): bool
     {
         // If user is not authenticated, deny access
-        if (!$user) {
+        if (! $user) {
             return false;
         }
-        
+
         return $drawing->user_id === $user->id;
     }
 }
