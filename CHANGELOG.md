@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 🐛 Bug Fixes
 
+* align PSR-3 logger signatures and adopt semver ranges for dependencies ([ce0bfea](https://github.com/programinglive/todo/commit/ce0bfeae6cb89ce33f828bdca4cbb2554a600920))
+
+### [0.6.6](https://github.com/programinglive/todo/compare/v0.6.5...v0.6.6) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
 * align PSR-3 logger signatures by refreshing composer dependencies
 
 
