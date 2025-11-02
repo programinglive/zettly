@@ -1,5 +1,5 @@
 import React, { useMemo, lazy, Suspense, useState, useCallback, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
@@ -275,6 +275,45 @@ export default function Dashboard({
     notes = [],
     preferences = {},
 }) {
+    const { props: pageProps } = usePage();
+    const authUser = pageProps?.auth?.user;
+    const isSuperAdmin = authUser?.role === 'super_admin';
+    const DEBUG_STORAGE_KEY = 'zettly-debug-mode';
+    const [hasDebugFlag, setHasDebugFlag] = useState(() => {
+        if (typeof window === 'undefined' || !isSuperAdmin) {
+            return false;
+        }
+
+        return window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
+    });
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setHasDebugFlag(false);
+            return undefined;
+        }
+
+        if (!isSuperAdmin) {
+            if (window.localStorage.getItem(DEBUG_STORAGE_KEY) !== 'false') {
+                window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
+            }
+            setHasDebugFlag(false);
+            return undefined;
+        }
+
+        const handleDebugChange = (event) => {
+            const enabled = Boolean(event.detail?.enabled);
+            setHasDebugFlag(enabled);
+        };
+
+        setHasDebugFlag(window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true');
+        window.addEventListener('zettly:debug-mode-changed', handleDebugChange);
+
+        return () => {
+            window.removeEventListener('zettly:debug-mode-changed', handleDebugChange);
+        };
+    }, [isSuperAdmin]);
+
     const [selectedTaskId, setSelectedTaskId] = useState(null);
     const [workspaceView] = useWorkspacePreference(preferences?.workspace_view);
     const [fabOpen, setFabOpen] = useState(false);

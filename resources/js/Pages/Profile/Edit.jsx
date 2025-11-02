@@ -580,7 +580,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         id="debug-mode"
                                         checked={debugMode}
                                         onChange={handleDebugToggle}
-                                        className={`$${
+                                        className={`${
                                             debugMode ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'
                                         } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2`}
                                     >

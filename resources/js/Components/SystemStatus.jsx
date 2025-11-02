@@ -20,7 +20,7 @@ export default function SystemStatus({ forceEnable = false, inline = false }) {
         [page?.props?.appVersion]
     );
 
-    const [isDebugEnabled, setIsDebugEnabled] = useState(() => forceEnable ? true : readDebugPreference);
+    const [isDebugEnabled, setIsDebugEnabled] = useState(() => (forceEnable ? true : readDebugPreference()));
     const [status, setStatus] = useState({
         version,
         websocket: { status: 'checking', message: 'Testing...' },

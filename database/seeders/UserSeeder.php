@@ -11,7 +11,8 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\User::firstOrCreate(
+        // Always promote John to super admin even if the record already exists.
+        \App\Models\User::updateOrCreate(
             ['email' => 'john@example.com'],
             [
                 'name' => 'John Doe',

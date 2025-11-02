@@ -4,6 +4,19 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
 
 ## Bug Fixes
 
+### Debug Mode toggle not rendering (2025-11-02)
+
+**Problem**: The Debug Mode toggle switch on the profile settings page was not visible for super admin users due to a template literal syntax error in the className prop.
+
+**Solution**:
+- Fixed the className template literal by removing the extra dollar sign (`$${` → `${`)
+- The Switch component now renders correctly with proper styling
+- Added regression tests to ensure the toggle renders and functions for super admins
+
+**Files Changed**:
+- `resources/js/Pages/Profile/Edit.jsx`
+- `tests/js/DebugModeToggle.test.js`
+
 ### Draw TypeError on navigation (2025-10-28)
 
 **Problem**: Returning to the `/draw` gallery triggered a runtime `TypeError: h is not a function`, crashing the TLDraw canvas.
@@ -118,7 +131,7 @@ Zettly is a modern, full-stack todo list application built with Laravel 12, Reac
    ```
    Running the seeders now creates todos that already have sample tags (Work, Personal, Important, Learning) attached, so the dashboard filters and tag-based features are immediately usable.
 
-   > **Super administrator access:** The `UserSeeder` promotes `john@example.com` to a super administrator. Sign in with that account (password `password123`) to use the monitoring tools. To elevate another account, run `php artisan tinker` and execute `\App\Models\User::where('email', 'you@example.com')->first()?->assignRole(\App\Enums\UserRole::SUPER_ADMIN);`.
+   > **Super administrator access:** The `UserSeeder` promotes `john@example.com` to a super administrator every time it runs (existing records are updated). Sign in with that account (password `password123`) to use the monitoring tools. To elevate another account, run `php artisan tinker` and execute `\App\Models\User::where('email', 'you@example.com')->first()?->assignRole(\App\Enums\UserRole::SUPER_ADMIN);`.
 
 5. **Administration & Monitoring**
    - Visit `/admin/system-monitor` (requires super administrator role) to inspect WebSocket status, Pusher credentials, authentication state, and server health from the browser.
