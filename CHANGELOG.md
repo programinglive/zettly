@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 🐛 Bug Fixes
 
+* stabilize drawing actions and tag creation ([6dafcce](https://github.com/programinglive/todo/commit/6dafcce54dd2049f1171be6c7633b3704e2c2c76))
+
+### [0.6.9](https://github.com/programinglive/todo/compare/v0.6.8...v0.6.9) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
 * ensure tag creation uses axios with credentials to avoid intermittent 419 errors and adjust todo form ordering
 * move drawing page navigation buttons outside the canvas container and gate debug logs behind the toggle
 
