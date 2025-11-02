@@ -569,7 +569,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex flex-col gap-1">
-                                        <label htmlFor="debug-mode" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                                             Debug Mode
                                         </label>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -577,17 +577,17 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         </p>
                                     </div>
                                     <Switch
-                                        id="debug-mode"
                                         checked={debugMode}
                                         onChange={handleDebugToggle}
                                         className={`${
                                             debugMode ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'
-                                        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2`}
+                                        } relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900`}
                                     >
                                         <span
+                                            aria-hidden="true"
                                             className={`${
-                                                debugMode ? 'translate-x-6' : 'translate-x-1'
-                                            } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                                debugMode ? 'translate-x-5' : 'translate-x-0'
+                                            } pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition`}
                                         />
                                     </Switch>
                                 </div>
