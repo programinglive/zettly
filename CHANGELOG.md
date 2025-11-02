@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.5](https://github.com/programinglive/todo/compare/v0.6.4...v0.6.5) (2025-11-02)
+
+
+### 🧹 Chores
+
+* migrate docs and refine system monitor layout ([d799956](https://github.com/programinglive/todo/commit/d7999566d59d25920f92707d0f35001ca39f06eb))
+* remove relocated root markdown files ([ec29d05](https://github.com/programinglive/todo/commit/ec29d0506883c889e8c87266d42bacd884c05fd9))
+
 ### [0.6.4](https://github.com/programinglive/todo/compare/v0.6.3...v0.6.4) (2025-10-31)
 
 
