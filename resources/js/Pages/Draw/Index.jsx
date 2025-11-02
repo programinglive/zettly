@@ -44,7 +44,7 @@ const debugError = (...args) => {
 
 // Simple production logger for important events only
 const prodLog = (...args) => {
-    if (!isDebugMode()) {
+    if (isDebugMode()) {
         console.log('[ZETTLY]', ...args);
     }
 };
@@ -805,26 +805,39 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     );
 
     const handleCreateDrawing = useCallback(async () => {
-        if (!editorRef.current) {
-            return;
-        }
-
         await flushPendingSave();
         setCreating(true);
 
         try {
             const title = `Untitled sketch ${drawings.length + 1}`;
-            const baseSnapshot = blankSnapshotRef.current ?? editorRef.current.getSnapshot();
-            const defaultSnapshot = normalizeSnapshotForPersist(baseSnapshot, title);
+            
+            // If editor is mounted, use its snapshot; otherwise send minimal document
+            let documentPayload;
+            if (editorRef.current) {
+                const baseSnapshot = blankSnapshotRef.current ?? editorRef.current.getSnapshot();
+                const defaultSnapshot = normalizeSnapshotForPersist(baseSnapshot, title);
+                documentPayload = normalizeSnapshotForPersist(defaultSnapshot, title);
+            } else {
+                // Create minimal blank document structure for new drawing
+                documentPayload = {
+                    document: {
+                        name: title,
+                        store: {}
+                    }
+                };
+            }
+
             const { data } = await window.axios.post(route('draw.store'), {
                 title,
-                document: normalizeSnapshotForPersist(defaultSnapshot, title),
+                document: documentPayload,
             });
 
             drawingCacheRef.current.set(data.drawing.id, data.drawing);
             setDrawings((prev) => [data.drawing, ...prev]);
             setActiveDrawing(data.drawing);
-            loadDrawingIntoEditor(data.drawing);
+            
+            // Navigate to the new drawing
+            router.get(`/draw/${data.drawing.id}`);
         } catch (error) {
             debugError(error);
             setSaveStatus((prev) => ({
@@ -834,7 +847,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         } finally {
             setCreating(false);
         }
-    }, [drawings.length, loadDrawingIntoEditor]);
+    }, [drawings.length]);
 
     // Autosave status for title
     const [titleSaveStatus, setTitleSaveStatus] = useState({ saving: false, lastSaved: null });
@@ -1316,7 +1329,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                             {drawings.length} {drawings.length === 1 ? 'drawing' : 'drawings'}
                                         </p>
                                     </div>
-                                    <Button onClick={() => router.get('/draw/create')} disabled={creating}>
+                                    <Button onClick={handleCreateDrawing} disabled={creating}>
                                         {creating ? (
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         ) : (
@@ -1337,17 +1350,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                                 No drawings yet
                                             </h3>
                                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                                Create your first drawing to get started.
+                                                Use the New Drawing button above to get started.
                                             </p>
                                         </div>
-                                        <Button onClick={() => router.get('/draw/create')} disabled={creating}>
-                                            {creating ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Plus className="mr-2 h-4 w-4" />
-                                            )}
-                                            Create drawing
-                                        </Button>
                                     </div>
                                 ) : (
                                     <DrawingGallery
@@ -1382,6 +1387,36 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     </p>
                 </div>
 
+                <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={() => router.get('/draw')}
+                        className="lg:w-auto"
+                    >
+                        ← Back to Gallery
+                    </Button>
+
+                    {process.env.NODE_ENV === 'development' && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const editor = editorRef.current;
+                                if (editor && activeDrawing?.id) {
+                                    debugLog('[Draw] 🔧 Manual test: Triggering save');
+                                    const snapshot = editor.getSnapshot();
+                                    console.log('🔧 Manual test - Current snapshot:', snapshot);
+                                    queueSave(snapshot);
+                                } else {
+                                    console.log('❌ Manual test failed - no editor or drawing');
+                                }
+                            }}
+                            className="lg:w-auto text-xs"
+                        >
+                            🔧 Test Save
+                        </Button>
+                    )}
+                </div>
+
                 <div className="grid gap-6 lg:grid-cols-1">
                     <Card className="flex h-[75vh] flex-col overflow-hidden">
                         <CardHeader className="space-y-4 border-b border-gray-100 pt-4 pb-4 dark:border-slate-800">
@@ -1392,75 +1427,42 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                     </CardTitle>
                                     {statusBadge}
                                 </div>
-                                <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
-                                    {/* Back to Gallery */}
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => router.get('/draw')}
-                                        className="lg:w-auto"
-                                    >
-                                        ← Back to Gallery
-                                    </Button>
-                                    
-                                    {/* Debug Test Button */}
-                                    {process.env.NODE_ENV === 'development' && (
-                                        <Button
-                                            variant="secondary"
-                                            onClick={() => {
-                                                const editor = editorRef.current;
-                                                if (editor && activeDrawing?.id) {
-                                                    debugLog('[Draw] 🔧 Manual test: Triggering save');
-                                                    const snapshot = editor.getSnapshot();
-                                                    console.log('🔧 Manual test - Current snapshot:', snapshot);
-                                                    queueSave(snapshot);
-                                                } else {
-                                                    console.log('❌ Manual test failed - no editor or drawing');
-                                                }
-                                            }}
-                                            className="lg:w-auto text-xs"
-                                        >
-                                            🔧 Test Save
-                                        </Button>
-                                    )}
-                                    
-                                    {/* Title Input */}
-                                    {activeDrawing ? (
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <label
-                                                    htmlFor="drawing-title"
-                                                    className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                                                >
-                                                    Title
-                                                </label>
-                                                {titleSaveStatus.saving && (
-                                                    <div className="flex items-center gap-1 text-xs text-blue-500">
-                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                        Saving...
-                                                    </div>
-                                                )}
-                                                {!titleSaveStatus.saving && titleSaveStatus.lastSaved && (
-                                                    <div className="flex items-center gap-1 text-xs text-green-500">
-                                                        <Check className="h-3 w-3" />
-                                                        Saved
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <Input
-                                                id="drawing-title"
-                                                value={titleDraft}
-                                                onChange={(event) => {
-                                    setTitleDraft(event.target.value);
-                                    autoSaveDrawingTitle(event.target.value);
-                                }}
-                                                onBlur={handleTitleBlur}
-                                                onKeyDown={handleTitleKeyDown}
-                                                className="lg:w-64"
-                                                placeholder="Name your drawing"
-                                            />
+                                {activeDrawing ? (
+                                    <div className="flex w-full flex-col gap-2 text-sm lg:w-auto lg:flex-row lg:items-center">
+                                        <div className="flex items-center gap-2">
+                                            <label
+                                                htmlFor="drawing-title"
+                                                className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                                            >
+                                                Title
+                                            </label>
+                                            {titleSaveStatus.saving && (
+                                                <div className="flex items-center gap-1 text-xs text-blue-500">
+                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                    Saving...
+                                                </div>
+                                            )}
+                                            {!titleSaveStatus.saving && titleSaveStatus.lastSaved && (
+                                                <div className="flex items-center gap-1 text-xs text-green-500">
+                                                    <Check className="h-3 w-3" />
+                                                    Saved
+                                                </div>
+                                            )}
                                         </div>
-                                    ) : null}
-                                </div>
+                                        <Input
+                                            id="drawing-title"
+                                            value={titleDraft}
+                                            onChange={(event) => {
+                                                setTitleDraft(event.target.value);
+                                                autoSaveDrawingTitle(event.target.value);
+                                            }}
+                                            onBlur={handleTitleBlur}
+                                            onKeyDown={handleTitleKeyDown}
+                                            className="lg:w-64"
+                                            placeholder="Name your drawing"
+                                        />
+                                    </div>
+                                ) : null}
                             </div>
                         </CardHeader>
                         <CardContent className="relative flex-1 overflow-hidden p-0">

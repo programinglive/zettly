@@ -51,12 +51,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         // Create FormData to handle file uploads
         const formData = new FormData();
 
-        // Add CSRF token for Inertia FormData submissions
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        if (csrfToken) {
-            formData.append('_token', csrfToken);
-        }
-
         formData.append('type', data.type);
         formData.append('title', data.title);
         formData.append('description', data.description);
@@ -180,6 +174,19 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                         <p className="text-xs text-gray-400 dark:text-gray-500">Tip: Title and description are enough to create a todo.</p>
                                     </div>
 
+                                    {todos && todos.length > 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Link to Other Todos
+                                            </label>
+                                            <TodoSelector
+                                                availableTodos={todos}
+                                                selectedTodoIds={data.related_todo_ids}
+                                                onTodosChange={handleTodosChange}
+                                            />
+                                        </div>
+                                    )}
+
                                     <ChecklistEditor
                                         items={data.checklist_items || []}
                                         onChange={(items) => setData('checklist_items', items)}
@@ -239,19 +246,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                                     error={errors.priority || errors.importance}
                                                 />
                                             </div>
-                                        </div>
-                                    )}
-
-                                    {todos && todos.length > 0 && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Link to Other Todos
-                                            </label>
-                                            <TodoSelector
-                                                availableTodos={todos}
-                                                selectedTodoIds={data.related_todo_ids}
-                                                onTodosChange={handleTodosChange}
-                                            />
                                         </div>
                                     )}
                                 </div>

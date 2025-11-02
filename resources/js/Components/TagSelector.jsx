@@ -64,47 +64,43 @@ export default function TagSelector({ availableTags, selectedTagIds, onTagsChang
         setError('');
         
         try {
-            const response = await fetch('/manage/tags', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
+            const response = await window.axios.post(
+                '/manage/tags',
+                {
                     name: newTagName.trim(),
                     color: newTagColor,
-                }),
-            });
-
-            if (response.ok) {
-                const newTag = await response.json();
-                
-                // Add the new tag to selected tags (only if it was newly created)
-                const newTagKey = normalizeId(newTag.id);
-                if (response.status === 201 || !selectedIdSet.has(newTagKey)) {
-                    onTagsChange([...safeSelectedIds, newTag.id]);
+                },
+                {
+                    headers: {
+                        Accept: 'application/json',
+                    },
                 }
-                
-                // Reset form
-                setNewTagName('');
-                setNewTagColor('#3B82F6');
-                setIsCreating(false);
-                setError('');
-                
-                // Refresh the page to get updated tags list
-                router.reload({ only: ['tags'] });
-            } else if (response.status === 409) {
-                // Conflict - tag already exists
-                const errorData = await response.json().catch(() => ({}));
-                setError(errorData.message || 'A tag with this name already exists');
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                setError(errorData.message || 'Failed to create tag. Please try again.');
+            );
+
+            const newTag = response.data;
+
+            // Add the new tag to selected tags (only if it was newly created)
+            const newTagKey = normalizeId(newTag.id);
+            if (response.status === 201 || !selectedIdSet.has(newTagKey)) {
+                onTagsChange([...safeSelectedIds, newTag.id]);
             }
+
+            // Reset form
+            setNewTagName('');
+            setNewTagColor('#3B82F6');
+            setIsCreating(false);
+            setError('');
+
+            // Refresh the page to get updated tags list
+            router.reload({ only: ['tags'] });
         } catch (error) {
-            setError('Network error. Please check your connection and try again.');
+            if (error.response?.status === 409) {
+                setError(error.response.data?.message || 'A tag with this name already exists');
+            } else if (error.response?.data?.message) {
+                setError(error.response.data.message);
+            } else {
+                setError('Network error. Please check your connection and try again.');
+            }
         } finally {
             setIsCreatingTag(false);
         }

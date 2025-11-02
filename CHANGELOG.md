@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.9](https://github.com/programinglive/todo/compare/v0.6.8...v0.6.9) (2025-11-02)
+
+
+### 🐛 Bug Fixes
+
+* ensure tag creation uses axios with credentials to avoid intermittent 419 errors and adjust todo form ordering
+* move drawing page navigation buttons outside the canvas container and gate debug logs behind the toggle
+
+
+### ✅ Tests
+
+* add regression coverage for JSON tag create/update flows
+
 ### [0.6.8](https://github.com/programinglive/todo/compare/v0.6.7...v0.6.8) (2025-11-02)
 
 

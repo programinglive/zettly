@@ -56,6 +56,30 @@ class TagManagementTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_tag_via_json_request(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withHeader('Accept', 'application/json')
+            ->postJson('/manage/tags', [
+                'name' => 'Json Tag',
+                'color' => '#123456',
+            ]);
+
+        $response->assertCreated();
+        $response->assertJsonFragment([
+            'name' => 'Json Tag',
+            'color' => '#123456',
+        ]);
+
+        $this->assertDatabaseHas('tags', [
+            'user_id' => $user->id,
+            'name' => 'Json Tag',
+            'color' => '#123456',
+        ]);
+    }
+
     public function test_user_can_delete_their_tag(): void
     {
         $user = User::factory()->create();
@@ -261,6 +285,36 @@ class TagManagementTest extends TestCase
             'id' => $tag->id,
             'name' => 'Updated Name',
             'color' => '#FF0000', // Original color preserved
+        ]);
+    }
+
+    public function test_user_can_update_tag_via_json_request(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->for($user)->create([
+            'name' => 'Json Original',
+            'color' => '#ABCDEF',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('Accept', 'application/json')
+            ->putJson("/manage/tags/{$tag->id}", [
+                'name' => 'Json Updated',
+                'color' => '#654321',
+            ]);
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'id' => $tag->id,
+            'name' => 'Json Updated',
+            'color' => '#654321',
+        ]);
+
+        $this->assertDatabaseHas('tags', [
+            'id' => $tag->id,
+            'user_id' => $user->id,
+            'name' => 'Json Updated',
+            'color' => '#654321',
         ]);
     }
 
