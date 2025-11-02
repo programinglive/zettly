@@ -32,6 +32,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         priority: initialType === 'note' ? null : (todo.priority ?? null),
         importance: initialType === 'note' ? null : (todo.importance ?? null),
         is_completed: todo.is_completed || false,
+        completion_reason: '',
         due_date: initialType === 'note' ? '' : (todo.due_date ?? ''),
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
@@ -96,6 +97,9 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
             formData.append('due_date', data.due_date);
         }
         formData.append('is_completed', data.is_completed ? '1' : '0');
+        if (data.completion_reason) {
+            formData.append('reason', data.completion_reason);
+        }
 
         // Arrays
         (data.tag_ids || []).forEach((id) => formData.append('tag_ids[]', id));
@@ -145,7 +149,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         <AppLayout title={`Edit ${todo.title}`}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
+                    <CardHeader className="sticky top-0 z-20 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:gap-10">
                             <div className="space-y-3 lg:max-w-3xl">
                                 <CardTitle className="text-2xl text-gray-900 dark:text-white md:text-3xl">{isNote ? 'Edit Note' : 'Edit Todo'}</CardTitle>
@@ -235,19 +239,39 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                         errors={checklistErrors}
                                     />
 
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="is_completed"
-                                            checked={data.is_completed}
-                                            onChange={(e) => setData('is_completed', e.target.checked)}
-                                            className="border-gray-300 dark:border-gray-600"
-                                        />
-                                        <label
-                                            htmlFor="is_completed"
-                                            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                                        >
-                                            Mark as completed
-                                        </label>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="is_completed"
+                                                checked={data.is_completed}
+                                                onChange={(e) => setData('is_completed', e.target.checked)}
+                                                className="border-gray-300 dark:border-gray-600"
+                                            />
+                                            <label
+                                                htmlFor="is_completed"
+                                                className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                                            >
+                                                Mark as completed
+                                            </label>
+                                        </div>
+                                        {data.is_completed && (
+                                            <div className="space-y-2">
+                                                <label htmlFor="completion_reason" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Why are you completing this todo?
+                                                </label>
+                                                <textarea
+                                                    id="completion_reason"
+                                                    className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${errors.reason ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+                                                    rows={3}
+                                                    placeholder="Provide the context for completing this todo..."
+                                                    value={data.completion_reason}
+                                                    onChange={(event) => setData('completion_reason', event.target.value)}
+                                                />
+                                                {errors.reason && (
+                                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.reason}</p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {existingAttachments.length > 0 && (

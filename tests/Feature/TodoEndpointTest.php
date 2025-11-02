@@ -97,6 +97,7 @@ class TodoEndpointTest extends TestCase
             'title' => 'Updated Title',
             'description' => 'Updated Description',
             'is_completed' => true,
+            'reason' => 'Finished via endpoint test',
         ];
 
         $response = $this->actingAs($user)
@@ -104,7 +105,12 @@ class TodoEndpointTest extends TestCase
             ->put("/todos/{$todo->id}", array_merge($updatedData, ['_token' => 'test-token']));
 
         $response->assertStatus(302);
-        $this->assertDatabaseHas('todos', array_merge(['id' => $todo->id], $updatedData));
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'title' => $updatedData['title'],
+            'description' => $updatedData['description'],
+            'is_completed' => $updatedData['is_completed'],
+        ]);
     }
 
     public function test_todos_delete_endpoint_works(): void
@@ -131,7 +137,10 @@ class TodoEndpointTest extends TestCase
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
             ->withHeaders(['X-CSRF-TOKEN' => 'test-token'])
-            ->post("/todos/{$todo->id}/toggle", ['_token' => 'test-token']);
+            ->post("/todos/{$todo->id}/toggle", [
+                '_token' => 'test-token',
+                'reason' => 'Finished via endpoint test',
+            ]);
 
         $response->assertStatus(302);
         $this->assertDatabaseHas('todos', [

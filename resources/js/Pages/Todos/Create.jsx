@@ -109,7 +109,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         <AppLayout title={isNote ? 'Create Note' : 'Create Todo'}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
+                    <CardHeader className="sticky top-0 z-20 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:gap-10">
                             <div className="space-y-3 lg:max-w-3xl">
                                 <CardTitle className="text-2xl text-gray-900 dark:text-white md:text-3xl">{isNote ? 'Create New Note' : 'Create New Todo'}</CardTitle>
@@ -127,7 +127,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                     type="submit"
                                     form="create-todo-form"
                                     disabled={processing}
-                                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400 z-0"
                                 >
                                     {processing ? 'Creating…' : isNote ? 'Create Note' : 'Create Todo'}
                                 </Button>

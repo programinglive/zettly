@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/update-eisenhower', [TodoController::class, 'updateEisenhower'])->name('todos.update-eisenhower');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
+    Route::post('todos/{todo}/archive', [TodoController::class, 'archive'])->name('todos.archive');
     Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [TodoController::class, 'toggleChecklistItem'])->name('todos.checklist.toggle');
 
     Route::get('draw', [DrawingController::class, 'index'])->name('draw.index');

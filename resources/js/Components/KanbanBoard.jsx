@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
+import CompletionReasonDialog from './CompletionReasonDialog';
 import {
     DndContext,
     closestCenter,
@@ -148,8 +149,8 @@ const MAX_VISIBLE_TODOS = 5;
 const LOAD_INCREMENT = 5;
 
 export default function KanbanBoard({ todos: initialTodos, showCreateButton = true }) {
-    const toggleForm = useForm();
-    const updateForm = useForm();
+    const toggleForm = useForm({ reason: '' });
+    const updateForm = useForm({ reason: '', priority: null, importance: null, is_completed: false });
     const [todos, setTodos] = useState(initialTodos);
     const [activeId, setActiveId] = useState(null);
     const [showArchiveModal, setShowArchiveModal] = useState(false);
@@ -161,6 +162,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         q4: MAX_VISIBLE_TODOS,
         completed: MAX_VISIBLE_TODOS,
     });
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [reasonContext, setReasonContext] = useState(null);
 
     const computeVisible = useCallback((current, total) => {
         if (total <= 0) {
@@ -186,8 +189,88 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+    const openReasonDialog = (context) => {
+        setReasonContext(context);
+        setReasonDialogOpen(true);
+    };
+
+    const closeReasonDialog = () => {
+        setReasonDialogOpen(false);
+        setReasonContext(null);
+        toggleForm.reset('reason');
+        toggleForm.clearErrors();
+        updateForm.reset();
+        updateForm.clearErrors();
+    };
+
+    const handleReasonSubmit = (reason) => {
+        if (!reasonContext) {
+            return;
+        }
+
+        if (reasonContext.type === 'toggle') {
+            toggleForm.setData('reason', reason);
+            toggleForm.post(`/todos/${reasonContext.todo.id}/toggle`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeReasonDialog();
+                },
+            });
+
+            return;
+        }
+
+        if (reasonContext.type === 'updatePriority') {
+            const { todo, payload, originalState } = reasonContext;
+
+            setTodos((prev) => prev.map((t) => (
+                String(t.id) === String(todo.id)
+                    ? {
+                        ...t,
+                        priority: payload.priority,
+                        importance: payload.importance,
+                        is_completed: payload.is_completed,
+                    }
+                    : t
+            )));
+
+            updateForm.setData(() => ({
+                priority: payload.priority,
+                importance: payload.importance,
+                is_completed: payload.is_completed,
+                reason,
+            }));
+
+            updateForm.post(`/todos/${todo.id}/update-priority`, {
+                preserveScroll: true,
+                preserveState: true,
+                onError: () => {
+                    setTodos((prev) => prev.map((t) => (
+                        String(t.id) === String(todo.id)
+                            ? {
+                                ...t,
+                                priority: originalState.priority,
+                                importance: originalState.importance,
+                                is_completed: originalState.is_completed,
+                            }
+                            : t
+                    )));
+                },
+                onSuccess: () => {
+                    closeReasonDialog();
+                },
+            });
+        }
+    };
+
     const handleToggle = (todo) => {
-        toggleForm.post(`/todos/${todo.id}/toggle`);
+        toggleForm.reset('reason');
+        toggleForm.clearErrors();
+        openReasonDialog({
+            type: 'toggle',
+            todo,
+            targetState: todo.is_completed ? 'pending' : 'completed',
+        });
     };
 
     const handleArchiveCompleted = () => {
@@ -310,6 +393,27 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             newImportance !== draggedTodo.importance ||
             newCompleted !== draggedTodo.is_completed
         ) {
+            const updateData = {
+                priority: newPriority,
+                importance: newImportance,
+                is_completed: Boolean(newCompleted),
+            };
+
+            if (newCompleted !== draggedTodo.is_completed) {
+                openReasonDialog({
+                    type: 'updatePriority',
+                    todo: draggedTodo,
+                    payload: updateData,
+                    originalState: {
+                        priority: draggedTodo.priority,
+                        importance: draggedTodo.importance,
+                        is_completed: draggedTodo.is_completed,
+                    },
+                    targetState: newCompleted ? 'completed' : 'pending',
+                });
+
+                return;
+            }
 
             // Optimistically update the UI
             setTodos(prevTodos => 
@@ -320,18 +424,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 )
             );
 
-            // Send update to backend using the new priority endpoint
-            const updateData = {
-                priority: newPriority,
-                importance: newImportance,
-                is_completed: Boolean(newCompleted),
-            };
-
             router.post(`/todos/${draggedTodo.id}/update-priority`, updateData, {
                 preserveScroll: true,
                 preserveState: true,
-                onError: (errors) => {
-                    // Revert the optimistic update on error
+                onError: () => {
                     setTodos(prevTodos => 
                         prevTodos.map(todo => 
                             String(todo.id) === draggedId 
@@ -689,6 +785,15 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 cancelText="Cancel"
                 confirmButtonVariant="default"
                 isLoading={isArchiving}
+            />
+            <CompletionReasonDialog
+                open={reasonDialogOpen}
+                onCancel={closeReasonDialog}
+                onSubmit={handleReasonSubmit}
+                processing={toggleForm.processing || updateForm.processing}
+                initialState={reasonContext?.todo?.is_completed ? 'completed' : 'pending'}
+                targetState={reasonContext?.targetState ?? (reasonContext?.todo?.is_completed ? 'pending' : 'completed')}
+                error={reasonContext?.type === 'toggle' ? toggleForm.errors?.reason : updateForm.errors?.reason}
             />
         </DndContext>
     );

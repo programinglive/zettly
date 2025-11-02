@@ -7,6 +7,7 @@ import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
+import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
 import filterAndSortTodos from './filterTodos';
 
 const stripHtml = (html) => {
@@ -103,15 +104,38 @@ export default function Index({ todos, tags, filter, selectedTag }) {
     const todosData = isPaginated ? todos.data : (Array.isArray(todos) ? todos : []);
     const currentPage = isPaginated ? (todos.current_page ?? 1) : 1;
     const nextPageUrl = isPaginated ? todos.next_page_url : null;
-    const toggleForm = useForm();
+    const toggleForm = useForm({ reason: '' });
     const deleteForm = useForm();
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [reasonTodo, setReasonTodo] = useState(null);
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [todoToDelete, setTodoToDelete] = useState(null);
 
     const handleToggle = (todo) => {
-        toggleForm.post(`/todos/${todo.id}/toggle`);
+        setReasonTodo(todo);
+        toggleForm.reset('reason');
+        toggleForm.clearErrors();
+        setReasonDialogOpen(true);
+    };
+
+    const submitToggleReason = (reason) => {
+        if (!reasonTodo) {
+            return;
+        }
+
+        toggleForm.setData('reason', reason);
+        toggleForm.post(`/todos/${reasonTodo.id}/toggle`, {
+            preserveScroll: true,
+            onFinish: () => {
+                toggleForm.setData('reason', '');
+            },
+            onSuccess: () => {
+                setReasonDialogOpen(false);
+                setReasonTodo(null);
+            },
+        });
     };
 
     const handleDeleteClick = (todo) => {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\TodoStatusEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -90,8 +91,13 @@ class Todo extends Model
      */
     public function linkedByTodos()
     {
-        return $this->belongsToMany(Todo::class, 'todo_relationships', 'related_todo_id', 'todo_id')
+        return $this->belongsToMany(self::class, 'todo_relationships', 'related_todo_id', 'todo_id')
             ->withTimestamps();
+    }
+
+    public function statusEvents()
+    {
+        return $this->hasMany(TodoStatusEvent::class);
     }
 
     /**

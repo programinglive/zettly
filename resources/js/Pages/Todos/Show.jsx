@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp, Archive } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import TagBadge from '../../Components/TagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
+import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
 import TodoLinkManager from '../../Components/TodoLinkManager';
 import FileUpload from '../../Components/FileUpload';
 import AttachmentList from '../../Components/AttachmentList';
@@ -14,13 +15,16 @@ import SanitizedHtml from '../../Components/SanitizedHtml';
 
 export default function Show({ todo, availableTodos }) {
     const { delete: destroy } = useForm();
-    const toggleForm = useForm();
+    const toggleForm = useForm({ reason: '' });
     const linkForm = useForm();
     const unlinkForm = useForm();
+    const archiveForm = useForm();
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [reasonTargetState, setReasonTargetState] = useState(todo.is_completed ? 'pending' : 'completed');
     const isNote = (todo.type ?? '').toLowerCase() === 'note';
     const isArchived = Boolean(todo.archived);
 
@@ -44,7 +48,21 @@ export default function Show({ todo, availableTodos }) {
     const completedChecklistCount = checklistItems.filter(item => item.is_completed).length;
 
     const handleToggle = () => {
-        toggleForm.post(`/todos/${todo.id}/toggle`);
+        const target = todo.is_completed ? 'pending' : 'completed';
+        setReasonTargetState(target);
+        toggleForm.clearErrors();
+        setReasonDialogOpen(true);
+    };
+
+    const submitReason = (reason) => {
+        toggleForm.setData('reason', reason);
+        toggleForm.post(`/todos/${todo.id}/toggle`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setReasonDialogOpen(false);
+                toggleForm.reset('reason');
+            },
+        });
     };
 
     const handleDeleteClick = () => {
@@ -58,6 +76,16 @@ export default function Show({ todo, availableTodos }) {
 
     const handleDeleteCancel = () => {
         setShowDeleteModal(false);
+    };
+
+    const handleArchiveClick = () => {
+        if (isArchived || !todo.is_completed) {
+            return;
+        }
+
+        archiveForm.post(`/todos/${todo.id}/archive`, {
+            preserveScroll: true,
+        });
     };
 
     const handleLink = async (todoId, relatedTodoId) => {
@@ -120,23 +148,7 @@ export default function Show({ todo, availableTodos }) {
     const createdAt = useMemo(() => new Date(todo.created_at), [todo.created_at]);
     const updatedAt = useMemo(() => new Date(todo.updated_at), [todo.updated_at]);
     const completedAt = useMemo(() => (todo.completed_at ? new Date(todo.completed_at) : null), [todo.completed_at]);
-    const [extrasOpen, setExtrasOpen] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return window.matchMedia('(min-width: 1024px)').matches;
-        }
-
-        return false;
-    });
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        if (window.matchMedia('(min-width: 1024px)').matches) {
-            setExtrasOpen(true);
-        }
-    }, []);
+    const [extrasOpen, setExtrasOpen] = useState(false);
 
     const formatTimestamp = useMemo(() => {
         const formatter = new Intl.DateTimeFormat('en-US', {
@@ -236,6 +248,19 @@ export default function Show({ todo, availableTodos }) {
                                     {todo.is_completed ? <CheckCircle className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
                                     {todo.is_completed ? 'Completed' : 'Mark complete'}
                                 </button>
+                            )}
+
+                            {todo.is_completed && !isArchived && !isNote && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleArchiveClick}
+                                    disabled={archiveForm.processing}
+                                    className="inline-flex items-center gap-2"
+                                >
+                                    <Archive className="h-4 w-4" />
+                                    Archive
+                                </Button>
                             )}
 
                             {todo.priority && !isNote && !todo.is_completed && (
@@ -369,6 +394,19 @@ export default function Show({ todo, availableTodos }) {
                         </div>
                     </div>
                 </article>
+
+                <CompletionReasonDialog
+                    open={reasonDialogOpen}
+                    onCancel={() => {
+                        setReasonDialogOpen(false);
+                        toggleForm.reset('reason');
+                    }}
+                    onSubmit={submitReason}
+                    processing={toggleForm.processing}
+                    initialState={todo.is_completed ? 'completed' : 'pending'}
+                    targetState={reasonTargetState}
+                    error={toggleForm.errors?.reason}
+                />
 
                 <ConfirmationModal
                     isOpen={showDeleteModal}

@@ -6,14 +6,17 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import TagBadge from '../../Components/TagBadge';
 import SanitizedHtml from '../../Components/SanitizedHtml';
+import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
 
 export default function Completed({ todos }) {
     const isPaginated = todos && Array.isArray(todos.data);
     const completedTodos = isPaginated ? todos.data : todos;
     const totalCompleted = isPaginated ? todos.total : completedTodos.length;
     const paginationLinks = isPaginated ? todos.links : [];
-    const toggleForm = useForm();
+    const toggleForm = useForm({ reason: '' });
     const [processingId, setProcessingId] = useState(null);
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [reasonTodo, setReasonTodo] = useState(null);
 
     const completionStats = useMemo(() => {
         if (!completedTodos.length) {
@@ -30,11 +33,30 @@ export default function Completed({ todos }) {
     }, [completedTodos]);
 
     const handleToggle = (todo) => {
+        setReasonTodo(todo);
         setProcessingId(todo.id);
-        toggleForm.post(`/todos/${todo.id}/toggle`, {
+        toggleForm.reset('reason');
+        toggleForm.clearErrors();
+        setReasonDialogOpen(true);
+    };
+
+    const submitReason = (reason) => {
+        if (!reasonTodo) {
+            return;
+        }
+
+        toggleForm.setData('reason', reason);
+        toggleForm.post(`/todos/${reasonTodo.id}/toggle`, {
             preserveScroll: true,
             preserveState: true,
-            onFinish: () => setProcessingId(null),
+            onFinish: () => {
+                setProcessingId(null);
+                toggleForm.setData('reason', '');
+            },
+            onSuccess: () => {
+                setReasonDialogOpen(false);
+                setReasonTodo(null);
+            },
         });
     };
 
@@ -152,7 +174,7 @@ export default function Completed({ todos }) {
                                     <div className="flex shrink-0 flex-col items-stretch gap-2 lg:w-52">
                                         <Button
                                             onClick={() => handleToggle(todo)}
-                                            disabled={toggleForm.processing && processingId === todo.id}
+                                            disabled={(toggleForm.processing && processingId === todo.id)}
                                             variant="outline"
                                             className="w-full gap-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-200 dark:hover:bg-emerald-500/10"
                                         >
@@ -201,6 +223,20 @@ export default function Completed({ todos }) {
                     </div>
                 )}
             </div>
+            <CompletionReasonDialog
+                open={reasonDialogOpen}
+                onCancel={() => {
+                    setReasonDialogOpen(false);
+                    setReasonTodo(null);
+                    setProcessingId(null);
+                    toggleForm.reset('reason');
+                }}
+                onSubmit={submitReason}
+                processing={toggleForm.processing}
+                initialState="completed"
+                targetState="pending"
+                error={toggleForm.errors?.reason}
+            />
         </AppLayout>
     );
 }

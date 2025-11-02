@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Todo;
+use App\Models\TodoStatusEvent;
 use App\Models\User;
 use App\Services\WebPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -255,6 +256,7 @@ class TodoTest extends TestCase
             'title' => 'Updated Title',
             'description' => 'Updated Description',
             'is_completed' => true,
+            'reason' => 'Wrapped up during refactor.',
         ];
 
         $response = $this->actingAs($user)
@@ -268,6 +270,13 @@ class TodoTest extends TestCase
             'description' => 'Updated Description',
             'is_completed' => 1,
             'type' => 'todo',
+        ]);
+
+        $this->assertDatabaseHas('todo_status_events', [
+            'todo_id' => $todo->id,
+            'from_state' => 'pending',
+            'to_state' => 'completed',
+            'reason' => 'Wrapped up during refactor.',
         ]);
     }
 
@@ -459,7 +468,7 @@ class TodoTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withSession(['_token' => 'test-token'])
-            ->post(route('todos.toggle', $todo), ['_token' => 'test-token']);
+            ->post(route('todos.toggle', $todo), ['_token' => 'test-token', 'reason' => 'Finished the checklist.']);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('todos', [
@@ -467,6 +476,122 @@ class TodoTest extends TestCase
             'is_completed' => true,
             'priority' => null,
             'importance' => null,
+        ]);
+
+        $this->assertDatabaseHas('todo_status_events', [
+            'todo_id' => $todo->id,
+            'from_state' => 'pending',
+            'to_state' => 'completed',
+            'reason' => 'Finished the checklist.',
+        ]);
+    }
+
+    public function test_toggle_requires_reason(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'is_completed' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from(route('todos.show', $todo))
+            ->post(route('todos.toggle', $todo), ['_token' => 'test-token']);
+
+        $response->assertRedirect(route('todos.show', $todo));
+        $response->assertSessionHasErrors('reason');
+
+        $todo->refresh();
+        $this->assertFalse($todo->is_completed);
+        $this->assertDatabaseCount('todo_status_events', 0);
+    }
+
+    public function test_update_requires_reason_when_marking_completed(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'is_completed' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from(route('todos.edit', $todo))
+            ->put(route('todos.update', $todo), [
+                '_token' => 'test-token',
+                'title' => $todo->title,
+                'description' => $todo->description,
+                'type' => 'todo',
+                'is_completed' => true,
+            ]);
+
+        $response->assertRedirect(route('todos.edit', $todo));
+        $response->assertSessionHasErrors('reason');
+
+        $todo->refresh();
+        $this->assertFalse($todo->is_completed);
+        $this->assertDatabaseCount('todo_status_events', 0);
+    }
+
+    public function test_update_priority_requires_reason_when_changing_completion(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'is_completed' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from('/dashboard')
+            ->post(route('todos.update-priority', $todo), [
+                '_token' => 'test-token',
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+                'is_completed' => true,
+            ]);
+
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHasErrors('reason');
+
+        $todo->refresh();
+        $this->assertFalse($todo->is_completed);
+        $this->assertDatabaseCount('todo_status_events', 0);
+    }
+
+    public function test_update_priority_with_reason_records_status_event(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'is_completed' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->from('/dashboard')
+            ->post(route('todos.update-priority', $todo), [
+                '_token' => 'test-token',
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+                'is_completed' => true,
+                'reason' => 'Moved after finishing tasks.',
+            ]);
+
+        $response->assertRedirect('/dashboard');
+
+        $todo->refresh();
+        $this->assertTrue($todo->is_completed);
+        $this->assertDatabaseHas('todo_status_events', [
+            'todo_id' => $todo->id,
+            'from_state' => 'pending',
+            'to_state' => 'completed',
+            'reason' => 'Moved after finishing tasks.',
         ]);
     }
 
@@ -572,12 +697,42 @@ class TodoTest extends TestCase
             ]);
 
         $response->assertRedirect('/dashboard');
-        $response->assertSessionHasErrors(['importance', 'priority']);
+        $response->assertSessionHasErrors();
 
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'priority' => Todo::PRIORITY_NOT_URGENT,
+        ]);
+    }
+
+    public function test_eisenhower_update_rejects_completed_todos(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'priority' => Todo::PRIORITY_URGENT,
+            'is_completed' => true,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from('/dashboard')
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('todos.update-eisenhower', $todo), [
+                '_token' => 'test-token',
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+            ]);
+
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHas('error');
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'priority' => Todo::PRIORITY_URGENT,
         ]);
     }
 

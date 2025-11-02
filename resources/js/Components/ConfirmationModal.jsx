@@ -13,6 +13,7 @@ export default function ConfirmationModal({
     confirmButtonVariant = 'destructive',
     isLoading = false,
     children,
+    renderRawBody = false,
     confirmDisabled = false,
     cancelButtonClassName = '',
     confirmButtonClassName = ''
@@ -38,10 +39,14 @@ export default function ConfirmationModal({
                 </div>
 
                 <div className="px-6 py-4">
-                    {children || (
-                        <p className="text-gray-600 dark:text-gray-300">
-                            {message}
-                        </p>
+                    {children && renderRawBody ? (
+                        children
+                    ) : (
+                        children || (
+                            <p className="text-gray-600 dark:text-gray-300">
+                                {message}
+                            </p>
+                        )
                     )}
                 </div>
 

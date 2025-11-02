@@ -6,6 +6,7 @@ use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
+use App\Models\TodoStatusEvent;
 use App\Models\User;
 use App\Services\WebPushService;
 use Illuminate\Http\Request;
@@ -423,12 +424,26 @@ class TodoController extends Controller
 
         $validated = $validator->validate();
 
+        $fromState = $todo->is_completed ? 'completed' : 'pending';
+        $stateChanged = false;
+        $reason = null;
+        $toState = $fromState;
+
         $type = $validated['type'] ?? $todo->type ?? Todo::TYPE_TODO;
         $validated['type'] = $type;
 
         // Convert is_completed to boolean
         if (isset($validated['is_completed'])) {
             $validated['is_completed'] = in_array($validated['is_completed'], ['1', 1, true, 'true'], true);
+
+            $toState = $validated['is_completed'] ? 'completed' : 'pending';
+            if ($validated['is_completed'] !== $todo->is_completed) {
+                $stateChanged = true;
+                $reasonData = $request->validate([
+                    'reason' => 'required|string|max:1000',
+                ]);
+                $reason = $reasonData['reason'];
+            }
         }
 
         if (isset($validated['is_completed']) && $validated['is_completed']) {
@@ -541,6 +556,18 @@ class TodoController extends Controller
             }
         }
 
+        $todo->refresh();
+
+        if ($stateChanged && $reason !== null) {
+            TodoStatusEvent::create([
+                'todo_id' => $todo->id,
+                'user_id' => Auth::id(),
+                'from_state' => $fromState,
+                'to_state' => $toState,
+                'reason' => $reason,
+            ]);
+        }
+
         return redirect()->route('dashboard')->with('success', 'Todo updated successfully.');
     }
 
@@ -568,13 +595,16 @@ class TodoController extends Controller
             abort(403);
         }
 
-        // Toggle completion status
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $fromState = $todo->is_completed ? 'completed' : 'pending';
         $isCompleted = ! $todo->is_completed;
-        $completedAt = $isCompleted ? now() : null;
 
         $updateData = [
             'is_completed' => $isCompleted,
-            'completed_at' => $completedAt,
+            'completed_at' => $isCompleted ? now() : null,
         ];
 
         if ($isCompleted) {
@@ -587,6 +617,14 @@ class TodoController extends Controller
 
         $todo->update($updateData);
         $todo->refresh();
+
+        TodoStatusEvent::create([
+            'todo_id' => $todo->id,
+            'user_id' => Auth::id(),
+            'from_state' => $fromState,
+            'to_state' => $isCompleted ? 'completed' : 'pending',
+            'reason' => $validated['reason'],
+        ]);
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -601,30 +639,6 @@ class TodoController extends Controller
 
         return redirect()->back()
             ->with('success', 'Todo status updated successfully!');
-    }
-
-    public function toggleChecklistItem(Request $request, Todo $todo, TodoChecklistItem $checklistItem)
-    {
-        if ($todo->user_id !== Auth::id() || $checklistItem->todo_id !== $todo->id) {
-            if ($request->wantsJson() || $request->is('api/*')) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            abort(403);
-        }
-
-        $checklistItem->update([
-            'is_completed' => ! $checklistItem->is_completed,
-        ]);
-
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Checklist item updated successfully',
-                'is_completed' => $checklistItem->is_completed,
-            ]);
-        }
-
-        return redirect()->back();
     }
 
     public function updatePriority(Request $request, Todo $todo)
@@ -643,9 +657,20 @@ class TodoController extends Controller
             'is_completed' => 'boolean',
         ]);
 
+        $fromState = $todo->is_completed ? 'completed' : 'pending';
         $isCompleted = array_key_exists('is_completed', $validated)
             ? (bool) $validated['is_completed']
             : $todo->is_completed;
+        $toState = $isCompleted ? 'completed' : 'pending';
+        $stateChanged = $isCompleted !== $todo->is_completed;
+        $reason = null;
+
+        if ($stateChanged) {
+            $reason = Validator::make(
+                $request->only('reason'),
+                ['reason' => 'required|string|max:1000']
+            )->validate()['reason'];
+        }
 
         $priority = array_key_exists('priority', $validated)
             ? $validated['priority']
@@ -676,6 +701,16 @@ class TodoController extends Controller
         $todo->update($updateData);
         $todo->refresh();
 
+        if ($stateChanged && $reason !== null) {
+            TodoStatusEvent::create([
+                'todo_id' => $todo->id,
+                'user_id' => Auth::id(),
+                'from_state' => $fromState,
+                'to_state' => $toState,
+                'reason' => $reason,
+            ]);
+        }
+
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
@@ -693,6 +728,7 @@ class TodoController extends Controller
 
     public function updateEisenhower(Request $request, Todo $todo)
     {
+        // Ensure user owns the todo
         if ($todo->user_id !== Auth::id()) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Unauthorized'], 403);
@@ -702,28 +738,45 @@ class TodoController extends Controller
         }
 
         if ($todo->type !== Todo::TYPE_TODO) {
-            return redirect()->back()->with('error', 'Only tasks can be moved on the Eisenhower matrix.');
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Eisenhower placement can only be changed for tasks.',
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Only task-type todos can use the Eisenhower matrix.');
+        }
+
+        if ($todo->is_completed) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Completed todos cannot be repositioned within the Eisenhower matrix.',
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Completed todos cannot be repositioned within the Eisenhower matrix.');
         }
 
         $validated = $request->validate([
-            'importance' => 'required|in:not_important,important',
             'priority' => 'required|in:not_urgent,urgent',
+            'importance' => 'required|in:not_important,important',
         ]);
 
-        $todo->update([
-            'importance' => $validated['importance'],
-            'priority' => $validated['priority'],
-        ]);
+        $todo->update($validated);
+        $todo->refresh();
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
-                'message' => 'Eisenhower placement updated successfully',
-                'importance' => $todo->importance,
+                'message' => 'Todo Eisenhower placement updated successfully',
                 'priority' => $todo->priority,
+                'importance' => $todo->importance,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Eisenhower placement updated successfully!');
+        return redirect()->back()
+            ->with('success', 'Todo Eisenhower placement updated successfully!');
     }
 
     /**
@@ -824,6 +877,54 @@ class TodoController extends Controller
         }
 
         return redirect()->back()->with('success', "Successfully archived {$completedCount} completed todos");
+    }
+
+    public function archive(Request $request, Todo $todo)
+    {
+        if ($todo->user_id !== Auth::id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            abort(403);
+        }
+
+        if ($todo->archived) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Todo already archived',
+                    'todo' => $todo,
+                ]);
+            }
+
+            return redirect()->back()->with('info', 'Todo already archived');
+        }
+
+        if (! $todo->is_completed) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Only completed todos can be archived',
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Only completed todos can be archived');
+        }
+
+        $todo->update([
+            'archived' => true,
+            'archived_at' => now(),
+            'priority' => null,
+            'importance' => null,
+        ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Todo archived successfully',
+                'todo' => $todo->fresh(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Todo archived successfully');
     }
 
     public function archived(Request $request)
