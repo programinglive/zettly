@@ -10,13 +10,17 @@ const __dirname = dirname(__filename);
 const loginPagePath = join(__dirname, '..', 'Pages', 'Auth', 'Login.jsx');
 const loginSource = readFileSync(loginPagePath, 'utf8');
 
-test('login form injects csrf token before posting', () => {
+test('login form relies on global inertia csrf handler', () => {
     assert.ok(
-        loginSource.includes("transform((formData) => ({"),
-        'Expected login form to customize payload via transform.'
+        loginSource.includes("post(route('login')"),
+        'Expected login form to use Inertia post method.'
     );
     assert.ok(
-        loginSource.includes("...(csrfToken ? { _token: csrfToken } : {}),"),
-        'Expected login form to append csrf token when present.'
+        !loginSource.includes("transform((formData) => ({"),
+        'Login form should NOT manually transform CSRF tokens - global handler does this.'
+    );
+    assert.ok(
+        !loginSource.includes("document.querySelector('meta[name=\"csrf-token\"]')"),
+        'Login form should NOT manually extract CSRF token - global handler does this.'
     );
 });

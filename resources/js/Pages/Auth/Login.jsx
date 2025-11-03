@@ -7,7 +7,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset, transform } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
@@ -15,17 +15,10 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-        transform((formData) => ({
-            ...formData,
-            ...(csrfToken ? { _token: csrfToken } : {}),
-        }));
 
         post(route('login'), {
             onFinish: () => {
                 reset('password');
-                transform((formData) => formData);
             },
         });
     };
