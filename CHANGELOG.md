@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.10](https://github.com/programinglive/todo/compare/v0.6.9...v0.6.10) (2025-11-03)
+
+
+### ✨ Features
+
+* implement updateEisenhower endpoint for Eisenhower matrix quadrant updates ([3bf7d14](https://github.com/programinglive/todo/commit/3bf7d14d47b6a30e370f9dea0d4dc33995efee2d))
+
 ### [0.6.9](https://github.com/programinglive/todo/compare/v0.6.8...v0.6.9) (2025-11-02)
 
 
