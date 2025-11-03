@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { ZettlyEditor } from '@programinglive/zettly-editor';
@@ -15,6 +15,41 @@ import FormFileUpload from '../../Components/FormFileUpload';
 import AttachmentList from '../../Components/AttachmentList';
 import ChecklistEditor from '../../Components/ChecklistEditor';
 
+const normalizeDateForInput = (value) => {
+    if (!value) return '';
+
+    if (typeof value === 'string') {
+        const directMatch = value.match(/^\d{4}-\d{2}-\d{2}/);
+        if (directMatch) {
+            return directMatch[0];
+        }
+
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed.toISOString().slice(0, 10);
+        }
+
+        return '';
+    }
+
+    if (value instanceof Date) {
+        return value.toISOString().slice(0, 10);
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        try {
+            const parsed = new Date(value);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed.toISOString().slice(0, 10);
+            }
+        } catch (error) {
+            return '';
+        }
+    }
+
+    return '';
+};
+
 export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
     // Build initial linked ids from both directions (supports camelCase and snake_case)
     const relatedList = (todo.relatedTodos || todo.related_todos || []);
@@ -25,6 +60,10 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
     ]));
 
     const initialType = ['todo', 'note'].includes(todo.type) ? todo.type : 'todo';
+    const normalizedDueDate = useMemo(() => (
+        initialType === 'note' ? '' : normalizeDateForInput(todo.due_date)
+    ), [initialType, todo.due_date]);
+
     const { data, setData, put, processing, errors } = useForm({
         type: initialType,
         title: todo.title || '',
@@ -33,7 +72,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
         importance: initialType === 'note' ? null : (todo.importance ?? null),
         is_completed: todo.is_completed || false,
         completion_reason: '',
-        due_date: initialType === 'note' ? '' : (todo.due_date ?? ''),
+        due_date: normalizedDueDate,
         tag_ids: (todo.tags || []).map(tag => tag.id),
         related_todo_ids: (linkedTodoIds.length ? linkedTodoIds : initialLinkedIds),
         checklist_items: (todo.checklistItems || todo.checklist_items || []).map((item, index) => ({

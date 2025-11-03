@@ -90,6 +90,10 @@
     color: hsl(var(--foreground));
   }
 
+  [data-zettly-editor-toolbar] {
+    z-index: 10 !important;
+  }
+
   :root:not(.dark) [data-zettly-editor-toolbar] button[data-state=on],
   .light [data-zettly-editor-toolbar] button[data-state=on] {
     background: var(--zettly-editor-menu-selected);

@@ -13,6 +13,41 @@ import PrioritySelector from '../../Components/PrioritySelector';
 import FormFileUpload from '../../Components/FormFileUpload';
 import ChecklistEditor from '../../Components/ChecklistEditor';
 
+const normalizeDateForInput = (value) => {
+    if (!value) return '';
+
+    if (typeof value === 'string') {
+        const directMatch = value.match(/^\d{4}-\d{2}-\d{2}/);
+        if (directMatch) {
+            return directMatch[0];
+        }
+
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed.toISOString().slice(0, 10);
+        }
+
+        return '';
+    }
+
+    if (value instanceof Date) {
+        return value.toISOString().slice(0, 10);
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        try {
+            const parsed = new Date(value);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed.toISOString().slice(0, 10);
+            }
+        } catch (error) {
+            return '';
+        }
+    }
+
+    return '';
+};
+
 export default function Create({ tags, todos, defaultType = 'todo' }) {
     const initialType = ['todo', 'note'].includes(defaultType) ? defaultType : 'todo';
     const { data, setData, post, processing, errors } = useForm({
@@ -59,7 +94,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
             formData.append('importance', data.importance);
         }
         if (!isNote && data.due_date) {
-            formData.append('due_date', data.due_date);
+            formData.append('due_date', normalizeDateForInput(data.due_date));
         }
         
         // Append tag IDs

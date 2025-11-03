@@ -251,19 +251,6 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                         })}
                     </p>
                 </div>
-
-                {Array.isArray(selectedTask.tags) && selectedTask.tags.length > 0 && (
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Tags
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            {selectedTask.tags.map((tag) => (
-                                <TagBadge key={tag.id} tag={tag} />
-                            ))}
-                        </div>
-                    </div>
-                )}
             </section>
 
             {attachments.length > 0 && (
@@ -342,6 +329,19 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                                     </div>
                                 </div>
                             </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {Array.isArray(selectedTask.tags) && selectedTask.tags.length > 0 && (
+                <section>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Tags
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedTask.tags.map((tag) => (
+                            <TagBadge key={tag.id} tag={tag} />
                         ))}
                     </div>
                 </section>

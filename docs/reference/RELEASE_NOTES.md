@@ -2,6 +2,19 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.7.6 · 2025-11-03
+
+### 🛠️ Bug Fixes
+
+- **Context Panel Tag Order** — Moved tag chips beneath created metadata within the context drawer so tablet users see tags next to other timeline details.
+- **Todo Detail Tag Placement** — Ensured tags render directly under created/updated metadata on todo and note detail views.
+- **Due Date Inputs** — Normalized ISO timestamps to the `yyyy-MM-dd` format before populating `<input type="date">` fields to stop console warnings and preserve selection state.
+- **Editor Toolbar Layering** — Lowered the Zettly editor toolbar stacking context so the navbar remains in front while keeping the editor layout intact.
+
+### ✅ Tests
+
+- Re-ran `npm test -- dashboardWorkspace.test.js` to cover dashboard/todo regressions.
+
 ## v0.7.5 · 2025-11-03
 
 ### 🛠️ Bug Fixes

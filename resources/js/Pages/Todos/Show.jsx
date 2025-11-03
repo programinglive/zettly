@@ -296,6 +296,13 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                     </React.Fragment>
                                 ))}
                             </div>
+                            {todo.tags && todo.tags.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {todo.tags.map((tag) => (
+                                        <TagBadge key={tag.id} tag={tag} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 lg:max-w-sm lg:justify-end">
@@ -373,7 +380,7 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                             )}
                         </section>
 
-                        {(checklistItems.length > 0 || todo.tags?.length || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length) || statusEvents.length) && (
+                        {(checklistItems.length > 0 || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length) || statusEvents.length) && (
                             <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800 lg:mt-12 lg:pt-6">
                                 <button
                                     type="button"
@@ -421,16 +428,6 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                             </section>
                                         )}
 
-                                        {todo.tags && todo.tags.length > 0 && (
-                                            <section className="space-y-3">
-                                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Tags</h2>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {todo.tags.map((tag) => (
-                                                        <TagBadge key={tag.id} tag={tag} />
-                                                    ))}
-                                                </div>
-                                            </section>
-                                        )}
 
                                         <section className="space-y-3">
                                             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Linked Todos</h2>
