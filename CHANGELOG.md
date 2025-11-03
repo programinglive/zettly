@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.1](https://github.com/programinglive/todo/compare/v0.7.0...v0.7.1) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **pusher:** reduce broadcast payload size to prevent exceeding 10KB limit ([b5248d8](https://github.com/programinglive/todo/commit/b5248d84e7f1aa2080752db1c7fa4c51ab0aa85b))
+
 ## [0.7.0](https://github.com/programinglive/todo/compare/v0.6.10...v0.7.0) (2025-11-03)
 
 
