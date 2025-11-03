@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/programinglive/todo/compare/v0.6.10...v0.7.0) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* show todo status history and ensure csrf coverage ([a5aeecf](https://github.com/programinglive/todo/commit/a5aeecf7550f199d60825807c4c8159ee06b98a5))
+
 ### [0.6.10](https://github.com/programinglive/todo/compare/v0.6.9...v0.6.10) (2025-11-03)
 
 
