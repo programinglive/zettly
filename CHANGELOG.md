@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.10](https://github.com/programinglive/todo/compare/v0.7.9...v0.7.10) (2025-11-03)
+
+
+### ✨ Features
+
+* **nav:** refine account menu grouping ([b41ae72](https://github.com/programinglive/todo/commit/b41ae72566fbc75aaebd3417d4797684a47456d8))
+
 ### [0.7.9](https://github.com/programinglive/todo/compare/v0.7.8...v0.7.9) (2025-11-03)
 
 
