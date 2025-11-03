@@ -240,10 +240,34 @@ class TodoTest extends TestCase
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
+        TodoStatusEvent::factory()
+            ->for($todo)
+            ->for($user)
+            ->transition('pending', 'completed')
+            ->state(['reason' => 'Initial completion', 'created_at' => now()->subDay()])
+            ->create();
+
+        TodoStatusEvent::factory()
+            ->for($todo)
+            ->for($user)
+            ->transition('completed', 'pending')
+            ->state(['reason' => 'Reopened for review'])
+            ->create();
+
         $response = $this->actingAs($user)->get(route('todos.show', $todo));
 
         $response->assertStatus(200);
-        $response->assertSee($todo->title);
+        $response->assertInertia(function (AssertableInertia $page) use ($todo) {
+            $page->component('Todos/Show')
+                ->where('todo.id', $todo->id)
+                ->has('statusEvents', 2)
+                ->where('statusEvents.0.reason', 'Reopened for review')
+                ->where('statusEvents.0.from_state', 'completed')
+                ->where('statusEvents.0.to_state', 'pending')
+                ->where('statusEvents.1.reason', 'Initial completion')
+                ->where('statusEvents.1.from_state', 'pending')
+                ->where('statusEvents.1.to_state', 'completed');
+        });
     }
 
     public function test_user_can_update_todo(): void
@@ -660,15 +684,13 @@ class TodoTest extends TestCase
 
         $response = $this->actingAs($user)
             ->from('/dashboard')
-            ->withSession(['_token' => 'test-token'])
             ->post(route('todos.update-eisenhower', $note), [
-                '_token' => 'test-token',
                 'importance' => 'high',
                 'priority' => 'urgent',
             ]);
 
         $response->assertRedirect('/dashboard');
-        $response->assertSessionHas('error');
+        $response->assertSessionHasErrors();
 
         $this->assertDatabaseHas('todos', [
             'id' => $note->id,
@@ -689,9 +711,7 @@ class TodoTest extends TestCase
 
         $response = $this->actingAs($user)
             ->from('/dashboard')
-            ->withSession(['_token' => 'test-token'])
             ->post(route('todos.update-eisenhower', $todo), [
-                '_token' => 'test-token',
                 'importance' => 'mega-important',
                 'priority' => 'mega-urgent',
             ]);

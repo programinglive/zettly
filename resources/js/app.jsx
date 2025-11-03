@@ -1,5 +1,5 @@
 import React from 'react';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import './bootstrap';
 import '@programinglive/zettly-editor/styles';
@@ -33,7 +33,25 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+const getMetaCsrfToken = () => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+    return tokenMeta?.content ?? null;
+};
+
 const pages = import.meta.glob('./Pages/**/*.jsx', { eager: false });
+
+let csrfListenerRegistered = false;
+
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+
+    return inertiaToken ?? getMetaCsrfToken();
+};
 
 createInertiaApp({
     resolve: async (name) => {
@@ -48,6 +66,29 @@ createInertiaApp({
         return module.default;
     },
     setup({ el, App, props }) {
+        if (!csrfListenerRegistered) {
+            router.on('before', (event) => {
+                const token = resolveCsrfToken();
+
+                if (!token) {
+                    return;
+                }
+
+                event.detail.visit.headers = {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(event.detail.visit.headers ?? {}),
+                };
+
+                event.detail.visit.data = {
+                    ...(event.detail.visit.data ?? {}),
+                    _token: event.detail.visit.data?._token ?? token,
+                };
+            });
+
+            csrfListenerRegistered = true;
+        }
+
         createRoot(el).render(
             <ThemeProvider defaultTheme="system" storageKey="todo-theme">
                 <App {...props} />

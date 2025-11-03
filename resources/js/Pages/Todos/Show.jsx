@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp, Archive } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -13,9 +13,10 @@ import AttachmentList from '../../Components/AttachmentList';
 import Checkbox from '../../Components/Checkbox';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 
-export default function Show({ todo, availableTodos }) {
+export default function Show({ todo, availableTodos, statusEvents = [] }) {
+    const { csrf_token: csrfToken } = usePage().props;
     const { delete: destroy } = useForm();
-    const toggleForm = useForm({ reason: '' });
+    const toggleForm = useForm({ reason: '', _token: csrfToken });
     const linkForm = useForm();
     const unlinkForm = useForm();
     const archiveForm = useForm();
@@ -61,6 +62,9 @@ export default function Show({ todo, availableTodos }) {
             onSuccess: () => {
                 setReasonDialogOpen(false);
                 toggleForm.reset('reason');
+            },
+            onError: () => {
+                setReasonDialogOpen(true);
             },
         });
     };
@@ -297,7 +301,7 @@ export default function Show({ todo, availableTodos }) {
                             )}
                         </section>
 
-                        {(checklistItems.length > 0 || todo.tags?.length || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length)) && (
+                        {(checklistItems.length > 0 || todo.tags?.length || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length) || statusEvents.length) && (
                             <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800 lg:mt-12 lg:pt-6">
                                 <button
                                     type="button"
@@ -371,6 +375,29 @@ export default function Show({ todo, availableTodos }) {
                                             <FileUpload todoId={todo.id} onUploadSuccess={handleUploadSuccess} />
                                             <AttachmentList attachments={attachments} onAttachmentDeleted={handleAttachmentDeleted} />
                                         </section>
+                                        {statusEvents.length > 0 && (
+                                            <section className="space-y-3 lg:col-span-2">
+                                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Status history</h2>
+                                                <div className="space-y-3">
+                                                    {statusEvents.map((event) => (
+                                                        <div key={event.id} className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                                                            <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                                                    {event.from_state ?? 'unknown'} → {event.to_state}
+                                                                </span>
+                                                                <span>{event.created_at_human ?? ''}</span>
+                                                                {event.user?.name && (
+                                                                    <span>by {event.user.name}</span>
+                                                                )}
+                                                            </div>
+                                                            {event.reason && (
+                                                                <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">{event.reason}</p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
                                     </div>
                                 )}
                             </div>

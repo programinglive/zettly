@@ -298,8 +298,15 @@ class TodoController extends Controller
             abort(403);
         }
 
-        // Eager load related todos, tags, and attachments
-        $todo->load(['tags', 'relatedTodos', 'linkedByTodos', 'attachments', 'checklistItems']);
+        // Eager load related data including status events
+        $todo->load([
+            'tags',
+            'relatedTodos',
+            'linkedByTodos',
+            'attachments',
+            'checklistItems',
+            'statusEvents.user',
+        ]);
 
         // Get available todos for linking (exclude current todo and already linked todos)
         $linkedTodoIds = $todo->relatedTodos->pluck('id')
@@ -318,10 +325,27 @@ class TodoController extends Controller
             $attachment->append(['url', 'thumbnail_url']);
         });
 
+        $statusEvents = $todo->statusEvents
+            ->sortByDesc('created_at')
+            ->values()
+            ->map(fn ($event) => [
+                'id' => $event->id,
+                'from_state' => $event->from_state,
+                'to_state' => $event->to_state,
+                'reason' => $event->reason,
+                'user' => $event->user ? [
+                    'id' => $event->user->id,
+                    'name' => $event->user->name,
+                ] : null,
+                'created_at' => $event->created_at,
+                'created_at_human' => optional($event->created_at)->diffForHumans(),
+            ]);
+
         return Inertia::render('Todos/Show', [
             'todo' => $todo,
             'availableTodos' => $availableTodos,
             'isNote' => $todo->isNote(),
+            'statusEvents' => $statusEvents,
         ]);
     }
 
@@ -737,6 +761,11 @@ class TodoController extends Controller
             abort(403);
         }
 
+        $validated = $request->validate([
+            'priority' => 'required|in:not_urgent,urgent',
+            'importance' => 'required|in:not_important,important',
+        ]);
+
         if ($todo->type !== Todo::TYPE_TODO) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json([
@@ -758,11 +787,6 @@ class TodoController extends Controller
             return redirect()->back()
                 ->with('error', 'Completed todos cannot be repositioned within the Eisenhower matrix.');
         }
-
-        $validated = $request->validate([
-            'priority' => 'required|in:not_urgent,urgent',
-            'importance' => 'required|in:not_important,important',
-        ]);
 
         $todo->update($validated);
         $todo->refresh();

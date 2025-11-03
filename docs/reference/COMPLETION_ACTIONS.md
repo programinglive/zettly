@@ -21,6 +21,7 @@ Todos can flip between **pending** and **completed** from several surfaces. Each
 ### Todo detail page
 - File: `resources/js/Pages/Todos/Show.jsx` @resources/js/Pages/Todos/Show.jsx#1-415
 - The “Mark complete” / “Completed” chip opens `CompletionReasonDialog` and posts to `/todos/{id}/toggle`.
+- The **Status history** panel (under “More details”) renders data from `statusEvents` shared by the controller. Each entry shows the transition, author, timestamp, and reason captured in `todo_status_events`.
 
 ### Todos index grid
 - File: `resources/js/Pages/Todos/Index.jsx` @resources/js/Pages/Todos/Index.jsx#1-294
@@ -46,9 +47,11 @@ Todos can flip between **pending** and **completed** from several surfaces. Each
 ## Shared components & data
 
 - Dialog component: `CompletionReasonDialog` @resources/js/Components/CompletionReasonDialog.jsx#1-98
-- Status event model: `App\\Models\\TodoStatusEvent` @app/Models/TodoStatusEvent.php#1-22
+- Status event model: `App\Models\TodoStatusEvent` @app/Models/TodoStatusEvent.php#1-22
 - Relation: `Todo::statusEvents()` @app/Models/Todo.php#97-100
 - Migration: `database/migrations/2025_11_02_153500_create_todo_status_events_table.php`
+- Factory: `Database\Factories\TodoStatusEventFactory` @database/factories/TodoStatusEventFactory.php#1-49 (used for regression coverage)
+- Feature test: `Tests\Feature\TodoTest::test_user_can_view_todo` @tests/Feature/TodoTest.php#237-270 now asserts the status history payload.
 
 ## Follow-up
 

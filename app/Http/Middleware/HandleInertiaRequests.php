@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
             'preferences' => [
                 'workspace_view' => $request->user()?->workspace_view,
             ],
+            'csrf_token' => csrf_token(),
         ];
     }
 }
