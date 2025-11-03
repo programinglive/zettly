@@ -88,20 +88,41 @@ export default function Index({ message }) {
                 </div>
 
                 {/* Additional Info Section */}
-                <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg" id="why">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                        Why choose Zettly?
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg text-center" id="why">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200">
+                        🎯 Intentional by design
+                    </span>
+                    <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+                        Why Zettly exists
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-                        Find your flow — experience the perfect mix of speed and simplicity.
-                        Zettly adapts to your workflow, whether you're managing personal projects or collaborating with your team.
+                    <p className="mt-4 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                        We blend Zettelkasten thinking with the Eisenhower matrix so every idea, todo, and drawing travels from insight to execution without losing its meaning.
                     </p>
-                    <div className="grid sm:grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center justify-center">⚡ Real-time sync — updates land instantly across your devices</div>
-                        <div className="flex items-center justify-center">🔒 Secure & private — your data stays yours</div>
-                        <div className="flex items-center justify-center">🧠 Smart workflow — built to fit how you already work</div>
-                        <div className="flex items-center justify-center">🧩 API-first — everything you can click, you can code</div>
-                        <div className="flex items-center justify-center sm:col-span-2">👫 Team-ready — collaborate without chaos</div>
+
+                    <div className="mt-8 grid gap-6 sm:grid-cols-3 text-left">
+                        {[{
+                            icon: '🧠',
+                            title: 'Capture meaning',
+                            body: 'Create atomic notes, link them with context, and surface ideas when you need them most.'
+                        }, {
+                            icon: '🧭',
+                            title: 'Act with purpose',
+                            body: 'Slide work into Eisenhower quadrants to decide what deserves your energy now, next, or never.'
+                        }, {
+                            icon: '📜',
+                            title: 'Remember the why',
+                            body: 'Every completion, undo, archive, or revival stores your intention so history shows how your thinking evolved.'
+                        }].map(({ icon, title, body }) => (
+                            <article key={title} className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white/95 p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
+                                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-lg dark:bg-indigo-900/40">{icon}</div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+                                <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{body}</p>
+                            </article>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 rounded-xl border border-indigo-100 bg-indigo-50/60 px-5 py-4 text-sm text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/30 dark:text-indigo-200">
+                        🌱 Build a second brain that keeps intention front and centre — design, plan, and execute with the story of every step intact.
                     </div>
                 </div>
 
