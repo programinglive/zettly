@@ -29,7 +29,7 @@ export default function AppLayout({
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
 
-    const primaryAccountLinks = [
+    const accountNavigationLinks = [
         {
             href: '/dashboard',
             label: 'Dashboard',
@@ -40,6 +40,7 @@ export default function AppLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
                 </svg>
             ),
+            group: 'primary',
         },
         {
             href: '/todos',
@@ -50,6 +51,7 @@ export default function AppLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
             ),
+            group: 'primary',
         },
         {
             href: '/notes',
@@ -61,6 +63,7 @@ export default function AppLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
                 </svg>
             ),
+            group: 'primary',
         },
         {
             href: '/draw',
@@ -72,49 +75,71 @@ export default function AppLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
             ),
+            group: 'primary',
         },
-    ];
-
-    const archiveLinks = [
         {
             href: '/todos/completed',
             label: 'Completed',
+            group: 'archive',
         },
         {
             href: '/todos/archived',
             label: 'Archived',
+            group: 'archive',
         },
         {
             href: '/todos/deleted',
             label: 'Trash',
+            group: 'archive',
         },
-    ];
-
-    const resourceLinks = [
         {
             href: '/manage/tags',
             label: 'Manage Tags',
+            group: 'resource',
         },
         {
             href: '/profile',
             label: 'Profile Settings',
+            group: 'resource',
         },
     ];
 
-    const adminLinks = isSuperAdmin
-        ? [
-            {
-                href: '/admin/system-monitor',
-                label: 'System Monitor',
-                description: 'Monitor queues, jobs, and system health',
-                icon: (
-                    <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
-                    </svg>
-                ),
-            },
-        ]
-        : [];
+    if (isSuperAdmin) {
+        accountNavigationLinks.unshift({
+            href: '/admin/system-monitor',
+            label: 'System Monitor',
+            description: 'Monitor queues, jobs, and system health',
+            icon: (
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
+                </svg>
+            ),
+            group: 'admin',
+        });
+    }
+
+    const legacyDesktopMenuLinks = accountNavigationLinks.map(({ href, label, icon }) => ({ href, label, icon }));
+    const legacyMobileMenuLinks = accountNavigationLinks.map(({ href, label }) => ({ href, label }));
+
+    const groupedLinks = accountNavigationLinks.reduce((acc, link) => {
+        if (!acc[link.group]) {
+            acc[link.group] = [];
+        }
+
+        acc[link.group].push(link);
+
+        return acc;
+    }, {});
+
+    const primaryAccountLinks = groupedLinks.primary ?? [];
+    const archiveLinks = groupedLinks.archive ?? [];
+    const resourceLinks = groupedLinks.resource ?? [];
+    const adminLinks = groupedLinks.admin ?? [];
+
+    const fallbackArchiveLinks = archiveLinks.length
+        ? archiveLinks
+        : legacyDesktopMenuLinks.filter((link) => ['/todos/completed', '/todos/archived', '/todos/deleted'].includes(link.href));
+
     
     // For PWA on tablets, use full width; otherwise use responsive max-width
     const defaultContentClassName = isAuthenticated
