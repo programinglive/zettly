@@ -209,11 +209,22 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         }
 
         if (reasonContext.type === 'toggle') {
-            toggleForm.setData('reason', reason);
+            toggleForm.transform(() => ({
+                reason,
+            }));
             toggleForm.post(`/todos/${reasonContext.todo.id}/toggle`, {
                 preserveScroll: true,
                 onSuccess: () => {
                     closeReasonDialog();
+                    toggleForm.transform((data) => data);
+                },
+                onError: () => {
+                    toggleForm.transform(() => ({
+                        reason,
+                    }));
+                },
+                onFinish: () => {
+                    toggleForm.transform((data) => data);
                 },
             });
 
@@ -234,7 +245,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     : t
             )));
 
-            updateForm.setData(() => ({
+            updateForm.transform(() => ({
                 priority: payload.priority,
                 importance: payload.importance,
                 is_completed: payload.is_completed,
@@ -258,6 +269,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                 },
                 onSuccess: () => {
                     closeReasonDialog();
+                    updateForm.transform((data) => data);
+                },
+                onFinish: () => {
+                    updateForm.transform((data) => data);
                 },
             });
         }

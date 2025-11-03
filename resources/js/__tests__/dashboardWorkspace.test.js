@@ -12,12 +12,14 @@ const profilePath = join(__dirname, '..', 'Pages', 'Profile', 'Edit.jsx');
 const constantsPath = join(__dirname, '..', 'constants', 'workspace.js');
 const controllerPath = join(__dirname, '..', '..', '..', 'app', 'Http', 'Controllers', 'DashboardController.php');
 const contextPanelPath = join(__dirname, '..', 'Components', 'ContextPanel.jsx');
+const todoShowPath = join(__dirname, '..', 'Pages', 'Todos', 'Show.jsx');
 
 const dashboardSource = readFileSync(dashboardPath, 'utf8');
 const profileSource = readFileSync(profilePath, 'utf8');
 const constantsSource = readFileSync(constantsPath, 'utf8');
 const controllerSource = readFileSync(controllerPath, 'utf8');
 const contextPanelSource = readFileSync(contextPanelPath, 'utf8');
+const todoShowSource = readFileSync(todoShowPath, 'utf8');
 
 test('workspace constants expose options and storage key', () => {
     assert.ok(
@@ -129,6 +131,65 @@ test('dashboard includes attachments when hydrating context drawer', () => {
     assert.ok(
         contextPanelSource.includes('title="Delete todo"') && contextPanelSource.includes('size="icon"'),
         'Expected context panel action bar to use icon-only buttons with accessible titles.'
+    );
+});
+
+test('context drawer archive actions require reason dialog', () => {
+    assert.ok(
+        contextPanelSource.includes('const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);') &&
+        contextPanelSource.includes("onClick={() => openArchiveDialog('archive')}") &&
+        contextPanelSource.includes('onSubmit={handleArchiveSubmit}') &&
+        contextPanelSource.includes("form.transform(() => ({") &&
+        contextPanelSource.includes("reason,"),
+        'Expected context panel to open a reason dialog and submit trimmed reason with CSRF token for archive/restore actions.'
+    );
+});
+
+test('todo detail page archive actions reuse reason dialog', () => {
+    assert.ok(
+        todoShowSource.includes("onClick={() => openArchiveDialog('archive')}") &&
+        todoShowSource.includes('onSubmit={handleArchiveSubmit}') &&
+        todoShowSource.includes("form.transform(() => ({") &&
+        todoShowSource.includes("reason,"),
+        'Expected todo detail page to require a reason when archiving or restoring.'
+    );
+});
+
+test('completion reason dialog includes hydration state to prevent premature submission', () => {
+    const completionReasonPath = join(__dirname, '..', 'Components', 'CompletionReasonDialog.jsx');
+    const completionReasonSource = readFileSync(completionReasonPath, 'utf8');
+
+    assert.ok(
+        completionReasonSource.includes('const [isHydrated, setIsHydrated] = useState(false);') &&
+        completionReasonSource.includes('setIsHydrated(false);') &&
+        completionReasonSource.includes('setIsHydrated(true)') &&
+        completionReasonSource.includes('disabled={processing || !isHydrated}'),
+        'Expected completion reason dialog to track hydration state and disable submit until hydrated.'
+    );
+});
+
+test('eisenhower matrix toggle uses transform for reason submission', () => {
+    const eisenhowerPath = join(__dirname, '..', 'Components', 'EisenhowerMatrix.jsx');
+    const eisenhowerSource = readFileSync(eisenhowerPath, 'utf8');
+
+    assert.ok(
+        eisenhowerSource.includes('toggleForm.transform(() => ({') &&
+        eisenhowerSource.includes('reason,') &&
+        eisenhowerSource.includes('_token: token ?? \'\''),
+        'Expected Eisenhower matrix to use transform for reason submission.'
+    );
+});
+
+test('kanban board toggle and priority update use transform for reason submission', () => {
+    const kanbanPath = join(__dirname, '..', 'Components', 'KanbanBoard.jsx');
+    const kanbanSource = readFileSync(kanbanPath, 'utf8');
+
+    assert.ok(
+        kanbanSource.includes("if (reasonContext.type === 'toggle')") &&
+        kanbanSource.includes('toggleForm.transform(() => ({') &&
+        kanbanSource.includes("if (reasonContext.type === 'updatePriority')") &&
+        kanbanSource.includes('updateForm.transform(() => ({'),
+        'Expected Kanban board to use transform for both toggle and priority update reason submissions.'
     );
 });
 

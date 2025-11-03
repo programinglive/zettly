@@ -13,15 +13,25 @@ export default function CompletionReasonDialog({
 }) {
     const [reason, setReason] = useState('');
     const [localError, setLocalError] = useState('');
+    const [isHydrated, setIsHydrated] = useState(false);
     const titleId = useId();
     const descriptionId = useId();
 
     useEffect(() => {
         if (open) {
-            setReason('');
+            setIsHydrated(false);
+            // If the server returned a validation error, keep the textarea populated with the submitted value.
+            if (typeof error === 'string' && error.length > 0) {
+                setReason((current) => current);
+            } else {
+                setReason('');
+            }
             setLocalError('');
+            // Mark as hydrated after component has rendered with the new error state
+            const timer = setTimeout(() => setIsHydrated(true), 0);
+            return () => clearTimeout(timer);
         }
-    }, [open]);
+    }, [open, error]);
 
     if (!open) {
         return null;
@@ -78,7 +88,7 @@ export default function CompletionReasonDialog({
                     <Button
                         type="button"
                         onClick={handleConfirm}
-                        disabled={processing}
+                        disabled={processing || !isHydrated}
                         className="min-w-[120px]"
                     >
                         {processing ? 'Saving...' : 'Submit reason'}

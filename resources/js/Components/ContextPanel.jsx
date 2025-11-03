@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
-import { LinkIcon, CheckCircle, Paperclip, FileText, Archive, ArchiveRestore, Edit, Trash2, Undo2 } from 'lucide-react';
+import { LinkIcon, CheckCircle, Circle, Paperclip, FileText, Archive, ArchiveRestore, Edit, Trash2, Undo2 } from 'lucide-react';
 import SanitizedHtml from './SanitizedHtml';
 import TagBadge from './TagBadge';
 import { Button } from './ui/button';
@@ -48,10 +48,13 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
     const contentRef = useRef(null);
     const toggleForm = useForm({ reason: '' });
     const archiveForm = useForm({ reason: '' });
+    const restoreForm = useForm({ reason: '' });
     const deleteForm = useForm();
     const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [reasonTargetState, setReasonTargetState] = useState(null);
+    const [archiveAction, setArchiveAction] = useState(null);
 
     const relatedTodos = useMemo(() => {
         if (!selectedTask) return [];
@@ -87,34 +90,56 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
         });
     };
 
-    const handleArchive = () => {
-        const token = resolveCsrfToken();
-        archiveForm.setData((data) => ({
-            ...data,
-            reason: 'Archived from dashboard',
-            ...(token ? { _token: token } : {}),
-        }));
-        archiveForm.post(`/todos/${selectedTask.id}/archive`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                archiveForm.reset('reason');
-                if (onTaskUpdate) onTaskUpdate();
-            },
-        });
+    const openArchiveDialog = (action) => {
+        archiveForm.reset('reason');
+        archiveForm.clearErrors();
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+        setArchiveAction(action);
+        setArchiveDialogOpen(true);
     };
 
-    const handleRestore = () => {
+    const closeArchiveDialog = () => {
+        setArchiveDialogOpen(false);
+        setArchiveAction(null);
+        archiveForm.reset('reason');
+        archiveForm.clearErrors();
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+    };
+
+    const handleArchiveSubmit = (reason) => {
+        if (!archiveAction) {
+            return;
+        }
+
         const token = resolveCsrfToken();
-        archiveForm.setData((data) => ({
-            ...data,
-            reason: 'Restored from dashboard',
+        const form = archiveAction === 'archive' ? archiveForm : restoreForm;
+        const url = archiveAction === 'archive'
+            ? `/todos/${selectedTask.id}/archive`
+            : `/todos/${selectedTask.id}/restore`;
+
+        form.transform(() => ({
+            reason,
             ...(token ? { _token: token } : {}),
         }));
-        archiveForm.post(`/todos/${selectedTask.id}/restore`, {
+
+        form.post(url, {
             preserveScroll: true,
             onSuccess: () => {
-                archiveForm.reset('reason');
+                form.reset('reason');
+                closeArchiveDialog();
                 if (onTaskUpdate) onTaskUpdate();
+                form.transform((data) => data);
+            },
+            onError: () => {
+                form.transform(() => ({
+                    reason,
+                    ...(token ? { _token: token } : {}),
+                }));
+            },
+            onFinish: () => {
+                form.transform((data) => data);
             },
         });
     };
@@ -349,8 +374,8 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={handleArchive}
-                            disabled={archiveForm.processing}
+                            onClick={() => openArchiveDialog('archive')}
+                            disabled={archiveForm.processing || restoreForm.processing}
                             title="Archive todo"
                             aria-label="Archive todo"
                             className="rounded-lg"
@@ -364,8 +389,8 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={handleRestore}
-                            disabled={archiveForm.processing}
+                            onClick={() => openArchiveDialog('restore')}
+                            disabled={archiveForm.processing || restoreForm.processing}
                             title="Restore from archive"
                             aria-label="Restore from archive"
                             className="rounded-lg"
@@ -414,6 +439,16 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                 initialState={selectedTask.is_completed ? 'completed' : 'pending'}
                 targetState={reasonTargetState}
                 error={toggleForm.errors?.reason}
+            />
+
+            <CompletionReasonDialog
+                open={archiveDialogOpen}
+                onCancel={closeArchiveDialog}
+                onSubmit={handleArchiveSubmit}
+                processing={archiveAction === 'archive' ? archiveForm.processing : restoreForm.processing}
+                initialState={archiveAction === 'archive' ? (selectedTask.is_completed ? 'completed' : 'pending') : 'archived'}
+                targetState={archiveAction === 'archive' ? 'archived' : selectedTask.is_completed ? 'completed' : 'pending'}
+                error={(archiveAction === 'archive' ? archiveForm.errors?.reason : restoreForm.errors?.reason) ?? null}
             />
 
             <ConfirmationModal

@@ -122,61 +122,31 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
         }
 
         const token = resolveCsrfToken();
+        const form = archiveAction === 'archive' ? archiveForm : restoreForm;
+        const url = archiveAction === 'archive'
+            ? `/todos/${todo.id}/archive`
+            : `/todos/${todo.id}/restore`;
 
-        if (archiveAction === 'archive') {
-            archiveForm.setData((data) => ({
-                ...data,
-                reason,
-                ...(token ? { _token: token } : {}),
-            }));
-            archiveForm.post(`/todos/${todo.id}/archive`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    archiveForm.reset('reason');
-                    closeArchiveDialog();
-                },
-                onError: () => {
-                    archiveForm.setData((data) => ({
-                        ...data,
-                        reason,
-                        ...(token ? { _token: token } : {}),
-                    }));
-                },
-                onFinish: () => {
-                    archiveForm.setData((data) => ({
-                        ...data,
-                        reason: '',
-                        ...(token ? { _token: token } : {}),
-                    }));
-                },
-            });
-            return;
-        }
-
-        restoreForm.setData((data) => ({
-            ...data,
+        form.transform(() => ({
             reason,
             ...(token ? { _token: token } : {}),
         }));
-        restoreForm.post(`/todos/${todo.id}/restore`, {
+
+        form.post(url, {
             preserveScroll: true,
             onSuccess: () => {
-                restoreForm.reset('reason');
+                form.reset('reason');
                 closeArchiveDialog();
+                form.transform((data) => data);
             },
             onError: () => {
-                restoreForm.setData((data) => ({
-                    ...data,
+                form.transform(() => ({
                     reason,
                     ...(token ? { _token: token } : {}),
                 }));
             },
             onFinish: () => {
-                restoreForm.setData((data) => ({
-                    ...data,
-                    reason: '',
-                    ...(token ? { _token: token } : {}),
-                }));
+                form.transform((data) => data);
             },
         });
     };
@@ -535,6 +505,16 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                     initialState={todo.is_completed ? 'completed' : 'pending'}
                     targetState={reasonTargetState}
                     error={toggleForm.errors?.reason}
+                />
+
+                <CompletionReasonDialog
+                    open={archiveDialogOpen}
+                    onCancel={closeArchiveDialog}
+                    onSubmit={handleArchiveSubmit}
+                    processing={archiveAction === 'archive' ? archiveForm.processing : restoreForm.processing}
+                    initialState={archiveAction === 'archive' ? (todo.is_completed ? 'completed' : 'pending') : 'archived'}
+                    targetState={archiveAction === 'archive' ? 'archived' : todo.is_completed ? 'completed' : 'pending'}
+                    error={(archiveAction === 'archive' ? archiveForm.errors?.reason : restoreForm.errors?.reason) ?? null}
                 />
 
                 <ConfirmationModal

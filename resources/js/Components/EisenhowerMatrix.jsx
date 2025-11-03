@@ -193,8 +193,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
 
         const token = resolveCsrfToken();
 
-        toggleForm.setData((data) => ({
-            ...data,
+        toggleForm.transform(() => ({
             reason,
             _token: token ?? '',
         }));
@@ -204,13 +203,16 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
             onSuccess: () => {
                 onTaskUpdate();
                 closeReasonDialog();
+                toggleForm.transform((data) => data);
             },
             onError: () => {
-                toggleForm.setData((data) => ({
-                    ...data,
+                toggleForm.transform(() => ({
                     reason,
                     _token: token ?? '',
                 }));
+            },
+            onFinish: () => {
+                toggleForm.transform((data) => data);
             },
         });
     };
