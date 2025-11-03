@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.11](https://github.com/programinglive/todo/compare/v0.7.10...v0.7.11) (2025-11-03)
+
+
+### ✨ Features
+
+* **search:** add navbar clear control with docs and tests ([ba8ba71](https://github.com/programinglive/todo/commit/ba8ba7143fe370b4a71e38a68bfd153ef3da5916))
+
 ### [0.7.10](https://github.com/programinglive/todo/compare/v0.7.9...v0.7.10) (2025-11-03)
 
 
