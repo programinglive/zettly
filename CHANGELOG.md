@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.2](https://github.com/programinglive/todo/compare/v0.7.1...v0.7.2) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **todos:** add checklist item toggle handler and regression tests ([03b08f3](https://github.com/programinglive/todo/commit/03b08f335419da1da9e96cf1b1e3516c99b79086))
+
 ### [0.7.1](https://github.com/programinglive/todo/compare/v0.7.0...v0.7.1) (2025-11-03)
 
 
