@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.8](https://github.com/programinglive/todo/compare/v0.7.7...v0.7.8) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **todo:** align metadata sections and date inputs ([cb901b7](https://github.com/programinglive/todo/commit/cb901b7914346c7cd524bf3854ec9891ad16933c))
+
 ### [0.7.7](https://github.com/programinglive/todo/compare/v0.7.6...v0.7.7) (2025-11-03)
 
 
