@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.4](https://github.com/programinglive/todo/compare/v0.7.3...v0.7.4) (2025-11-03)
+
+
+### ✨ Features
+
+* add tablet todo split view actions ([3778cd3](https://github.com/programinglive/todo/commit/3778cd3c7fbb5742639d650e63ab6f8c15a87b75))
+
 ### [0.7.3](https://github.com/programinglive/todo/compare/v0.7.2...v0.7.3) (2025-11-03)
 
 
