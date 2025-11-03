@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/programinglive/todo/compare/v0.7.13...v0.8.0) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* rely on inertia csrf handler for login ([483df7f](https://github.com/programinglive/todo/commit/483df7f7992552f97f4a260b88a26d5947a07473))
+
 ### [0.7.13](https://github.com/programinglive/todo/compare/v0.7.12...v0.7.13) (2025-11-03)
 
 
