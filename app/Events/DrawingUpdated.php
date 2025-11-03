@@ -17,7 +17,13 @@ class DrawingUpdated implements ShouldBroadcast
 
     public const MAX_DOCUMENT_BYTES = 7000;
 
-    public Drawing $drawing;
+    public int $drawingId;
+
+    public string $title;
+
+    public ?string $thumbnail;
+
+    public string $updatedAt;
 
     public bool $documentChanged;
 
@@ -31,7 +37,10 @@ class DrawingUpdated implements ShouldBroadcast
 
     public function __construct(Drawing $drawing, bool $documentChanged = false)
     {
-        $this->drawing = $drawing;
+        $this->drawingId = $drawing->id;
+        $this->title = $drawing->title;
+        $this->thumbnail = $drawing->thumbnail;
+        $this->updatedAt = $drawing->updated_at?->toIso8601String() ?? now()->toIso8601String();
         $this->documentChanged = $documentChanged;
 
         if ($documentChanged) {
@@ -45,17 +54,17 @@ class DrawingUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('drawings.'.$this->drawing->id),
+            new PrivateChannel('drawings.'.$this->drawingId),
         ];
     }
 
     public function broadcastWith(): array
     {
         $payload = [
-            'id' => $this->drawing->id,
-            'title' => $this->drawing->title,
-            'thumbnail' => $this->drawing->thumbnail,
-            'updated_at' => $this->drawing->updated_at?->toIso8601String(),
+            'id' => $this->drawingId,
+            'title' => $this->title,
+            'thumbnail' => $this->thumbnail,
+            'updated_at' => $this->updatedAt,
             'document_changed' => $this->documentChanged,
             'document' => $this->documentPayload,
             'document_size' => $this->documentBytes,
