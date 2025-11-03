@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.3](https://github.com/programinglive/todo/compare/v0.7.2...v0.7.3) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* ensure archive flows collect reasons and log status events ([79709f7](https://github.com/programinglive/todo/commit/79709f7b1e4e6e4936928cc085396a7eb4f99f97))
+
 ### [0.7.2](https://github.com/programinglive/todo/compare/v0.7.1...v0.7.2) (2025-11-03)
 
 
