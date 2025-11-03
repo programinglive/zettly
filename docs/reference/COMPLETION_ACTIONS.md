@@ -15,6 +15,9 @@ Todos can flip between **pending** and **completed** from several surfaces. Each
 | Update priority/status | `POST /todos/{todo}/update-priority` | `TodoController::updatePriority` @app/Http/Controllers/TodoController.php#630-692 | When payload includes `is_completed`, frontend supplies `reason`. Kanban drag-and-drop calls this.
 | Update Eisenhower quadrant | `POST /todos/{todo}/update-eisenhower` | `TodoController::updateEisenhower` @app/Http/Controllers/TodoController.php#729-780 | Tasks only; rejects completed todos. Frontend callers should ensure a reason when converting to/from completed state.
 | Full edit update | `POST /todos/{todo}` with `_method=PUT` | `TodoController::update` @app/Http/Controllers/TodoController.php#378-545 | Accepts `reason` when the todo is marked completed via edit form.
+| Archive single todo | `POST /todos/{todo}/archive` | `TodoController::archive` @app/Http/Controllers/TodoController.php#934-972 | Requires `reason`, flips todo to archived, records status event from pending/completed → archived.
+| Restore archived todo | `POST /todos/{todo}/restore` | `TodoController::restore` @app/Http/Controllers/TodoController.php#975-1000 | Requires `reason`, unarchives todo and records archived → pending/completed transition.
+| Bulk archive completed todos | `POST /todos/archive-completed` | `TodoController::archiveCompleted` @app/Http/Controllers/TodoController.php#900-932 | Frontend collects a single reason that is stored once per todo via status events.
 
 ## Frontend entry points
 
@@ -35,6 +38,7 @@ Todos can flip between **pending** and **completed** from several surfaces. Each
 - File: `resources/js/Components/KanbanBoard.jsx` @resources/js/Components/KanbanBoard.jsx#1-801
 - Checkbox toggles open the dialog.
 - Dragging into/out of Completed triggers the dialog and posts `/update-priority` with reason; optimistic UI reverts on failure.
+- “Archive completed” now collects one reason applied to every completed todo in the bulk request.
 
 ### Edit form
 - File: `resources/js/Pages/Todos/Edit.jsx` @resources/js/Pages/Todos/Edit.jsx#27-276

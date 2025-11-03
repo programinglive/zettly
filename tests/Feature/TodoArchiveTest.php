@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Todo;
+use App\Models\TodoStatusEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -66,6 +67,101 @@ class TodoArchiveTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'id' => $pendingTodo->id,
             'archived' => false,
+        ]);
+    }
+
+    public function test_archive_requires_reason()
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'is_completed' => true,
+            'archived' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from('/todos/'.$todo->id)
+            ->post(route('todos.archive', $todo), []);
+
+        $response->assertRedirect('/todos/'.$todo->id);
+        $response->assertSessionHasErrors('reason');
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'archived' => false,
+        ]);
+    }
+
+    public function test_restore_requires_reason()
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'is_completed' => true,
+            'archived' => true,
+            'archived_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from('/todos/'.$todo->id)
+            ->post(route('todos.restore', $todo), []);
+
+        $response->assertRedirect('/todos/'.$todo->id);
+        $response->assertSessionHasErrors('reason');
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'archived' => true,
+        ]);
+    }
+
+    public function test_archive_creates_status_event_with_reason()
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'is_completed' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('todos.archive', $todo), ['reason' => 'Finished project']);
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'archived' => true,
+        ]);
+
+        $this->assertDatabaseHas('todo_status_events', [
+            'todo_id' => $todo->id,
+            'from_state' => 'completed',
+            'to_state' => 'archived',
+            'reason' => 'Finished project',
+        ]);
+    }
+
+    public function test_restore_creates_status_event_with_reason()
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'is_completed' => true,
+            'archived' => true,
+            'archived_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('todos.restore', $todo), ['reason' => 'Need to revisit']);
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'archived' => false,
+        ]);
+
+        $this->assertDatabaseHas('todo_status_events', [
+            'todo_id' => $todo->id,
+            'from_state' => 'archived',
+            'to_state' => 'completed',
+            'reason' => 'Need to revisit',
         ]);
     }
 

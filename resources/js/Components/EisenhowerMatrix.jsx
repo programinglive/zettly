@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
-import { Link, router } from '@inertiajs/react';
+import React, { useMemo, useState } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { CheckCircle, Circle, ArrowRight, GripVertical } from 'lucide-react';
 import {
     DndContext,
@@ -19,6 +19,23 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TagBadge from './TagBadge';
+import CompletionReasonDialog from './CompletionReasonDialog';
+
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+
+    if (inertiaToken) {
+        return inertiaToken;
+    }
+
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+    return tokenMeta?.content ?? null;
+};
 
 const stripHtml = (html) => {
     if (!html) return '';
@@ -146,17 +163,54 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         q3: MAX_VISIBLE,
         q4: MAX_VISIBLE,
     });
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [pendingToggleTodo, setPendingToggleTodo] = useState(null);
+    const toggleForm = useForm({ reason: '' });
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
+    const closeReasonDialog = () => {
+        setReasonDialogOpen(false);
+        setPendingToggleTodo(null);
+        toggleForm.reset();
+        toggleForm.clearErrors();
+    };
+
     const handleToggle = (todo) => {
-        router.post(`/todos/${todo.id}/toggle`, {}, {
+        toggleForm.reset('reason');
+        toggleForm.clearErrors();
+        setPendingToggleTodo(todo);
+        setReasonDialogOpen(true);
+    };
+
+    const handleReasonSubmit = (reason) => {
+        if (!pendingToggleTodo) {
+            return;
+        }
+
+        const token = resolveCsrfToken();
+
+        toggleForm.setData((data) => ({
+            ...data,
+            reason,
+            _token: token ?? '',
+        }));
+
+        toggleForm.post(`/todos/${pendingToggleTodo.id}/toggle`, {
             preserveScroll: true,
             onSuccess: () => {
                 onTaskUpdate();
+                closeReasonDialog();
+            },
+            onError: () => {
+                toggleForm.setData((data) => ({
+                    ...data,
+                    reason,
+                    _token: token ?? '',
+                }));
             },
         });
     };
@@ -192,12 +246,19 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         const [importance, priority] = quadrantToMatrix(targetQuadrant);
 
         if (importance !== draggedTodo.importance || priority !== draggedTodo.priority) {
+            const token = resolveCsrfToken();
+            const payload = {
+                importance,
+                priority,
+            };
+
+            if (token) {
+                payload._token = token;
+            }
+
             router.post(
                 `/todos/${draggedTodo.id}/update-eisenhower`,
-                {
-                    importance,
-                    priority,
-                },
+                payload,
                 {
                     preserveScroll: true,
                     preserveState: true,
@@ -336,62 +397,74 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
     };
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-        >
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Eisenhower Matrix</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Prioritize by urgency and importance</p>
+        <>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+            >
+                <div className="space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Eisenhower Matrix</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Prioritize by urgency and importance</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <QuadrantColumn
+                            id="q1"
+                            title="Q1: Do First"
+                            description="Urgent & Important"
+                            todos={groupedTodos.q1}
+                            bgColor="bg-red-600"
+                            icon="🚨"
+                        />
+                        <QuadrantColumn
+                            id="q2"
+                            title="Q2: Schedule"
+                            description="Not Urgent & Important"
+                            todos={groupedTodos.q2}
+                            bgColor="bg-blue-600"
+                            icon="📅"
+                        />
+                        <QuadrantColumn
+                            id="q3"
+                            title="Q3: Delegate"
+                            description="Urgent & Not Important"
+                            todos={groupedTodos.q3}
+                            bgColor="bg-yellow-600"
+                            icon="👥"
+                        />
+                        <QuadrantColumn
+                            id="q4"
+                            title="Q4: Eliminate"
+                            description="Not Urgent & Not Important"
+                            todos={groupedTodos.q4}
+                            bgColor="bg-gray-600"
+                            icon="🗑️"
+                        />
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <QuadrantColumn
-                        id="q1"
-                        title="Q1: Do First"
-                        description="Urgent & Important"
-                        todos={groupedTodos.q1}
-                        bgColor="bg-red-600"
-                        icon="🚨"
-                    />
-                    <QuadrantColumn
-                        id="q2"
-                        title="Q2: Schedule"
-                        description="Not Urgent & Important"
-                        todos={groupedTodos.q2}
-                        bgColor="bg-blue-600"
-                        icon="📅"
-                    />
-                    <QuadrantColumn
-                        id="q3"
-                        title="Q3: Delegate"
-                        description="Urgent & Not Important"
-                        todos={groupedTodos.q3}
-                        bgColor="bg-yellow-600"
-                        icon="👥"
-                    />
-                    <QuadrantColumn
-                        id="q4"
-                        title="Q4: Eliminate"
-                        description="Not Urgent & Not Important"
-                        todos={groupedTodos.q4}
-                        bgColor="bg-gray-600"
-                        icon="🗑️"
-                    />
-                </div>
-            </div>
+                <DragOverlay>
+                    {activeId ? (
+                        <DraggableTaskCard
+                            todo={todos.find(t => String(t.id) === String(activeId))}
+                            onToggle={() => {}}
+                        />
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
 
-            <DragOverlay>
-                {activeId ? (
-                    <DraggableTaskCard
-                        todo={todos.find(t => String(t.id) === String(activeId))}
-                        onToggle={() => {}}
-                    />
-                ) : null}
-            </DragOverlay>
-        </DndContext>
+            <CompletionReasonDialog
+                open={reasonDialogOpen}
+                onCancel={closeReasonDialog}
+                onSubmit={handleReasonSubmit}
+                processing={toggleForm.processing}
+                initialState={pendingToggleTodo?.is_completed ? 'completed' : 'pending'}
+                targetState={pendingToggleTodo?.is_completed ? 'pending' : 'completed'}
+                error={toggleForm.errors.reason}
+            />
+        </>
     );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp, Archive } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
@@ -13,13 +13,29 @@ import AttachmentList from '../../Components/AttachmentList';
 import Checkbox from '../../Components/Checkbox';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+
+    if (inertiaToken) {
+        return inertiaToken;
+    }
+
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+    return tokenMeta?.content ?? null;
+};
+
 export default function Show({ todo, availableTodos, statusEvents = [] }) {
-    const { csrf_token: csrfToken } = usePage().props;
     const { delete: destroy } = useForm();
-    const toggleForm = useForm({ reason: '', _token: csrfToken });
-    const linkForm = useForm();
-    const unlinkForm = useForm();
-    const archiveForm = useForm();
+    const toggleForm = useForm({ reason: '' });
+    const archiveForm = useForm({ reason: '' });
+    const restoreForm = useForm({ reason: '' });
+    const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+    const [archiveAction, setArchiveAction] = useState(null);
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -82,13 +98,86 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
         setShowDeleteModal(false);
     };
 
-    const handleArchiveClick = () => {
-        if (isArchived || !todo.is_completed) {
+    const openArchiveDialog = (action) => {
+        archiveForm.reset('reason');
+        archiveForm.clearErrors();
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+        setArchiveAction(action);
+        setArchiveDialogOpen(true);
+    };
+
+    const closeArchiveDialog = () => {
+        setArchiveDialogOpen(false);
+        setArchiveAction(null);
+        archiveForm.reset('reason');
+        archiveForm.clearErrors();
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+    };
+
+    const handleArchiveSubmit = (reason) => {
+        if (!archiveAction) {
             return;
         }
 
-        archiveForm.post(`/todos/${todo.id}/archive`, {
+        const token = resolveCsrfToken();
+
+        if (archiveAction === 'archive') {
+            archiveForm.setData((data) => ({
+                ...data,
+                reason,
+                ...(token ? { _token: token } : {}),
+            }));
+            archiveForm.post(`/todos/${todo.id}/archive`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    archiveForm.reset('reason');
+                    closeArchiveDialog();
+                },
+                onError: () => {
+                    archiveForm.setData((data) => ({
+                        ...data,
+                        reason,
+                        ...(token ? { _token: token } : {}),
+                    }));
+                },
+                onFinish: () => {
+                    archiveForm.setData((data) => ({
+                        ...data,
+                        reason: '',
+                        ...(token ? { _token: token } : {}),
+                    }));
+                },
+            });
+            return;
+        }
+
+        restoreForm.setData((data) => ({
+            ...data,
+            reason,
+            ...(token ? { _token: token } : {}),
+        }));
+        restoreForm.post(`/todos/${todo.id}/restore`, {
             preserveScroll: true,
+            onSuccess: () => {
+                restoreForm.reset('reason');
+                closeArchiveDialog();
+            },
+            onError: () => {
+                restoreForm.setData((data) => ({
+                    ...data,
+                    reason,
+                    ...(token ? { _token: token } : {}),
+                }));
+            },
+            onFinish: () => {
+                restoreForm.setData((data) => ({
+                    ...data,
+                    reason: '',
+                    ...(token ? { _token: token } : {}),
+                }));
+            },
         });
     };
 
@@ -258,12 +347,25 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={handleArchiveClick}
-                                    disabled={archiveForm.processing}
-                                    className="inline-flex items-center gap-2"
+                                    onClick={() => openArchiveDialog('archive')}
+                                    disabled={archiveForm.processing || restoreForm.processing}
+                                    className="w-full gap-2 border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                                 >
-                                    <Archive className="h-4 w-4" />
+                                    <Archive className="w-4 h-4" />
                                     Archive
+                                </Button>
+                            )}
+
+                            {todo.archived && !isNote && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => openArchiveDialog('restore')}
+                                    disabled={archiveForm.processing || restoreForm.processing}
+                                    className="w-full gap-2 border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                                >
+                                    <Archive className="w-4 h-4" />
+                                    Restore from archive
                                 </Button>
                             )}
 

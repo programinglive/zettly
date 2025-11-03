@@ -952,31 +952,52 @@ class TodoController extends Controller
             return redirect()->back()->with('info', 'Todo already archived');
         }
 
-        if (! $todo->is_completed) {
-            if ($request->wantsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Only completed todos can be archived',
-                ], 422);
-            }
-
-            return redirect()->back()->with('error', 'Only completed todos can be archived');
-        }
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
 
         $todo->update([
             'archived' => true,
             'archived_at' => now(),
-            'priority' => null,
-            'importance' => null,
         ]);
 
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Todo archived successfully',
-                'todo' => $todo->fresh(),
-            ]);
+        TodoStatusEvent::create([
+            'todo_id' => $todo->id,
+            'user_id' => Auth::id(),
+            'from_state' => $todo->is_completed ? 'completed' : 'pending',
+            'to_state' => 'archived',
+            'reason' => $validated['reason'],
+        ]);
+
+        return redirect()->back()->with('success', 'Todo archived successfully!');
+    }
+
+    public function restore(Request $request, Todo $todo)
+    {
+        $this->authorizeTodo($todo);
+
+        if (! $todo->archived) {
+            return redirect()->back()->with('info', 'Todo is not archived.');
         }
 
-        return redirect()->back()->with('success', 'Todo archived successfully');
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $todo->update([
+            'archived' => false,
+            'archived_at' => null,
+        ]);
+
+        TodoStatusEvent::create([
+            'todo_id' => $todo->id,
+            'user_id' => Auth::id(),
+            'from_state' => 'archived',
+            'to_state' => $todo->is_completed ? 'completed' : 'pending',
+            'reason' => $validated['reason'],
+        ]);
+
+        return redirect()->back()->with('success', 'Todo restored successfully!');
     }
 
     public function archived(Request $request)
@@ -984,9 +1005,9 @@ class TodoController extends Controller
         $user = Auth::user();
 
         $archivedTodos = $user->todos()
-            ->archived()
+            ->where('archived', true)
+            ->orderByDesc('archived_at')
             ->with(['tags', 'relatedTodos', 'linkedByTodos'])
-            ->orderBy('archived_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
@@ -995,29 +1016,11 @@ class TodoController extends Controller
         ]);
     }
 
-    public function restore(Request $request, Todo $todo)
+    private function authorizeTodo(Todo $todo): void
     {
         if ($todo->user_id !== Auth::id()) {
-            if ($request->wantsJson() || $request->is('api/*')) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
             abort(403);
         }
-
-        $todo->update([
-            'archived' => false,
-            'archived_at' => null,
-        ]);
-
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Todo restored successfully',
-                'todo' => $todo->fresh(),
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Todo restored successfully!');
     }
 
     public function completed(Request $request)

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { CheckCircle2, ArrowLeft, Undo2, Calendar, Archive } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
@@ -7,6 +7,22 @@ import { Button } from '../../Components/ui/button';
 import TagBadge from '../../Components/TagBadge';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
+
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+
+    if (inertiaToken) {
+        return inertiaToken;
+    }
+
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+    return tokenMeta?.content ?? null;
+};
 
 export default function Completed({ todos }) {
     const isPaginated = todos && Array.isArray(todos.data);
@@ -45,17 +61,29 @@ export default function Completed({ todos }) {
             return;
         }
 
-        toggleForm.setData('reason', reason);
+        const token = resolveCsrfToken();
+
+        toggleForm.transform(() => ({
+            reason,
+            ...(token ? { _token: token } : {}),
+        }));
+
         toggleForm.post(`/todos/${reasonTodo.id}/toggle`, {
             preserveScroll: true,
             preserveState: true,
             onFinish: () => {
                 setProcessingId(null);
+                toggleForm.transform((data) => data);
                 toggleForm.setData('reason', '');
             },
             onSuccess: () => {
                 setReasonDialogOpen(false);
                 setReasonTodo(null);
+                toggleForm.reset('reason');
+                toggleForm.clearErrors();
+            },
+            onError: () => {
+                toggleForm.setData('reason', reason);
             },
         });
     };

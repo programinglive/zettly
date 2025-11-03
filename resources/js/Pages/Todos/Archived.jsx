@@ -1,19 +1,38 @@
 import React, { useMemo, useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Archive, ArchiveRestore, ArrowLeft, Calendar } from 'lucide-react';
 
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import TagBadge from '../../Components/TagBadge';
 import SanitizedHtml from '../../Components/SanitizedHtml';
+import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
+
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+
+    if (inertiaToken) {
+        return inertiaToken;
+    }
+
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+    return tokenMeta?.content ?? null;
+};
 
 export default function Archived({ todos }) {
     const isPaginated = todos && Array.isArray(todos.data);
     const archivedTodos = isPaginated ? todos.data : todos;
     const totalArchived = isPaginated ? todos.total : archivedTodos.length;
     const paginationLinks = isPaginated ? todos.links : [];
-    const restoreForm = useForm();
+    const restoreForm = useForm({ reason: '' });
     const [restoringId, setRestoringId] = useState(null);
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [targetTodo, setTargetTodo] = useState(null);
 
     const archivedSinceStats = useMemo(() => {
         if (!archivedTodos.length) {
@@ -28,6 +47,43 @@ export default function Archived({ todos }) {
             oldest,
         };
     }, [archivedTodos]);
+
+    const openReasonDialog = (todo) => {
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+        setTargetTodo(todo);
+        setReasonDialogOpen(true);
+    };
+
+    const closeReasonDialog = () => {
+        setReasonDialogOpen(false);
+        setTargetTodo(null);
+        setRestoringId(null);
+        restoreForm.reset('reason');
+        restoreForm.clearErrors();
+    };
+
+    const submitReason = (reason) => {
+        if (!targetTodo) {
+            return;
+        }
+
+        const token = resolveCsrfToken();
+
+        const payload = {
+            reason,
+            ...(token ? { _token: token } : {}),
+        };
+
+        setRestoringId(targetTodo.id);
+        restoreForm.setData(payload);
+        restoreForm.post(`/todos/${targetTodo.id}/restore`, {
+            preserveScroll: true,
+            onFinish: () => setRestoringId(null),
+            onSuccess: closeReasonDialog,
+            onError: () => restoreForm.setData(payload),
+        });
+    };
 
     const handleRestore = (todo) => {
         setRestoringId(todo.id);
@@ -144,7 +200,7 @@ export default function Archived({ todos }) {
 
                                     <div className="flex shrink-0 flex-col items-stretch gap-2 lg:w-52">
                                         <Button
-                                            onClick={() => handleRestore(todo)}
+                                            onClick={() => openReasonDialog(todo)}
                                             disabled={restoreForm.processing && restoringId === todo.id}
                                             className="w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
                                         >
@@ -193,6 +249,15 @@ export default function Archived({ todos }) {
                     </div>
                 )}
             </div>
+            <CompletionReasonDialog
+                open={reasonDialogOpen}
+                onCancel={closeReasonDialog}
+                onSubmit={submitReason}
+                processing={restoreForm.processing}
+                initialState="archived"
+                targetState={targetTodo?.is_completed ? 'completed' : 'pending'}
+                error={restoreForm.errors.reason}
+            />
         </AppLayout>
     );
 }

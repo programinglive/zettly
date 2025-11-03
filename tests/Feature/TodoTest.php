@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Todo;
+use App\Models\TodoChecklistItem;
 use App\Models\TodoStatusEvent;
 use App\Models\User;
 use App\Services\WebPushService;
@@ -320,12 +321,14 @@ class TodoTest extends TestCase
             'type' => 'todo',
         ]);
 
-        $this->assertDatabaseHas('todo_status_events', [
-            'todo_id' => $todo->id,
-            'from_state' => 'pending',
-            'to_state' => 'completed',
-            'reason' => 'Wrapped up during refactor.',
-        ]);
+        $event = TodoStatusEvent::where('todo_id', $todo->id)
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($event, 'Expected a status event to be recorded.');
+        $this->assertSame('pending', $event->from_state);
+        $this->assertSame('completed', $event->to_state);
+        $this->assertSame('Wrapped up during refactor.', $event->reason);
     }
 
     public function test_user_can_update_todo_priority_and_importance(): void
@@ -677,6 +680,7 @@ class TodoTest extends TestCase
             'user_id' => $user->id,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            'is_completed' => false,
         ]);
 
         $response = $this->actingAs($user)

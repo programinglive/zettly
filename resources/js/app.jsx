@@ -80,9 +80,25 @@ createInertiaApp({
                     ...(event.detail.visit.headers ?? {}),
                 };
 
+                const method = (event.detail.visit.method ?? 'get').toLowerCase();
+
+                if (method === 'get') {
+                    return;
+                }
+
+                const payload = event.detail.visit.data;
+
+                if (payload instanceof FormData) {
+                    if (!payload.has('_token')) {
+                        payload.set('_token', token);
+                    }
+
+                    return;
+                }
+
                 event.detail.visit.data = {
-                    ...(event.detail.visit.data ?? {}),
-                    _token: event.detail.visit.data?._token ?? token,
+                    ...(payload ?? {}),
+                    _token: payload?._token ?? token,
                 };
             });
 
