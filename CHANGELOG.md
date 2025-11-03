@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.5](https://github.com/programinglive/todo/compare/v0.7.4...v0.7.5) (2025-11-03)
+
+
+### 🐛 Bug Fixes
+
+* reason dialog hydration across all status transitions ([0263fbb](https://github.com/programinglive/todo/commit/0263fbbf951756368d1fe169dd61048ceb6df4f4))
+
 ### [0.7.4](https://github.com/programinglive/todo/compare/v0.7.3...v0.7.4) (2025-11-03)
 
 
