@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.6](https://github.com/programinglive/todo/compare/v0.7.5...v0.7.6) (2025-11-03)
+
+
+### 📝 Documentation
+
+* add community guidelines and release notes link ([354a26c](https://github.com/programinglive/todo/commit/354a26c04fdc9b9631988cf58feab92e891e9c9c))
+
 ### [0.7.5](https://github.com/programinglive/todo/compare/v0.7.4...v0.7.5) (2025-11-03)
 
 
