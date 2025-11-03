@@ -51,7 +51,7 @@ const getDescriptionPreview = (html, limit = 80) => {
 };
 
 // Draggable Todo Card Component
-function DraggableTodoCard({ todo, onToggle }) {
+function DraggableTodoCard({ todo, onToggle, onSelect }) {
     const {
         attributes,
         listeners,
@@ -81,6 +81,11 @@ function DraggableTodoCard({ todo, onToggle }) {
             className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${
                 isDragging ? 'z-50 opacity-50' : ''
             }`}
+            onClick={() => {
+                if (!isDragging && typeof onSelect === 'function') {
+                    onSelect(todo);
+                }
+            }}
         >
             <div className="flex items-start space-x-3">
                 <div 
@@ -148,7 +153,7 @@ function DraggableTodoCard({ todo, onToggle }) {
 const MAX_VISIBLE_TODOS = 5;
 const LOAD_INCREMENT = 5;
 
-export default function KanbanBoard({ todos: initialTodos, showCreateButton = true }) {
+export default function KanbanBoard({ todos: initialTodos, showCreateButton = true, onSelect }) {
     const toggleForm = useForm({ reason: '' });
     const updateForm = useForm({ reason: '', priority: null, importance: null, is_completed: false });
     const [todos, setTodos] = useState(initialTodos);
@@ -634,7 +639,12 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     >
                         {displayTodos.length > 0 ? (
                             displayTodos.map(todo => (
-                                <DraggableTodoCard key={todo.id} todo={todo} onToggle={handleToggle} />
+                                <DraggableTodoCard
+                                    key={todo.id}
+                                    todo={todo}
+                                    onToggle={handleToggle}
+                                    onSelect={onSelect}
+                                />
                             ))
                         ) : (
                             <div className="text-center py-8 text-gray-400 dark:text-gray-500">

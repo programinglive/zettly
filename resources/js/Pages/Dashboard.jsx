@@ -443,7 +443,7 @@ export default function Dashboard({
             }
         >
             <div className="space-y-6">
-                <KanbanBoard todos={tasks} />
+                <KanbanBoard todos={tasks} onSelect={handleTaskSelect} />
             </div>
         </Suspense>
     );
