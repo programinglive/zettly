@@ -1,8 +1,11 @@
-import React, { useMemo, useEffect, useRef } from 'react';
-import { Link } from '@inertiajs/react';
-import { LinkIcon, CheckCircle, Circle, Paperclip, FileText } from 'lucide-react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { Link, useForm, router } from '@inertiajs/react';
+import { LinkIcon, CheckCircle, Paperclip, FileText, Archive, ArchiveRestore, Edit, Trash2, Undo2 } from 'lucide-react';
 import SanitizedHtml from './SanitizedHtml';
 import TagBadge from './TagBadge';
+import { Button } from './ui/button';
+import CompletionReasonDialog from './CompletionReasonDialog';
+import ConfirmationModal from './ConfirmationModal';
 import { cn } from '../utils';
 
 const stripHtml = (html) => {
@@ -32,9 +35,24 @@ const formatFileSize = (bytes) => {
     return `${size.toFixed(1)} ${units[index]}`;
 };
 
-export default function ContextPanel({ selectedTask = null, linkedTodos = [], className }) {
+const resolveCsrfToken = () => {
+    const inertiaToken = router?.page?.props?.csrf_token;
+    if (inertiaToken) return inertiaToken;
+    if (typeof document === 'undefined') return null;
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    return tokenMeta?.content ?? null;
+};
+
+export default function ContextPanel({ selectedTask = null, linkedTodos = [], className, onTaskUpdate }) {
     const safeLinked = Array.isArray(linkedTodos) ? linkedTodos : [];
     const contentRef = useRef(null);
+    const toggleForm = useForm({ reason: '' });
+    const archiveForm = useForm({ reason: '' });
+    const deleteForm = useForm();
+    const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [reasonTargetState, setReasonTargetState] = useState(null);
+
     const relatedTodos = useMemo(() => {
         if (!selectedTask) return [];
         return safeLinked.filter(t => t.id !== selectedTask.id);
@@ -47,18 +65,89 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
         }
     }, [selectedTask?.id]);
 
+    const handleToggle = () => {
+        const target = selectedTask.is_completed ? 'pending' : 'completed';
+        setReasonTargetState(target);
+        toggleForm.clearErrors();
+        setReasonDialogOpen(true);
+    };
+
+    const submitToggleReason = (reason) => {
+        toggleForm.setData('reason', reason);
+        toggleForm.post(`/todos/${selectedTask.id}/toggle`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setReasonDialogOpen(false);
+                toggleForm.reset('reason');
+                if (onTaskUpdate) onTaskUpdate();
+            },
+            onError: () => {
+                setReasonDialogOpen(true);
+            },
+        });
+    };
+
+    const handleArchive = () => {
+        const token = resolveCsrfToken();
+        archiveForm.setData((data) => ({
+            ...data,
+            reason: 'Archived from dashboard',
+            ...(token ? { _token: token } : {}),
+        }));
+        archiveForm.post(`/todos/${selectedTask.id}/archive`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                archiveForm.reset('reason');
+                if (onTaskUpdate) onTaskUpdate();
+            },
+        });
+    };
+
+    const handleRestore = () => {
+        const token = resolveCsrfToken();
+        archiveForm.setData((data) => ({
+            ...data,
+            reason: 'Restored from dashboard',
+            ...(token ? { _token: token } : {}),
+        }));
+        archiveForm.post(`/todos/${selectedTask.id}/restore`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                archiveForm.reset('reason');
+                if (onTaskUpdate) onTaskUpdate();
+            },
+        });
+    };
+
+    const handleDeleteClick = () => {
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        deleteForm.delete(`/todos/${selectedTask.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowDeleteModal(false);
+                if (onTaskUpdate) onTaskUpdate();
+            },
+        });
+    };
+
     if (!selectedTask) {
         return null;
     }
 
     const attachments = Array.isArray(selectedTask.attachments) ? selectedTask.attachments : [];
+    const isArchived = Boolean(selectedTask.archived);
+    const isNote = (selectedTask.type ?? '').toLowerCase() === 'note';
 
     return (
-        <div
-            ref={contentRef}
-            className={cn('flex h-full flex-col gap-6 overflow-y-auto px-6 py-6', className)}
-        >
-            <header className="space-y-1">
+        <div className={cn('flex h-full flex-col overflow-hidden', className)}>
+            <div
+                ref={contentRef}
+                className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
+            >
+            <header className="space-y-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
                     Context
                 </p>
@@ -115,7 +204,7 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                             </>
                         ) : (
                             <>
-                                <Circle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                <CheckCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                                 <span className="font-medium text-gray-600 dark:text-gray-300">Pending</span>
                             </>
                         )}
@@ -232,6 +321,111 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                     </div>
                 </section>
             )}
+            </div>
+
+            <div className="border-t border-gray-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-wrap items-center justify-start gap-2">
+                    {!isNote && (
+                        <Button
+                            type="button"
+                            onClick={handleToggle}
+                            disabled={toggleForm.processing}
+                            size="icon"
+                            title={selectedTask.is_completed ? 'Mark as pending' : 'Mark as complete'}
+                            aria-label={selectedTask.is_completed ? 'Mark as pending' : 'Mark as complete'}
+                            className={cn(
+                                'rounded-lg text-white shadow-sm hover:shadow focus-visible:ring-offset-gray-900',
+                                selectedTask.is_completed
+                                    ? 'bg-amber-500 hover:bg-amber-500/90 focus-visible:ring-amber-300'
+                                    : 'bg-green-500 hover:bg-green-500/90 focus-visible:ring-green-300'
+                            )}
+                        >
+                            {selectedTask.is_completed ? <Undo2 className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                        </Button>
+                    )}
+
+                    {selectedTask.is_completed && !isArchived && !isNote && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={handleArchive}
+                            disabled={archiveForm.processing}
+                            title="Archive todo"
+                            aria-label="Archive todo"
+                            className="rounded-lg"
+                        >
+                            <Archive className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    {isArchived && !isNote && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={handleRestore}
+                            disabled={archiveForm.processing}
+                            title="Restore from archive"
+                            aria-label="Restore from archive"
+                            className="rounded-lg"
+                        >
+                            <ArchiveRestore className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        title="Edit todo"
+                        aria-label="Edit todo"
+                        className="rounded-lg"
+                    >
+                        <Link href={`/todos/${selectedTask.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                        </Link>
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={handleDeleteClick}
+                        disabled={deleteForm.processing}
+                        title="Delete todo"
+                        aria-label="Delete todo"
+                        className="rounded-lg"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Dialogs */}
+            <CompletionReasonDialog
+                open={reasonDialogOpen}
+                onCancel={() => {
+                    setReasonDialogOpen(false);
+                    toggleForm.reset('reason');
+                }}
+                onSubmit={submitToggleReason}
+                processing={toggleForm.processing}
+                initialState={selectedTask.is_completed ? 'completed' : 'pending'}
+                targetState={reasonTargetState}
+                error={toggleForm.errors?.reason}
+            />
+
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Todo"
+                message={`Are you sure you want to delete "${selectedTask.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                confirmButtonVariant="destructive"
+                isLoading={deleteForm.processing}
+            />
         </div>
     );
 }

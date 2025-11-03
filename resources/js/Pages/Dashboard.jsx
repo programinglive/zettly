@@ -7,7 +7,7 @@ import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 import SystemStatus from '../Components/SystemStatus';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
-import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle } from '../Components/ui/drawer';
+import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../Components/ui/drawer';
 
 const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
@@ -504,11 +504,13 @@ export default function Dashboard({
                         </DrawerClose>
                     </div>
                     <DrawerBody className="flex-1 overflow-y-auto bg-white px-6 py-6 dark:bg-slate-900">
+                        <DrawerDescription className="sr-only">Additional task context including status history, attachments, and related links.</DrawerDescription>
                         {selectedTask && (
                             <ContextPanel
                                 selectedTask={selectedTask}
                                 linkedTodos={aggregateLinkedTodos}
                                 className="min-h-full"
+                                onTaskUpdate={handleTaskUpdate}
                             />
                         )}
                     </DrawerBody>

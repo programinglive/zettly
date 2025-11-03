@@ -98,7 +98,7 @@ test('profile settings page renders workspace preferences section', () => {
 
 test('dashboard matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
-        dashboardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle } from '../Components/ui/drawer';") &&
+        dashboardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../Components/ui/drawer';") &&
         dashboardSource.includes('side="right"') &&
         dashboardSource.includes('<Drawer'),
         'Expected dashboard to render the context drawer using shadcn primitives anchored to the right when a task is selected.'
@@ -124,6 +124,11 @@ test('dashboard includes attachments when hydrating context drawer', () => {
     assert.ok(
         contextPanelSource.includes('Attachments ({attachments.length})') && contextPanelSource.includes('<Paperclip'),
         'Expected attachments section markup to render with paperclip icon and count.'
+    );
+
+    assert.ok(
+        contextPanelSource.includes('title="Delete todo"') && contextPanelSource.includes('size="icon"'),
+        'Expected context panel action bar to use icon-only buttons with accessible titles.'
     );
 });
 
