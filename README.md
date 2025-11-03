@@ -1,106 +1,16 @@
 # Zettly Application
 
+[![Latest release](https://img.shields.io/github/v/release/programinglive/zettly?logo=github&style=flat&color=F97316)](https://github.com/programinglive/zettly/releases)
+[![Open issues](https://img.shields.io/github/issues/programinglive/zettly?style=flat&color=EF4444)](https://github.com/programinglive/zettly/issues)
+[![Open pull requests](https://img.shields.io/github/issues-pr/programinglive/zettly?style=flat&color=0EA5E9)](https://github.com/programinglive/zettly/pulls)
+[![License: MIT](https://img.shields.io/github/license/programinglive/zettly?style=flat&color=6366F1)](./LICENSE)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-22C55E.svg)](./CONTRIBUTING.md)
+
 Zettly is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, TailwindCSS, and shadcn/ui. Create, manage, and track your todos with a beautiful and responsive interface.
 
-## Bug Fixes
+## Release Notes
 
-### Debug Mode toggle not rendering (2025-11-02)
-
-**Problem**: The Debug Mode toggle switch on the profile settings page was not visible for super admin users due to a template literal syntax error in the className prop.
-
-**Solution**:
-- Fixed the className template literal by removing the extra dollar sign (`$${` → `${`)
-- The Switch component now renders correctly with proper styling
-- Added regression tests to ensure the toggle renders and functions for super admins
-
-**Files Changed**:
-- `resources/js/Pages/Profile/Edit.jsx`
-- `tests/js/DebugModeToggle.test.js`
-
-### Draw TypeError on navigation (2025-10-28)
-
-**Problem**: Returning to the `/draw` gallery triggered a runtime `TypeError: h is not a function`, crashing the TLDraw canvas.
-
-**Solution**:
-- Replaced the stale `setActiveId` call with the existing `setActiveDrawing` setter
-- Simplified the TLDraw component integration by removing problematic props (`onChange`, `inferDarkMode`)
-- Reduced the editor mount logic to essential setup to avoid invalid listener hookups
-- Added targeted Node-based regression tests under `tests/js/Draw.test.js`
-
-**Files Changed**:
-- `resources/js/Pages/Draw/Index.jsx`
-- `tests/js/Draw.test.js`
-
-### Note saves returned 419 Page Expired (2025-10-30)
-
-**Problem**: Editing notes on production redirected to a blank page showing 419 "Page Expired" because the manual `FormData` submission from the edit screen omitted the CSRF token Laravel expects.
-
-**Solution**:
-- Include the current CSRF token in the edit form submission before dispatching the Inertia request.
-- Added a regression test to ensure the CSRF token continues to be included.
-
-**Files Changed**:
-- `resources/js/Pages/Todos/Edit.jsx`
-- `resources/js/__tests__/todoEditCsrf.test.js`
-
-### Login form returned 419 Page Expired (2025-10-30)
-
-**Problem**: Signing in on production produced a 419 error for similar reasons—the Inertia login form customized the payload but skipped the CSRF token, triggering Laravel's session expiration response.
-
-**Solution**:
-- Inject the CSRF token through the form transform right before calling `post`.
-- Added a regression test to lock the behavior in place.
-
-**Files Changed**:
-- `resources/js/Pages/Auth/Login.jsx`
-- `resources/js/__tests__/loginCsrf.test.js`
-
-### Infinite Loop in Drawing Editor (2025-10-27)
-
-**Problem**: The drawing page (`/draw`) was causing infinite re-renders due to a dependency chain in React hooks:
-- `loadDrawingIntoEditor` depended on `persistDrawing`
-- `persistDrawing` recreated when `activeDrawing` changed
-- This caused `loadDrawing` to recreate, triggering the useEffect infinitely
-
-**Solution**: 
-- Removed `persistDrawing` from the dependency array of `loadDrawingIntoEditor` 
-- Added explanatory comment about the fix
-- Created regression tests to prevent future infinite loops
-
-**Files Changed**:
-- `resources/js/Pages/Draw/Index.jsx` - Fixed useCallback dependencies
-- `resources/js/__tests__/DrawInfiniteLoopTest.test.js` - Added regression tests
-
-### Passive Event Listener Warnings in Drawing Editor (2025-10-27)
-
-**Problem**: TLDraw was generating "Unable to preventDefault inside passive event listener" warnings in the console, which occurs when canvas-based applications try to prevent default behavior on passive event listeners.
-
-**Solution**:
-- Moved event listener override to module level to run before TLDraw initializes
-- Added comprehensive console.error suppression for all passive event listener warnings
-- Configured touch, wheel, and pointer events to be non-passive to allow preventDefault
-- Added proper cleanup functions to restore original behavior when component unmounts
-- Added regression tests to ensure the fix remains in place
-
-**Files Changed**:
-- `resources/js/Pages/Draw/Index.jsx` - Added module-level passive event listener handling
-- `resources/js/__tests__/DrawPassiveEventFixTest.test.js` - Added regression tests
-
-### Drawing gallery lacked thumbnails (2025-10-28)
-
-**Problem**: The drawings list showed only solid placeholders, so users could not visually identify sketches before opening them.
-
-**Solution**:
-- Generate PNG previews from the TLDraw canvas via `editor.toImageDataUrl` whenever autosave runs
-- Persist the thumbnail in the `drawings` table (new `thumbnail` column) and expose it through API/websocket payloads
-- Render the preview image in the gallery cards and add regression coverage to ensure the markup remains in place
-
-**Files Changed**:
-- `resources/js/Pages/Draw/Index.jsx`
-- `app/Http/Controllers/DrawingController.php`
-- `app/Events/DrawingUpdated.php`
-- `database/migrations/2025_10_28_000001_add_thumbnail_to_drawings_table.php`
-- `tests/js/Draw.test.js`
+Detailed historical changes live in [docs/reference/RELEASE_NOTES.md](./docs/reference/RELEASE_NOTES.md) and on the [GitHub releases page](https://github.com/programinglive/zettly/releases).
 
 ## Quick Start
 
@@ -223,14 +133,17 @@ Behind the scenes, the app guards against runaway renders and browser warnings b
 - Overriding passive event listeners up-front so TLDraw can call `preventDefault()` without triggering console spam.
 - Shipping regression tests (`DrawInfiniteLoopTest` and `DrawPassiveEventFixTest`) that enforce these guardrails during every CI run.
 
-## Open Source Resources
+## Community & Support
 
-The project follows standard open-source practices. Refer to the following documents:
+We strive to foster an inclusive, learner-friendly community.
 
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Contributing Guide](./CONTRIBUTING.md)
-- [Security Policy](./SECURITY.md)
-- [MIT License](./LICENSE)
+- 📜 **Code of Conduct:** [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+- 🛠️ **Contributing Guide:** [CONTRIBUTING.md](./CONTRIBUTING.md)
+- 🔐 **Security Policy:** [SECURITY.md](./SECURITY.md)
+- 📮 **Contact:** Mahatma Mahardhika — [mahatma.mahardhika@programinglive.com](mailto:mahatma.mahardhika@programinglive.com)
+- 🧾 **License:** [MIT](./LICENSE)
+
+Pull requests are welcome! Please review the contributing guide and use the pull request template when opening a PR. For sensitive security matters, email the address above instead of posting a public issue.
 
 ### Editor Credits
 - Built with the [@programinglive/zettly-editor](https://github.com/programinglive/zettly-editor) package — explore the editor source and examples in that repository.

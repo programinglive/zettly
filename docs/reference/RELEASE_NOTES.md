@@ -1,54 +1,43 @@
-# 🎉 Zettly v0.0.1 - Initial Release
+# Zettly Release Notes
 
-Welcome to the first official release of Zettly! This is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, and TailwindCSS.
+Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
-## ✨ Key Features
+## v0.7.5 · 2025-11-03
 
-- **🔐 User Authentication** - Secure login/register with Laravel Fortify
-- **📝 Todo Management** - Create, edit, delete, and toggle todos
-- **🏷️ Tag System** - Organize todos with colorful tags
-- **🔗 Todo Linking** - Link related todos together
-- **🌙 Dark Mode** - Beautiful dark/light theme support
-- **📱 Responsive Design** - Works perfectly on all devices
-- **🚀 Modern UI** - Clean, minimalist design with smooth animations
+### 🛠️ Bug Fixes
 
-## 🛠️ Tech Stack
+- **Reason Dialog Hydration** — Added hydration guards and Inertia `transform()` usage across dashboard, todo detail, Eisenhower Matrix, and Kanban views to ensure archive/restore/toggle dialogs respect the first submitted reason and surface validation errors consistently.
+- **Archive Reason Dialog (Dashboard & Detail View)** — Reintroduced archive/restore reason prompts with consistent UX and ensured CSRF tokens are appended automatically.
 
-- **Backend**: Laravel 12, PHP 8.2+
-- **Frontend**: React 19, Inertia.js, TailwindCSS
-- **Database**: SQLite (configurable)
-- **Build Tools**: Vite, TypeScript
-- **Authentication**: Laravel Fortify
-- **Error Tracking**: Sentry integration
+### 📚 Documentation
 
-## 🚀 Getting Started
+- Added dedicated community guidelines (Code of Conduct, Contributing, Security policy) and refreshed README badges plus contact details for maintainers.
+- Documented the hydration fix workflow in `docs/reference/REASON_DIALOG_HYDRATION.md`.
 
-1. Clone the repository
-2. Run `composer install && npm install`
-3. Copy `.env.example` to `.env` and configure
-4. Run `php artisan migrate --seed`
-5. Start with `composer run dev`
+## v0.7.4 · 2025-11-02
 
-## 📊 Statistics
+### 🐞 Bug Fix Highlights
 
-- **25+ Features** implemented
-- **15+ Bug fixes** resolved
-- **Clean, tested codebase** with proper error handling
-- **API-ready** with comprehensive endpoints
+- **Debug Mode Toggle Missing** — Fixed a template-literal typo that hid the toggle for super admins and added regression tests. (@resources/js/Pages/Profile/Edit.jsx, @tests/js/DebugModeToggle.test.js)
+- **Draw Gallery Runtime Error** — Replaced stale TLDraw handlers to avoid `TypeError: h is not a function` when returning to `/draw`. (@resources/js/Pages/Draw/Index.jsx, @tests/js/Draw.test.js)
+- **Note Edit 419 Errors** — Ensured CSRF tokens are included when saving notes via Inertia. (@resources/js/Pages/Todos/Edit.jsx, @resources/js/__tests__/todoEditCsrf.test.js)
+- **Login 419 Errors** — Mirrored token fix for the login form. (@resources/js/Pages/Auth/Login.jsx, @resources/js/__tests__/loginCsrf.test.js)
+- **Drawing Editor Infinite Loop** — Reduced hook dependencies to stop runaway renders and covered with tests. (@resources/js/Pages/Draw/Index.jsx, @resources/js/__tests__/DrawInfiniteLoopTest.test.js)
+- **Passive Event Listener Warnings** — Centralized TLDraw event configuration to suppress console noise and allow `preventDefault`. (@resources/js/Pages/Draw/Index.jsx, @resources/js/__tests__/DrawPassiveEventFixTest.test.js)
+- **Drawing Gallery Thumbnails** — Generated PNG previews on autosave and surfaced them throughout the UI plus tests. (Multiple files including `DrawingController`, `DrawingUpdated` event, migration, and @tests/js/Draw.test.js)
 
-## 🎯 What's Next
+### 🧪 Regression Coverage
 
-This initial release provides a solid foundation. Future releases will include:
-- Mobile app
-- Team collaboration features
-- Advanced filtering and search
-- Integrations with popular tools
+- Expanded JS test suite to guard all fixes above, including TLDraw autosave behavior and debug toggle rendering.
 
----
+## v0.0.1 · 2025-10-15
 
-**Login Credentials for Testing:**
-- Email: `john@example.com` / Password: `password123`
-- Email: `jane@example.com` / Password: `password123`
-- Email: `bob@example.com` / Password: `password123`
+Initial public release delivering the full-stack foundation:
 
-Enjoy organizing your tasks! 🎉
+- User authentication via Laravel Fortify
+- Todo and note management with tagging, linking, and priority support
+- Responsive dashboard with Eisenhower Matrix and Kanban workspaces
+- TLDraw-powered sketching workspace with autosave and real-time sync
+- Built on Laravel 12, React 19, Inertia.js, TailwindCSS, and Vite
+
+See the [README Quick Start](../../README.md#quick-start) for setup instructions and seeded demo credentials.
