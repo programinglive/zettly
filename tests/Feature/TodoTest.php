@@ -58,6 +58,30 @@ class TodoTest extends TestCase
         ]);
     }
 
+    public function test_user_can_toggle_checklist_item_completion(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
+        $item = $todo->checklistItems()->create([
+            'title' => 'Subtask',
+            'is_completed' => false,
+            'position' => 0,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->patch(route('todos.checklist.toggle', [$todo, $item]));
+
+        $response->assertRedirect();
+        $this->assertTrue($item->fresh()->is_completed);
+
+        $response = $this->actingAs($user)
+            ->patch(route('todos.checklist.toggle', [$todo, $item]));
+
+        $response->assertRedirect();
+        $this->assertFalse($item->fresh()->is_completed);
+    }
+
     public function test_note_priority_is_reset_on_update(): void
     {
         /** @var User $user */

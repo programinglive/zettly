@@ -750,6 +750,34 @@ class TodoController extends Controller
             ->with('success', 'Todo priority updated successfully!');
     }
 
+    public function toggleChecklistItem(Request $request, Todo $todo, TodoChecklistItem $checklistItem)
+    {
+        if ($todo->user_id !== Auth::id()) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            abort(403);
+        }
+
+        if ($checklistItem->todo_id !== $todo->id) {
+            abort(404);
+        }
+
+        $checklistItem->is_completed = ! $checklistItem->is_completed;
+        $checklistItem->save();
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Checklist item updated successfully',
+                'id' => $checklistItem->id,
+                'is_completed' => $checklistItem->is_completed,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Checklist item updated successfully!');
+    }
+
     public function updateEisenhower(Request $request, Todo $todo)
     {
         // Ensure user owns the todo
