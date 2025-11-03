@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.9](https://github.com/programinglive/todo/compare/v0.7.8...v0.7.9) (2025-11-03)
+
+
+### ✨ Features
+
+* **nav:** streamline account menu and flatten editor styling ([0c6d79c](https://github.com/programinglive/todo/commit/0c6d79c00a5929acea48aec2ce302c6006cb1ff9))
+
 ### [0.7.8](https://github.com/programinglive/todo/compare/v0.7.7...v0.7.8) (2025-11-03)
 
 
