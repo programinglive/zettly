@@ -29,12 +29,13 @@ export default function AppLayout({
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
 
-    const accountNavigationLinks = [
+    const primaryAccountLinks = [
         {
             href: '/dashboard',
             label: 'Dashboard',
+            description: 'Return to your home workspace',
             icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
                 </svg>
@@ -43,37 +44,19 @@ export default function AppLayout({
         {
             href: '/todos',
             label: 'My Todos',
+            description: 'View active tasks and notes',
             icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-            ),
-        },
-        {
-            href: '/todos/completed',
-            label: 'Completed',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V8a2 2 0 00-2-2h-5" />
-                </svg>
-            ),
-        },
-        {
-            href: '/todos/deleted',
-            label: 'Deleted',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 4h8" />
                 </svg>
             ),
         },
         {
             href: '/notes',
             label: 'My Notes',
+            description: 'Review personal notes and drafts',
             icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
                 </svg>
@@ -82,54 +65,56 @@ export default function AppLayout({
         {
             href: '/draw',
             label: 'Draw',
+            description: 'Open the sketch workspace',
             icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
             ),
         },
+    ];
+
+    const archiveLinks = [
+        {
+            href: '/todos/completed',
+            label: 'Completed',
+        },
         {
             href: '/todos/archived',
             label: 'Archived',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18v2H3zM3 18h18v2H3z" />
-                </svg>
-            ),
         },
         {
-            href: '/manage/tags',
-            label: 'Manage Tags',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-            ),
-        },
-        {
-            href: '/profile',
-            label: 'Profile',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-            ),
+            href: '/todos/deleted',
+            label: 'Trash',
         },
     ];
 
-    if (isSuperAdmin) {
-        accountNavigationLinks.unshift({
-            href: '/admin/system-monitor',
-            label: 'System Monitor',
-            icon: (
-                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
-                </svg>
-            ),
-        });
-    }
+    const resourceLinks = [
+        {
+            href: '/manage/tags',
+            label: 'Manage Tags',
+        },
+        {
+            href: '/profile',
+            label: 'Profile Settings',
+        },
+    ];
+
+    const adminLinks = isSuperAdmin
+        ? [
+            {
+                href: '/admin/system-monitor',
+                label: 'System Monitor',
+                description: 'Monitor queues, jobs, and system health',
+                icon: (
+                    <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
+                    </svg>
+                ),
+            },
+        ]
+        : [];
     
     // For PWA on tablets, use full width; otherwise use responsive max-width
     const defaultContentClassName = isAuthenticated
@@ -286,31 +271,77 @@ export default function AppLayout({
                                                     </button>
                                                     
                                                     {desktopMenuOpen && (
-                                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-gray-200 dark:border-slate-700 z-50">
-                                                            <div className="py-1">
-                                                                <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
-                                                                    Account Menu
+                                                        <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 z-50">
+                                                            <div className="py-2">
+                                                                <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                    Quick access
                                                                 </div>
-                                                                {accountNavigationLinks.map(({ href, label, icon }) => (
+
+                                                                {[...adminLinks, ...primaryAccountLinks].map(({ href, label, description, icon }) => (
                                                                     <Link
                                                                         key={href}
                                                                         href={href}
-                                                                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                                                        className="group flex items-start gap-3 px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-slate-800/80"
                                                                     >
-                                                                        {icon}
-                                                                        {label}
+                                                                        <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-200">
+                                                                            {icon ?? (
+                                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16" />
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h12" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </span>
+                                                                        <span>
+                                                                            <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">{label}</span>
+                                                                            {description ? (
+                                                                                <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+                                                                                    {description}
+                                                                                </span>
+                                                                            ) : null}
+                                                                        </span>
                                                                     </Link>
                                                                 ))}
+
+                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                    History & archives
+                                                                </div>
+                                                                <div className="mt-1 space-y-1 px-4 pb-3">
+                                                                    {archiveLinks.map(({ href, label }) => (
+                                                                        <Link
+                                                                            key={href}
+                                                                            href={href}
+                                                                            className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-800"
+                                                                        >
+                                                                            {label}
+                                                                        </Link>
+                                                                    ))}
+                                                                </div>
+
+                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                    Tools
+                                                                </div>
+                                                                <div className="mt-1 space-y-1 px-4 pb-3">
+                                                                    {resourceLinks.map(({ href, label }) => (
+                                                                        <Link
+                                                                            key={href}
+                                                                            href={href}
+                                                                            className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-800"
+                                                                        >
+                                                                            {label}
+                                                                        </Link>
+                                                                    ))}
+                                                                </div>
+
                                                                 <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
                                                                 <button
                                                                     type="button"
                                                                     onClick={handleLogout}
-                                                                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800"
+                                                                    className="flex items-center w-full text-left px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800"
                                                                 >
-                                                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                                        </svg>
-                                                                        Logout
+                                                                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                                    </svg>
+                                                                    Logout
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -360,7 +391,17 @@ export default function AppLayout({
                                                             <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-slate-800">
                                                                 {auth.user.name}
                                                             </div>
-                                                            {accountNavigationLinks.map(({ href, label }) => (
+                                                            {[...adminLinks, ...primaryAccountLinks].map(({ href, label }) => (
+                                                                <Link
+                                                                    key={href}
+                                                                    href={href}
+                                                                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                                >
+                                                                    {label}
+                                                                </Link>
+                                                            ))}
+                                                            <div className="border-t border-gray-200 dark:border-slate-800 my-1"></div>
+                                                            {[...archiveLinks, ...resourceLinks].map(({ href, label }) => (
                                                                 <Link
                                                                     key={href}
                                                                     href={href}

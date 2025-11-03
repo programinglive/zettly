@@ -94,6 +94,15 @@
     z-index: 10 !important;
   }
 
+  [data-zettly-editor-root] {
+    box-shadow: none !important;
+  }
+
+  [data-zettly-editor-root]:focus-within {
+    box-shadow: none !important;
+    border-color: var(--border);
+  }
+
   :root:not(.dark) [data-zettly-editor-toolbar] button[data-state=on],
   .light [data-zettly-editor-toolbar] button[data-state=on] {
     background: var(--zettly-editor-menu-selected);
