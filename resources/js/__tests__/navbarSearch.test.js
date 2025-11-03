@@ -33,7 +33,7 @@ test('navbar search renders Algolia attribution badge', () => {
 test('navbar search input uses updated pill styling', () => {
     assert.match(
         componentSource,
-        /className="pl-9 h-11 rounded-full border border-border\/60 bg-white\/95 text-foreground shadow-sm/,
+        /className="pl-9 pr-12 h-11 rounded-full border border-border\/60 bg-white\/95 text-foreground shadow-sm/,
         'Expected search input to use pill-shaped styling with subtle shadow.'
     );
 
@@ -41,5 +41,19 @@ test('navbar search input uses updated pill styling', () => {
         componentSource,
         /dark:bg-slate-900\/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:border-slate-700/,
         'Expected search input to include dark theme styling tokens.'
+    );
+});
+
+test('navbar search exposes clear button and closes results when query is empty', () => {
+    assert.match(
+        componentSource,
+        /aria-label="Clear search"/,
+        'Expected clear button with accessible label to be rendered.'
+    );
+
+    assert.match(
+        componentSource,
+        /if \(!query\.trim\(\)\) {\s*setSections\(\[\]\);[\s\S]*setOpen\(false\);[\s\S]*setActiveIndex\(-1\);/,
+        'Expected effect hook to close results and reset active index when query is cleared.'
     );
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, X } from 'lucide-react';
 
 import { cn } from '../utils';
 import { Input } from './ui/input';
@@ -158,6 +158,8 @@ export function NavbarSearch({ className }) {
             setSections([]);
             setLoading(false);
             setError(null);
+            setOpen(false);
+            setActiveIndex(-1);
             return;
         }
 
@@ -165,6 +167,8 @@ export function NavbarSearch({ className }) {
             setSections([]);
             setLoading(false);
             setError(null);
+            setOpen(false);
+            setActiveIndex(-1);
             return;
         }
 
@@ -172,6 +176,8 @@ export function NavbarSearch({ className }) {
             setSections([]);
             setLoading(false);
             setError(null);
+            setOpen(false);
+            setActiveIndex(-1);
             return;
         }
 
@@ -322,6 +328,14 @@ export function NavbarSearch({ className }) {
         }
     }, [flatResults]);
 
+    const handleClear = React.useCallback(() => {
+        setQuery('');
+        setSections([]);
+        setOpen(false);
+        setActiveIndex(-1);
+        inputRef.current?.focus();
+    }, []);
+
     const renderContent = () => {
         if (!ENABLED) {
             return (
@@ -446,11 +460,22 @@ export function NavbarSearch({ className }) {
                             }
                         }}
                         placeholder={ENABLED ? 'Search todos, notes, tags…' : 'Search unavailable'}
-                        className="pl-9 h-11 rounded-full border border-border/60 bg-white/95 text-foreground shadow-sm transition focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-0 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:border-slate-700"
+                        className="pl-9 pr-12 h-11 rounded-full border border-border/60 bg-white/95 text-foreground shadow-sm transition focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-0 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:border-slate-700"
                         aria-expanded={open}
                         aria-autocomplete="list"
                         aria-controls="navbar-search-results"
                     />
+
+                    {query && (
+                        <button
+                            type="button"
+                            onClick={handleClear}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition hover:text-foreground hover:bg-muted/50"
+                            aria-label="Clear search"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
                 </div>
             </form>
 
