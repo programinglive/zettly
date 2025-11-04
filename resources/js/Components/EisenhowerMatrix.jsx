@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
 import { CheckCircle, Circle, ArrowRight, GripVertical } from 'lucide-react';
 import {
@@ -157,6 +157,7 @@ const NO_OP = () => {};
 
 export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, selectedTaskId = null, onTaskUpdate = NO_OP }) {
     const [activeId, setActiveId] = useState(null);
+    const [localTodos, setLocalTodos] = useState(todos);
     const [visibleCounts, setVisibleCounts] = useState({
         q1: MAX_VISIBLE,
         q2: MAX_VISIBLE,
@@ -166,6 +167,11 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
     const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
     const [pendingToggleTodo, setPendingToggleTodo] = useState(null);
     const toggleForm = useForm({ reason: '' });
+
+    // Keep localTodos in sync with server-provided todos
+    useEffect(() => {
+        setLocalTodos(todos);
+    }, [todos]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -229,7 +235,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
 
         const draggedId = String(active.id);
         const overId = String(over.id);
-        const draggedTodo = todos.find(t => String(t.id) === draggedId);
+        const draggedTodo = localTodos.find(t => String(t.id) === draggedId);
 
         if (!draggedTodo) return;
 
@@ -237,7 +243,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         if (['q1', 'q2', 'q3', 'q4'].includes(overId)) {
             targetQuadrant = overId;
         } else {
-            const targetTodo = todos.find(t => String(t.id) === overId);
+            const targetTodo = localTodos.find(t => String(t.id) === overId);
             if (targetTodo) {
                 targetQuadrant = getQuadrant(targetTodo);
             }
@@ -247,29 +253,89 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
 
         const [importance, priority] = quadrantToMatrix(targetQuadrant);
 
-        if (importance !== draggedTodo.importance || priority !== draggedTodo.priority) {
+        const currentQuadrant = getQuadrant(draggedTodo);
+
+        const lists = {
+            q1: groupedTodos.q1.slice(),
+            q2: groupedTodos.q2.slice(),
+            q3: groupedTodos.q3.slice(),
+            q4: groupedTodos.q4.slice(),
+        };
+
+        lists[currentQuadrant] = lists[currentQuadrant].filter(t => String(t.id) !== draggedId);
+
+        let insertIndex = lists[targetQuadrant].length;
+        if (!['q1', 'q2', 'q3', 'q4'].includes(overId)) {
+            const overIndex = lists[targetQuadrant].findIndex(t => String(t.id) === overId);
+            if (overIndex !== -1) {
+                insertIndex = overIndex;
+            }
+        }
+
+        const updatedDragged = { ...draggedTodo, importance, priority };
+        lists[targetQuadrant] = [
+            ...lists[targetQuadrant].slice(0, insertIndex),
+            updatedDragged,
+            ...lists[targetQuadrant].slice(insertIndex),
+        ];
+
+        const payload = {
+            column: targetQuadrant,
+            todo_ids: lists[targetQuadrant].map(t => t.id),
+        };
+
+        const postReorder = () => {
+            router.post('/todos/reorder', payload, {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    onTaskUpdate();
+                },
+            });
+        };
+
+        const quadrantChanged = (importance !== draggedTodo.importance) || (priority !== draggedTodo.priority);
+
+        // Optimistically update local state for smoother UX
+        setLocalTodos(prev => {
+            // Build ordered ids for target quadrant
+            const targetIds = lists[targetQuadrant].map(t => t.id);
+            const inTarget = new Set(targetIds);
+
+            const others = prev.filter(t => getQuadrant(t) !== targetQuadrant || t.is_completed || t.archived);
+
+            const reorderedTarget = prev
+                .filter(t => getQuadrant(t) === targetQuadrant && !t.is_completed && !t.archived)
+                .sort((a, b) => targetIds.indexOf(a.id) - targetIds.indexOf(b.id))
+                .map(t => (t.id === updatedDragged.id ? updatedDragged : t));
+
+            return [...others, ...reorderedTarget];
+        });
+
+        if (quadrantChanged) {
             const token = resolveCsrfToken();
-            const payload = {
+            const updatePayload = {
                 importance,
                 priority,
             };
-
             if (token) {
-                payload._token = token;
+                updatePayload._token = token;
             }
 
             router.post(
                 `/todos/${draggedTodo.id}/update-eisenhower`,
-                payload,
+                updatePayload,
                 {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => {
                         onTaskSelect(draggedTodo);
-                        onTaskUpdate();
+                        postReorder();
                     },
                 }
             );
+        } else {
+            postReorder();
         }
     };
 
@@ -327,14 +393,14 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
 
     const groupedTodos = useMemo(() => {
         const groups = { q1: [], q2: [], q3: [], q4: [] };
-        todos.forEach(todo => {
+        localTodos.forEach(todo => {
             if (!todo.is_completed && !todo.archived) {
                 const quad = getQuadrant(todo);
                 groups[quad].push(todo);
             }
         });
         return groups;
-    }, [todos]);
+    }, [localTodos]);
 
     const QuadrantColumn = ({ id, title, description, todos: quadTodos, bgColor, icon }) => {
         const { isOver, setNodeRef } = useDroppable({ id });
@@ -451,7 +517,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                 <DragOverlay>
                     {activeId ? (
                         <DraggableTaskCard
-                            todo={todos.find(t => String(t.id) === String(activeId))}
+                            todo={localTodos.find(t => String(t.id) === String(activeId))}
                             onToggle={() => {}}
                         />
                     ) : null}
