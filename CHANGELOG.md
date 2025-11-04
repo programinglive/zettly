@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.7](https://github.com/programinglive/todo/compare/v0.8.6...v0.8.7) (2025-11-04)
+
+
+### 🐛 Bug Fixes
+
+* correct kanban board reordering logic to maintain proper todo order ([92469f9](https://github.com/programinglive/todo/commit/92469f96f34e76136eee43bf5ce3277020d35579))
+
 ### [0.8.6](https://github.com/programinglive/todo/compare/v0.8.5...v0.8.6) (2025-11-04)
 
 
