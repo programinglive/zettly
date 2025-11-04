@@ -8,10 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class Todo extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static ?bool $kanbanOrderColumnExists = null;
 
     const TYPE_TODO = 'todo';
 
@@ -64,6 +67,10 @@ class Todo extends Model
                 return;
             }
 
+            if (! self::hasKanbanOrderColumn()) {
+                return;
+            }
+
             $query = static::query()
                 ->where('user_id', $todo->user_id)
                 ->where('type', self::TYPE_TODO)
@@ -84,6 +91,20 @@ class Todo extends Model
 
             $todo->kanban_order = ($maxOrder ?? 0) + 1;
         });
+    }
+
+    public static function hasKanbanOrderColumn(): bool
+    {
+        if (self::$kanbanOrderColumnExists === null) {
+            self::$kanbanOrderColumnExists = Schema::hasColumn((new self())->getTable(), 'kanban_order');
+        }
+
+        return self::$kanbanOrderColumnExists;
+    }
+
+    public static function refreshKanbanOrderColumnCache(?bool $forceValue = null): void
+    {
+        self::$kanbanOrderColumnExists = $forceValue;
     }
 
     public function user(): BelongsTo

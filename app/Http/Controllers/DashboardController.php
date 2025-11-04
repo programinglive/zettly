@@ -31,9 +31,13 @@ class DashboardController extends Controller
             ->orderByRaw("CASE 
             WHEN importance = 'important' THEN 1 
             WHEN importance = 'not_important' THEN 2 
-            ELSE 3 END")
-            ->orderBy('kanban_order')
-            ->orderBy('created_at', 'desc');
+            ELSE 3 END");
+
+        if (Todo::hasKanbanOrderColumn()) {
+            $todosQuery->orderBy('kanban_order');
+        }
+
+        $todosQuery->orderBy('created_at', 'desc');
 
         if (! empty($selectedTagIds)) {
             $todosQuery->whereHas('tags', function ($query) use ($selectedTagIds) {

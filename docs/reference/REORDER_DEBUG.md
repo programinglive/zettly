@@ -140,6 +140,17 @@ $todos->each(fn($t) => echo $t->id . ': ' . $t->title . ' (order: ' . $t->kanban
 2. Look for database transaction errors
 3. Verify the `kanban_order` column exists in the database
 4. Run migrations if needed: `php artisan migrate`
+5. If the column is intentionally absent (legacy env), the app now skips reordering and keeps existing order while still returning a success message.
+
+### Issue: Missing `kanban_order` column after rollback or legacy restore
+
+**Cause**: Older databases may not include the Kanban ordering column while the code expects it.
+
+**Solution**:
+1. Confirm the column is missing: `SHOW COLUMNS FROM todos LIKE 'kanban_order';`
+2. Run the migration that adds it: `php artisan migrate`
+3. No urgent hotfix is required—ordering gracefully no-ops until the column exists.
+4. After migration, rebuild cache with: `php artisan optimize:clear`
 
 ## Testing Checklist
 

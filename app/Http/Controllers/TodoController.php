@@ -77,9 +77,13 @@ class TodoController extends Controller
             ->orderByRaw("CASE 
                 WHEN importance = 'important' THEN 1 
                 WHEN importance = 'not_important' THEN 2 
-                ELSE 3 END")
-            ->orderBy('kanban_order')
-            ->orderBy('created_at', 'desc');
+                ELSE 3 END");
+
+        if (Todo::hasKanbanOrderColumn()) {
+            $query->orderBy('kanban_order');
+        }
+
+        $query->orderBy('created_at', 'desc');
 
         $todos = $query->paginate(20);
 
@@ -773,6 +777,13 @@ class TodoController extends Controller
             ->notArchived();
 
         $query = $this->applyKanbanColumnScope($query, $column);
+
+        if (! Todo::hasKanbanOrderColumn()) {
+            return $this->reorderResponse($request, [
+                'ordered_count' => 0,
+                'column' => $column,
+            ]);
+        }
 
         $todos = $query
             ->orderBy('kanban_order')
