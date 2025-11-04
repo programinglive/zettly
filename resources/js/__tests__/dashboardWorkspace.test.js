@@ -195,8 +195,9 @@ test('kanban board toggle and priority update use transform for reason submissio
     assert.ok(
         kanbanSource.includes("router.post('/todos/reorder', payload, {") &&
         kanbanSource.includes("todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id)") &&
-        kanbanSource.includes('onError: () => {\n                setTodos(todos);'),
-        'Expected Kanban board to post reordered IDs to the new reorder endpoint with rollback handling.'
+        kanbanSource.includes('onError: (errors) => {') &&
+        kanbanSource.includes('console.error(\'Reorder failed:\', errors);'),
+        'Expected Kanban board to post reordered IDs to the new reorder endpoint with error logging.'
     );
 });
 

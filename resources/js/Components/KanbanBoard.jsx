@@ -438,8 +438,9 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         router.post('/todos/reorder', payload, {
             preserveState: true,
             preserveScroll: true,
-            onError: () => {
-                setTodos(todos);
+            onError: (errors) => {
+                console.error('Reorder failed:', errors);
+                setTodos(prevTodos => prevTodos);
             },
         });
     };

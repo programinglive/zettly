@@ -1391,13 +1391,10 @@ class TodoController extends Controller
 
     protected function reorderResponse(Request $request, array $data = [])
     {
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json(array_merge([
-                'message' => 'Todo order updated successfully',
-            ], $data));
-        }
-
-        return redirect()->back()->with('success', 'Todo order updated successfully');
+        // Reorder is always a JSON endpoint (called from Inertia frontend)
+        return response()->json(array_merge([
+            'message' => 'Todo order updated successfully',
+        ], $data));
     }
 
     protected function applyKanbanColumnScope($query, string $column)
