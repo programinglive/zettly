@@ -6,6 +6,7 @@ import DashboardLayout from '../Layouts/DashboardLayout';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 import SystemStatus from '../Components/SystemStatus';
+import FocusGreeting from '../Components/FocusGreeting';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
 import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../Components/ui/drawer';
 
@@ -466,6 +467,11 @@ export default function Dashboard({
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
                         <p className="text-gray-600 dark:text-gray-400">Stay on top of your latest activity.</p>
+                    </div>
+
+                    {/* Focus Greeting */}
+                    <div className="mb-6">
+                        <FocusGreeting />
                     </div>
 
                     {/* Main Layout */}

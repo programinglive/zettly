@@ -89,4 +89,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(PushSubscription::class);
     }
+
+    public function foci()
+    {
+        return $this->hasMany(Focus::class);
+    }
+
+    public function currentFocus()
+    {
+        return $this->hasOne(Focus::class)
+            ->whereNull('completed_at')
+            ->orderBy('started_at', 'desc');
+    }
 }

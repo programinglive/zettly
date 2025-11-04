@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\SystemMonitorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrawingController;
+use App\Http\Controllers\FocusController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
@@ -110,6 +111,13 @@ Route::middleware('auth')->group(function () {
     // Pusher test routes (for development/testing)
     Route::get('/test/pusher', [PusherTestController::class, 'test'])->name('test.pusher');
     Route::post('/test/pusher/broadcast', [PusherTestController::class, 'testBroadcast'])->name('test.pusher.broadcast');
+
+    // Focus management routes
+    Route::get('/focus/current', [FocusController::class, 'current'])->name('focus.current');
+    Route::get('/focus', [FocusController::class, 'index'])->name('focus.index');
+    Route::post('/focus', [FocusController::class, 'store'])->name('focus.store');
+    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('focus.complete');
+    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('focus.destroy');
 });
 
 require __DIR__.'/auth.php';
