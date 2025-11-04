@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.6](https://github.com/programinglive/todo/compare/v0.8.5...v0.8.6) (2025-11-04)
+
+
+### 🐛 Bug Fixes
+
+* suppress zero artifacts in todo details ([5b91ee4](https://github.com/programinglive/todo/commit/5b91ee466b192be95223b2b51ffcd8c1d07b2110))
+
 ### [0.8.5](https://github.com/programinglive/todo/compare/v0.8.4...v0.8.5) (2025-11-04)
 
 
