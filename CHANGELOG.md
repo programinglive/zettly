@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.1](https://github.com/programinglive/todo/compare/v0.8.0...v0.8.1) (2025-11-04)
+
+
+### ✨ Features
+
+* add focus greeting feature with daily focus tracking ([5683d3d](https://github.com/programinglive/todo/commit/5683d3ddf92fd8f6d2ac7c54d3142f9fb1275152))
+
 ## [0.8.0](https://github.com/programinglive/todo/compare/v0.7.13...v0.8.0) (2025-11-03)
 
 
