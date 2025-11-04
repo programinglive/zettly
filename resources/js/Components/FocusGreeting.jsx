@@ -14,6 +14,27 @@ export default function FocusGreeting() {
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
     const autoOpenRef = useRef(false);
+    const tabletDetectionRef = useRef(false);
+
+    const detectTabletDevice = () => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        const maxTouchPoints = window.navigator.maxTouchPoints ?? 0;
+        const pointerIsCoarse = window.matchMedia?.('(pointer: coarse)')?.matches ?? false;
+        const minViewport = Math.min(window.innerWidth, window.innerHeight);
+
+        const isIPad = userAgent.includes('ipad') || (userAgent.includes('macintosh') && maxTouchPoints > 1);
+        const isAndroidTablet = userAgent.includes('android') && !userAgent.includes('mobile');
+
+        if (isIPad || isAndroidTablet) {
+            return true;
+        }
+
+        return pointerIsCoarse && maxTouchPoints > 1 && minViewport >= 600;
+    };
 
     // Get current hour for greeting
     const getGreeting = () => {
@@ -25,10 +46,17 @@ export default function FocusGreeting() {
 
     // Fetch current focus on mount
     useEffect(() => {
-        fetchCurrentFocus();
+        let skipAutoOpen = false;
+
+        if (typeof window !== 'undefined') {
+            tabletDetectionRef.current = detectTabletDevice();
+            skipAutoOpen = tabletDetectionRef.current;
+        }
+
+        fetchCurrentFocus({ skipAutoOpen });
     }, []);
 
-    const fetchCurrentFocus = async () => {
+    const fetchCurrentFocus = async ({ skipAutoOpen = false } = {}) => {
         try {
             setIsLoading(true);
             const response = await fetch('/focus/current');
@@ -36,7 +64,9 @@ export default function FocusGreeting() {
             if (data.success) {
                 setCurrentFocus(data.data);
                 if (!data.data && !autoOpenRef.current) {
-                    setShowDialog(true);
+                    if (!skipAutoOpen) {
+                        setShowDialog(true);
+                    }
                     autoOpenRef.current = true;
                 }
                 if (data.data && !autoOpenRef.current) {
@@ -119,7 +149,11 @@ export default function FocusGreeting() {
             setCurrentFocus(null);
             setTitle('');
             setDescription('');
-            setShowDialog(true);
+            if (!tabletDetectionRef.current) {
+                setShowDialog(true);
+            } else {
+                setShowDialog(false);
+            }
             autoOpenRef.current = false;
         } catch (err) {
             console.error('Failed to complete focus:', err);

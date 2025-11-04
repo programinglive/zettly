@@ -13,20 +13,40 @@ const dialogPath = join(__dirname, '..', 'Components', 'ui', 'dialog.jsx');
 const focusGreetingSource = readFileSync(focusGreetingPath, 'utf8');
 const dialogSource = readFileSync(dialogPath, 'utf8');
 
-test('focus greeting auto-opens dialog when no current focus', () => {
+test('focus greeting auto-opens dialog when no current focus and not skipping', () => {
     assert.ok(
         focusGreetingSource.includes('const autoOpenRef = useRef(false);'),
         'Expected focus greeting to track whether the dialog was auto-opened.'
     );
 
     assert.ok(
-        focusGreetingSource.includes("if (!data.data && !autoOpenRef.current) {\n                    setShowDialog(true);\n                    autoOpenRef.current = true;"),
-        'Expected focus greeting to open the dialog automatically when no focus exists.'
+        focusGreetingSource.includes('if (!data.data && !autoOpenRef.current)') &&
+            /if \(!skipAutoOpen\) {\s*setShowDialog\(true\);/m.test(focusGreetingSource),
+        'Expected focus greeting to open the dialog automatically when no focus exists and auto-open is not skipped.'
     );
 
     assert.ok(
         focusGreetingSource.includes('autoOpenRef.current = true;') && focusGreetingSource.match(/setShowDialog\(false\);\s*autoOpenRef\.current = true;/),
         'Expected focus greeting to mark that the dialog has auto-opened after creating a focus or fetching an existing one.'
+    );
+});
+
+test('focus greeting skips auto-open on tablets', () => {
+    assert.ok(
+        focusGreetingSource.includes('const tabletDetectionRef = useRef(false);'),
+        'Expected focus greeting to track tablet detection state.'
+    );
+
+    assert.ok(
+        /if \(typeof window !== ['"]undefined['"]\) {\s*tabletDetectionRef\.current = detectTabletDevice\(\);\s*skipAutoOpen = tabletDetectionRef\.current;/m.test(
+            focusGreetingSource
+        ),
+        'Expected focus greeting to set skipAutoOpen based on tablet detection.'
+    );
+
+    assert.ok(
+        /if \(!tabletDetectionRef\.current\) {\s*setShowDialog\(true\);\s*} else {\s*setShowDialog\(false\);\s*}/m.test(focusGreetingSource),
+        'Expected focus greeting to avoid reopening the dialog automatically after completion when on tablet.'
     );
 });
 
@@ -44,7 +64,14 @@ test('focus greeting dialog uses enlarged layout', () => {
 
 test('focus greeting prompts for a new focus after completion', () => {
     assert.ok(
-        focusGreetingSource.includes("setCurrentFocus(null);\n            setTitle('');\n            setDescription('');\n            setShowDialog(true);\n            autoOpenRef.current = false;"),
-        'Expected focus greeting to clear the form and reopen the dialog after completing a focus.'
+        /setCurrentFocus\(null\);\s*setTitle\(''\);\s*setDescription\(''\);/m.test(focusGreetingSource),
+        'Expected focus greeting to clear the form after completing a focus.'
+    );
+
+    assert.ok(
+        /if \(!tabletDetectionRef\.current\) {\s*setShowDialog\(true\);\s*} else {\s*setShowDialog\(false\);\s*}\s*autoOpenRef\.current = false;/m.test(
+            focusGreetingSource
+        ),
+        'Expected focus greeting to reopen the dialog only when not on tablet, and mark auto-open state reset.'
     );
 });

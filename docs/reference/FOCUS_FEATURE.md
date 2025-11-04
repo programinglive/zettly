@@ -227,6 +227,7 @@ Located at: `resources/js/Components/FocusGreeting.jsx`
 - Displays time-based greeting (Good morning/afternoon/evening)
 - Shows current active focus if one exists
 - Automatically opens the focus dialog for first-time/first-session users who do not have a focus yet
+- Skips the automatic dialog open on tablet devices to avoid disruptive overlays on medium screens
 - Allows user to complete or delete current focus
 - When a focus is completed, automatically reopens the dialog with cleared fields so the user can immediately set the next focus
 - Provides dialog to set a new focus using an enlarged layout (3xl width, generous spacing) for improved readability
