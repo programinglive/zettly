@@ -2,6 +2,22 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.8.9 · 2025-11-04
+
+### ✨ Features
+
+- **Focus demo data** — Added `FocusSeeder` so every seeded user starts with an active focus and recent completion history, complete with status events for the dashboard timeline.
+- **Drawing gallery demo data** — Added `DrawSeeder` to provision workspace sketches, mind maps, and dashboard wireframes that showcase the TLDraw workspace out of the box.
+
+### 🐛 Bug Fixes
+
+- **Kanban ordering** — Guard all kanban `orderBy` clauses and reorder paths when the `kanban_order` column is unavailable, preventing SQL errors in legacy databases.
+
+### ✅ Tests
+
+- `php artisan test --filter=FocusTest`
+- `php artisan test --filter=DrawTest`
+
 ## v0.7.6 · 2025-11-03
 
 ### 🛠️ Bug Fixes
