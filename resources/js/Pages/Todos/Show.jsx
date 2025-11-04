@@ -211,6 +211,56 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
     const createdAt = useMemo(() => new Date(todo.created_at), [todo.created_at]);
     const updatedAt = useMemo(() => new Date(todo.updated_at), [todo.updated_at]);
     const completedAt = useMemo(() => (todo.completed_at ? new Date(todo.completed_at) : null), [todo.completed_at]);
+    const descriptionMarkup = useMemo(() => {
+        if (todo.description == null) {
+            return '';
+        }
+
+        if (typeof todo.description === 'string') {
+            return todo.description;
+        }
+
+        try {
+            return String(todo.description);
+        } catch (error) {
+            return '';
+        }
+    }, [todo.description]);
+    const cleanedDescriptionMarkup = useMemo(() => {
+        if (!descriptionMarkup) {
+            return '';
+        }
+
+        const trailingZeroPattern = /(?:\s|&nbsp;)*(?:<p[^>]*>\s*(?:&nbsp;|\s)*0(?:\s|&nbsp;)*<\/p>|<div[^>]*>\s*(?:&nbsp;|\s)*0(?:\s|&nbsp;)*<\/div>|(?:<br\s*\/?>(?:\s|&nbsp;)*)*0)(?:\s|&nbsp;)*$/gi;
+
+        let next = descriptionMarkup.trim();
+        let previous;
+
+        do {
+            previous = next;
+            next = next.replace(trailingZeroPattern, '').trim();
+        } while (next !== previous);
+
+        return next;
+    }, [descriptionMarkup]);
+    const hasDescription = useMemo(() => {
+        if (!cleanedDescriptionMarkup) {
+            return false;
+        }
+
+        const plainText = cleanedDescriptionMarkup
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .trim();
+
+        return Boolean(plainText);
+    }, [cleanedDescriptionMarkup]);
+    const relatedTodosCount = useMemo(() => {
+        const forward = Array.isArray(todo.related_todos) ? todo.related_todos.length : 0;
+        const backward = Array.isArray(todo.relatedTodos) ? todo.relatedTodos.length : 0;
+
+        return forward + backward;
+    }, [todo.related_todos, todo.relatedTodos]);
     const [extrasOpen, setExtrasOpen] = useState(false);
 
     const formatTimestamp = useMemo(() => {
@@ -371,8 +421,8 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
 
                     <div className="px-5 py-6 text-gray-700 dark:text-gray-200 lg:px-10 lg:py-10">
                         <section>
-                            {todo.description ? (
-                                <SanitizedHtml className="prose prose-slate max-w-none text-base dark:prose-invert" html={todo.description} />
+                            {hasDescription ? (
+                                <SanitizedHtml className="prose prose-slate max-w-none text-base dark:prose-invert" html={cleanedDescriptionMarkup} />
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-400">
                                     No description provided yet.
@@ -380,7 +430,7 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                             )}
                         </section>
 
-                        {(checklistItems.length > 0 || attachments.length || (todo.related_todos?.length || todo.relatedTodos?.length) || statusEvents.length) && (
+                        {(checklistItems.length > 0 || attachments.length > 0 || relatedTodosCount > 0 || statusEvents.length > 0) && (
                             <div className="mt-8 border-t border-gray-200 pt-4 dark:border-gray-800 lg:mt-12 lg:pt-6">
                                 <button
                                     type="button"

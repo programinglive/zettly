@@ -21,7 +21,31 @@ if (!hljs.getLanguage('php')) {
 }
 
 export default function SanitizedHtml({ html, className = '' }) {
-    const sanitized = useMemo(() => (html ? DOMPurify.sanitize(html) : ''), [html]);
+    const sanitized = useMemo(() => {
+        if (!html) {
+            return '';
+        }
+
+        let cleaned = DOMPurify.sanitize(html);
+
+        if (!cleaned) {
+            return '';
+        }
+
+        cleaned = cleaned.replace(/(<p[^>]*>\s*<\/p>|<div[^>]*>\s*<\/div>|<br\s*\/?>(?:\s|&nbsp;)*)+/gi, '').trim();
+
+        const trailingZeroPattern = /(?:\s|&nbsp;)*(?:<p[^>]*>\s*(?:&nbsp;|\s)*0(?:\s|&nbsp;)*<\/p>|<div[^>]*>\s*(?:&nbsp;|\s)*0(?:\s|&nbsp;)*<\/div>|(?:<br\s*\/?>(?:\s|&nbsp;)*)*0)(?:\s|&nbsp;)*$/gi;
+
+        let next = cleaned;
+        let previous;
+
+        do {
+            previous = next;
+            next = next.replace(trailingZeroPattern, '').trim();
+        } while (next !== previous);
+
+        return next;
+    }, [html]);
     const containerRef = useRef(null);
 
     useEffect(() => {
