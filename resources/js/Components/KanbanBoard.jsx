@@ -8,6 +8,7 @@ import {
     DragOverlay,
     KeyboardSensor,
     PointerSensor,
+    closestCenter,
     useDroppable,
     useSensor,
     useSensors,
