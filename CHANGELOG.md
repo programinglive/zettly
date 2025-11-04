@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.9](https://github.com/programinglive/todo/compare/v0.8.8...v0.8.9) (2025-11-04)
+
+
+### 🐛 Bug Fixes
+
+* guard kanban ordering when column missing ([8b4d2cd](https://github.com/programinglive/todo/commit/8b4d2cd5bdb02928d335bb623441801fccda7bc0))
+
 ### [0.8.8](https://github.com/programinglive/todo/compare/v0.8.7...v0.8.8) (2025-11-04)
 
 
