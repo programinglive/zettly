@@ -7,6 +7,7 @@ import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
 import SystemStatus from '../Components/SystemStatus';
 import FocusGreeting from '../Components/FocusGreeting';
+import ReorderDebug from '../Components/ReorderDebug';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
 import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../Components/ui/drawer';
 
@@ -522,6 +523,8 @@ export default function Dashboard({
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>
+
+            {hasDebugFlag && <ReorderDebug />}
 
             <div className="pointer-events-none fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
                 <div
