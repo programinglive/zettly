@@ -45,6 +45,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Rich-text editor with sanitized HTML output.
 - Priorities (urgent/not urgent) and importance classification surfaced in Eisenhower matrix.
 - Tag filters, completion toggles, archival/restoration flows.
+- Kanban board with drag-and-drop ordering that persists column sequences per user.
 - Linked todos, checklist items, attachments, due dates.
 
 ### 6.2 Tag Management

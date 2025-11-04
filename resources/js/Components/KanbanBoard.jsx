@@ -5,20 +5,14 @@ import ConfirmationModal from './ConfirmationModal';
 import CompletionReasonDialog from './CompletionReasonDialog';
 import {
     DndContext,
-    closestCenter,
+    DragOverlay,
     KeyboardSensor,
     PointerSensor,
+    useDroppable,
     useSensor,
     useSensors,
-    useDroppable,
-    DragOverlay,
 } from '@dnd-kit/core';
-import {
-    useSortable,
-    sortableKeyboardCoordinates,
-    SortableContext,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TagBadge from './TagBadge';
 
@@ -152,6 +146,36 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
 
 const MAX_VISIBLE_TODOS = 5;
 const LOAD_INCREMENT = 5;
+const KANBAN_COLUMNS = ['q1', 'q2', 'q3', 'q4', 'completed'];
+
+const getColumnKey = (todo) => {
+    if (todo.is_completed) {
+        return 'completed';
+    }
+
+    const importance = todo.importance ?? 'not_important';
+    const priority = todo.priority ?? 'not_urgent';
+
+    if (importance === 'important' && priority === 'urgent') {
+        return 'q1';
+    }
+    if (importance === 'important' && priority === 'not_urgent') {
+        return 'q2';
+    }
+    if (importance === 'not_important' && priority === 'urgent') {
+        return 'q3';
+    }
+
+    return 'q4';
+};
+
+const columnKeyToProps = {
+    q1: { importance: 'important', priority: 'urgent', is_completed: false },
+    q2: { importance: 'important', priority: 'not_urgent', is_completed: false },
+    q3: { importance: 'not_important', priority: 'urgent', is_completed: false },
+    q4: { importance: 'not_important', priority: 'not_urgent', is_completed: false },
+    completed: { importance: null, priority: null, is_completed: true },
+};
 
 export default function KanbanBoard({ todos: initialTodos, showCreateButton = true, onSelect }) {
     const toggleForm = useForm({ reason: '' });
@@ -329,7 +353,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
     const handleDragEnd = (event) => {
         const { active, over } = event;
         setActiveId(null);
-        
+
         if (!over) {
             return;
         }
@@ -337,161 +361,98 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         const draggedId = String(active.id);
         const overId = String(over.id);
 
-        // Find the todo being dragged
-        const draggedTodo = todos.find(todo => String(todo.id) === draggedId);
-        if (!draggedTodo) {
+        const draggedIndex = todos.findIndex((todo) => String(todo.id) === draggedId);
+        if (draggedIndex === -1) {
             return;
         }
 
-        // Determine target column
-        let targetColumn = null;
-        
-        // Check if dropped directly on a column
-        if (['q1', 'q2', 'q3', 'q4', 'completed'].includes(overId)) {
-            targetColumn = overId;
-        } else {
-            // Dropped on another todo, find which column it belongs to
-            const targetTodo = todos.find(todo => String(todo.id) === overId);
-            if (targetTodo) {
-                if (targetTodo.is_completed) {
-                    targetColumn = 'completed';
-                } else if (targetTodo.importance === 'important' && targetTodo.priority === 'urgent') {
-                    targetColumn = 'q1';
-                } else if (targetTodo.importance === 'important' && targetTodo.priority === 'not_urgent') {
-                    targetColumn = 'q2';
-                } else if (targetTodo.importance === 'not_important' && targetTodo.priority === 'urgent') {
-                    targetColumn = 'q3';
-                } else if (targetTodo.importance === 'not_important' && targetTodo.priority === 'not_urgent') {
-                    targetColumn = 'q4';
-                } else {
-                    targetColumn = 'q4';
-                }
+        const draggedTodo = todos[draggedIndex];
+
+        const resolveDropColumn = () => {
+            if (KANBAN_COLUMNS.includes(overId)) {
+                return overId;
             }
-        }
+
+            const targetTodo = todos.find((todo) => String(todo.id) === overId);
+            if (!targetTodo) {
+                return null;
+            }
+
+            return getColumnKey(targetTodo);
+        };
+
+        const targetColumn = resolveDropColumn();
 
         if (!targetColumn) {
             return;
         }
 
-        // Determine new priority and completion status
-        let newPriority = draggedTodo.priority;
-        let newImportance = draggedTodo.importance;
-        let newCompleted = draggedTodo.is_completed;
+        const currentColumn = getColumnKey(draggedTodo);
 
-        switch (targetColumn) {
-            case 'q1':
-                newImportance = 'important';
-                newPriority = 'urgent';
-                newCompleted = false;
-                break;
-            case 'q2':
-                newImportance = 'important';
-                newPriority = 'not_urgent';
-                newCompleted = false;
-                break;
-            case 'q3':
-                newImportance = 'not_important';
-                newPriority = 'urgent';
-                newCompleted = false;
-                break;
-            case 'q4':
-                newImportance = 'not_important';
-                newPriority = 'not_urgent';
-                newCompleted = false;
-                break;
-            case 'completed':
-                newCompleted = true;
-                // When completed, priority becomes irrelevant - set to null
-                newPriority = null;
-                newImportance = null;
-                break;
+        const columnLists = KANBAN_COLUMNS.reduce((acc, columnKey) => {
+            acc[columnKey] = todos.filter((todo) => getColumnKey(todo) === columnKey && !todo.archived);
+            return acc;
+        }, {});
+
+        const nextColumnLists = { ...columnLists };
+
+        // Remove from current column
+        nextColumnLists[currentColumn] = columnLists[currentColumn].filter((todo) => String(todo.id) !== draggedId);
+
+        // Determine insertion index
+        let insertIndex = nextColumnLists[targetColumn].length;
+
+        if (!KANBAN_COLUMNS.includes(overId)) {
+            const overIndex = nextColumnLists[targetColumn].findIndex((todo) => String(todo.id) === overId);
+            if (overIndex !== -1) {
+                insertIndex = overIndex;
+            }
         }
 
-        // Only update if something changed
-        if (
-            newPriority !== draggedTodo.priority ||
-            newImportance !== draggedTodo.importance ||
-            newCompleted !== draggedTodo.is_completed
-        ) {
-            const updateData = {
-                priority: newPriority,
-                importance: newImportance,
-                is_completed: Boolean(newCompleted),
-            };
+        const updatedDragged = {
+            ...draggedTodo,
+            ...columnKeyToProps[targetColumn],
+        };
 
-            if (newCompleted !== draggedTodo.is_completed) {
-                openReasonDialog({
-                    type: 'updatePriority',
-                    todo: draggedTodo,
-                    payload: updateData,
-                    originalState: {
-                        priority: draggedTodo.priority,
-                        importance: draggedTodo.importance,
-                        is_completed: draggedTodo.is_completed,
-                    },
-                    targetState: newCompleted ? 'completed' : 'pending',
-                });
+        nextColumnLists[targetColumn] = [
+            ...nextColumnLists[targetColumn].slice(0, insertIndex),
+            updatedDragged,
+            ...nextColumnLists[targetColumn].slice(insertIndex),
+        ];
 
-                return;
+        const newTodos = todos.map((todo) => {
+            if (String(todo.id) === draggedId) {
+                return updatedDragged;
             }
 
-            // Optimistically update the UI
-            setTodos(prevTodos => 
-                prevTodos.map(todo => 
-                    String(todo.id) === draggedId 
-                        ? { ...todo, priority: newPriority, importance: newImportance, is_completed: newCompleted }
-                        : todo
-                )
-            );
+            return todo;
+        });
 
-            router.post(`/todos/${draggedTodo.id}/update-priority`, updateData, {
-                preserveScroll: true,
-                preserveState: true,
-                onError: () => {
-                    setTodos(prevTodos => 
-                        prevTodos.map(todo => 
-                            String(todo.id) === draggedId 
-                                ? {
-                                      ...todo,
-                                      priority: draggedTodo.priority,
-                                      importance: draggedTodo.importance,
-                                      is_completed: draggedTodo.is_completed,
-                                  }
-                                : todo
-                        )
-                    );
-                }
-            });
-        }
+        setTodos(newTodos);
+
+        const payload = {
+            column: targetColumn,
+            todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id),
+        };
+
+        router.post('/todos/reorder', payload, {
+            preserveState: true,
+            preserveScroll: true,
+            onError: () => {
+                setTodos(todos);
+            },
+        });
     };
 
     // Separate todos by status (exclude archived todos)
     const pendingTodos = todos.filter(todo => !todo.is_completed && !todo.archived);
     const completedTodos = todos.filter(todo => todo.is_completed && !todo.archived);
 
-    // Group pending todos by Eisenhower properties
-    const resolveQuadrant = (todo) => {
-        const priority = todo.priority ?? 'not_urgent';
-        const importance = todo.importance ?? 'not_important';
-
-        if (importance === 'important' && priority === 'urgent') {
-            return 'q1';
-        }
-        if (importance === 'important' && priority === 'not_urgent') {
-            return 'q2';
-        }
-        if (importance === 'not_important' && priority === 'urgent') {
-            return 'q3';
-        }
-
-        return 'q4';
-    };
-
     const quadrantTodos = {
-        q1: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q1'),
-        q2: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q2'),
-        q3: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q3'),
-        q4: pendingTodos.filter((todo) => resolveQuadrant(todo) === 'q4'),
+        q1: pendingTodos.filter((todo) => getColumnKey(todo) === 'q1'),
+        q2: pendingTodos.filter((todo) => getColumnKey(todo) === 'q2'),
+        q3: pendingTodos.filter((todo) => getColumnKey(todo) === 'q3'),
+        q4: pendingTodos.filter((todo) => getColumnKey(todo) === 'q4'),
     };
 
     useEffect(() => {

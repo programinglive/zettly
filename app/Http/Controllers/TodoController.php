@@ -78,6 +78,7 @@ class TodoController extends Controller
                 WHEN importance = 'important' THEN 1 
                 WHEN importance = 'not_important' THEN 2 
                 ELSE 3 END")
+            ->orderBy('kanban_order')
             ->orderBy('created_at', 'desc');
 
         $todos = $query->paginate(20);
@@ -750,6 +751,68 @@ class TodoController extends Controller
             ->with('success', 'Todo priority updated successfully!');
     }
 
+    public function reorder(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'column' => 'required|string|in:q1,q2,q3,q4,completed',
+            'todo_ids' => 'required|array',
+            'todo_ids.*' => 'integer',
+        ]);
+
+        $column = $validated['column'];
+        $todoIds = collect($validated['todo_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $query = $user->todos()
+            ->tasks()
+            ->notArchived();
+
+        $query = $this->applyKanbanColumnScope($query, $column);
+
+        $todos = $query
+            ->orderBy('kanban_order')
+            ->orderBy('created_at')
+            ->get(['id']);
+
+        if ($todos->isEmpty()) {
+            return $this->reorderResponse($request);
+        }
+
+        $knownIds = $todos->pluck('id');
+
+        $orderedIds = $todoIds->filter(fn ($id) => $knownIds->contains($id));
+
+        if ($orderedIds->isEmpty()) {
+            return $this->reorderResponse($request);
+        }
+
+        $remainingIds = $knownIds->diff($orderedIds);
+        $finalOrder = $orderedIds->concat($remainingIds)->values();
+
+        DB::transaction(function () use ($finalOrder) {
+            $now = now();
+
+            $finalOrder->each(function ($id, $index) use ($now) {
+                DB::table('todos')
+                    ->where('id', $id)
+                    ->update([
+                        'kanban_order' => $index + 1,
+                        'updated_at' => $now,
+                    ]);
+            });
+        });
+
+        return $this->reorderResponse($request, [
+            'ordered_count' => $finalOrder->count(),
+            'column' => $column,
+        ]);
+    }
+
     public function toggleChecklistItem(Request $request, Todo $todo, TodoChecklistItem $checklistItem)
     {
         if ($todo->user_id !== Auth::id()) {
@@ -1319,6 +1382,47 @@ class TodoController extends Controller
         // Clean up
         imagedestroy($sourceImage);
         imagedestroy($thumbnail);
+    }
+
+    protected function getAttachmentDisk(): string
+    {
+        return config('filesystems.default');
+    }
+
+    protected function reorderResponse(Request $request, array $data = [])
+    {
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(array_merge([
+                'message' => 'Todo order updated successfully',
+            ], $data));
+        }
+
+        return redirect()->back()->with('success', 'Todo order updated successfully');
+    }
+
+    protected function applyKanbanColumnScope($query, string $column)
+    {
+        switch ($column) {
+            case 'completed':
+                return $query->where('is_completed', true);
+            case 'q1':
+                return $query->where('is_completed', false)
+                    ->where('importance', Todo::IMPORTANCE_IMPORTANT)
+                    ->where('priority', Todo::PRIORITY_URGENT);
+            case 'q2':
+                return $query->where('is_completed', false)
+                    ->where('importance', Todo::IMPORTANCE_IMPORTANT)
+                    ->where('priority', Todo::PRIORITY_NOT_URGENT);
+            case 'q3':
+                return $query->where('is_completed', false)
+                    ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
+                    ->where('priority', Todo::PRIORITY_URGENT);
+            case 'q4':
+            default:
+                return $query->where('is_completed', false)
+                    ->where('importance', Todo::IMPORTANCE_NOT_IMPORTANT)
+                    ->where('priority', Todo::PRIORITY_NOT_URGENT);
+        }
     }
 
     private function attachmentDisk(): string

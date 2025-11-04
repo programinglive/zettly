@@ -35,6 +35,7 @@ class Todo extends Model
         'is_completed',
         'completed_at',
         'due_date',
+        'kanban_order',
         'archived',
         'archived_at',
     ];
@@ -43,6 +44,7 @@ class Todo extends Model
         'is_completed' => 'boolean',
         'completed_at' => 'datetime',
         'due_date' => 'date',
+        'kanban_order' => 'integer',
         'archived' => 'boolean',
         'archived_at' => 'datetime',
     ];
@@ -50,6 +52,39 @@ class Todo extends Model
     protected $appends = [
         'priority_color',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Todo $todo) {
+            if ($todo->type !== self::TYPE_TODO) {
+                return;
+            }
+
+            if ($todo->archived || $todo->kanban_order !== null || ! $todo->user_id) {
+                return;
+            }
+
+            $query = static::query()
+                ->where('user_id', $todo->user_id)
+                ->where('type', self::TYPE_TODO)
+                ->notArchived();
+
+            if ($todo->is_completed) {
+                $query->where('is_completed', true);
+            } else {
+                $importance = $todo->importance ?? self::IMPORTANCE_NOT_IMPORTANT;
+                $priority = $todo->priority ?? self::PRIORITY_NOT_URGENT;
+
+                $query->where('is_completed', false)
+                    ->where('importance', $importance)
+                    ->where('priority', $priority);
+            }
+
+            $maxOrder = $query->max('kanban_order');
+
+            $todo->kanban_order = ($maxOrder ?? 0) + 1;
+        });
+    }
 
     public function user(): BelongsTo
     {
@@ -169,6 +204,18 @@ class Todo extends Model
     public function setImportanceAttribute($value): void
     {
         $this->attributes['importance'] = $value !== null ? strtolower($value) : null;
+    }
+
+    public function kanbanColumnKey(): string
+    {
+        if ($this->is_completed) {
+            return 'completed';
+        }
+
+        $importance = $this->importance ?? self::IMPORTANCE_NOT_IMPORTANT;
+        $priority = $this->priority ?? self::PRIORITY_NOT_URGENT;
+
+        return sprintf('pending:%s:%s', $importance, $priority);
     }
 
     /**

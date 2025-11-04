@@ -191,6 +191,13 @@ test('kanban board toggle and priority update use transform for reason submissio
         kanbanSource.includes('updateForm.transform(() => ({'),
         'Expected Kanban board to use transform for both toggle and priority update reason submissions.'
     );
+
+    assert.ok(
+        kanbanSource.includes("router.post('/todos/reorder', payload, {") &&
+        kanbanSource.includes("todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id)") &&
+        kanbanSource.includes('onError: () => {\n                setTodos(todos);'),
+        'Expected Kanban board to post reordered IDs to the new reorder endpoint with rollback handling.'
+    );
 });
 
 test('workspace preference hook syncs changes across instances via custom events', () => {

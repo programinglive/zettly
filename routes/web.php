@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');
     Route::post('todos/{todo}/update-eisenhower', [TodoController::class, 'updateEisenhower'])->name('todos.update-eisenhower');
+    Route::post('todos/reorder', [TodoController::class, 'reorder'])->name('todos.reorder');
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
     Route::post('todos/{todo}/archive', [TodoController::class, 'archive'])->name('todos.archive');

@@ -32,6 +32,7 @@ class DashboardController extends Controller
             WHEN importance = 'important' THEN 1 
             WHEN importance = 'not_important' THEN 2 
             ELSE 3 END")
+            ->orderBy('kanban_order')
             ->orderBy('created_at', 'desc');
 
         if (! empty($selectedTagIds)) {
