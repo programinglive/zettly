@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.10](https://github.com/programinglive/todo/compare/v0.8.9...v0.8.10) (2025-11-04)
+
+
+### ✨ Features
+
+* seed focus and drawing demo data ([1917261](https://github.com/programinglive/todo/commit/1917261789194deadf27ff20b36f20441b4ef9b2))
+
 ### [0.8.9](https://github.com/programinglive/todo/compare/v0.8.8...v0.8.9) (2025-11-04)
 
 
