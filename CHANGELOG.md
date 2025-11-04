@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.3](https://github.com/programinglive/todo/compare/v0.8.2...v0.8.3) (2025-11-04)
+
+
+### ✨ Features
+
+* prompt for next focus after completion ([cb5bc72](https://github.com/programinglive/todo/commit/cb5bc72e3099b8692835805996339bcbac76832f))
+
+
+### 🐛 Bug Fixes
+
+* **focus:** adjust tablet auto-open behavior ([0d04eb2](https://github.com/programinglive/todo/commit/0d04eb278569d4f52fc9c12711fdbb7efab97d5c))
+
 ### [0.8.2](https://github.com/programinglive/todo/compare/v0.8.1...v0.8.2) (2025-11-04)
 
 
