@@ -281,32 +281,32 @@ export default function FocusGreeting() {
     }
 
     return (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:border-slate-800">
             <div className="md:grid md:grid-cols-2 md:gap-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
                         {getGreeting()}! 👋
                     </h2>
 
                     {currentFocus ? (
                         <div className="space-y-4">
                             <div className="flex items-start gap-3">
-                                <AlertCircle className="w-5 h-5 text-amber-600 mt-1 flex-shrink-0" />
+                                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-sm text-gray-600 mb-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
                                         What are you focusing on today?
                                     </p>
-                                    <div className="bg-white rounded-lg p-3 border border-amber-200">
-                                        <h3 className="font-semibold text-gray-800">
+                                    <div className="bg-white dark:bg-slate-900/70 rounded-lg p-3 border border-amber-200 dark:border-amber-400/20">
+                                        <h3 className="font-semibold text-gray-800 dark:text-gray-100">
                                             {currentFocus.title}
                                         </h3>
                                         {currentFocus.description && (
-                                            <p className="text-sm text-gray-600 mt-1">
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                                 {currentFocus.description}
                                             </p>
                                         )}
                                         {currentFocus.started_at && (
-                                            <p className="text-xs text-gray-500 mt-2">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                                                 Started: {new Date(currentFocus.started_at).toLocaleString()}
                                             </p>
                                         )}
@@ -335,7 +335,7 @@ export default function FocusGreeting() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <p className="text-gray-600">
+                            <p className="text-gray-600 dark:text-gray-300">
                                 What would you like to focus on today?
                             </p>
 
@@ -356,7 +356,7 @@ export default function FocusGreeting() {
 
                                     <form onSubmit={handleCreateFocus} className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                                 Focus Title *
                                             </label>
                                             <TextInput
@@ -369,7 +369,7 @@ export default function FocusGreeting() {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                                 Description (optional)
                                             </label>
                                             <textarea
@@ -378,12 +378,12 @@ export default function FocusGreeting() {
                                                 placeholder="Add any details about your focus..."
                                                 disabled={isSubmitting}
                                                 rows="3"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-slate-900/80 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                             />
                                         </div>
 
                                         {error && (
-                                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/40 rounded-lg text-red-700 dark:text-red-300 text-sm">
                                                 {error}
                                             </div>
                                         )}
@@ -411,30 +411,30 @@ export default function FocusGreeting() {
                 </div>
 
                 <div className="mt-6 md:mt-0">
-                    <div className="h-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Recent Focus History</h3>
+                    <div className="h-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200">Recent Focus History</h3>
                         {statusEvents.length > 0 ? (
                             <div className="mt-4 space-y-3">
                                 {statusEvents.map((event) => (
-                                    <div key={event.id} className="rounded-lg border border-gray-200 bg-indigo-50/40 p-3">
-                                        <div className="flex items-center justify-between text-xs text-gray-500">
-                                            <span className="font-medium text-gray-700">{event.user?.name ?? 'You'}</span>
+                                    <div key={event.id} className="rounded-lg border border-gray-200 bg-indigo-50/40 dark:bg-slate-800/60 dark:border-slate-700 p-3">
+                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                            <span className="font-medium text-gray-700 dark:text-gray-100">{event.user?.name ?? 'You'}</span>
                                             {event.created_at ? <span>{new Date(event.created_at).toLocaleString()}</span> : null}
                                         </div>
-                                        <p className="mt-2 text-[0.75rem] uppercase tracking-wide text-gray-500">Reason</p>
-                                        <p className="mt-1 text-sm text-gray-700 whitespace-pre-line">{event.reason}</p>
+                                        <p className="mt-2 text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</p>
+                                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{event.reason}</p>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="mt-4 text-sm text-gray-500">No focus has been completed yet.</p>
+                            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">No focus has been completed yet.</p>
                         )}
                     </div>
                 </div>
             </div>
 
             {error && !showDialog && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/40 rounded-lg text-red-700 dark:text-red-300 text-sm">
                     {error}
                 </div>
             )}
