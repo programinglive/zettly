@@ -9,15 +9,27 @@ export default function ReorderDebug() {
 
     useEffect(() => {
         console.log('🔍 ReorderDebug component mounted');
+        addLog('🔍 Debug panel initialized', 'info');
 
-        // Intercept drag events
+        // Intercept native drag events (for dnd-kit)
         const handleDragStart = (e) => {
+            console.log('🎯 Native drag started');
             setDragEvents(prev => prev + 1);
             addLog('🎯 Drag started', 'info');
         };
 
         const handleDragEnd = (e) => {
+            console.log('🎯 Native drag ended');
             addLog('🎯 Drag ended', 'info');
+        };
+
+        // Intercept pointer events (dnd-kit uses these)
+        const handlePointerDown = (e) => {
+            if (e.target?.closest('[class*="cursor-grab"]')) {
+                console.log('🎯 Pointer down on draggable');
+                setDragEvents(prev => prev + 1);
+                addLog('🎯 Drag started (pointer)', 'info');
+            }
         };
 
         // Intercept router.post
@@ -26,6 +38,7 @@ export default function ReorderDebug() {
             window.router.post = function(url, data, options) {
                 if (url === '/todos/reorder') {
                     setReorderRequests(prev => prev + 1);
+                    console.log('📤 Reorder request:', { column: data.column, ids: data.todo_ids });
                     addLog(
                         `📤 Reorder request: column=${data.column}, ids=[${data.todo_ids.join(',')}]`,
                         'request'
@@ -35,6 +48,7 @@ export default function ReorderDebug() {
                     const originalOnError = options?.onError;
                     if (originalOnError) {
                         options.onError = function(errors) {
+                            console.error('❌ Reorder error:', errors);
                             addLog(`❌ Reorder error: ${JSON.stringify(errors)}`, 'error');
                             return originalOnError.call(this, errors);
                         };
@@ -44,6 +58,7 @@ export default function ReorderDebug() {
                     const originalOnSuccess = options?.onSuccess;
                     if (originalOnSuccess) {
                         options.onSuccess = function(page) {
+                            console.log('✅ Reorder successful');
                             addLog('✅ Reorder successful', 'success');
                             return originalOnSuccess.call(this, page);
                         };
@@ -51,14 +66,17 @@ export default function ReorderDebug() {
                 }
                 return originalPost.call(this, url, data, options);
             };
+            console.log('✓ Router.post intercepted');
         }
 
         document.addEventListener('dragstart', handleDragStart);
         document.addEventListener('dragend', handleDragEnd);
+        document.addEventListener('pointerdown', handlePointerDown);
 
         return () => {
             document.removeEventListener('dragstart', handleDragStart);
             document.removeEventListener('dragend', handleDragEnd);
+            document.removeEventListener('pointerdown', handlePointerDown);
         };
     }, []);
 
