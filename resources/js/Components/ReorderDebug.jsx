@@ -3,12 +3,12 @@ import { AlertCircle, CheckCircle, XCircle, Activity } from 'lucide-react';
 
 export default function ReorderDebug() {
     const [logs, setLogs] = useState([]);
-    const [isMonitoring, setIsMonitoring] = useState(false);
+    const [isMonitoring, setIsMonitoring] = useState(true);
     const [dragEvents, setDragEvents] = useState(0);
     const [reorderRequests, setReorderRequests] = useState(0);
 
     useEffect(() => {
-        if (!isMonitoring) return;
+        console.log('🔍 ReorderDebug component mounted');
 
         // Intercept drag events
         const handleDragStart = (e) => {
@@ -60,7 +60,7 @@ export default function ReorderDebug() {
             document.removeEventListener('dragstart', handleDragStart);
             document.removeEventListener('dragend', handleDragEnd);
         };
-    }, [isMonitoring]);
+    }, []);
 
     const addLog = (message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();

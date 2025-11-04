@@ -295,10 +295,11 @@ export default function Dashboard({
             return undefined;
         }
 
-        if (!isSuperAdmin) {
-            if (window.localStorage.getItem(DEBUG_STORAGE_KEY) !== 'false') {
-                window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
-            }
+        // Allow debug mode for super admins or if explicitly enabled via localStorage
+        const debugEnabled = window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
+        
+        if (!isSuperAdmin && !debugEnabled) {
+            window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
             setHasDebugFlag(false);
             return undefined;
         }
@@ -306,9 +307,12 @@ export default function Dashboard({
         const handleDebugChange = (event) => {
             const enabled = Boolean(event.detail?.enabled);
             setHasDebugFlag(enabled);
+            console.log('🔍 Debug mode changed:', enabled);
         };
 
-        setHasDebugFlag(window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true');
+        setHasDebugFlag(debugEnabled);
+        console.log('🔍 Debug mode initialized:', debugEnabled, 'Super Admin:', isSuperAdmin);
+        
         window.addEventListener('zettly:debug-mode-changed', handleDebugChange);
 
         return () => {
