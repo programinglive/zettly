@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.5](https://github.com/programinglive/todo/compare/v0.8.4...v0.8.5) (2025-11-04)
+
+
+### 💄 Styles
+
+* polish focus greeting dark theme ([96fb124](https://github.com/programinglive/todo/commit/96fb124046b0075cb75ecece647f1df6f33f676f))
+
 ### [0.8.4](https://github.com/programinglive/todo/compare/v0.8.3...v0.8.4) (2025-11-04)
 
 
