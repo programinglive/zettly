@@ -288,7 +288,11 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
             router.post('/todos/reorder', payload, {
                 preserveState: true,
                 preserveScroll: true,
-                onSuccess: () => {
+                onSuccess: (page) => {
+                    // Refresh todos from server without full page reload
+                    if (page.props?.todos) {
+                        setLocalTodos(page.props.todos);
+                    }
                     onTaskUpdate();
                 },
             });
