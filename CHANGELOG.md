@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.8](https://github.com/programinglive/todo/compare/v0.8.7...v0.8.8) (2025-11-04)
+
+
+### ✨ Features
+
+* add comprehensive reorder debug tools and documentation ([6527fd3](https://github.com/programinglive/todo/commit/6527fd306821ed79aa8913665aa066e8daabcaf3))
+
+
+### 📝 Documentation
+
+* add comprehensive debug panel troubleshooting guide ([e2e23df](https://github.com/programinglive/todo/commit/e2e23dffc85553f39cdb87002ca66b3df63ff46b))
+
+
+### 🐛 Bug Fixes
+
+* add missing closestCenter import to KanbanBoard ([8a8d3ae](https://github.com/programinglive/todo/commit/8a8d3ae4dcfa46e09dd47aeaa5203b71913f6841))
+* add missing verticalListSortingStrategy import ([2995868](https://github.com/programinglive/todo/commit/29958682d5d574432fd0997dabb6e7d386dc454e))
+* auto-update UI on reorder without page refresh ([521d34e](https://github.com/programinglive/todo/commit/521d34ea8682f544d2e69e6dc55eda03be9dce7d))
+* enable debug mode for all users and start monitoring by default ([99745c0](https://github.com/programinglive/todo/commit/99745c070051720d81e8e378d8f7239c6ca5b0c6))
+* improve debug panel to capture dnd-kit drag events ([3f84921](https://github.com/programinglive/todo/commit/3f84921754ad00dc3321a129b565f98aa174182a))
+* make reorder endpoint return JSON to prevent page reload ([3529d79](https://github.com/programinglive/todo/commit/3529d791f0c9b63382b40823cc6797b68e070c84))
+* **matrix:** persist in-quadrant reordering and chain reorder after Eisenhower updates ([2f5d0df](https://github.com/programinglive/todo/commit/2f5d0df1d8a62a8f6fac555adbeedc310c5c1c08))
+
 ### [0.8.7](https://github.com/programinglive/todo/compare/v0.8.6...v0.8.7) (2025-11-04)
 
 
