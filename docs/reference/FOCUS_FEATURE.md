@@ -226,8 +226,9 @@ Located at: `resources/js/Components/FocusGreeting.jsx`
 **Features:**
 - Displays time-based greeting (Good morning/afternoon/evening)
 - Shows current active focus if one exists
+- Automatically opens the focus dialog for first-time/first-session users who do not have a focus yet
 - Allows user to complete or delete current focus
-- Provides dialog to set a new focus
+- Provides dialog to set a new focus using an enlarged layout (3xl width, generous spacing) for improved readability
 - Handles loading and error states
 - Responsive design with Tailwind CSS
 
@@ -278,7 +279,7 @@ php artisan test tests/Feature/FocusTest.php
 1. **User logs in and views dashboard**
    - FocusGreeting component loads
    - Fetches current focus via `/focus/current` endpoint
-   - If no active focus, shows "Set Focus" button
+   - If no active focus has ever been created in the current session, the enlarged dialog automatically opens so the user can set one immediately (afterward, it can still be opened manually)
 
 2. **User sets a focus**
    - Clicks "Set Focus" button

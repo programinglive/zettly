@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import PrimaryButton from './PrimaryButton';
@@ -13,6 +13,7 @@ export default function FocusGreeting() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
+    const autoOpenRef = useRef(false);
 
     // Get current hour for greeting
     const getGreeting = () => {
@@ -34,6 +35,13 @@ export default function FocusGreeting() {
             const data = await response.json();
             if (data.success) {
                 setCurrentFocus(data.data);
+                if (!data.data && !autoOpenRef.current) {
+                    setShowDialog(true);
+                    autoOpenRef.current = true;
+                }
+                if (data.data && !autoOpenRef.current) {
+                    autoOpenRef.current = true;
+                }
             }
         } catch (err) {
             console.error('Failed to fetch current focus:', err);
@@ -77,6 +85,7 @@ export default function FocusGreeting() {
             setTitle('');
             setDescription('');
             setShowDialog(false);
+            autoOpenRef.current = true;
         } catch (err) {
             console.error('Failed to create focus:', err);
             setError('An error occurred while creating focus');
