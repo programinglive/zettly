@@ -117,6 +117,10 @@ export default function FocusGreeting() {
             }
 
             setCurrentFocus(null);
+            setTitle('');
+            setDescription('');
+            setShowDialog(true);
+            autoOpenRef.current = false;
         } catch (err) {
             console.error('Failed to complete focus:', err);
             setError('An error occurred while completing focus');

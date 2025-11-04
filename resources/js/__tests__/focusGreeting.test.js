@@ -41,3 +41,10 @@ test('focus greeting dialog uses enlarged layout', () => {
         'Expected dialog content to use enlarged spacing and rounded corners.'
     );
 });
+
+test('focus greeting prompts for a new focus after completion', () => {
+    assert.ok(
+        focusGreetingSource.includes("setCurrentFocus(null);\n            setTitle('');\n            setDescription('');\n            setShowDialog(true);\n            autoOpenRef.current = false;"),
+        'Expected focus greeting to clear the form and reopen the dialog after completing a focus.'
+    );
+});

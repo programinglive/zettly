@@ -228,6 +228,7 @@ Located at: `resources/js/Components/FocusGreeting.jsx`
 - Shows current active focus if one exists
 - Automatically opens the focus dialog for first-time/first-session users who do not have a focus yet
 - Allows user to complete or delete current focus
+- When a focus is completed, automatically reopens the dialog with cleared fields so the user can immediately set the next focus
 - Provides dialog to set a new focus using an enlarged layout (3xl width, generous spacing) for improved readability
 - Handles loading and error states
 - Responsive design with Tailwind CSS
@@ -293,7 +294,7 @@ php artisan test tests/Feature/FocusTest.php
    - Clicks "Complete Focus" button
    - Sends POST request to `/focus/{id}/complete`
    - Focus is marked with `completed_at` timestamp
-   - Component resets to allow setting new focus
+   - Dialog automatically reopens with cleared fields, prompting the user to define the next focus
 
 4. **User deletes focus**
    - Clicks "Delete" button
