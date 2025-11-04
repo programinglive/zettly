@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import PrimaryButton from './PrimaryButton';
 import SecondaryButton from './SecondaryButton';
 import TextInput from './TextInput';
+import CompletionReasonDialog from './CompletionReasonDialog';
 
 export default function FocusGreeting() {
     const [currentFocus, setCurrentFocus] = useState(null);
@@ -13,6 +14,9 @@ export default function FocusGreeting() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
+    const [statusEvents, setStatusEvents] = useState([]);
+    const [showReasonDialog, setShowReasonDialog] = useState(false);
+    const [reasonError, setReasonError] = useState(null);
     const autoOpenRef = useRef(false);
     const tabletDetectionRef = useRef(false);
 
@@ -34,6 +38,20 @@ export default function FocusGreeting() {
         }
 
         return pointerIsCoarse && maxTouchPoints > 1 && minViewport >= 600;
+    };
+
+    const parseJsonSafely = async (response) => {
+        const contentType = response.headers?.get?.('content-type') ?? '';
+        if (!contentType.includes('application/json')) {
+            return null;
+        }
+
+        try {
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to parse JSON response:', error);
+            return null;
+        }
     };
 
     // Get current hour for greeting
@@ -59,10 +77,21 @@ export default function FocusGreeting() {
     const fetchCurrentFocus = async ({ skipAutoOpen = false } = {}) => {
         try {
             setIsLoading(true);
-            const response = await fetch('/focus/current');
-            const data = await response.json();
-            if (data.success) {
+            const response = await fetch('/focus/current', {
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+            const data = await parseJsonSafely(response);
+            if (response.ok && data?.success) {
                 setCurrentFocus(data.data);
+                const history = Array.isArray(data.recent_events)
+                    ? data.recent_events
+                    : Array.isArray(data.data?.status_events)
+                      ? data.data.status_events
+                      : [];
+                setStatusEvents(history);
                 if (!data.data && !autoOpenRef.current) {
                     if (!skipAutoOpen) {
                         setShowDialog(true);
@@ -72,10 +101,14 @@ export default function FocusGreeting() {
                 if (data.data && !autoOpenRef.current) {
                     autoOpenRef.current = true;
                 }
+            } else {
+                setStatusEvents([]);
+                setError(data?.message || 'Failed to load focus');
             }
         } catch (err) {
             console.error('Failed to fetch current focus:', err);
             setError('Failed to load focus');
+            setStatusEvents([]);
         } finally {
             setIsLoading(false);
         }
@@ -94,8 +127,11 @@ export default function FocusGreeting() {
 
             const response = await fetch('/focus', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
                 body: JSON.stringify({
@@ -104,14 +140,17 @@ export default function FocusGreeting() {
                 }),
             });
 
-            const data = await response.json();
+            const data = await parseJsonSafely(response);
 
             if (!response.ok) {
-                setError(data.message || 'Failed to create focus');
+                const message =
+                    data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to create focus');
+                setError(message);
                 return;
             }
 
             setCurrentFocus(data.data);
+            setStatusEvents(Array.isArray(data.data?.status_events) ? data.data.status_events : []);
             setTitle('');
             setDescription('');
             setShowDialog(false);
@@ -124,7 +163,13 @@ export default function FocusGreeting() {
         }
     };
 
-    const handleCompleteFocus = async () => {
+    const handleRequestCompleteFocus = () => {
+        if (!currentFocus) return;
+        setReasonError(null);
+        setShowReasonDialog(true);
+    };
+
+    const handleCompleteFocus = async (reason) => {
         if (!currentFocus) return;
 
         try {
@@ -133,16 +178,27 @@ export default function FocusGreeting() {
 
             const response = await fetch(`/focus/${currentFocus.id}/complete`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
+                body: JSON.stringify({ reason }),
             });
 
-            const data = await response.json();
+            const data = await parseJsonSafely(response);
 
             if (!response.ok) {
-                setError(data.message || 'Failed to complete focus');
+                if (response.status === 422 && data?.errors?.reason?.[0]) {
+                    setReasonError(data.errors.reason[0]);
+                    setShowReasonDialog(true);
+                } else {
+                    const message =
+                        data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to complete focus');
+                    setError(message);
+                }
                 return;
             }
 
@@ -155,6 +211,16 @@ export default function FocusGreeting() {
                 setShowDialog(false);
             }
             autoOpenRef.current = false;
+            setShowReasonDialog(false);
+            setReasonError(null);
+            if (Array.isArray(data?.recent_events)) {
+                setStatusEvents(data.recent_events);
+            } else if (data?.event) {
+                setStatusEvents((prev) => {
+                    const next = [data.event, ...prev];
+                    return next.slice(0, 10);
+                });
+            }
         } catch (err) {
             console.error('Failed to complete focus:', err);
             setError('An error occurred while completing focus');
@@ -176,19 +242,25 @@ export default function FocusGreeting() {
 
             const response = await fetch(`/focus/${currentFocus.id}`, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
             });
 
-            const data = await response.json();
+            const data = await parseJsonSafely(response);
 
             if (!response.ok) {
-                setError(data.message || 'Failed to delete focus');
+                const message =
+                    data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to delete focus');
+                setError(message);
                 return;
             }
 
             setCurrentFocus(null);
+            setStatusEvents([]);
         } catch (err) {
             console.error('Failed to delete focus:', err);
             setError('An error occurred while deleting focus');
@@ -210,8 +282,8 @@ export default function FocusGreeting() {
 
     return (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="md:grid md:grid-cols-2 md:gap-6">
+                <div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
                         {getGreeting()}! 👋
                     </h2>
@@ -242,9 +314,9 @@ export default function FocusGreeting() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                                 <button
-                                    onClick={handleCompleteFocus}
+                                    onClick={handleRequestCompleteFocus}
                                     disabled={isSubmitting}
                                     className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
                                 >
@@ -337,6 +409,28 @@ export default function FocusGreeting() {
                         </div>
                     )}
                 </div>
+
+                <div className="mt-6 md:mt-0">
+                    <div className="h-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Recent Focus History</h3>
+                        {statusEvents.length > 0 ? (
+                            <div className="mt-4 space-y-3">
+                                {statusEvents.map((event) => (
+                                    <div key={event.id} className="rounded-lg border border-gray-200 bg-indigo-50/40 p-3">
+                                        <div className="flex items-center justify-between text-xs text-gray-500">
+                                            <span className="font-medium text-gray-700">{event.user?.name ?? 'You'}</span>
+                                            {event.created_at ? <span>{new Date(event.created_at).toLocaleString()}</span> : null}
+                                        </div>
+                                        <p className="mt-2 text-[0.75rem] uppercase tracking-wide text-gray-500">Reason</p>
+                                        <p className="mt-1 text-sm text-gray-700 whitespace-pre-line">{event.reason}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="mt-4 text-sm text-gray-500">No focus has been completed yet.</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {error && !showDialog && (
@@ -344,6 +438,24 @@ export default function FocusGreeting() {
                     {error}
                 </div>
             )}
+
+            <CompletionReasonDialog
+                open={showReasonDialog}
+                onCancel={() => {
+                    if (!isSubmitting) {
+                        setShowReasonDialog(false);
+                        setReasonError(null);
+                    }
+                }}
+                onSubmit={(reason) => {
+                    setReasonError(null);
+                    handleCompleteFocus(reason);
+                }}
+                processing={isSubmitting}
+                initialState="active"
+                targetState="completed"
+                error={reasonError}
+            />
         </div>
     );
 }

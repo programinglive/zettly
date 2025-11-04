@@ -229,6 +229,7 @@ Located at: `resources/js/Components/FocusGreeting.jsx`
 - Automatically opens the focus dialog for first-time/first-session users who do not have a focus yet
 - Skips the automatic dialog open on tablet devices to avoid disruptive overlays on medium screens
 - Allows user to complete or delete current focus
+- Requires a completion reason when finishing a focus and records it to `focus_status_events`
 - When a focus is completed, automatically reopens the dialog with cleared fields so the user can immediately set the next focus
 - Provides dialog to set a new focus using an enlarged layout (3xl width, generous spacing) for improved readability
 - Handles loading and error states
@@ -255,6 +256,8 @@ The FocusGreeting component is integrated into the Dashboard page at:
 `resources/js/Pages/Dashboard.jsx`
 
 It appears at the top of the main content area, below the header and above the workspace view.
+
+When a focus is completed, the reason dialog captures context and the most recent 10 entries are displayed under the active focus card. The data is returned by `FocusController::current` which eager-loads the new `focus_status_events` relationship.
 
 ## Testing
 

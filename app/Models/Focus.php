@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\FocusStatusEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Focus extends Model
 {
@@ -28,6 +30,11 @@ class Focus extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function statusEvents(): HasMany
+    {
+        return $this->hasMany(FocusStatusEvent::class)->latest('id');
     }
 
     public function isActive(): bool

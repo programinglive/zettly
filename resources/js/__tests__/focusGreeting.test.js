@@ -26,7 +26,8 @@ test('focus greeting auto-opens dialog when no current focus and not skipping', 
     );
 
     assert.ok(
-        focusGreetingSource.includes('autoOpenRef.current = true;') && focusGreetingSource.match(/setShowDialog\(false\);\s*autoOpenRef\.current = true;/),
+        focusGreetingSource.includes('autoOpenRef.current = true;') &&
+            focusGreetingSource.match(/setShowDialog\(false\);\s*autoOpenRef\.current = true;/),
         'Expected focus greeting to mark that the dialog has auto-opened after creating a focus or fetching an existing one.'
     );
 });
@@ -47,6 +48,48 @@ test('focus greeting skips auto-open on tablets', () => {
     assert.ok(
         /if \(!tabletDetectionRef\.current\) {\s*setShowDialog\(true\);\s*} else {\s*setShowDialog\(false\);\s*}/m.test(focusGreetingSource),
         'Expected focus greeting to avoid reopening the dialog automatically after completion when on tablet.'
+    );
+});
+
+test('focus greeting fetches include credentials and safe parsing', () => {
+    assert.ok(
+        /fetch\('\/focus\/current', {\s*credentials: 'same-origin',\s*headers: {\s*Accept: 'application\/json'/m.test(focusGreetingSource),
+        'Expected current focus fetch to include credentials and accept header.'
+    );
+
+    assert.ok(
+        /fetch\('\/focus', {\s*method: 'POST',\s*credentials: 'same-origin',\s*headers: {\s*'Content-Type': 'application\/json',\s*Accept: 'application\/json',\s*'X-Requested-With': 'XMLHttpRequest',\s*'X-CSRF-TOKEN':/m.test(
+            focusGreetingSource
+        ),
+        'Expected create focus request to send CSRF token and use JSON headers.'
+    );
+
+    assert.ok(
+        /const parseJsonSafely = async \(response\) => {/m.test(focusGreetingSource) &&
+            /const data = await parseJsonSafely\(response\);/m.test(focusGreetingSource),
+        'Expected focus greeting to parse responses safely before accessing JSON.'
+    );
+});
+
+test('focus greeting completion reason dialog is wired correctly', () => {
+    assert.ok(
+        focusGreetingSource.includes('CompletionReasonDialog'),
+        'Expected focus greeting to render the shared CompletionReasonDialog component.'
+    );
+
+    assert.ok(
+        /setShowReasonDialog\(true\);/m.test(focusGreetingSource) && focusGreetingSource.includes('handleRequestCompleteFocus'),
+        'Expected focus greeting to open the reason dialog when completion is requested.'
+    );
+
+    assert.ok(
+        /body: JSON\.stringify\({ reason }\)/m.test(focusGreetingSource),
+        'Expected focus greeting to send the completion reason in the request body.'
+    );
+
+    assert.ok(
+        /setStatusEvents\(\(prev\) => {/m.test(focusGreetingSource) && focusGreetingSource.includes('Recent Focus History'),
+        'Expected focus greeting to update and render the recent focus history list after completion.'
     );
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Focus;
+use App\Models\FocusStatusEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,31 @@ class FocusController extends Controller
      */
     public function current(): JsonResponse
     {
-        $focus = Auth::user()->currentFocus()->first();
+        $focus = Auth::user()
+            ->currentFocus()
+            ->with([
+                'statusEvents' => function ($query) {
+                    $query->with('user:id,name', 'focus:id,title,description,completed_at,started_at')
+                        ->latest('id')
+                        ->limit(10);
+                },
+            ])
+            ->first();
+
+        $recentEvents = FocusStatusEvent::query()
+            ->where('user_id', Auth::id())
+            ->with([
+                'user:id,name',
+                'focus:id,title,description,completed_at,started_at',
+            ])
+            ->latest('id')
+            ->limit(10)
+            ->get();
 
         return response()->json([
             'success' => true,
             'data' => $focus,
+            'recent_events' => $recentEvents,
         ]);
     }
 
@@ -28,7 +49,17 @@ class FocusController extends Controller
      */
     public function index(): JsonResponse
     {
-        $foci = Auth::user()->foci()->latest()->get();
+        $foci = Auth::user()
+            ->foci()
+            ->with([
+                'statusEvents' => function ($query) {
+                    $query->with('user:id,name')
+                        ->latest('id')
+                        ->limit(10);
+                },
+            ])
+            ->latest()
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -59,6 +90,14 @@ class FocusController extends Controller
             'started_at' => now(),
         ]);
 
+        $focus->load([
+            'statusEvents' => function ($query) {
+                $query->with('user:id,name')
+                    ->latest('id')
+                    ->limit(10);
+            },
+        ]);
+
         return response()->json([
             'success' => true,
             'data' => $focus,
@@ -68,7 +107,7 @@ class FocusController extends Controller
     /**
      * Complete the current focus.
      */
-    public function complete(Focus $focus): JsonResponse
+    public function complete(Request $request, Focus $focus): JsonResponse
     {
         // Ensure user can only complete their own focus
         if ($focus->user_id !== Auth::id()) {
@@ -85,13 +124,58 @@ class FocusController extends Controller
             ], 400);
         }
 
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+
         $focus->update([
             'completed_at' => now(),
         ]);
 
+        $event = FocusStatusEvent::create([
+            'focus_id' => $focus->id,
+            'user_id' => Auth::id(),
+            'action' => 'completed',
+            'reason' => $validated['reason'],
+        ]);
+
+        $event->load([
+            'user:id,name',
+            'focus:id,title,description,completed_at,started_at',
+        ]);
+
+        $focus->load([
+            'statusEvents' => function ($query) {
+                $query->with('user:id,name', 'focus:id,title,description,completed_at,started_at')
+                    ->latest('id')
+                    ->limit(10);
+            },
+        ]);
+
+        $recentEvents = FocusStatusEvent::query()
+            ->where('user_id', Auth::id())
+            ->with([
+                'user:id,name',
+                'focus:id,title,description,completed_at,started_at',
+            ])
+            ->latest('id')
+            ->limit(10)
+            ->get();
+
         return response()->json([
             'success' => true,
             'data' => $focus,
+            'event' => $event,
+            'recent_events' => $recentEvents,
         ]);
     }
 
