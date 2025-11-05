@@ -9,12 +9,21 @@ import CompletionReasonDialog from './CompletionReasonDialog';
 export default function FocusGreeting() {
     const [currentFocus, setCurrentFocus] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
     const [statusEvents, setStatusEvents] = useState([]);
+    const getTodayDateString = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const [historyDate, setHistoryDate] = useState(() => getTodayDateString());
     const [showReasonDialog, setShowReasonDialog] = useState(false);
     const [reasonError, setReasonError] = useState(null);
     const autoOpenRef = useRef(false);
@@ -74,10 +83,16 @@ export default function FocusGreeting() {
         fetchCurrentFocus({ skipAutoOpen });
     }, []);
 
-    const fetchCurrentFocus = async ({ skipAutoOpen = false } = {}) => {
+    const fetchCurrentFocus = async ({ skipAutoOpen = false, dateOverride, showHistoryOnly = false } = {}) => {
+        const filterDateToUse = dateOverride ?? historyDate ?? getTodayDateString();
+        const queryString = filterDateToUse ? `?date=${encodeURIComponent(filterDateToUse)}` : '';
         try {
-            setIsLoading(true);
-            const response = await fetch('/focus/current', {
+            if (showHistoryOnly) {
+                setIsHistoryLoading(true);
+            } else {
+                setIsLoading(true);
+            }
+            const response = await fetch(`/focus/current${queryString}`, {
                 credentials: 'same-origin',
                 headers: {
                     Accept: 'application/json',
@@ -92,6 +107,9 @@ export default function FocusGreeting() {
                       ? data.data.status_events
                       : [];
                 setStatusEvents(history);
+                if (typeof data.filter_date === 'string') {
+                    setHistoryDate(data.filter_date);
+                }
                 if (!data.data && !autoOpenRef.current) {
                     if (!skipAutoOpen) {
                         setShowDialog(true);
@@ -110,7 +128,11 @@ export default function FocusGreeting() {
             setError('Failed to load focus');
             setStatusEvents([]);
         } finally {
-            setIsLoading(false);
+            if (showHistoryOnly) {
+                setIsHistoryLoading(false);
+            } else {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -185,7 +207,10 @@ export default function FocusGreeting() {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
-                body: JSON.stringify({ reason }),
+                body: JSON.stringify({
+                    reason,
+                    filter_date: historyDate || getTodayDateString(),
+                }),
             });
 
             const data = await parseJsonSafely(response);
@@ -213,6 +238,10 @@ export default function FocusGreeting() {
             autoOpenRef.current = false;
             setShowReasonDialog(false);
             setReasonError(null);
+            if (typeof data?.filter_date === 'string') {
+                setHistoryDate(data.filter_date);
+            }
+
             if (Array.isArray(data?.recent_events)) {
                 setStatusEvents(data.recent_events);
             } else if (data?.event) {
@@ -267,6 +296,16 @@ export default function FocusGreeting() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleHistoryDateChange = (event) => {
+        const nextDate = event.target.value;
+        if (!nextDate) {
+            return;
+        }
+
+        setHistoryDate(nextDate);
+        fetchCurrentFocus({ skipAutoOpen: true, dateOverride: nextDate, showHistoryOnly: true });
     };
 
     if (isLoading) {
@@ -413,6 +452,24 @@ export default function FocusGreeting() {
                 <div className="mt-6 md:mt-0">
                     <div className="h-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
                         <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200">Recent Focus History</h3>
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <label htmlFor="focus-history-date" className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Filter Date
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    id="focus-history-date"
+                                    type="date"
+                                    value={historyDate}
+                                    onChange={handleHistoryDateChange}
+                                    max={getTodayDateString()}
+                                    className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-200"
+                                />
+                                {isHistoryLoading ? (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Loading…</span>
+                                ) : null}
+                            </div>
+                        </div>
                         {statusEvents.length > 0 ? (
                             <div className="mt-4 space-y-3">
                                 {statusEvents.map((event) => (

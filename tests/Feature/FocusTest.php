@@ -6,6 +6,7 @@ use App\Models\Focus;
 use App\Models\FocusStatusEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class FocusTest extends TestCase
@@ -45,6 +46,84 @@ class FocusTest extends TestCase
 
         $response->assertJsonPath('data.status_events.0.reason', 'Wrapped up morning session');
         $this->assertSame('Wrapped up morning session', $response->json('recent_events.0.reason'));
+    }
+
+    public function test_recent_focus_history_defaults_to_today(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        FocusStatusEvent::factory()
+            ->forFocus($focus)
+            ->byUser($user)
+            ->create([
+                'reason' => 'Today event',
+                'created_at' => Carbon::today()->setHour(10),
+                'updated_at' => Carbon::today()->setHour(10),
+            ]);
+
+        FocusStatusEvent::factory()
+            ->forFocus($focus)
+            ->byUser($user)
+            ->create([
+                'reason' => 'Yesterday event',
+                'created_at' => Carbon::yesterday()->setHour(16),
+                'updated_at' => Carbon::yesterday()->setHour(16),
+            ]);
+
+        $response = $this->actingAs($user)->get(route('focus.current'));
+
+        $response->assertStatus(200);
+        $this->assertSame(Carbon::today()->toDateString(), $response->json('filter_date'));
+        $recentEvents = $response->json('recent_events');
+        $this->assertCount(1, $recentEvents);
+        $this->assertSame('Today event', $recentEvents[0]['reason']);
+    }
+
+    public function test_recent_focus_history_can_be_filtered_by_date(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        $targetDate = Carbon::today()->subDays(3)->setHour(14);
+
+        FocusStatusEvent::factory()
+            ->forFocus($focus)
+            ->byUser($user)
+            ->create([
+                'reason' => 'Three days ago',
+                'created_at' => $targetDate,
+                'updated_at' => $targetDate,
+            ]);
+
+        FocusStatusEvent::factory()
+            ->forFocus($focus)
+            ->byUser($user)
+            ->create([
+                'reason' => 'Today event',
+                'created_at' => Carbon::today()->setHour(11),
+                'updated_at' => Carbon::today()->setHour(11),
+            ]);
+
+        $response = $this->actingAs($user)->get(route('focus.current', [
+            'date' => $targetDate->toDateString(),
+        ]));
+
+        $response->assertStatus(200);
+        $this->assertSame($targetDate->toDateString(), $response->json('filter_date'));
+        $recentEvents = $response->json('recent_events');
+        $this->assertCount(1, $recentEvents);
+        $this->assertSame('Three days ago', $recentEvents[0]['reason']);
     }
 
     public function test_user_can_get_all_foci(): void

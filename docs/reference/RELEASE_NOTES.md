@@ -2,11 +2,83 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
-## v0.8.11 · 2025-11-05
+## v0.9.2 · 2025-11-06
+
+### ✨ Features
+
+- **Focus history filtering** — Added a date picker to the Recent Focus History card that defaults to today, with matching backend support so you can review completions for any day without leaving the dashboard.
+
+## v0.9.1 · 2025-11-05
 
 ### 🐛 Bug Fixes
 
 - **Focus history wrapping** — Added defensive `break-all` styling so long URLs and reasons stay within the dashboard card across light and dark themes.
+
+## v0.9.0 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban drag ordering** — Ensured dragging cards downward inserts them after the intended target so optimistic updates match the persisted order.
+
+## v0.8.20 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Eisenhower matrix reorder** — Returned JSON responses for quadrant moves to eliminate the "plain JSON response" redirect error during drag-and-drop.
+
+## v0.8.19 · 2025-11-05
+
+### ℹ️ Notes
+
+- No user-facing changes were recorded for this maintenance release.
+
+## v0.8.18 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban board reorder** — Synced local todo ordering immediately after drag events so the UI reflects the updated sequence without waiting for a reload.
+
+## v0.8.17 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban cross-column moves** — Propagated column metadata changes when cards travel between lists to keep status and column attributes in sync.
+
+## v0.8.16 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban reorder requests** — Swapped to the Fetch API for drag submissions, matching Eisenhower handling and preventing Inertia response parsing errors.
+
+## v0.8.15 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Dark theme toggle** — Restored the appearance toggle in dark mode and added reorder debug logging for production diagnostics.
+
+## v0.8.14 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban error recovery** — Reverted todo ordering to the pre-drag snapshot whenever the reorder request fails so boards never stay in an invalid state.
+
+## v0.8.13 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban success handling** — Removed the assumption that reorder responses return Inertia page props, avoiding silent failures after successful drags.
+
+## v0.8.12 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban reorder endpoint** — Returned JSON instead of redirects so Inertia keeps the optimistic UI state applied by the drag-and-drop operation.
+
+## v0.8.11 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Eisenhower drag CSRF** — Relied on Inertia's shared middleware for tokens when moving todos between quadrants, fixing the 419 error regression.
 
 ## v0.8.10 · 2025-11-05
 
