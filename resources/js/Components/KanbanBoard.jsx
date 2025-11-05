@@ -441,20 +441,30 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
         console.log('Sending reorder request:', { payload, originalTodos, newTodos });
 
-        router.post('/todos/reorder', payload, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: (page) => {
-                // Reorder was successful, optimistic UI update is already applied
-                // No need to refresh from server since we updated state before sending request
-                console.log('Reorder successful:', page);
+        // Use fetch instead of router.post for JSON endpoint to avoid Inertia response expectation
+        fetch('/todos/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            onError: (errors) => {
-                console.error('Reorder failed:', errors);
+            body: JSON.stringify(payload),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Reorder successful:', data);
+            })
+            .catch(error => {
+                console.error('Reorder failed:', error);
                 // Revert to original state on error
                 setTodos(originalTodos);
-            },
-        });
+            });
     };
 
     // Separate todos by status (exclude archived todos)
