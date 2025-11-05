@@ -49,8 +49,14 @@ test('KanbanBoard preserves todo order in state after drag', () => {
         'Should update todos state with newTodos after drag'
     );
     assert.ok(
-        content.includes('const newTodos = todos.map((todo) => {'),
-        'Should map todos to create newTodos with updated dragged todo'
+        content.includes('const orderedNonArchived = [].concat(') &&
+        content.includes('nextColumnLists.q1') &&
+        content.includes('nextColumnLists.q2') &&
+        content.includes('nextColumnLists.q3') &&
+        content.includes('nextColumnLists.q4') &&
+        content.includes('const completedOrdered = nextColumnLists.completed') &&
+        content.includes('const newTodos = [...orderedNonArchived, ...completedOrdered'),
+        'Should rebuild newTodos from nextColumnLists to reflect immediate per-column ordering'
     );
 });
 

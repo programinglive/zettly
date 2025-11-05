@@ -421,12 +421,29 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             ...nextColumnLists[targetColumn].slice(insertIndex),
         ];
 
-        const newTodos = todos.map((todo) => {
-            if (String(todo.id) === draggedId) {
-                return updatedDragged;
-            }
+        // Build a new master todos array that preserves per-column ordering
+        // using the updated nextColumnLists so UI reflects changes immediately.
+        const orderedNonArchived = [].concat(
+            nextColumnLists.q1,
+            nextColumnLists.q2,
+            nextColumnLists.q3,
+            nextColumnLists.q4,
+        );
+        const completedOrdered = nextColumnLists.completed;
+        const archivedPart = todos.filter(t => t.archived);
 
-            return todo;
+        const newTodos = [...orderedNonArchived, ...completedOrdered, ...archivedPart];
+
+        // Ensure the newly inserted item is visible in the target column
+        // by bumping the visible count if needed.
+        setVisibleCounts((prev) => {
+            const currentVisible = prev[targetColumn] ?? MAX_VISIBLE_TODOS;
+            // We need at least insertIndex + 1 items visible to show the drop
+            const requiredVisible = Math.min(insertIndex + 1, nextColumnLists[targetColumn].length);
+            if (requiredVisible > currentVisible) {
+                return { ...prev, [targetColumn]: requiredVisible };
+            }
+            return prev;
         });
 
         // Save original state for error handling
