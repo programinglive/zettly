@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeProviderContext = createContext();
 
 export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 'vite-ui-theme', ...props }) {
-    const [theme, setTheme] = useState(() => {
+    const [theme, setThemeState] = useState(() => {
         return localStorage.getItem(storageKey) || defaultTheme;
     });
 
@@ -22,9 +22,9 @@ export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 
 
     const value = {
         theme,
-        setTheme: (theme) => {
-            localStorage.setItem(storageKey, theme);
-            setTheme(theme);
+        setTheme: (newTheme) => {
+            localStorage.setItem(storageKey, newTheme);
+            setThemeState(newTheme);
         },
     };
 

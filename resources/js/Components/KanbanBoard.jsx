@@ -439,15 +439,15 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id),
         };
 
+        console.log('Sending reorder request:', { payload, originalTodos, newTodos });
+
         router.post('/todos/reorder', payload, {
             preserveState: true,
             preserveScroll: true,
             onSuccess: (page) => {
                 // Reorder was successful, optimistic UI update is already applied
                 // No need to refresh from server since we updated state before sending request
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('Reorder successful');
-                }
+                console.log('Reorder successful:', page);
             },
             onError: (errors) => {
                 console.error('Reorder failed:', errors);
