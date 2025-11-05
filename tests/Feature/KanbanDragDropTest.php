@@ -95,4 +95,59 @@ class KanbanDragDropTest extends TestCase
             Todo::refreshKanbanOrderColumnCache(null);
         }
     }
+
+    public function test_reorder_updates_todo_properties_when_moving_between_columns(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        // Create a todo in q1 (important + urgent)
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'is_completed' => false,
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'kanban_order' => 1,
+        ]);
+
+        // Move it to q2 (important + not_urgent)
+        $response = $this->actingAs($user)
+            ->post(route('todos.reorder'), [
+                'column' => 'q2',
+                'todo_ids' => [$todo->id],
+            ]);
+
+        $response->assertStatus(200);
+
+        $freshTodo = $todo->fresh();
+        $this->assertSame(Todo::PRIORITY_NOT_URGENT, $freshTodo->priority);
+        $this->assertSame(Todo::IMPORTANCE_IMPORTANT, $freshTodo->importance);
+        $this->assertFalse($freshTodo->is_completed);
+
+        // Move it to q4 (not_important + not_urgent)
+        $response = $this->actingAs($user)
+            ->post(route('todos.reorder'), [
+                'column' => 'q4',
+                'todo_ids' => [$todo->id],
+            ]);
+
+        $response->assertStatus(200);
+
+        $freshTodo = $todo->fresh();
+        $this->assertSame(Todo::PRIORITY_NOT_URGENT, $freshTodo->priority);
+        $this->assertSame(Todo::IMPORTANCE_NOT_IMPORTANT, $freshTodo->importance);
+        $this->assertFalse($freshTodo->is_completed);
+
+        // Move it to completed
+        $response = $this->actingAs($user)
+            ->post(route('todos.reorder'), [
+                'column' => 'completed',
+                'todo_ids' => [$todo->id],
+            ]);
+
+        $response->assertStatus(200);
+
+        $freshTodo = $todo->fresh();
+        $this->assertTrue($freshTodo->is_completed);
+    }
 }

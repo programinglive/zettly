@@ -772,12 +772,6 @@ class TodoController extends Controller
             ->unique()
             ->values();
 
-        $query = $user->todos()
-            ->tasks()
-            ->notArchived();
-
-        $query = $this->applyKanbanColumnScope($query, $column);
-
         if (! Todo::hasKanbanOrderColumn()) {
             return $this->reorderResponse($request, [
                 'ordered_count' => 0,
@@ -785,36 +779,54 @@ class TodoController extends Controller
             ]);
         }
 
-        $todos = $query
-            ->orderBy('kanban_order')
-            ->orderBy('created_at')
+        // Get all todos for the user that match the requested IDs
+        $allUserTodos = $user->todos()
+            ->tasks()
+            ->notArchived()
+            ->whereIn('id', $todoIds)
             ->get(['id']);
 
-        if ($todos->isEmpty()) {
+        if ($allUserTodos->isEmpty()) {
             return $this->reorderResponse($request);
         }
 
-        $knownIds = $todos->pluck('id');
-
-        $orderedIds = $todoIds->filter(fn ($id) => $knownIds->contains($id));
+        // Filter to only the IDs that were requested and exist
+        $validIds = $allUserTodos->pluck('id');
+        $orderedIds = collect($todoIds)->filter(fn ($id) => $validIds->contains($id));
 
         if ($orderedIds->isEmpty()) {
             return $this->reorderResponse($request);
         }
 
-        $remainingIds = $knownIds->diff($orderedIds);
-        $finalOrder = $orderedIds->concat($remainingIds)->values();
+        // For reorder, we only update the requested todos in the new column
+        $finalOrder = $orderedIds->values();
 
-        DB::transaction(function () use ($finalOrder) {
+        // Map column to todo properties
+        $columnProps = [
+            'q1' => ['importance' => Todo::IMPORTANCE_IMPORTANT, 'priority' => Todo::PRIORITY_URGENT, 'is_completed' => false],
+            'q2' => ['importance' => Todo::IMPORTANCE_IMPORTANT, 'priority' => Todo::PRIORITY_NOT_URGENT, 'is_completed' => false],
+            'q3' => ['importance' => Todo::IMPORTANCE_NOT_IMPORTANT, 'priority' => Todo::PRIORITY_URGENT, 'is_completed' => false],
+            'q4' => ['importance' => Todo::IMPORTANCE_NOT_IMPORTANT, 'priority' => Todo::PRIORITY_NOT_URGENT, 'is_completed' => false],
+            'completed' => ['is_completed' => true],
+        ];
+
+        $props = $columnProps[$column] ?? [];
+
+        DB::transaction(function () use ($finalOrder, $props) {
             $now = now();
 
-            $finalOrder->each(function ($id, $index) use ($now) {
+            $finalOrder->each(function ($id, $index) use ($now, $props) {
+                $updateData = [
+                    'kanban_order' => $index + 1,
+                    'updated_at' => $now,
+                ];
+
+                // Merge in column-specific properties
+                $updateData = array_merge($updateData, $props);
+
                 DB::table('todos')
                     ->where('id', $id)
-                    ->update([
-                        'kanban_order' => $index + 1,
-                        'updated_at' => $now,
-                    ]);
+                    ->update($updateData);
             });
         });
 
