@@ -53,3 +53,20 @@ test('KanbanBoard preserves todo order in state after drag', () => {
         'Should map todos to create newTodos with updated dragged todo'
     );
 });
+
+test('KanbanBoard uses optimistic UI updates without refreshing from server', () => {
+    const content = read(kanbanPath);
+
+    assert.ok(
+        content.includes('onSuccess: () => {'),
+        'Should have onSuccess handler'
+    );
+    assert.ok(
+        content.includes('Reorder was successful, optimistic UI update is already applied'),
+        'Should document that optimistic update is already applied'
+    );
+    assert.ok(
+        !content.includes('page.props?.todos'),
+        'Should NOT try to refresh todos from page.props (JSON response has no page object)'
+    );
+});

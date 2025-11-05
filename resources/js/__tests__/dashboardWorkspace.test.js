@@ -195,9 +195,9 @@ test('kanban board toggle and priority update use transform for reason submissio
     assert.ok(
         kanbanSource.includes("router.post('/todos/reorder', payload, {") &&
         kanbanSource.includes("todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id)") &&
-        kanbanSource.includes('onSuccess: (page) => {') &&
-        kanbanSource.includes('if (page.props?.todos)'),
-        'Expected Kanban board to post reordered IDs and update UI on success without page reload.'
+        kanbanSource.includes('onSuccess: () => {') &&
+        kanbanSource.includes('Reorder was successful, optimistic UI update is already applied'),
+        'Expected Kanban board to post reordered IDs and use optimistic UI without server refresh.'
     );
 });
 

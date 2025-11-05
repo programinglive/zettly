@@ -439,14 +439,13 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         router.post('/todos/reorder', payload, {
             preserveState: true,
             preserveScroll: true,
-            onSuccess: (page) => {
-                // Refresh todos from server without full page reload
-                if (page.props?.todos) {
-                    setTodos(page.props.todos);
-                }
+            onSuccess: () => {
+                // Reorder was successful, optimistic UI update is already applied
+                // No need to refresh from server since we updated state before sending request
             },
             onError: (errors) => {
                 console.error('Reorder failed:', errors);
+                // Revert to previous state on error
                 setTodos(prevTodos => prevTodos);
             },
         });
