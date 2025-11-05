@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.16](https://github.com/programinglive/todo/compare/v0.8.15...v0.8.16) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* kanban reorder Inertia response error by using fetch API ([5f4e53e](https://github.com/programinglive/todo/commit/5f4e53e94619bd92adaa5e6af7f660974db4f6bd))
+
 ### [0.8.15](https://github.com/programinglive/todo/compare/v0.8.14...v0.8.15) (2025-11-05)
 
 
