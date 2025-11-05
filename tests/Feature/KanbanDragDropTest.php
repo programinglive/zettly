@@ -55,8 +55,8 @@ class KanbanDragDropTest extends TestCase
                 'todo_ids' => [$todoB->id, $todoA->id],
             ]);
 
-        $response->assertRedirect('/dashboard');
-        $response->assertSessionHas('success', 'Todo order updated successfully');
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Todo order updated successfully']);
 
         $this->assertSame(1, $todoB->fresh()->kanban_order);
         $this->assertSame(2, $todoA->fresh()->kanban_order);
@@ -87,8 +87,8 @@ class KanbanDragDropTest extends TestCase
                     'todo_ids' => [$todo->id],
                 ]);
 
-            $response->assertRedirect('/dashboard');
-            $response->assertSessionHas('success', 'Todo order updated successfully');
+            $response->assertStatus(200);
+            $response->assertJson(['message' => 'Todo order updated successfully']);
 
             $this->assertSame(1, $todo->fresh()->kanban_order);
         } finally {
