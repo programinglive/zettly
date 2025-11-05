@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.1](https://github.com/programinglive/todo/compare/v0.9.0...v0.9.1) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* wrap focus history reasons ([dff7140](https://github.com/programinglive/todo/commit/dff7140c9d3fa6717bc4f4ab5bcc1735d93d37a8))
+
 ## [0.9.0](https://github.com/programinglive/todo/compare/v0.8.20...v0.9.0) (2025-11-05)
 
 
