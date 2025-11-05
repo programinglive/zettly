@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.15](https://github.com/programinglive/todo/compare/v0.8.14...v0.8.15) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* dark mode theme toggle and add reorder debug logging ([ccb7b0a](https://github.com/programinglive/todo/commit/ccb7b0a600697bc60dcb3309dd2421b3e7167b59))
+
 ### [0.8.14](https://github.com/programinglive/todo/compare/v0.8.13...v0.8.14) (2025-11-05)
 
 
