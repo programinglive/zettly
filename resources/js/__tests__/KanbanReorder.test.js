@@ -58,7 +58,7 @@ test('KanbanBoard uses optimistic UI updates without refreshing from server', ()
     const content = read(kanbanPath);
 
     assert.ok(
-        content.includes('onSuccess: () => {'),
+        content.includes('onSuccess: (page) => {'),
         'Should have onSuccess handler'
     );
     assert.ok(
@@ -68,5 +68,22 @@ test('KanbanBoard uses optimistic UI updates without refreshing from server', ()
     assert.ok(
         !content.includes('page.props?.todos'),
         'Should NOT try to refresh todos from page.props (JSON response has no page object)'
+    );
+});
+
+test('KanbanBoard saves original state for error recovery', () => {
+    const content = read(kanbanPath);
+
+    assert.ok(
+        content.includes('const originalTodos = todos;'),
+        'Should save original todos before optimistic update'
+    );
+    assert.ok(
+        content.includes('setTodos(originalTodos);'),
+        'Should revert to original todos on error'
+    );
+    assert.ok(
+        content.includes('onError: (errors) => {'),
+        'Should have onError handler'
     );
 });
