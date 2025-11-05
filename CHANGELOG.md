@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.17](https://github.com/programinglive/todo/compare/v0.8.16...v0.8.17) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* kanban reorder updates todo properties when moving between columns ([638accf](https://github.com/programinglive/todo/commit/638accfbce1263c861e07622b828c30dcc410072))
+
 ### [0.8.16](https://github.com/programinglive/todo/compare/v0.8.15...v0.8.16) (2025-11-05)
 
 
