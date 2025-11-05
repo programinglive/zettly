@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.14](https://github.com/programinglive/todo/compare/v0.8.13...v0.8.14) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* kanban board reorder error handling not reverting todos on failure ([00ca6b1](https://github.com/programinglive/todo/commit/00ca6b1757f008f525a18c607df003b625fc9670))
+
 ### [0.8.13](https://github.com/programinglive/todo/compare/v0.8.12...v0.8.13) (2025-11-05)
 
 
