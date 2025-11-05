@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.9.0](https://github.com/programinglive/todo/compare/v0.8.20...v0.9.0) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* ensure kanban drag inserts after target when moving down ([c033cfa](https://github.com/programinglive/todo/commit/c033cfa46f66bdf2ea58c55160d894c6a523204a))
+
 ### [0.8.20](https://github.com/programinglive/todo/compare/v0.8.19...v0.8.20) (2025-11-05)
 
 
