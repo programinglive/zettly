@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.13](https://github.com/programinglive/todo/compare/v0.8.12...v0.8.13) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* kanban board reorder onSuccess handler expecting page object from JSON ([1b83ecf](https://github.com/programinglive/todo/commit/1b83ecf7e81de217a053a0d059ca24fedef884ed))
+
 ### [0.8.12](https://github.com/programinglive/todo/compare/v0.8.11...v0.8.12) (2025-11-05)
 
 
