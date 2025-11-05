@@ -395,6 +395,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             return acc;
         }, {});
 
+        const activeIndexInCurrentColumn = columnLists[currentColumn].findIndex((todo) => String(todo.id) === draggedId);
+
         const nextColumnLists = { ...columnLists };
 
         // Remove from current column
@@ -403,10 +405,17 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         // Determine insertion index
         let insertIndex = nextColumnLists[targetColumn].length;
 
+        const overIndexInTargetColumnOriginal = columnLists[targetColumn].findIndex((todo) => String(todo.id) === overId);
+
         if (!KANBAN_COLUMNS.includes(overId)) {
             const overIndex = nextColumnLists[targetColumn].findIndex((todo) => String(todo.id) === overId);
             if (overIndex !== -1) {
                 insertIndex = overIndex;
+                if (currentColumn === targetColumn && activeIndexInCurrentColumn !== -1 && overIndexInTargetColumnOriginal !== -1) {
+                    if (activeIndexInCurrentColumn < overIndexInTargetColumnOriginal) {
+                        insertIndex = overIndex + 1;
+                    }
+                }
             }
         }
 

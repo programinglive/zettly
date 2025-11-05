@@ -58,6 +58,12 @@ test('KanbanBoard preserves todo order in state after drag', () => {
         content.includes('const newTodos = [...orderedNonArchived, ...completedOrdered'),
         'Should rebuild newTodos from nextColumnLists to reflect immediate per-column ordering'
     );
+    assert.ok(
+        content.includes('if (currentColumn === targetColumn') &&
+        content.includes('activeIndexInCurrentColumn < overIndexInTargetColumnOriginal') &&
+        content.includes('insertIndex = overIndex + 1'),
+        'Should skip over target todo when dragging downward within same column'
+    );
 });
 
 test('KanbanBoard uses optimistic UI updates without refreshing from server', () => {
