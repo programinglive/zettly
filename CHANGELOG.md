@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.18](https://github.com/programinglive/todo/compare/v0.8.17...v0.8.18) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* ensure kanban reorder updates UI ordering immediately ([9961407](https://github.com/programinglive/todo/commit/9961407d2d2bef0a9c6c665b1f67651bb07a1a4d))
+
 ### [0.8.17](https://github.com/programinglive/todo/compare/v0.8.16...v0.8.17) (2025-11-05)
 
 
