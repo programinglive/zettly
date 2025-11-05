@@ -6,6 +6,7 @@ use App\Models\Focus;
 use App\Models\FocusStatusEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -14,8 +15,19 @@ class FocusController extends Controller
     /**
      * Get current focus for the authenticated user.
      */
-    public function current(): JsonResponse
+    public function current(Request $request): JsonResponse
     {
+        $dateString = $request->query('date');
+        $filterDate = Carbon::today();
+
+        if ($dateString) {
+            try {
+                $filterDate = Carbon::createFromFormat('Y-m-d', $dateString)->startOfDay();
+            } catch (\Exception $exception) {
+                $filterDate = Carbon::today();
+            }
+        }
+
         $focus = Auth::user()
             ->currentFocus()
             ->with([
@@ -29,6 +41,7 @@ class FocusController extends Controller
 
         $recentEvents = FocusStatusEvent::query()
             ->where('user_id', Auth::id())
+            ->whereDate('created_at', $filterDate)
             ->with([
                 'user:id,name',
                 'focus:id,title,description,completed_at,started_at',
@@ -41,6 +54,7 @@ class FocusController extends Controller
             'success' => true,
             'data' => $focus,
             'recent_events' => $recentEvents,
+            'filter_date' => $filterDate->toDateString(),
         ]);
     }
 
@@ -126,6 +140,7 @@ class FocusController extends Controller
 
         $validator = Validator::make($request->all(), [
             'reason' => 'required|string|max:1000',
+            'filter_date' => 'nullable|date_format:Y-m-d',
         ]);
 
         if ($validator->fails()) {
@@ -136,6 +151,16 @@ class FocusController extends Controller
         }
 
         $validated = $validator->validated();
+        $filterDateString = $validated['filter_date'] ?? null;
+        $filterDate = Carbon::today();
+
+        if ($filterDateString) {
+            try {
+                $filterDate = Carbon::createFromFormat('Y-m-d', $filterDateString)->startOfDay();
+            } catch (\Exception $exception) {
+                $filterDate = Carbon::today();
+            }
+        }
 
         $focus->update([
             'completed_at' => now(),
@@ -163,6 +188,7 @@ class FocusController extends Controller
 
         $recentEvents = FocusStatusEvent::query()
             ->where('user_id', Auth::id())
+            ->whereDate('created_at', $filterDate)
             ->with([
                 'user:id,name',
                 'focus:id,title,description,completed_at,started_at',
@@ -176,6 +202,7 @@ class FocusController extends Controller
             'data' => $focus,
             'event' => $event,
             'recent_events' => $recentEvents,
+            'filter_date' => $filterDate->toDateString(),
         ]);
     }
 

@@ -53,7 +53,7 @@ test('focus greeting skips auto-open on tablets', () => {
 
 test('focus greeting fetches include credentials and safe parsing', () => {
     assert.ok(
-        /fetch\('\/focus\/current', {\s*credentials: 'same-origin',\s*headers: {\s*Accept: 'application\/json'/m.test(focusGreetingSource),
+        /fetch\(`\/focus\/current\$\{queryString\}`, {\s*credentials: 'same-origin',\s*headers: {\s*Accept: 'application\/json'/m.test(focusGreetingSource),
         'Expected current focus fetch to include credentials and accept header.'
     );
 
@@ -83,8 +83,8 @@ test('focus greeting completion reason dialog is wired correctly', () => {
     );
 
     assert.ok(
-        /body: JSON\.stringify\({ reason }\)/m.test(focusGreetingSource),
-        'Expected focus greeting to send the completion reason in the request body.'
+        /body: JSON\.stringify\({\s*reason,\s*filter_date:/m.test(focusGreetingSource),
+        'Expected focus greeting to send the completion reason and filter_date in the request body.'
     );
 
     assert.ok(

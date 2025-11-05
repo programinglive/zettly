@@ -66,6 +66,12 @@ All endpoints require authentication.
 GET /focus/current
 ```
 
+You can optionally filter the recent focus history by date:
+
+```
+GET /focus/current?date=2025-11-04
+```
+
 **Response:**
 ```json
 {
@@ -79,7 +85,16 @@ GET /focus/current
         "completed_at": null,
         "created_at": "2025-11-04T10:30:00Z",
         "updated_at": "2025-11-04T10:30:00Z"
-    }
+    },
+    "recent_events": [
+        {
+            "id": 42,
+            "action": "completed",
+            "reason": "Wrapped up morning session",
+            "created_at": "2025-11-04T05:00:00Z"
+        }
+    ],
+    "filter_date": "2025-11-04"
 }
 ```
 
