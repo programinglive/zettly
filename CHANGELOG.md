@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.11](https://github.com/programinglive/todo/compare/v0.8.10...v0.8.11) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* 419 CSRF token error when moving todos between Eisenhower quadrants ([7e83d4c](https://github.com/programinglive/todo/commit/7e83d4ca29db79faa91557b9712a0eb54a4696c6))
+
 ### [0.8.10](https://github.com/programinglive/todo/compare/v0.8.9...v0.8.10) (2025-11-04)
 
 
