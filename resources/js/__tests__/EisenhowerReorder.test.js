@@ -5,12 +5,14 @@ import fs from 'fs';
 const file = '/Users/mahardhika/code/project/mine/web/zettly/resources/js/Components/EisenhowerMatrix.jsx';
 const src = fs.readFileSync(file, 'utf8');
 
-test('EisenhowerMatrix posts reorder payload to /todos/reorder', () => {
+test('EisenhowerMatrix posts reorder payload to /todos/reorder using fetch', () => {
   assert.ok(
-    src.includes("router.post('/todos/reorder', payload, {") &&
-      src.includes("column: targetQuadrant") &&
-      src.includes("todo_ids: lists[targetQuadrant].map(t => t.id)"),
-    'Expected EisenhowerMatrix to call /todos/reorder with column and todo_ids'
+    src.includes("fetch('/todos/reorder'") &&
+      src.includes("'Content-Type': 'application/json'") &&
+      src.includes("'X-Requested-With': 'XMLHttpRequest'") &&
+      src.includes("'X-CSRF-TOKEN': csrfToken ?? ''") &&
+      src.includes('JSON.stringify(payload)'),
+    'Expected EisenhowerMatrix to call /todos/reorder via fetch with JSON payload and CSRF headers'
   );
 });
 

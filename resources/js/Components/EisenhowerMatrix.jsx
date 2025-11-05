@@ -285,17 +285,33 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         };
 
         const postReorder = () => {
-            router.post('/todos/reorder', payload, {
-                preserveState: true,
-                preserveScroll: true,
-                onSuccess: (page) => {
-                    // Refresh todos from server without full page reload
-                    if (page.props?.todos) {
-                        setLocalTodos(page.props.todos);
+            const csrfToken = resolveCsrfToken();
+
+            fetch('/todos/reorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken ?? '',
+                },
+                body: JSON.stringify(payload),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('Eisenhower reorder successful:', data);
                     }
                     onTaskUpdate();
-                },
-            });
+                })
+                .catch((error) => {
+                    console.error('Eisenhower reorder failed:', error);
+                    onTaskUpdate();
+                });
         };
 
         const quadrantChanged = (importance !== draggedTodo.importance) || (priority !== draggedTodo.priority);

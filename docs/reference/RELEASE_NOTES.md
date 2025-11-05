@@ -2,6 +2,12 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.8.10 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Kanban & Eisenhower reordering** — Switched Eisenhower matrix reorder calls to use `fetch` with JSON/CSRF headers, matching the Kanban board. This prevents Inertia from expecting a full page response and eliminates the "plain JSON response" error in production when dragging todos across quadrants.
+
 ## v0.8.9 · 2025-11-04
 
 ### ✨ Features
