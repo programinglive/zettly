@@ -47,6 +47,7 @@ Todos can flip between **pending** and **completed** from several surfaces. Each
 ### Eisenhower matrix
 - File: `resources/js/Components/EisenhowerMatrix.jsx`
 - Dragging tasks uses `/todos/{id}/update-eisenhower` to move between quadrants. Completed todos are rejected and should be toggled back to pending (with reason) before repositioning.
+- **CSRF Token Handling**: The component relies on Inertia's global middleware (`app.jsx`) to automatically inject the CSRF token into request headers. Do NOT manually add `_token` to the payload—this causes conflicts and results in 419 errors.
 
 ## Shared components & data
 

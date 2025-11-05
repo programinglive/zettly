@@ -317,14 +317,10 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         });
 
         if (quadrantChanged) {
-            const token = resolveCsrfToken();
             const updatePayload = {
                 importance,
                 priority,
             };
-            if (token) {
-                updatePayload._token = token;
-            }
 
             router.post(
                 `/todos/${draggedTodo.id}/update-eisenhower`,

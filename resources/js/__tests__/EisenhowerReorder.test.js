@@ -22,3 +22,22 @@ test('EisenhowerMatrix chains reorder after update-eisenhower when quadrant chan
     'Expected EisenhowerMatrix to chain reorder after successful update-eisenhower'
   );
 });
+
+test('EisenhowerMatrix does NOT manually add CSRF token to update-eisenhower payload', () => {
+  // Extract the quadrantChanged block
+  const quadrantChangedMatch = src.match(/if \(quadrantChanged\) \{[\s\S]*?router\.post\(\s*`\/todos\/\$\{draggedTodo\.id\}\/update-eisenhower`/);
+  
+  assert.ok(
+    quadrantChangedMatch,
+    'Expected to find quadrantChanged block with update-eisenhower call'
+  );
+  
+  const quadrantBlock = quadrantChangedMatch[0];
+  
+  // Verify that _token is NOT manually added to updatePayload
+  assert.ok(
+    !quadrantBlock.includes('updatePayload._token') && 
+    !quadrantBlock.includes('_token: token'),
+    'CSRF token should NOT be manually added to updatePayload - let Inertia middleware handle it'
+  );
+});
