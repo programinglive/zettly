@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.20](https://github.com/programinglive/todo/compare/v0.8.19...v0.8.20) (2025-11-05)
+
+
+### 🐛 Bug Fixes
+
+* stop inertia json error when reordering in eisenhower matrix ([c8555d2](https://github.com/programinglive/todo/commit/c8555d230643705c5544b36e7b40743d09223511))
+
 ### [0.8.19](https://github.com/programinglive/todo/compare/v0.8.18...v0.8.19) (2025-11-05)
 
 ### [0.8.18](https://github.com/programinglive/todo/compare/v0.8.17...v0.8.18) (2025-11-05)
