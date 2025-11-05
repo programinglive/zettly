@@ -91,6 +91,11 @@ test('focus greeting completion reason dialog is wired correctly', () => {
         /setStatusEvents\(\(prev\) => {/m.test(focusGreetingSource) && focusGreetingSource.includes('Recent Focus History'),
         'Expected focus greeting to update and render the recent focus history list after completion.'
     );
+
+    assert.ok(
+        focusGreetingSource.includes('whitespace-pre-line break-words'),
+        'Expected focus greeting to wrap long reason text without overflowing the card.'
+    );
 });
 
 test('focus greeting dialog uses enlarged layout', () => {

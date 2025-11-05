@@ -2,6 +2,12 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.8.11 · 2025-11-05
+
+### 🐛 Bug Fixes
+
+- **Focus history wrapping** — Added defensive `break-all` styling so long URLs and reasons stay within the dashboard card across light and dark themes.
+
 ## v0.8.10 · 2025-11-05
 
 ### 🐛 Bug Fixes

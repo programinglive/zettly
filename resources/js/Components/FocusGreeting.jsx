@@ -422,7 +422,7 @@ export default function FocusGreeting() {
                                             {event.created_at ? <span>{new Date(event.created_at).toLocaleString()}</span> : null}
                                         </div>
                                         <p className="mt-2 text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</p>
-                                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{event.reason}</p>
+                                        <p className="mt-1 max-w-full text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line break-words break-all">{event.reason}</p>
                                     </div>
                                 ))}
                             </div>
