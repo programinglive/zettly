@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.3](https://github.com/programinglive/todo/compare/v0.9.1...v0.9.3) (2025-11-06)
+
+
+### 🧹 Chores
+
+* **release:** 0.9.1 🚀 ([f91c930](https://github.com/programinglive/todo/commit/f91c9307963e948609f78c3d33f6ac013e9a5321))
+* **release:** 0.9.2 🚀 ([8915a04](https://github.com/programinglive/todo/commit/8915a04de89e7cbc92f5d6db3e2d5e60233a021b))
+
 ### [0.9.2](https://github.com/programinglive/todo/compare/v0.9.0...v0.9.2) (2025-11-06)
 
 
