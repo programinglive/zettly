@@ -2,6 +2,16 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.9.5 · 2025-11-06
+
+### 🧪 Quality
+
+- **Email test console (super-admin only)** — Added `/test/email` Inertia page with backend controller, mailable, and Blade template so administrators can verify outbound email configuration safely.
+
+### 🛡️ Security
+
+- **Fetch CSRF hardening** — Updated Kanban and Eisenhower reorder requests plus attachment deletion to always send credentials, Accept headers, and CSRF tokens, preventing 419 responses.
+
 ## v0.9.2 · 2025-11-06
 
 ### ✨ Features

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\SystemMonitorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrawingController;
+use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\FocusController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
@@ -90,6 +91,11 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('super-admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('system-monitor', SystemMonitorController::class)->name('system-monitor');
+    });
+
+    Route::middleware('super-admin')->group(function () {
+        Route::get('/test/email', [EmailTestController::class, 'index'])->name('test.email');
+        Route::post('/test/email', [EmailTestController::class, 'send'])->name('test.email.send');
     });
 
     // API Token Management
