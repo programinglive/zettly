@@ -2,7 +2,7 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
-## v0.9.5 · 2025-11-06
+## v0.9.6 · 2025-11-06
 
 ### 🧪 Quality
 
@@ -11,6 +11,12 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 ### 🛡️ Security
 
 - **Fetch CSRF hardening** — Updated Kanban and Eisenhower reorder requests plus attachment deletion to always send credentials, Accept headers, and CSRF tokens, preventing 419 responses.
+
+## v0.9.5 · 2025-11-06
+
+### ℹ️ Notes
+
+- Internal maintenance release with no user-facing changes.
 
 ## v0.9.2 · 2025-11-06
 
