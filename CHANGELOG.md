@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.4](https://github.com/programinglive/todo/compare/v0.9.3...v0.9.4) (2025-11-06)
+
+
+### 🐛 Bug Fixes
+
+* enrich focus history display ([e348b4f](https://github.com/programinglive/todo/commit/e348b4f8df063a67562cacdcd6b84d4783c0ca2a))
+
 ### [0.9.3](https://github.com/programinglive/todo/compare/v0.9.1...v0.9.3) (2025-11-06)
 
 
