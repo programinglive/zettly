@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.7](https://github.com/programinglive/todo/compare/v0.9.6...v0.9.7) (2025-11-06)
+
+
+### 📝 Documentation
+
+* update release notes for v0.9.6 ([5338d6b](https://github.com/programinglive/todo/commit/5338d6b1d983263da43133744d496cdf23419591))
+
+
+### 🐛 Bug Fixes
+
+* widen focus title input ([cef0430](https://github.com/programinglive/todo/commit/cef0430bb309fd4c59f9e102b393a4730afc3875))
+
 ### [0.9.6](https://github.com/programinglive/todo/compare/v0.9.5...v0.9.6) (2025-11-06)
 
 
