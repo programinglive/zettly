@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.5](https://github.com/programinglive/todo/compare/v0.9.4...v0.9.5) (2025-11-06)
+
+
+### 🐛 Bug Fixes
+
+* harden CSRF handling for custom fetch calls ([c385d6e](https://github.com/programinglive/todo/commit/c385d6e9c562dd507153151bbbfffb1f14afc959))
+
 ### [0.9.4](https://github.com/programinglive/todo/compare/v0.9.3...v0.9.4) (2025-11-06)
 
 
