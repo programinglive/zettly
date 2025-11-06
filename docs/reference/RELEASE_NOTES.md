@@ -2,6 +2,12 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## v0.9.7 · 2025-11-06
+
+### ✨ UI Polish
+
+- **Focus dialog input sizing** — Expanded the Focus Title field to span the modal width and added internal padding for better readability in both light and dark themes.
+
 ## v0.9.6 · 2025-11-06
 
 ### 🧪 Quality

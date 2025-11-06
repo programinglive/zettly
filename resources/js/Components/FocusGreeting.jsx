@@ -404,6 +404,7 @@ export default function FocusGreeting() {
                                                 onChange={(e) => setTitle(e.target.value)}
                                                 placeholder="e.g., Complete project proposal"
                                                 disabled={isSubmitting}
+                                                className="w-full"
                                             />
                                         </div>
 
