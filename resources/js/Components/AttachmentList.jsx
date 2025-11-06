@@ -30,9 +30,12 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
         try {
             const response = await fetch(`/attachments/${attachmentId}`, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 },
             });
 

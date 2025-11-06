@@ -289,8 +289,10 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
 
             fetch('/todos/reorder', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
+                    Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken ?? '',
                 },

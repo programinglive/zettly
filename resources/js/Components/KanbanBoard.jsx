@@ -470,8 +470,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         // Use fetch instead of router.post for JSON endpoint to avoid Inertia response expectation
         fetch('/todos/reorder', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
+                Accept: 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 'X-Requested-With': 'XMLHttpRequest',
             },
