@@ -98,6 +98,21 @@ test('focus greeting completion reason dialog is wired correctly', () => {
     );
 });
 
+test('focus greeting history renders focus title and description', () => {
+    assert.ok(
+        /event\.focus\?\.title \? \(/.test(focusGreetingSource) &&
+            /event\.focus\.description \? \(/.test(focusGreetingSource),
+        'Expected recent focus history entries to include focus title and optional description.'
+    );
+});
+
+test('focus greeting history falls back to user-friendly name when missing', () => {
+    assert.ok(
+        /event\.user\?\.name\s*\?\?\s*'You'/.test(focusGreetingSource),
+        'Expected recent focus history entries to default to "You" when user information is missing.'
+    );
+});
+
 test('focus greeting dialog uses enlarged layout', () => {
     assert.ok(
         dialogSource.includes("className={cn(\n                    'fixed left-1/2 top-1/2 z-50 grid w-full max-w-3xl"),

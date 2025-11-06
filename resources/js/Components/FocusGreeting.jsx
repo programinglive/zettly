@@ -478,7 +478,20 @@ export default function FocusGreeting() {
                                             <span className="font-medium text-gray-700 dark:text-gray-100">{event.user?.name ?? 'You'}</span>
                                             {event.created_at ? <span>{new Date(event.created_at).toLocaleString()}</span> : null}
                                         </div>
-                                        <p className="mt-2 text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</p>
+                                        {event.focus?.title ? (
+                                            <div className="mt-3">
+                                                <p className="text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Focus</p>
+                                                <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100 break-words break-all">
+                                                    {event.focus.title}
+                                                </p>
+                                                {event.focus.description ? (
+                                                    <p className="mt-1 max-w-full text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line break-words break-all">
+                                                        {event.focus.description}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
+                                        <p className="mt-3 text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</p>
                                         <p className="mt-1 max-w-full text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line break-words break-all">{event.reason}</p>
                                     </div>
                                 ))}

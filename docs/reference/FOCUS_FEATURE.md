@@ -11,7 +11,7 @@ The Focus feature in Zettly allows users to set and track their daily focus. Whe
 - **Track Focus**: View current active focus on the dashboard
 - **Complete Focus**: Mark focus as completed
 - **Delete Focus**: Remove a focus item
-- **Focus History**: View all past foci
+- **Focus History**: View past foci with captured title, description, and completion reason
 
 ## Database Schema
 
@@ -272,7 +272,7 @@ The FocusGreeting component is integrated into the Dashboard page at:
 
 It appears at the top of the main content area, below the header and above the workspace view.
 
-When a focus is completed, the reason dialog captures context and the most recent 10 entries are displayed under the active focus card. The data is returned by `FocusController::current` which eager-loads the new `focus_status_events` relationship.
+When a focus is completed, the reason dialog captures context and the most recent 10 entries are displayed under the active focus card. Each history card shows who completed the focus, the focus title, optional description, and the provided reason. The data is returned by `FocusController::current` which eager-loads the new `focus_status_events` relationship.
 
 ## Testing
 
