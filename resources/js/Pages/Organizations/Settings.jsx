@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import PrimaryButton from '@/components/PrimaryButton';
-import SecondaryButton from '@/components/SecondaryButton';
-import DangerButton from '@/components/DangerButton';
-import TextInput from '@/components/TextInput';
+import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
+import TextInput from '@/Components/TextInput';
 import { ArrowLeft, Users, Mail, Trash2, Shield, User, AlertTriangle, ChevronDown } from 'lucide-react';
 
 export default function OrganizationSettings({ organization, members, isAdmin }) {

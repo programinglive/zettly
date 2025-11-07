@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import PrimaryButton from '@/components/PrimaryButton';
+import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, Users } from 'lucide-react';
 import ImageWithFallback from '@/Components/ImageWithFallback';
 
