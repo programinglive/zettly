@@ -50,6 +50,9 @@ php artisan tinker --execute="echo 'App Version: ' . config('app.version')"
 
 # Check Pusher configuration
 php artisan tinker --execute="echo 'Pusher Key: ' . (config('broadcasting.connections.pusher.key') ? 'configured' : 'missing')"
+
+# Verify mail transport configuration
+php artisan tinker --execute="echo 'Mail Transport: ' . config('mail.mailers.smtp.transport') . ' (scheme: ' . (config('mail.mailers.smtp.scheme') ?? 'default') . ')';"
 ```
 
 ## 🧪 Post-Deployment Testing

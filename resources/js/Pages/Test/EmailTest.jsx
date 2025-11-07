@@ -44,6 +44,12 @@ export default function EmailTest({ defaults = {}, flash = {} }) {
                     </div>
                 )}
 
+                {flash.error && (
+                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {flash.error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
                     <div>
                         <InputLabel htmlFor="recipient" value="Recipient email" />

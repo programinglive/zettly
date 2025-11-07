@@ -39,10 +39,55 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => value(function () {
+                $scheme = env('MAIL_SCHEME');
+
+                if (is_string($scheme)) {
+                    $scheme = trim($scheme);
+
+                    if ($scheme === '') {
+                        $scheme = null;
+                    } else {
+                        $scheme = strtolower($scheme);
+                    }
+                }
+
+                if ($scheme === null) {
+                    $fallback = env('MAIL_ENCRYPTION');
+
+                    if (is_string($fallback)) {
+                        $fallback = strtolower(trim($fallback));
+                        $scheme = $fallback === '' ? null : $fallback;
+                    } else {
+                        $scheme = $fallback;
+                    }
+                }
+
+                if ($scheme === 'ssl') {
+                    return 'smtps';
+                }
+
+                if ($scheme === 'tls') {
+                    return 'smtp';
+                }
+
+                return $scheme;
+            }),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
+        'smtps' => [
+            'transport' => 'smtp',
+            'scheme' => 'smtps',
+            'url' => env('MAIL_URL'),
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 465),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,

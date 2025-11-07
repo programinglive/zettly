@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Mail\TestEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Throwable;
 
 class EmailTestController extends Controller
 {
@@ -20,6 +24,7 @@ class EmailTestController extends Controller
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ]);
     }
@@ -32,16 +37,37 @@ class EmailTestController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        Mail::to($validated['recipient'])->send(
-            new TestEmail(
-                $validated['subject'],
-                $validated['message'],
-                $request->user()?->name
-            )
-        );
+        try {
+            Mail::to($validated['recipient'])->send(
+                new TestEmail(
+                    $validated['subject'],
+                    $validated['message'],
+                    $request->user()?->name
+                )
+            );
 
-        return redirect()
-            ->route('test.email')
-            ->with('success', 'Test email dispatched successfully. Check the configured mailer output.');
+            return redirect()
+                ->route('test.email')
+                ->with('success', 'Test email dispatched successfully. Check the configured mailer output.');
+        } catch (TransportExceptionInterface|Throwable $exception) {
+            Log::error('Failed to send test email.', [
+                'exception' => $exception,
+            ]);
+
+            $details = Str::of($exception->getMessage() ?? '')
+                ->squish()
+                ->limit(160);
+
+            $message = 'Failed to send test email. Please verify the mail configuration.';
+
+            if ($details->isNotEmpty()) {
+                $message .= ' (' . $details . ')';
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $message);
+        }
     }
 }
