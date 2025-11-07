@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.2](https://github.com/programinglive/todo/compare/v0.10.1...v0.10.2) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* correct import paths for Organization components (case-sensitive) ([24a6bbd](https://github.com/programinglive/todo/commit/24a6bbddb40bc82e3a2b3a549525885503312b2a))
+
 ### [0.10.1](https://github.com/programinglive/todo/compare/v0.10.0...v0.10.1) (2025-11-07)
 
 
