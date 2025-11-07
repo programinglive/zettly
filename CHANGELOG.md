@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.1](https://github.com/programinglive/todo/compare/v0.10.0...v0.10.1) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* replace shadcn/ui components with existing project components in Organization pages ([5e8b1d7](https://github.com/programinglive/todo/commit/5e8b1d7e17031c70fa51ed30357e371cd1e13a6b))
+
 ## [0.10.0](https://github.com/programinglive/todo/compare/v0.9.7...v0.10.0) (2025-11-07)
 
 
