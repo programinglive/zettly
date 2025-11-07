@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.3](https://github.com/programinglive/todo/compare/v0.10.2...v0.10.3) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* organization invite form CSRF token handling ([eabf853](https://github.com/programinglive/todo/commit/eabf853c5a7ab6cdeba370ee239ed5cc799cfe29))
+
 ### [0.10.2](https://github.com/programinglive/todo/compare/v0.10.1...v0.10.2) (2025-11-07)
 
 
