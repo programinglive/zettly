@@ -11,7 +11,7 @@ export default function ShowOrganization({ organization, members, isAdmin }) {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteError, setInviteError] = useState('');
     const [inviteSuccess, setInviteSuccess] = useState('');
-    const { post: invitePost, processing: inviteProcessing } = useForm();
+    const { data: inviteData, setData: setInviteData, post: invitePost, processing: inviteProcessing } = useForm({ email: '' });
     const { delete: deletePost, processing: deleteProcessing } = useForm();
 
     const handleInvite = (e) => {
