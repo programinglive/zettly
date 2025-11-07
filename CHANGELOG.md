@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.10.0](https://github.com/programinglive/todo/compare/v0.9.7...v0.10.0) (2025-11-07)
+
+
+### ✨ Features
+
+* organization admin management improvements ([0b469ad](https://github.com/programinglive/todo/commit/0b469ad01dedd31b0624fbec0dd48360b1e08d44))
+
 ### [0.9.7](https://github.com/programinglive/todo/compare/v0.9.6...v0.9.7) (2025-11-06)
 
 
