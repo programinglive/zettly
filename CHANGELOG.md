@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.4](https://github.com/programinglive/todo/compare/v0.10.3...v0.10.4) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* normalize SMTP configuration and harden email test endpoint ([6c83172](https://github.com/programinglive/todo/commit/6c8317282fcc888b05e228e6a66c4ccf95a85abe))
+
 ### [0.10.3](https://github.com/programinglive/todo/compare/v0.10.2...v0.10.3) (2025-11-07)
 
 
