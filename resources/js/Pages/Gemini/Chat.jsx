@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Head } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AppLayout from '@/Layouts/AppLayout';
 
 export default function Chat({ auth }) {
     const [message, setMessage] = useState('');
@@ -31,8 +31,7 @@ export default function Chat({ auth }) {
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
+        <AppLayout
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Gemini Chat</h2>}
         >
             <Head title="Gemini Chat" />
@@ -69,6 +68,6 @@ export default function Chat({ auth }) {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

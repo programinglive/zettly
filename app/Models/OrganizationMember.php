@@ -6,29 +6,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Drawing extends Model
+class OrganizationMember extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'organization_id',
-        'title',
-        'document',
-        'thumbnail',
+        'user_id',
+        'role',
     ];
 
-    protected $casts = [
-        'document' => 'array',
-    ];
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function organization(): BelongsTo
+    public function isAdmin(): bool
     {
-        return $this->belongsTo(Organization::class);
+        return $this->role === 'admin';
+    }
+
+    public function isMember(): bool
+    {
+        return $this->role === 'member';
     }
 }

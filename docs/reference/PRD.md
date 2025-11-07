@@ -1,15 +1,15 @@
 ---
 title: Zettly Product Requirements Document (PRD)
 author: Platform Team
-last_updated: 2025-10-31
+last_updated: 2025-11-07
 status: Draft
 ---
 
 ## 1. Executive Summary
-Zettly is an integrated productivity platform for managing todos, notes, drawings, and knowledge artifacts with real-time collaboration. It merges Eisenhower prioritization, Kanban workflows, Algolia-powered search, TLDraw sketching, and push notifications into a single workspace. The most recent enhancement adds a super administrator System Monitor that surfaces operational diagnostics from within the app.
+Zettly is an integrated productivity platform for managing todos, notes, drawings, and knowledge artifacts with real-time collaboration. It merges Eisenhower prioritization, Kanban workflows, Algolia-powered search, TLDraw sketching, and push notifications into a single workspace. The most recent major enhancement introduces **Organizations** — enabling teams to create shared workspaces where members can collaboratively view and manage todos, notes, drawings, and tags. Combined with the super administrator System Monitor, Zettly now supports both individual and team-based productivity workflows.
 
 ## 2. Problem Statement
-Knowledge workers rely on fragmented toolchains for tasks, documentation, and visual planning, creating silos and delaying execution. Support teams similarly lack centralized operational visibility once the product is deployed. Zettly solves both challenges by unifying productivity flows and by empowering super administrators with runtime diagnostics.
+Knowledge workers rely on fragmented toolchains for tasks, documentation, and visual planning, creating silos and delaying execution. Teams struggle to share and collaborate on work artifacts without context switching between tools. Support teams similarly lack centralized operational visibility once the product is deployed. Zettly solves these challenges by unifying productivity flows, enabling team collaboration through organizations, and empowering super administrators with runtime diagnostics.
 
 ## 3. Goals & Success Metrics
 | Goal | Metric | Target |
@@ -20,10 +20,11 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 | Reduce incident detection time | Time from failure to detection | < 5 minutes |
 
 ## 4. User Personas
-- **Individual Contributor (IC):** Plans personal work and tracks tasks, notes, and sketches.
-- **Team Lead:** Oversees priorities, coordinates dependencies, and reviews dashboards.
-- **Knowledge Manager:** Curates reusable notes, tags, and attachments; depends on search fidelity.
-- **Super Administrator / Support Engineer:** Monitors system health, validates integrations, and responds to incidents.
+- **Individual Contributor (IC):** Plans personal work and tracks tasks, notes, and sketches. Can create and join organizations for team collaboration.
+- **Team Lead / Organization Admin:** Creates organizations, invites team members, oversees shared priorities, coordinates dependencies, and reviews dashboards.
+- **Organization Member:** Collaborates within organizations, viewing and managing shared todos, notes, drawings, and tags with team members.
+- **Knowledge Manager:** Curates reusable notes, tags, and attachments; depends on search fidelity; can share knowledge across organizations.
+- **Super Administrator / Support Engineer:** Monitors system health, validates integrations, responds to incidents, and manages platform-wide settings.
 
 ## 5. Product Scope
 ### 5.1 In Scope
@@ -34,11 +35,16 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Global search via Algolia indexes for todos, notes, tags.
 - Push notifications, broadcasting, and Gemini chat demo.
 - Super administrator role management and System Monitor diagnostics.
+- **Organizations:** Create, manage, and invite members to shared workspaces.
+- **Organization Membership:** Admin and member roles with permission-based access.
+- **Shared Resources:** Todos, notes, drawings, and tags scoped to organizations.
+- **Organization Switching:** Users can switch between personal and organization workspaces.
 
 ### 5.2 Out of Scope (for current release)
 - External calendar sync and time tracking.
 - Automated alerting integrations (Slack/email).
 - Native mobile applications (responsive web/PWA only).
+- Advanced permission models (e.g., read-only, editor roles).
 
 ## 6. Feature Breakdown
 ### 6.1 Task & Note Management
@@ -82,10 +88,19 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - App layout surfaces admin navigation link only for super admins.
 - Seed data promotes `john@example.com` to super admin for development/staging.
 
+### 6.7 Organizations & Team Collaboration
+- **Organization Creation:** Users can create organizations with name, slug, description, and optional logo.
+- **Organization Membership:** Admin and member roles; admins can invite/remove members.
+- **Shared Workspace:** All todos, notes, drawings, and tags created within an organization are visible to members.
+- **Scoped Resources:** Todos, notes, drawings, and tags can be personal (user-scoped) or organizational (org-scoped).
+- **Organization Switching:** UI allows users to switch between personal workspace and joined organizations.
+- **Invitation Flow:** Admins can invite users by email; invitees receive notifications and can accept/decline.
+- **Member Management:** Admins can view members, change roles, and remove members from organizations.
+
 ## 7. Functional Requirements
-1. Users can create, edit, prioritize, archive, and delete todos and notes.
+1. Users can create, edit, prioritize, archive, and delete todos and notes (personal or organizational).
 2. Attachments, tags, relationships, and checklist items persist across reloads.
-3. Drawings autosave, display thumbnails, and sync across sessions.
+3. Drawings autosave, display thumbnails, and sync across sessions (personal or organizational).
 4. Global search operates when Algolia credentials are present and degrades gracefully when missing.
 5. Push notifications allow subscription creation/removal and test broadcasts.
 6. Gemini chat endpoint returns sensible errors on timeouts.
@@ -93,6 +108,11 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 8. System Monitor widget supports forced enable mode and inline rendering.
 9. Registration flow assigns new accounts the default `user` role.
 10. Role changes performed via helper without direct DB access.
+11. Users can create organizations and invite other users as members.
+12. Organization admins can manage members, change roles, and remove members.
+13. All organization members can view and manage shared todos, notes, drawings, and tags.
+14. Users can switch between personal workspace and organization workspaces via UI selector.
+15. Organization resources are scoped and only visible to organization members.
 
 ## 8. Non-Functional Requirements
 - **Security:** Role-based access control, CSRF compliance, masked diagnostics, hashed passwords.
@@ -104,8 +124,9 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 ## 9. Technical Architecture
 - **Backend:** Laravel 12, Sanctum authentication, observers for search indexing, broadcasting with Pusher-compatible drivers.
 - **Frontend:** React + Inertia, TailwindCSS, shadcn/ui components, TLDraw integration, Vite build pipeline.
-- **Data Model:** Users (with `role`), Todos, Tags, Attachments, Drawings, Todo relationships, Push subscriptions.
+- **Data Model:** Users (with `role`), Organizations, OrganizationMembers, Todos (scoped), Tags (scoped), Attachments, Drawings (scoped), Todo relationships, Push subscriptions.
 - **Infrastructure:** Environment-configurable services (Algolia, Pusher, Gemini, Sentry), optional S3-compatible storage.
+- **Authorization:** Middleware to enforce organization membership and role-based access for scoped resources.
 
 ## 10. Dependencies & Integrations
 - Algolia Application ID/Search key.
@@ -115,15 +136,16 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Service Worker for PWA support.
 
 ## 11. Rollout Plan
-1. Implement feature branches and run unit/integration tests.
-2. Deploy to staging, run `php artisan migrate`, promote staging admin via `assignRole` helper, validate System Monitor.
+1. Implement feature branches and run unit/integration tests (including organization CRUD and membership).
+2. Deploy to staging, run `php artisan migrate`, promote staging admin via `assignRole` helper, validate System Monitor and organization features.
 3. Production deployment:
    - Backup database.
-   - Deploy code and run migrations.
+   - Deploy code and run migrations (creates organizations, organization_members tables; adds organization_id columns).
    - Promote designated super admin(s) (`php artisan tinker` → `assignRole`).
-   - Smoke test `/admin/system-monitor`, dashboard, search, drawings.
-4. Share updated README instructions and runbook with support team.
+   - Smoke test `/admin/system-monitor`, dashboard, search, drawings, and organization creation/management.
+4. Share updated README instructions and runbook with support team (including organization setup and invitation flow).
 5. Monitor logs and System Monitor page for post-deploy validation.
+6. Announce organization feature to users via in-app notification and email.
 
 ## 12. Risks & Mitigations
 | Risk | Impact | Mitigation |
@@ -133,18 +155,25 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 | WebSocket failures | Degraded realtime UX | System Monitor exposes status; fallback to manual refresh |
 | Autosave conflicts | Lost drawing updates | Debounce writes; TLDraw state merging |
 | Large file uploads | Storage strain | Enforce limits; use S3 lifecycle policies |
+| Accidental data sharing | Privacy breach | Organization membership validation; audit logging |
+| Invitation spam | User experience degradation | Rate limiting; invitation acceptance flow |
+| Organization deletion | Data loss | Soft deletes; admin confirmation required |
 
 ## 13. Metrics & Analytics
-- Page views for `/dashboard`, `/todos`, `/admin/system-monitor`.
+- Page views for `/dashboard`, `/todos`, `/admin/system-monitor`, `/organizations`.
+- Count of organizations created and active members per organization.
 - Count of push notification subscriptions.
 - System Monitor refresh events for operational audit.
 - Latency metrics for Algolia queries and broadcast events.
+- Organization invitation acceptance rate and member retention.
 
 ## 14. Compliance & Security
 - Enforce HTTPS for all public endpoints and broadcasting.
 - Sanitize user-generated HTML and store hashed passwords.
-- Log access to admin routes for auditing.
-- Provide runbook for role promotion/demotion.
+- Log access to admin routes and organization membership changes for auditing.
+- Provide runbook for role promotion/demotion and organization management.
+- Validate organization membership before granting access to scoped resources.
+- Implement rate limiting on invitation endpoints to prevent spam.
 
 ## 15. Future Enhancements
 - Automated alerting (Slack/email) triggered by diagnostics thresholds.

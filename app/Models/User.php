@@ -101,4 +101,21 @@ class User extends Authenticatable
             ->whereNull('completed_at')
             ->orderBy('started_at', 'desc');
     }
+
+    public function organizations()
+    {
+        return $this->belongsToMany(Organization::class, 'organization_members', 'user_id', 'organization_id')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function createdOrganizations()
+    {
+        return $this->hasMany(Organization::class, 'created_by');
+    }
+
+    public function organizationMembers()
+    {
+        return $this->hasMany(OrganizationMember::class);
+    }
 }

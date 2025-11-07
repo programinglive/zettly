@@ -7,6 +7,7 @@ use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\FocusController;
 use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PusherTestController;
 use App\Http\Controllers\SystemStatusController;
@@ -125,6 +126,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/focus', [FocusController::class, 'store'])->name('focus.store');
     Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('focus.complete');
     Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('focus.destroy');
+
+    // Organization management routes
+    Route::resource('organizations', OrganizationController::class);
+    Route::get('organizations/{organization}/settings', [OrganizationController::class, 'settings'])->name('organizations.settings');
+    Route::post('organizations/{organization}/invite', [OrganizationController::class, 'invite'])->name('organizations.invite');
+    Route::delete('organizations/{organization}/members/{member}', [OrganizationController::class, 'removeMember'])->name('organizations.remove-member');
+    Route::patch('organizations/{organization}/members/{member}/role', [OrganizationController::class, 'updateMemberRole'])->name('organizations.update-member-role');
+    Route::post('organizations/{organization}/leave', [OrganizationController::class, 'leave'])->name('organizations.leave');
 });
 
 require __DIR__.'/auth.php';

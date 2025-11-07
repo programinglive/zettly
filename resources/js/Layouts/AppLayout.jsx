@@ -98,6 +98,17 @@ export default function AppLayout({
             group: 'resource',
         },
         {
+            href: '/organizations',
+            label: 'Organizations',
+            description: 'Manage team workspaces',
+            icon: (
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 8.048M7 14H5a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2h-2m-1-12a4 4 0 110 8m-5 10v2m5-12v2m5 10v2" />
+                </svg>
+            ),
+            group: 'resource',
+        },
+        {
             href: '/profile',
             label: 'Profile Settings',
             group: 'resource',

@@ -147,6 +147,7 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const response = await fetch('/focus', {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -154,7 +155,7 @@ export default function FocusGreeting() {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
                 },
                 body: JSON.stringify({
                     title: title.trim(),
@@ -198,6 +199,7 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const response = await fetch(`/focus/${currentFocus.id}/complete`, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -205,7 +207,7 @@ export default function FocusGreeting() {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
                 },
                 body: JSON.stringify({
                     reason,
@@ -269,13 +271,14 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const response = await fetch(`/focus/${currentFocus.id}`, {
                 method: 'DELETE',
                 credentials: 'same-origin',
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
                 },
             });
 

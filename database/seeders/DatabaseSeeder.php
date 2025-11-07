@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             TodoSeeder::class,
             FocusSeeder::class,
             DrawSeeder::class,
+            OrganizationSeeder::class,
         ]);
     }
 }
