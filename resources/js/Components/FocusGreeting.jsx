@@ -155,7 +155,7 @@ export default function FocusGreeting() {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify({
                     title: title.trim(),
@@ -207,7 +207,7 @@ export default function FocusGreeting() {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify({
                     reason,

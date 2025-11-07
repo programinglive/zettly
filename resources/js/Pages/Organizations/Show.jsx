@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
+import TextInput from '@/components/TextInput';
 import { ArrowLeft, Users, Mail, Trash2, Shield, User } from 'lucide-react';
 
 export default function ShowOrganization({ organization, members, isAdmin }) {
@@ -73,12 +73,12 @@ export default function ShowOrganization({ organization, members, isAdmin }) {
                     <div className="flex gap-2">
                         {isAdmin && (
                             <Link href={route('organizations.settings', organization.id)}>
-                                <Button variant="outline">Settings</Button>
+                                <SecondaryButton>Settings</SecondaryButton>
                             </Link>
                         )}
-                        <Button variant="outline" onClick={handleLeave} disabled={deleteProcessing}>
+                        <SecondaryButton onClick={handleLeave} disabled={deleteProcessing}>
                             Leave
-                        </Button>
+                        </SecondaryButton>
                     </div>
                 </div>
 
@@ -108,17 +108,17 @@ export default function ShowOrganization({ organization, members, isAdmin }) {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Members Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Users className="h-5 w-5" />
                                     Members ({members.length})
-                                </CardTitle>
-                                <CardDescription>
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                     Manage organization members and their roles
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                                </p>
+                            </div>
+                            <div className="px-6 py-4">
                                 <div className="space-y-4">
                                     {members.map((member) => (
                                         <div
@@ -150,60 +150,60 @@ export default function ShowOrganization({ organization, members, isAdmin }) {
                                                     </span>
                                                 </div>
                                                 {isAdmin && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                    <button
                                                         onClick={() => handleRemoveMember(member.id)}
                                                         disabled={deleteProcessing}
+                                                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
                                                     >
-                                                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                    </Button>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Invite Card */}
                         {isAdmin && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
+                            <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                         <Mail className="h-5 w-5" />
                                         Invite Member
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                                    </h2>
+                                </div>
+                                <div className="px-6 py-4">
                                     <form onSubmit={handleInvite} className="space-y-4">
-                                        <Input
+                                        <TextInput
                                             type="email"
                                             placeholder="user@example.com"
                                             value={inviteEmail}
                                             onChange={(e) => setInviteEmail(e.target.value)}
+                                            className="border border-gray-300 w-full"
                                         />
-                                        <Button
+                                        <PrimaryButton
                                             type="submit"
                                             disabled={inviteProcessing}
-                                            className="w-full"
+                                            className="w-full justify-center"
                                         >
                                             {inviteProcessing ? 'Inviting...' : 'Send Invite'}
-                                        </Button>
+                                        </PrimaryButton>
                                     </form>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         )}
 
                         {/* Info Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Organization Info</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 text-sm">
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Organization Info</h2>
+                            </div>
+                            <div className="px-6 py-4 space-y-4 text-sm">
                                 <div>
                                     <p className="text-gray-600 dark:text-gray-400">Created by</p>
                                     <p className="font-medium text-gray-900 dark:text-white">
@@ -222,8 +222,8 @@ export default function ShowOrganization({ organization, members, isAdmin }) {
                                         {organization.slug}
                                     </p>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

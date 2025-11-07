@@ -1,9 +1,9 @@
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
+import DangerButton from '@/components/DangerButton';
+import TextInput from '@/components/TextInput';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function EditOrganization({ organization }) {
@@ -47,26 +47,26 @@ export default function EditOrganization({ organization }) {
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Form Card */}
                     <div className="lg:col-span-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Organization Details</CardTitle>
-                                <CardDescription>
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Organization Details</h2>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                     Update your organization information
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                                </p>
+                            </div>
+                            <div className="px-6 py-4">
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Name */}
                                     <div>
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Organization Name *
                                         </label>
-                                        <Input
+                                        <TextInput
                                             id="name"
                                             type="text"
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
-                                            className={errors.name ? 'border-red-500' : ''}
+                                            className={errors.name ? 'border-red-500' : 'border border-gray-300'}
                                         />
                                         {errors.name && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
@@ -78,12 +78,14 @@ export default function EditOrganization({ organization }) {
                                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Description
                                         </label>
-                                        <Textarea
+                                        <textarea
                                             id="description"
                                             value={data.description}
                                             onChange={(e) => setData('description', e.target.value)}
                                             rows={4}
-                                            className={errors.description ? 'border-red-500' : ''}
+                                            className={`w-full rounded-md px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${
+                                                errors.description ? 'border-red-500' : 'border border-gray-300'
+                                            }`}
                                         />
                                         {errors.description && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description}</p>
@@ -95,12 +97,12 @@ export default function EditOrganization({ organization }) {
                                         <label htmlFor="logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Logo URL
                                         </label>
-                                        <Input
+                                        <TextInput
                                             id="logo_url"
                                             type="url"
                                             value={data.logo_url}
                                             onChange={(e) => setData('logo_url', e.target.value)}
-                                            className={errors.logo_url ? 'border-red-500' : ''}
+                                            className={errors.logo_url ? 'border-red-500' : 'border border-gray-300'}
                                         />
                                         {errors.logo_url && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.logo_url}</p>
@@ -109,44 +111,43 @@ export default function EditOrganization({ organization }) {
 
                                     {/* Buttons */}
                                     <div className="flex gap-3 pt-4">
-                                        <Button
+                                        <PrimaryButton
                                             type="submit"
                                             disabled={processing}
                                         >
                                             {processing ? 'Saving...' : 'Save Changes'}
-                                        </Button>
+                                        </PrimaryButton>
                                         <a href={route('organizations.show', organization.id)}>
-                                            <Button type="button" variant="outline">
+                                            <SecondaryButton type="button">
                                                 Cancel
-                                            </Button>
+                                            </SecondaryButton>
                                         </a>
                                     </div>
                                 </form>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Danger Zone */}
                     <div>
-                        <Card className="border-red-200 dark:border-red-900/50">
-                            <CardHeader>
-                                <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
-                                <CardDescription>
+                        <div className="rounded-lg border border-red-200 bg-white shadow-sm dark:border-red-900/50 dark:bg-gray-800">
+                            <div className="border-b border-red-200 px-6 py-4 dark:border-red-900/50">
+                                <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h2>
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                                     Irreversible actions
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Button
-                                    variant="destructive"
-                                    className="w-full gap-2"
+                                </p>
+                            </div>
+                            <div className="px-6 py-4">
+                                <DangerButton
+                                    className="w-full gap-2 justify-center"
                                     onClick={handleDelete}
                                     disabled={processing}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     Delete Organization
-                                </Button>
-                            </CardContent>
-                        </Card>
+                                </DangerButton>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

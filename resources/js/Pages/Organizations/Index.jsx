@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PrimaryButton from '@/components/PrimaryButton';
 import { Plus, Users } from 'lucide-react';
 import ImageWithFallback from '@/Components/ImageWithFallback';
 
@@ -25,10 +24,10 @@ export default function OrganizationsIndex({ organizations }) {
                         </p>
                     </div>
                     <Link href={route('organizations.create')}>
-                        <Button className="gap-2">
+                        <PrimaryButton className="gap-2">
                             <Plus className="h-4 w-4" />
                             New Organization
-                        </Button>
+                        </PrimaryButton>
                     </Link>
                 </div>
 
@@ -44,14 +43,14 @@ export default function OrganizationsIndex({ organizations }) {
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {organizations.data.map((org) => (
                             <Link key={org.id} href={route('organizations.show', org.id)}>
-                                <Card className="h-full transition-all hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 cursor-pointer">
-                                    <CardHeader>
+                                <div className="h-full rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg hover:border-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-800 cursor-pointer">
+                                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <CardTitle className="text-lg">{org.name}</CardTitle>
-                                                <CardDescription className="mt-1">
+                                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{org.name}</h3>
+                                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                                     {org.description || 'No description'}
-                                                </CardDescription>
+                                                </p>
                                             </div>
                                             <ImageWithFallback
                                                 src={org.logo_url}
@@ -61,8 +60,8 @@ export default function OrganizationsIndex({ organizations }) {
                                                 initials={org.name.charAt(0).toUpperCase()}
                                             />
                                         </div>
-                                    </CardHeader>
-                                    <CardContent>
+                                    </div>
+                                    <div className="px-6 py-4">
                                         <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                                             <div className="flex items-center gap-1">
                                                 <Users className="h-4 w-4" />
@@ -72,14 +71,14 @@ export default function OrganizationsIndex({ organizations }) {
                                                 {new Date(org.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             </Link>
                         ))}
                     </div>
                 ) : (
-                    <Card className="border-dashed">
-                        <CardContent className="flex flex-col items-center justify-center py-12">
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800">
+                        <div className="flex flex-col items-center justify-center py-12 px-6">
                             <Users className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                                 No organizations yet
@@ -88,13 +87,13 @@ export default function OrganizationsIndex({ organizations }) {
                                 Create your first organization to start collaborating with your team
                             </p>
                             <Link href={route('organizations.create')}>
-                                <Button className="gap-2">
+                                <PrimaryButton className="gap-2">
                                     <Plus className="h-4 w-4" />
                                     Create Organization
-                                </Button>
+                                </PrimaryButton>
                             </Link>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
             </div>
         </AppLayout>

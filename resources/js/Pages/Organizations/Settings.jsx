@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
+import DangerButton from '@/components/DangerButton';
+import TextInput from '@/components/TextInput';
 import { ArrowLeft, Users, Mail, Trash2, Shield, User, AlertTriangle, ChevronDown } from 'lucide-react';
 
 export default function OrganizationSettings({ organization, members, isAdmin }) {
@@ -75,9 +75,9 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                     <p className="font-medium">Access Denied</p>
                     <p className="text-sm">You must be an admin to access organization settings.</p>
                     <Link href={route('organizations.show', organization.id)}>
-                        <Button className="mt-4" variant="outline">
+                        <SecondaryButton className="mt-4">
                             Back to Organization
-                        </Button>
+                        </SecondaryButton>
                     </Link>
                 </div>
             </AppLayout>
@@ -125,26 +125,26 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Organization Settings */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Organization Details</CardTitle>
-                                <CardDescription>
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Organization Details</h2>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                     Update your organization information
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                                </p>
+                            </div>
+                            <div className="px-6 py-4">
                                 <form onSubmit={handleUpdateOrganization} className="space-y-6">
                                     {/* Name */}
                                     <div>
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Organization Name *
                                         </label>
-                                        <Input
+                                        <TextInput
                                             id="name"
                                             type="text"
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
-                                            className={errors.name ? 'border-red-500' : ''}
+                                            className={errors.name ? 'border-red-500' : 'border border-gray-300'}
                                         />
                                         {errors.name && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
@@ -156,12 +156,14 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Description
                                         </label>
-                                        <Textarea
+                                        <textarea
                                             id="description"
                                             value={data.description}
                                             onChange={(e) => setData('description', e.target.value)}
                                             rows={4}
-                                            className={errors.description ? 'border-red-500' : ''}
+                                            className={`w-full rounded-md px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${
+                                                errors.description ? 'border-red-500' : 'border border-gray-300'
+                                            }`}
                                         />
                                         {errors.description && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description}</p>
@@ -173,37 +175,37 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                         <label htmlFor="logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Logo URL
                                         </label>
-                                        <Input
+                                        <TextInput
                                             id="logo_url"
                                             type="url"
                                             value={data.logo_url}
                                             onChange={(e) => setData('logo_url', e.target.value)}
-                                            className={errors.logo_url ? 'border-red-500' : ''}
+                                            className={errors.logo_url ? 'border-red-500' : 'border border-gray-300'}
                                         />
                                         {errors.logo_url && (
                                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.logo_url}</p>
                                         )}
                                     </div>
 
-                                    <Button type="submit" disabled={processing}>
+                                    <PrimaryButton type="submit" disabled={processing}>
                                         {processing ? 'Saving...' : 'Save Changes'}
-                                    </Button>
+                                    </PrimaryButton>
                                 </form>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
 
                         {/* Members Management */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Users className="h-5 w-5" />
                                     Members ({members.length})
-                                </CardTitle>
-                                <CardDescription>
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                     Manage organization members and their roles
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                                </p>
+                            </div>
+                            <div className="px-6 py-4">
                                 <div className="space-y-4">
                                     {members.map((member) => (
                                         <div
@@ -245,57 +247,57 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                                         <ChevronDown className="h-3 w-3" />
                                                     </button>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
+                                                <button
                                                     onClick={() => handleRemoveMember(member.id)}
                                                     disabled={deleteProcessing}
+                                                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
                                                 >
-                                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                </Button>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Invite Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Mail className="h-5 w-5" />
                                     Invite Member
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                                </h2>
+                            </div>
+                            <div className="px-6 py-4">
                                 <form onSubmit={handleInvite} className="space-y-4">
-                                    <Input
+                                    <TextInput
                                         type="email"
                                         placeholder="user@example.com"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
+                                        className="border border-gray-300 w-full"
                                     />
-                                    <Button
+                                    <PrimaryButton
                                         type="submit"
                                         disabled={inviteProcessing}
-                                        className="w-full"
+                                        className="w-full justify-center"
                                     >
                                         {inviteProcessing ? 'Inviting...' : 'Send Invite'}
-                                    </Button>
+                                    </PrimaryButton>
                                 </form>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
 
                         {/* Info Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Organization Info</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 text-sm">
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Organization Info</h2>
+                            </div>
+                            <div className="px-6 py-4 space-y-4 text-sm">
                                 <div>
                                     <p className="text-gray-600 dark:text-gray-400">Created by</p>
                                     <p className="font-medium text-gray-900 dark:text-white">
@@ -314,31 +316,30 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                         {organization.slug}
                                     </p>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
 
                         {/* Danger Zone */}
-                        <Card className="border-red-200 dark:border-red-900/50">
-                            <CardHeader>
-                                <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <div className="rounded-lg border border-red-200 bg-white shadow-sm dark:border-red-900/50 dark:bg-gray-800">
+                            <div className="border-b border-red-200 px-6 py-4 dark:border-red-900/50">
+                                <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
                                     <AlertTriangle className="h-5 w-5" />
                                     Danger Zone
-                                </CardTitle>
-                                <CardDescription>
+                                </h2>
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                                     Irreversible actions
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                                </p>
+                            </div>
+                            <div className="px-6 py-4 space-y-4">
                                 {!showDeleteConfirm ? (
-                                    <Button
-                                        variant="destructive"
-                                        className="w-full gap-2"
+                                    <DangerButton
+                                        className="w-full gap-2 justify-center"
                                         onClick={() => setShowDeleteConfirm(true)}
                                         disabled={processing}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                         Delete Organization
-                                    </Button>
+                                    </DangerButton>
                                 ) : (
                                     <div className="space-y-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/50">
                                         <div>
@@ -348,26 +349,24 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                             <p className="text-sm text-red-800 dark:text-red-400 mb-4">
                                                 Please type the organization name <span className="font-bold">{organization.name}</span> to confirm:
                                             </p>
-                                            <Input
+                                            <TextInput
                                                 type="text"
                                                 placeholder={organization.name}
                                                 value={deleteConfirmation}
                                                 onChange={(e) => setDeleteConfirmation(e.target.value)}
-                                                className="border-red-300 dark:border-red-700"
+                                                className="border-red-300 dark:border-red-700 w-full"
                                             />
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button
-                                                variant="destructive"
-                                                className="flex-1 gap-2"
+                                            <DangerButton
+                                                className="flex-1 gap-2 justify-center"
                                                 onClick={handleDeleteOrganization}
                                                 disabled={deleteConfirmation !== organization.name || deleteProcessing}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                                 Delete Organization
-                                            </Button>
-                                            <Button
-                                                variant="outline"
+                                            </DangerButton>
+                                            <SecondaryButton
                                                 className="flex-1"
                                                 onClick={() => {
                                                     setShowDeleteConfirm(false);
@@ -376,12 +375,12 @@ export default function OrganizationSettings({ organization, members, isAdmin })
                                                 disabled={deleteProcessing}
                                             >
                                                 Cancel
-                                            </Button>
+                                            </SecondaryButton>
                                         </div>
                                     </div>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

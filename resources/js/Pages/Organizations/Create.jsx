@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
+import TextInput from '@/components/TextInput';
 import { ArrowLeft } from 'lucide-react';
 
 export default function CreateOrganization() {
@@ -40,27 +39,27 @@ export default function CreateOrganization() {
                 </div>
 
                 {/* Form Card */}
-                <Card className="max-w-2xl">
-                    <CardHeader>
-                        <CardTitle>Organization Details</CardTitle>
-                        <CardDescription>
+                <div className="max-w-2xl rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Organization Details</h2>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                             Provide basic information about your organization
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                        </p>
+                    </div>
+                    <div className="px-6 py-4">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Name */}
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Organization Name *
                                 </label>
-                                <Input
+                                <TextInput
                                     id="name"
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="e.g., Acme Corp"
-                                    className={errors.name ? 'border-red-500' : ''}
+                                    className={errors.name ? 'border-red-500' : 'border border-gray-300'}
                                 />
                                 {errors.name && (
                                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
@@ -72,13 +71,15 @@ export default function CreateOrganization() {
                                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Description
                                 </label>
-                                <Textarea
+                                <textarea
                                     id="description"
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
                                     placeholder="Describe your organization..."
                                     rows={4}
-                                    className={errors.description ? 'border-red-500' : ''}
+                                    className={`w-full rounded-md px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${
+                                        errors.description ? 'border-red-500' : 'border border-gray-300'
+                                    }`}
                                 />
                                 {errors.description && (
                                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description}</p>
@@ -90,13 +91,13 @@ export default function CreateOrganization() {
                                 <label htmlFor="logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Logo URL
                                 </label>
-                                <Input
+                                <TextInput
                                     id="logo_url"
                                     type="url"
                                     value={data.logo_url}
                                     onChange={(e) => setData('logo_url', e.target.value)}
                                     placeholder="https://example.com/logo.png"
-                                    className={errors.logo_url ? 'border-red-500' : ''}
+                                    className={errors.logo_url ? 'border-red-500' : 'border border-gray-300'}
                                 />
                                 {errors.logo_url && (
                                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.logo_url}</p>
@@ -105,22 +106,21 @@ export default function CreateOrganization() {
 
                             {/* Buttons */}
                             <div className="flex gap-3 pt-4">
-                                <Button
+                                <PrimaryButton
                                     type="submit"
                                     disabled={processing}
-                                    className="gap-2"
                                 >
                                     {processing ? 'Creating...' : 'Create Organization'}
-                                </Button>
+                                </PrimaryButton>
                                 <a href={route('organizations.index')}>
-                                    <Button type="button" variant="outline">
+                                    <SecondaryButton type="button">
                                         Cancel
-                                    </Button>
+                                    </SecondaryButton>
                                 </a>
                             </div>
                         </form>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );
