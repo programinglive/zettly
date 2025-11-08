@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\NoteCreated;
+use App\Mail\NoteDeleted;
+use App\Mail\NoteUpdated;
 use App\Mail\TodoCreated;
 use App\Mail\TodoDeleted;
 use App\Mail\TodoUpdated;
@@ -40,6 +43,8 @@ class TodoTest extends TestCase
 
     public function test_user_can_create_note_without_priority(): void
     {
+        Mail::fake();
+
         /** @var User $user */
         $user = User::factory()->create();
 
@@ -61,6 +66,12 @@ class TodoTest extends TestCase
             'priority' => null,
             'user_id' => $user->id,
         ]);
+
+        Mail::assertQueued(NoteCreated::class, function (NoteCreated $mail) use ($user) {
+            return $mail->note->title === 'Personal Note'
+                && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(TodoCreated::class);
     }
 
     public function test_user_can_toggle_checklist_item_completion(): void
@@ -89,6 +100,8 @@ class TodoTest extends TestCase
 
     public function test_note_priority_is_reset_on_update(): void
     {
+        Mail::fake();
+
         /** @var User $user */
         $user = User::factory()->create();
         $note = Todo::factory()->asNote()->create(['user_id' => $user->id]);
@@ -112,6 +125,12 @@ class TodoTest extends TestCase
             'type' => 'note',
             'priority' => null,
         ]);
+
+        Mail::assertQueued(NoteUpdated::class, function (NoteUpdated $mail) use ($note, $user) {
+            return $mail->note->id === $note->id
+                && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(TodoUpdated::class);
     }
 
     public function test_user_can_create_todo(): void
@@ -550,6 +569,29 @@ class TodoTest extends TestCase
         Mail::assertQueued(TodoDeleted::class, function (TodoDeleted $mail) use ($todo, $user) {
             return $mail->todo->is($todo) && $mail->hasTo($user->email);
         });
+    }
+
+    public function test_user_can_delete_note_and_receives_note_email(): void
+    {
+        Mail::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $note = Todo::factory()->asNote()->create(['user_id' => $user->id]);
+
+        $this->actingAs($user)->get(route('todos.show', $note));
+        $token = $this->app['session.store']->token();
+
+        $response = $this->actingAs($user)
+            ->delete(route('todos.destroy', $note), ['_token' => $token]);
+
+        $response->assertRedirect();
+        $this->assertSoftDeleted('todos', ['id' => $note->id]);
+
+        Mail::assertQueued(NoteDeleted::class, function (NoteDeleted $mail) use ($note, $user) {
+            return $mail->note->is($note) && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(TodoDeleted::class);
     }
 
     public function test_user_can_toggle_todo_completion(): void

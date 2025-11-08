@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NoteCreated;
+use App\Mail\NoteDeleted;
+use App\Mail\NoteUpdated;
 use App\Mail\TodoCreated;
 use App\Mail\TodoDeleted;
 use App\Mail\TodoUpdated;
@@ -296,6 +299,14 @@ class TodoController extends Controller
             try {
                 if ($todo->user?->email) {
                     Mail::to($todo->user)->queue(new TodoCreated($todo->fresh('user')));
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        } elseif ($type === Todo::TYPE_NOTE) {
+            try {
+                if ($todo->user?->email) {
+                    Mail::to($todo->user)->queue(new NoteCreated($todo->fresh('user')));
                 }
             } catch (\Throwable $exception) {
                 report($exception);
@@ -610,9 +621,13 @@ class TodoController extends Controller
             ]);
         }
 
-        if ($todo->type === Todo::TYPE_TODO && $todo->user?->email) {
+        if ($todo->user?->email) {
             try {
-                Mail::to($todo->user)->queue(new \App\Mail\TodoUpdated($todo));
+                if ($todo->type === Todo::TYPE_TODO) {
+                    Mail::to($todo->user)->queue(new TodoUpdated($todo));
+                } elseif ($todo->type === Todo::TYPE_NOTE) {
+                    Mail::to($todo->user)->queue(new NoteUpdated($todo));
+                }
             } catch (\Throwable $exception) {
                 report($exception);
             }
@@ -634,7 +649,11 @@ class TodoController extends Controller
 
         try {
             if ($todo->user?->email) {
-                Mail::to($todo->user)->queue(new TodoDeleted($todo));
+                if ($todo->type === Todo::TYPE_TODO) {
+                    Mail::to($todo->user)->queue(new TodoDeleted($todo));
+                } elseif ($todo->type === Todo::TYPE_NOTE) {
+                    Mail::to($todo->user)->queue(new NoteDeleted($todo));
+                }
             }
         } catch (\Throwable $exception) {
             report($exception);
