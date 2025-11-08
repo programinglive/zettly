@@ -5,8 +5,10 @@ namespace Tests\Feature\Auth;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Mail\TodoCreated;
+use App\Mail\UserWelcome;
 use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -24,6 +26,7 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register(): void
     {
         Notification::fake();
+        Mail::fake();
 
         $response = $this->withSession(['_token' => 'test-token'])
             ->post('/register', [
@@ -41,12 +44,16 @@ class RegistrationTest extends TestCase
         $this->assertSame(UserRole::USER->value, $user->role?->value ?? $user->role);
         $this->assertNull($user->email_verified_at);
         Notification::assertSentTo($user, QueuedVerifyEmail::class);
+        Mail::assertQueued(UserWelcome::class, function ($mailable) use ($user) {
+            return $mailable->hasTo($user->email);
+        });
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
     public function test_registration_sends_verification_email(): void
     {
         Notification::fake();
+        Mail::fake();
 
         $this->withSession(['_token' => 'test-token'])
             ->post('/register', [
@@ -62,5 +69,8 @@ class RegistrationTest extends TestCase
 
         $this->assertNull($user->email_verified_at);
         Notification::assertSentTo($user, QueuedVerifyEmail::class);
+        Mail::assertQueued(UserWelcome::class, function ($mailable) use ($user) {
+            return $mailable->hasTo($user->email);
+        });
     }
 }

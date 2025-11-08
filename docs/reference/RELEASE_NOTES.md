@@ -14,6 +14,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 - **Outgoing emails are queued** — Email verification and password reset notifications now implement `ShouldQueue`, ensuring mail dispatch happens asynchronously and is covered by updated registration feature tests. (@app/Notifications/QueuedVerifyEmail.php, @app/Notifications/QueuedResetPassword.php, @app/Models/User.php, @tests/Feature/Auth/RegistrationTest.php)
 - **Todo creation email** — Automatically queues a `TodoCreated` notification whenever a user creates a new todo, complete with Markdown template and feature test coverage. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoCreated.php, @resources/views/emails/todos/created.blade.php, @tests/Feature/TodoTest.php)
 - **Todo update email** — Queues a `TodoUpdated` notification whenever a todo is updated so owners are alerted to changes. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoUpdated.php, @resources/views/emails/todos/updated.blade.php, @tests/Feature/TodoTest.php)
+- **Welcome email** — New registrations queue a `UserWelcome` mailable via a queued listener, ensuring every freshly-created account receives onboarding instructions alongside the verification link. (@app/Listeners/SendWelcomeEmail.php, @app/Mail/UserWelcome.php, @resources/views/emails/users/welcome.blade.php, @app/Providers/EventServiceProvider.php, @tests/Feature/Auth/RegistrationTest.php)
 
 ## v0.9.8 · 2025-11-07
 

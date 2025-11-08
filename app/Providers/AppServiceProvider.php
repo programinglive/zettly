@@ -15,6 +15,8 @@ use League\Flysystem\Config as FlysystemConfig;
 use League\Flysystem\Filesystem;
 use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
+use Opcodes\LogViewer\Facades\LogViewer;
+use Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -115,6 +117,19 @@ class AppServiceProvider extends ServiceProvider
             $contents = json_decode((string) file_get_contents($package), true);
 
             return $contents['version'] ?? null;
+        });
+
+        config()->set('log-viewer.middleware', [
+            'web',
+            'auth',
+            AuthorizeLogViewer::class,
+        ]);
+
+        LogViewer::auth(static function ($request): bool {
+            $user = $request->user();
+
+            return $user !== null
+                && strcasecmp($user->email, 'mahatma.mahardhika@programinglive.com') === 0;
         });
     }
 
