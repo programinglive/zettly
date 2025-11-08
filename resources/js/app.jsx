@@ -43,11 +43,35 @@ const getMetaCsrfToken = () => {
     return tokenMeta?.content ?? null;
 };
 
+const getCookieCsrfToken = () => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    if (!match) {
+        return null;
+    }
+
+    try {
+        return decodeURIComponent(match[1]);
+    } catch (error) {
+        return null;
+    }
+};
+
 const pages = import.meta.glob('./Pages/**/*.jsx', { eager: false });
 
 let csrfListenerRegistered = false;
 
 const resolveCsrfToken = () => {
+    const cookieToken = getCookieCsrfToken();
+
+    if (cookieToken) {
+        return cookieToken;
+    }
+
     const inertiaToken = router?.page?.props?.csrf_token;
 
     return inertiaToken ?? getMetaCsrfToken();
