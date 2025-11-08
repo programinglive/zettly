@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 
 import { DEFAULT_WORKSPACE_VIEW, WORKSPACE_STORAGE_KEY } from '../constants/workspace';
+import { resolveCsrfToken, refreshCsrfToken } from '../utils/csrf';
 
 // Custom event for workspace preference changes
 const WORKSPACE_CHANGE_EVENT = 'workspace-preference-changed';
@@ -28,6 +30,7 @@ export default function useWorkspacePreference(initialPreference = null) {
         }
 
         let shouldUpdate = false;
+        let previousValue = workspaceView;
 
         setWorkspaceViewState((prev) => {
             if (prev === value) {
@@ -35,6 +38,7 @@ export default function useWorkspacePreference(initialPreference = null) {
             }
 
             shouldUpdate = true;
+            previousValue = prev;
             return value;
         });
 
@@ -44,18 +48,52 @@ export default function useWorkspacePreference(initialPreference = null) {
 
         window.localStorage.setItem(WORKSPACE_STORAGE_KEY, value);
 
-        if (router?.post) {
-            router.post(
-                '/profile/workspace-preference',
-                { workspace_view: value },
-                { preserveScroll: true, preserveState: true }
-            );
-        }
-
-        // Dispatch custom event so other instances of this hook update
+        // Broadcast immediately so other hook instances stay in sync optimistically
         window.dispatchEvent(
             new CustomEvent(WORKSPACE_CHANGE_EVENT, { detail: { value } })
         );
+
+        const submitPreference = async (attempt = 0) => {
+            try {
+                let token = resolveCsrfToken();
+
+                if (!token) {
+                    token = await refreshCsrfToken();
+                }
+
+                await axios.post(
+                    '/profile/workspace-preference',
+                    { workspace_view: value },
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': token ?? undefined,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        withCredentials: true,
+                    }
+                );
+            } catch (error) {
+                const status = error?.response?.status;
+
+                if (status === 419 && attempt < 1) {
+                    await refreshCsrfToken();
+                    return submitPreference(attempt + 1);
+                }
+
+                if (import.meta.env.DEV) {
+                    console.error('[workspace-preference] Failed to persist preference', error);
+                }
+
+                setWorkspaceViewState(previousValue);
+                window.localStorage.setItem(WORKSPACE_STORAGE_KEY, previousValue);
+                window.dispatchEvent(
+                    new CustomEvent(WORKSPACE_CHANGE_EVENT, { detail: { value: previousValue } })
+                );
+            }
+        };
+
+        submitPreference();
     }, []);
 
     useEffect(() => {

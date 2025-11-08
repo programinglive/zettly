@@ -4,7 +4,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 ## Unreleased
 
-- _No changes yet._
+- **Fix:** Refresh CSRF token before persisting profile workspace preference so long-lived sessions no longer hit 419 mismatches. (@resources/js/hooks/useWorkspacePreference.js, @resources/js/utils/csrf.js, @tests/Feature/WorkspacePreferenceTest.php)
 
 ## v0.10.13 · 2025-11-08
 

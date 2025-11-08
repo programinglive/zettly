@@ -10,19 +10,27 @@ class WorkspacePreferenceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_workspace_preference_is_saved_to_database(): void
+    public function test_workspace_preference_is_saved_to_database_via_inertia_request(): void
     {
         $user = User::factory()->create([
             'workspace_view' => 'matrix',
         ]);
 
+        $this->app['session']->start();
+        $token = csrf_token();
+
         $response = $this
             ->actingAs($user)
-            ->withSession(['_token' => 'test-token'])
-            ->post('/profile/workspace-preference', [
-                'workspace_view' => 'kanban',
-                '_token' => 'test-token',
-            ]);
+            ->post(
+                '/profile/workspace-preference',
+                [
+                    'workspace_view' => 'kanban',
+                ],
+                [
+                    'X-CSRF-TOKEN' => $token,
+                    'X-Requested-With' => 'XMLHttpRequest',
+                ],
+            );
 
         $response->assertRedirect(route('dashboard'));
 
