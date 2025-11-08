@@ -39,4 +39,30 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);
+
+        // Handle database connection errors gracefully
+        $exceptions->render(function (\PDOException $e) {
+            // Log the error to Sentry but don't expose details to user
+            if (str_contains($e->getMessage(), 'FATAL') || str_contains($e->getMessage(), 'connection')) {
+                // Database is shutting down or unavailable - return 503 Service Unavailable
+                return response()->json([
+                    'message' => 'Database service temporarily unavailable. Please try again later.',
+                ], 503);
+            }
+
+            // Re-throw for other PDO errors
+            throw $e;
+        });
+
+        $exceptions->render(function (\Illuminate\Database\QueryException $e) {
+            // Handle query exceptions from database connection failures
+            if (str_contains($e->getMessage(), 'FATAL') || str_contains($e->getMessage(), 'connection')) {
+                return response()->json([
+                    'message' => 'Database service temporarily unavailable. Please try again later.',
+                ], 503);
+            }
+
+            // Re-throw for other query errors
+            throw $e;
+        });
     })->create();

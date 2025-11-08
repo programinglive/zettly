@@ -37,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
         Todo::observe(TodoObserver::class);
         Tag::observe(TagObserver::class);
 
+        // Add cache fallback for database connection failures
+        $this->configureCacheFallback();
+
         Storage::extend('gcs', function ($app, $config) {
             $clientOptions = [];
 
@@ -158,5 +161,35 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return null;
+    }
+
+    /**
+     * Configure cache fallback for database connection failures.
+     * When the database cache driver fails, fall back to array cache.
+     */
+    private function configureCacheFallback(): void
+    {
+        // Wrap cache operations to handle database connection failures
+        $originalCacheManager = app('cache');
+
+        app()->singleton('cache', function ($app) use ($originalCacheManager) {
+            return new class($originalCacheManager) {
+                public function __construct(private $originalManager) {}
+
+                public function __call($method, $parameters)
+                {
+                    try {
+                        return $this->originalManager->$method(...$parameters);
+                    } catch (\PDOException | \Illuminate\Database\QueryException $e) {
+                        // If database cache fails, use array cache as fallback
+                        if (str_contains($e->getMessage(), 'FATAL') || str_contains($e->getMessage(), 'connection')) {
+                            return $this->originalManager->store('array')->$method(...$parameters);
+                        }
+
+                        throw $e;
+                    }
+                }
+            };
+        });
     }
 }

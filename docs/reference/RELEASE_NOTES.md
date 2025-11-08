@@ -4,7 +4,19 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 ## Unreleased
 
-- **Fix:** Refresh CSRF token before persisting profile workspace preference so long-lived sessions no longer hit 419 mismatches. (@resources/js/hooks/useWorkspacePreference.js, @resources/js/utils/csrf.js, @tests/Feature/WorkspacePreferenceTest.php)
+- _No changes yet._
+
+## v0.10.15 · 2025-11-09
+
+### 🐛 Bug Fixes
+
+- **Profile workspace preference 419s** — Refresh CSRF tokens and retry once before persisting the preference, keeping optimistic UI updates in sync and preventing token mismatch errors after idle sessions. (@resources/js/hooks/useWorkspacePreference.js, @resources/js/utils/csrf.js, @tests/Feature/WorkspacePreferenceTest.php)
+
+## v0.10.14 · 2025-11-08
+
+### ✨ Features
+
+- **Drawing notifications** — Added create/update/delete mailers so drawing collaborators receive email updates, mirroring the todo workflow. (@app/Http/Controllers/DrawingController.php, @app/Mail/DrawingCreated.php, @app/Mail/DrawingUpdated.php, @app/Mail/DrawingDeleted.php, @resources/views/emails/drawings/*.blade.php, @tests/Feature/DrawTest.php)
 
 ## v0.10.13 · 2025-11-08
 
@@ -22,6 +34,88 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 - **Note notifications** — Mirrored create/update/delete mailers for notes so personal knowledge entries trigger the same queued emails as todos. (@app/Http/Controllers/TodoController.php, @app/Mail/NoteCreated.php, @app/Mail/NoteUpdated.php, @app/Mail/NoteDeleted.php, @resources/views/emails/notes/*.blade.php, @tests/Feature/TodoTest.php)
 - **Drawing notifications** — Added create/update/delete mailers for drawings to keep creatives informed when sketches change or are removed. (@app/Http/Controllers/DrawingController.php, @app/Mail/DrawingCreated.php, @app/Mail/DrawingUpdated.php, @app/Mail/DrawingDeleted.php, @resources/views/emails/drawings/*.blade.php, @tests/Feature/DrawTest.php)
 - **Welcome email & verification** — New registrations queue both the `QueuedVerifyEmail` notification and a `UserWelcome` mailable through a single listener so every account immediately receives the verification link plus onboarding guidance. (@app/Listeners/SendWelcomeEmail.php, @app/Mail/UserWelcome.php, @resources/views/emails/users/welcome.blade.php, @app/Providers/EventServiceProvider.php, @tests/Feature/Auth/RegistrationTest.php)
+
+## v0.10.12 · 2025-11-08
+
+### 🐛 Bug Fixes
+
+- **Todo deletion CSRF** — Ensured delete requests include a valid token when removing todos so the action no longer fails with a 419. (@resources/js/Components/TodoList.vue, @resources/js/__tests__/todoDeleteCsrf.test.js)
+
+## v0.10.11 · 2025-11-08
+
+### 🐛 Bug Fixes
+
+- **Post-logout CSRF refresh** — Automatically fetch a fresh token from the cookie after logging out to keep subsequent authenticated actions from failing with 419. (@resources/js/bootstrap.js, @resources/js/__tests__/authLogoutCsrf.test.js)
+
+## v0.10.10 · 2025-11-08
+
+### 🐛 Bug Fixes
+
+- **Duplicate verification emails** — Prevent the signup flow from sending multiple verification messages, ensuring users receive exactly one confirmation email. (@app/Notifications/QueuedVerifyEmail.php, @tests/Feature/Auth/RegistrationTest.php)
+
+## v0.10.9 · 2025-11-08
+
+### ✨ Features
+
+- **Welcome email automation** — Queue a welcome message for new users and restrict the log viewer to super admins so onboarding stays informative without exposing debug tooling broadly. (@app/Listeners/SendWelcomeEmail.php, @resources/js/Pages/Admin/SystemMonitor.jsx)
+
+### 🧹 Chores
+
+- **Auth branding polish** — Swapped the authentication logo and tightened resend verification CSRF handling for a cleaner first impression. (@resources/js/Layouts/GuestLayout.jsx, @resources/js/__tests__/authResendVerification.test.js)
+
+## v0.10.8 · 2025-11-08
+
+### 🐛 Bug Fixes
+
+- **Password reset & drawing payloads** — Queued password reset notifications and trimmed oversized drawing metadata so transactional emails send reliably and broadcasts stay within limits. (@app/Notifications/QueuedResetPassword.php, @app/Events/DrawingUpdated.php)
+
+## v0.10.7 · 2025-11-08
+
+### ✨ Features
+
+- **Todo update emails** — Notify assignees when todos change while cleaning up organization test fixtures for faster runs. (@app/Http/Controllers/TodoController.php, @tests/Feature/OrganizationTest.php)
+
+## v0.10.6 · 2025-11-08
+
+### ✨ Features
+
+- **Todo creation emails** — Queue notifications on create and quiet noisy broadcast logs so inboxes and log streams stay actionable. (@app/Mail/TodoCreated.php, @app/Providers/EventServiceProvider.php)
+
+## v0.10.5 · 2025-11-08
+
+### 🐛 Bug Fixes
+
+- **Broadcast + email safeguards** — Enforced payload limits and ensured notifications queue properly across todo workflows. (@app/Events/DrawingUpdated.php, @app/Mail/TodoUpdated.php)
+
+## v0.10.4 · 2025-11-07
+
+### 🐛 Bug Fixes
+
+- **SMTP configuration hardening** — Normalized mail settings and locked down the email test endpoint for safer diagnostics. (@config/mail.php, @app/Http/Controllers/EmailTestController.php)
+
+## v0.10.3 · 2025-11-07
+
+### 🐛 Bug Fixes
+
+- **Organization invite CSRF** — Ensured the invite form always sends a valid token, preventing 419s when adding teammates. (@resources/js/Pages/Organizations/Show.jsx, @resources/js/__tests__/organizationInviteCsrf.test.js)
+
+## v0.10.2 · 2025-11-07
+
+### 🐛 Bug Fixes
+
+- **Case-sensitive imports** — Corrected Organization component paths so builds succeed on case-sensitive filesystems. (@resources/js/Pages/Organizations/*)
+
+## v0.10.1 · 2025-11-07
+
+### 🐛 Bug Fixes
+
+- **Shadcn replacement** — Swapped Organization pages back to the project’s component library to restore consistent styling and behavior. (@resources/js/Pages/Organizations/*.jsx)
+
+## v0.10.0 · 2025-11-07
+
+### ✨ Features
+
+- **Organization management** — Introduced full CRUD, member roles, and invite flows for organizations, expanding collaboration across the app. (@app/Http/Controllers/OrganizationController.php, @resources/js/Pages/Organizations/*.jsx, @tests/Feature/OrganizationTest.php)
 
 ## v0.9.8 · 2025-11-07
 
