@@ -77,6 +77,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
   - [x] Password reset email
   - [x] Todo creation notification (queued)
   - [x] Todo update notification (queued)
+- Registered event now uses the framework verification listener plus our queued welcome email listener so every new user gets both messages.
 - Log viewer UI is restricted to the owner account (`mahatma.mahardhika@programinglive.com`).
 
 ### 6.6 Super Administrator System Monitoring

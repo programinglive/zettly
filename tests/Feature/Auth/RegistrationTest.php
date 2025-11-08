@@ -43,7 +43,7 @@ class RegistrationTest extends TestCase
         $user = User::where('email', 'test@example.com')->firstOrFail();
         $this->assertSame(UserRole::USER->value, $user->role?->value ?? $user->role);
         $this->assertNull($user->email_verified_at);
-        Notification::assertSentTo($user, QueuedVerifyEmail::class);
+        Notification::assertSentToTimes($user, QueuedVerifyEmail::class, 1);
         Mail::assertQueued(UserWelcome::class, function ($mailable) use ($user) {
             return $mailable->hasTo($user->email);
         });
@@ -68,7 +68,7 @@ class RegistrationTest extends TestCase
         $user = User::where('email', 'another@example.com')->firstOrFail();
 
         $this->assertNull($user->email_verified_at);
-        Notification::assertSentTo($user, QueuedVerifyEmail::class);
+        Notification::assertSentToTimes($user, QueuedVerifyEmail::class, 1);
         Mail::assertQueued(UserWelcome::class, function ($mailable) use ($user) {
             return $mailable->hasTo($user->email);
         });
