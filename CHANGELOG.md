@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.5](https://github.com/programinglive/todo/compare/v0.10.4...v0.10.5) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* enforce broadcast payload limits and queue email notifications ([6bccbe4](https://github.com/programinglive/todo/commit/6bccbe4eacc6a0b8bd02e81777e9d6fbc247633e))
+
 ### [0.10.4](https://github.com/programinglive/todo/compare/v0.10.3...v0.10.4) (2025-11-07)
 
 
