@@ -2,12 +2,24 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 export default function ForgotPassword({ status }) {
+    const {
+        props: { csrf_token: csrfToken },
+    } = usePage();
+
     const { data, setData, post, processing, errors } = useForm({
         email: '',
+        _token: csrfToken,
     });
+
+    useEffect(() => {
+        if (csrfToken) {
+            setData('_token', csrfToken);
+        }
+    }, [csrfToken, setData]);
 
     const submit = (e) => {
         e.preventDefault();

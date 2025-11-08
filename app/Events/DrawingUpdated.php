@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class DrawingUpdated implements ShouldBroadcast
 {
@@ -19,15 +20,15 @@ class DrawingUpdated implements ShouldBroadcast
 
     public const MAX_EVENT_BYTES = 9500;
 
-    public int $drawingId;
+    public int $drawingId = 0;
 
-    public string $title;
+    public string $title = '';
 
-    public ?string $thumbnail;
+    public ?string $thumbnail = null;
 
-    public string $updatedAt;
+    public string $updatedAt = '';
 
-    public bool $documentChanged;
+    public bool $documentChanged = false;
 
     private ?array $documentPayload = null;
 
@@ -78,6 +79,8 @@ class DrawingUpdated implements ShouldBroadcast
             $payload['document_fingerprint'] = $this->documentFingerprint;
         }
 
+        $payload = $this->reduceMetadataIfNeeded($payload);
+
         if ($this->documentPayload !== null && $this->payloadTooLarge($payload)) {
             $this->documentPayload = null;
             $this->documentTooLarge = true;
@@ -85,6 +88,8 @@ class DrawingUpdated implements ShouldBroadcast
             $payload['document_too_large'] = true;
             $payload['error'] = 'payload_exceeds_limit';
         }
+
+        $payload = $this->reduceMetadataIfNeeded($payload);
 
         return $payload;
     }
@@ -127,5 +132,36 @@ class DrawingUpdated implements ShouldBroadcast
         }
 
         return $encoded !== false && strlen($encoded) > self::MAX_EVENT_BYTES;
+    }
+
+    private function reduceMetadataIfNeeded(array $payload): array
+    {
+        if (! $this->payloadTooLarge($payload)) {
+            return $payload;
+        }
+
+        $payload['metadata_reduced'] = true;
+
+        if (isset($payload['title'])) {
+            $payload['title'] = Str::limit($payload['title'], 255, '');
+        }
+
+        if ($this->payloadTooLarge($payload) && isset($payload['thumbnail'])) {
+            $payload['thumbnail'] = null;
+        }
+
+        if ($this->payloadTooLarge($payload) && isset($payload['title'])) {
+            $payload['title'] = Str::limit($payload['title'], 120, '');
+        }
+
+        if ($this->payloadTooLarge($payload) && isset($payload['title'])) {
+            unset($payload['title']);
+        }
+
+        if ($this->payloadTooLarge($payload)) {
+            unset($payload['document_fingerprint'], $payload['document_size']);
+        }
+
+        return $payload;
     }
 }

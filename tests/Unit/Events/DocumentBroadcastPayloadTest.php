@@ -65,11 +65,14 @@ class DocumentBroadcastPayloadTest extends TestCase
         $event = new DrawingUpdated($drawing->fresh(), true);
         $payload = $event->broadcastWith();
 
-        $this->assertNull($payload['document']);
-        $this->assertTrue($payload['document_too_large']);
-        $this->assertSame('payload_exceeds_limit', $payload['error']);
+        $this->assertTrue($payload['metadata_reduced'] ?? false);
+        $this->assertNull($payload['thumbnail']);
+        $this->assertSame($document, $payload['document']);
+        $this->assertFalse($payload['document_too_large']);
+        $this->assertNull($payload['error']);
         $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
-        $this->assertGreaterThan(DrawingUpdated::MAX_EVENT_BYTES, $this->encodedSize(array_merge($payload, ['document' => $document])));
+        $this->assertSame($this->encodedSize($document), $payload['document_size']);
+        $this->assertLessThanOrEqual(DrawingUpdated::MAX_EVENT_BYTES, $this->encodedSize($payload));
     }
 
     public function test_tldraw_update_includes_document_when_small(): void
