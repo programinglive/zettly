@@ -1,14 +1,29 @@
 import PrimaryButton from '@/Components/PrimaryButton';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 export default function VerifyEmail({ status }) {
-    const { post, processing } = useForm({});
+    const {
+        props: { csrf_token: csrfToken },
+    } = usePage();
+
+    const { data, setData, post, processing } = useForm({
+        _token: csrfToken,
+    });
+
+    useEffect(() => {
+        if (csrfToken) {
+            setData('_token', csrfToken);
+        }
+    }, [csrfToken, setData]);
 
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('verification.send'));
+        post(route('verification.send'), {
+            preserveScroll: true,
+        });
     };
 
     return (
