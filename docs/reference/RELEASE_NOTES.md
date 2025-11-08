@@ -4,6 +4,10 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 ## Unreleased
 
+- _No changes yet._
+
+## v0.10.13 · 2025-11-08
+
 ### ✨ UI Polish
 
 - **Dashboard verification reminder** — Returning users with unverified email addresses now see an inline banner on the dashboard with a quick resend action so they can complete verification without leaving their workspace.
@@ -16,6 +20,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 - **Todo update email** — Queues a `TodoUpdated` notification whenever a todo is updated so owners are alerted to changes. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoUpdated.php, @resources/views/emails/todos/updated.blade.php, @tests/Feature/TodoTest.php)
 - **Todo deletion email** — Notifies owners when a todo is removed, with soft-delete recovery guidance. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoDeleted.php, @resources/views/emails/todos/deleted.blade.php, @tests/Feature/TodoTest.php)
 - **Note notifications** — Mirrored create/update/delete mailers for notes so personal knowledge entries trigger the same queued emails as todos. (@app/Http/Controllers/TodoController.php, @app/Mail/NoteCreated.php, @app/Mail/NoteUpdated.php, @app/Mail/NoteDeleted.php, @resources/views/emails/notes/*.blade.php, @tests/Feature/TodoTest.php)
+- **Drawing notifications** — Added create/update/delete mailers for drawings to keep creatives informed when sketches change or are removed. (@app/Http/Controllers/DrawingController.php, @app/Mail/DrawingCreated.php, @app/Mail/DrawingUpdated.php, @app/Mail/DrawingDeleted.php, @resources/views/emails/drawings/*.blade.php, @tests/Feature/DrawTest.php)
 - **Welcome email & verification** — New registrations queue both the `QueuedVerifyEmail` notification and a `UserWelcome` mailable through a single listener so every account immediately receives the verification link plus onboarding guidance. (@app/Listeners/SendWelcomeEmail.php, @app/Mail/UserWelcome.php, @resources/views/emails/users/welcome.blade.php, @app/Providers/EventServiceProvider.php, @tests/Feature/Auth/RegistrationTest.php)
 
 ## v0.9.8 · 2025-11-07

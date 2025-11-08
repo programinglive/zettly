@@ -2,9 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Mail\DrawingCreated;
+use App\Mail\DrawingDeleted;
+use App\Mail\DrawingUpdated;
 use App\Models\Drawing;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -83,6 +87,8 @@ class DrawTest extends TestCase
 
     public function test_user_can_create_drawing(): void
     {
+        Mail::fake();
+
         $user = User::factory()->create();
         $payload = [
             'title' => 'Concept Map',
@@ -101,10 +107,18 @@ class DrawTest extends TestCase
             'user_id' => $user->id,
             'title' => $payload['title'],
         ]);
+
+        Mail::assertQueued(DrawingCreated::class, function (DrawingCreated $mail) use ($user, $payload) {
+            return $mail->drawing->title === $payload['title']
+                && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(DrawingUpdated::class);
     }
 
     public function test_user_can_update_existing_drawing(): void
     {
+        Mail::fake();
+
         $user = User::factory()->create();
         $drawing = Drawing::factory()->for($user)->create([
             'title' => 'Initial title',
@@ -128,6 +142,36 @@ class DrawTest extends TestCase
             'id' => $drawing->id,
             'title' => $payload['title'],
         ]);
+
+        Mail::assertQueued(DrawingUpdated::class, function (DrawingUpdated $mail) use ($drawing, $user) {
+            return $mail->drawing->id === $drawing->id
+                && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(DrawingCreated::class);
+    }
+
+    public function test_user_can_delete_drawing_and_receives_email(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create();
+        $drawing = Drawing::factory()->for($user)->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->deleteJson(route('draw.destroy', $drawing));
+
+        $response
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseMissing('drawings', ['id' => $drawing->id]);
+
+        Mail::assertQueued(DrawingDeleted::class, function (DrawingDeleted $mail) use ($drawing, $user) {
+            return $mail->drawing->id === $drawing->id
+                && $mail->hasTo($user->email);
+        });
+        Mail::assertNotQueued(DrawingCreated::class);
     }
 
     public function test_user_cannot_access_another_users_drawing(): void

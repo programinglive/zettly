@@ -58,8 +58,13 @@ test('Backend broadcasts drawing updates', () => {
     );
     
     // Check that events are broadcast on store and update with change metadata
+    const createBroadcastPatterns = [
+        'broadcast(new DrawingUpdated($drawing->fresh(), true));',
+        'broadcast(new DrawingUpdated($drawing, true));',
+    ];
+
     assert.ok(
-        controllerSource.includes('broadcast(new DrawingUpdated($drawing->fresh(), true));'),
+        createBroadcastPatterns.some((pattern) => controllerSource.includes(pattern)),
         'Expected create action to broadcast DrawingUpdated with document change flag'
     );
 

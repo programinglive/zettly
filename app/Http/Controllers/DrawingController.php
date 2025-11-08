@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Events\DrawingUpdated;
+use App\Mail\DrawingCreated as DrawingCreatedMail;
+use App\Mail\DrawingDeleted as DrawingDeletedMail;
+use App\Mail\DrawingUpdated as DrawingUpdatedMail;
 use App\Models\Drawing;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,8 +46,18 @@ class DrawingController extends Controller
             'thumbnail' => $request->input('thumbnail'),
         ]);
 
+        $drawing = $drawing->fresh(['user']);
+
         // Broadcast the new drawing
-        broadcast(new DrawingUpdated($drawing->fresh(), true));
+        broadcast(new DrawingUpdated($drawing, true));
+
+        if ($drawing->user?->email) {
+            try {
+                Mail::to($drawing->user)->queue(new DrawingCreatedMail($drawing));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -103,9 +117,18 @@ class DrawingController extends Controller
 
         $drawing->update($validated);
         $drawing->refresh();
+        $drawing->loadMissing('user');
 
         // Broadcast the updated drawing
         broadcast(new DrawingUpdated($drawing, $documentChanged));
+
+        if ($drawing->user?->email) {
+            try {
+                Mail::to($drawing->user)->queue(new DrawingUpdatedMail($drawing));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -122,6 +145,16 @@ class DrawingController extends Controller
     {
         if ($drawing->user_id !== Auth::id()) {
             abort(403);
+        }
+
+        $drawing->loadMissing('user');
+
+        if ($drawing->user?->email) {
+            try {
+                Mail::to($drawing->user)->queue(new DrawingDeletedMail($drawing));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
         }
 
         $drawing->delete();
