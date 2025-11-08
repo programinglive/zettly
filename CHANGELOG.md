@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.9](https://github.com/programinglive/todo/compare/v0.10.8...v0.10.9) (2025-11-08)
+
+
+### 🧹 Chores
+
+* swap auth logo and fix resend verification csrf ([c6adf8e](https://github.com/programinglive/todo/commit/c6adf8ee77a25b35a8e949f8617b279188546cb0))
+
+
+### ✨ Features
+
+* queue welcome email for new users and restrict log viewer ([433e17c](https://github.com/programinglive/todo/commit/433e17c4fa43e46776c1e2bca355b607d3e83b56))
+
 ### [0.10.8](https://github.com/programinglive/todo/compare/v0.10.7...v0.10.8) (2025-11-08)
 
 
