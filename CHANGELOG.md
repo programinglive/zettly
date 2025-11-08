@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.6](https://github.com/programinglive/todo/compare/v0.10.5...v0.10.6) (2025-11-08)
+
+
+### ✨ Features
+
+* queue todo creation email and quiet broadcast logs ([e6bcffb](https://github.com/programinglive/todo/commit/e6bcffbb19f7362e06afadf7cb162d1283672bb5))
+
 ### [0.10.5](https://github.com/programinglive/todo/compare/v0.10.4...v0.10.5) (2025-11-08)
 
 
