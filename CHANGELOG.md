@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.11](https://github.com/programinglive/todo/compare/v0.10.10...v0.10.11) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* refresh csrf token from cookie after logout ([dd975f1](https://github.com/programinglive/todo/commit/dd975f186e4b46fde580e5e79ce64eb79d7931ed))
+
 ### [0.10.10](https://github.com/programinglive/todo/compare/v0.10.9...v0.10.10) (2025-11-08)
 
 
