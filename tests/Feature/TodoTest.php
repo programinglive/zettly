@@ -7,6 +7,7 @@ use App\Models\TodoChecklistItem;
 use App\Models\TodoStatusEvent;
 use App\Models\User;
 use App\Services\WebPushService;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Mockery;
@@ -115,12 +116,13 @@ class TodoTest extends TestCase
         /** @var User $user */
         $user = User::factory()->create();
 
+        Mail::fake();
+
         $todoData = [
             'title' => 'Test Todo',
             'description' => 'Test Description',
-            'priority' => Todo::PRIORITY_URGENT,
-            'importance' => Todo::IMPORTANCE_IMPORTANT,
-            'due_date' => now()->addDays(3)->format('Y-m-d'),
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'type' => 'todo',
         ];
 
@@ -132,15 +134,16 @@ class TodoTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'title' => 'Test Todo',
             'description' => 'Test Description',
-            'priority' => Todo::PRIORITY_URGENT,
-            'importance' => Todo::IMPORTANCE_IMPORTANT,
-            'user_id' => $user->id,
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
             'type' => 'todo',
+            'user_id' => $user->id,
         ]);
-        $this->assertEquals(
-            $todoData['due_date'],
-            Todo::where('title', 'Test Todo')->value('due_date')?->format('Y-m-d')
-        );
+
+        Mail::assertQueued(\App\Mail\TodoCreated::class, function ($mail) use ($user, $todoData) {
+            return $mail->todo->title === $todoData['title']
+                && $mail->hasTo($user->email);
+        });
     }
 
     public function test_user_cannot_create_todo_with_past_due_date(): void

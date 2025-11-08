@@ -13,19 +13,10 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        try {
-            // Don't register Laravel's default broadcast routes
-            // We use custom routes in test-broadcasting.php
-            // Broadcast::routes(['middleware' => ['web', 'auth']]);
+        // Don't register Laravel's default broadcast routes
+        // We use custom routes in test-broadcasting.php
+        // Broadcast::routes(['middleware' => ['web', 'auth']]);
 
-            require base_path('routes/channels.php');
-
-            Log::info('BroadcastServiceProvider loaded successfully (custom routes only)');
-        } catch (\Exception $e) {
-            Log::error('BroadcastServiceProvider failed to load', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-        }
+        require base_path('routes/channels.php');
     }
 }

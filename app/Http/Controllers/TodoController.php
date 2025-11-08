@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TodoCreated;
 use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\TodoAttachment;
@@ -14,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -285,6 +287,14 @@ class TodoController extends Controller
                         'tag' => 'todo-created-'.$todo->id,
                     ]
                 );
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+
+            try {
+                if ($todo->user?->email) {
+                    Mail::to($todo->user)->queue(new TodoCreated($todo->fresh('user')));
+                }
             } catch (\Throwable $exception) {
                 report($exception);
             }
