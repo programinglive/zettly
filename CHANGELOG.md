@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.14](https://github.com/programinglive/todo/compare/v0.10.13...v0.10.14) (2025-11-08)
+
+
+### ✨ Features
+
+* **email:** notify drawing changes ([0126eb3](https://github.com/programinglive/todo/commit/0126eb3dd4e864f192bbd9604ef593504c20abf6))
+
 ### [0.10.13](https://github.com/programinglive/todo/compare/v0.10.12...v0.10.13) (2025-11-08)
 
 
