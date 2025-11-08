@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.15](https://github.com/programinglive/todo/compare/v0.10.14...v0.10.15) (2025-11-08)
+
+
+### ✨ Features
+
+* **csrf:** harden workspace preference update ([9b12345](https://github.com/programinglive/todo/commit/9b123456fec15e30a4b2426a243b9e660f55d7c0))
+
 ### [0.10.14](https://github.com/programinglive/todo/compare/v0.10.13...v0.10.14) (2025-11-08)
 
 
