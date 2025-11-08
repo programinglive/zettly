@@ -53,6 +53,25 @@ class DocumentBroadcastPayloadTest extends TestCase
         $this->assertSame('payload_exceeds_limit', $payload['error']);
     }
 
+    public function test_drawing_updated_flags_document_when_total_payload_exceeds_limit(): void
+    {
+        $user = User::factory()->create();
+        $document = ['content' => str_repeat('B', 6900)];
+        $drawing = Drawing::factory()->for($user)->create([
+            'document' => $document,
+            'title' => str_repeat('Wide Title ', 600),
+        ]);
+
+        $event = new DrawingUpdated($drawing->fresh(), true);
+        $payload = $event->broadcastWith();
+
+        $this->assertNull($payload['document']);
+        $this->assertTrue($payload['document_too_large']);
+        $this->assertSame('payload_exceeds_limit', $payload['error']);
+        $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
+        $this->assertGreaterThan(DrawingUpdated::MAX_EVENT_BYTES, $this->encodedSize(array_merge($payload, ['document' => $document])));
+    }
+
     public function test_tldraw_update_includes_document_when_small(): void
     {
         $drawing = Drawing::factory()->create();
@@ -82,6 +101,43 @@ class DocumentBroadcastPayloadTest extends TestCase
         $this->assertTrue($payload['document_too_large']);
         $this->assertGreaterThan(9000, $payload['document_size']);
         $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
+    }
+
+    public function test_tldraw_update_flags_document_when_total_payload_exceeds_limit(): void
+    {
+        Carbon::setTestNow('2025-11-08 00:00:00');
+
+        $drawing = Drawing::factory()->create();
+        $user = User::factory()->create(['name' => str_repeat('Collaborator ', 600)]);
+        $document = ['content' => str_repeat('C', 7400)];
+
+        $documentBytes = $this->encodedSize($document);
+        $this->assertLessThanOrEqual(7500, $documentBytes, 'Document should be below the direct document threshold.');
+
+        $wouldOverflowPayload = [
+            'drawingId' => $drawing->id,
+            'userId' => $user->id,
+            'userName' => $user->name,
+            'timestamp' => now()->timestamp,
+            'document' => $document,
+            'document_too_large' => false,
+            'document_size' => $documentBytes,
+            'document_fingerprint' => $this->fingerprint($document),
+            'error' => null,
+        ];
+
+        $this->assertGreaterThan(9500, $this->encodedSize($wouldOverflowPayload));
+
+        $event = new TLDrawUpdated($drawing, $user, $document);
+        $payload = $event->broadcastWith();
+
+        $this->assertNull($payload['document']);
+        $this->assertTrue($payload['document_too_large']);
+        $this->assertSame('payload_exceeds_limit', $payload['error']);
+        $this->assertSame($documentBytes, $payload['document_size']);
+        $this->assertSame($this->fingerprint($document), $payload['document_fingerprint']);
+
+        Carbon::setTestNow();
     }
 
     private function fingerprint(array $document): string

@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\QueuedVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
@@ -68,6 +69,11 @@ class User extends Authenticatable
         $this->forceFill([
             'role' => $role instanceof UserRole ? $role->value : $role,
         ])->save();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail());
     }
 
     public function todos()

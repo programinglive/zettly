@@ -56,6 +56,8 @@ class TodoFactory extends Factory
             'type' => 'todo',
             'priority' => fake()->randomElement(['not_urgent', 'urgent']),
             'importance' => fake()->randomElement(['not_important', 'important']),
+            'is_completed' => false,
+            'completed_at' => null,
         ]);
     }
 

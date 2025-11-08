@@ -1,6 +1,6 @@
 import React, { useMemo, lazy, Suspense, useState, useCallback, useEffect } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool, MailWarning, Loader2 } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
@@ -279,6 +279,8 @@ export default function Dashboard({
 }) {
     const { props: pageProps } = usePage();
     const authUser = pageProps?.auth?.user;
+    const mustVerifyEmail = Boolean(authUser) && authUser.email_verified_at === null;
+    const { post: resendVerification, processing: isSendingVerification } = useForm();
     const isSuperAdmin = authUser?.role === 'super_admin';
     const DEBUG_STORAGE_KEY = 'zettly-debug-mode';
     const [hasDebugFlag, setHasDebugFlag] = useState(() => {
@@ -475,7 +477,50 @@ export default function Dashboard({
                     </div>
 
                     {/* Focus Greeting */}
-                    <div className="mb-6">
+                    <div className="mb-6 space-y-4">
+                        {mustVerifyEmail && (
+                            <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-amber-900 shadow-sm dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="flex items-start gap-3">
+                                        <span className="mt-1 rounded-full bg-amber-100 p-2 text-amber-600 dark:bg-amber-500/20 dark:text-amber-200">
+                                            <MailWarning className="h-5 w-5" aria-hidden="true" />
+                                        </span>
+                                        <div>
+                                            <h2 className="text-sm font-semibold tracking-wide uppercase text-amber-700 dark:text-amber-100">
+                                                Verify your email to unlock all features
+                                            </h2>
+                                            <p className="mt-1 text-sm leading-relaxed text-amber-800 dark:text-amber-100/80">
+                                                We just need to confirm your address. Check your inbox for the verification email or request a new link below.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <form
+                                        onSubmit={(event) => {
+                                            event.preventDefault();
+                                            resendVerification(route('verification.send'));
+                                        }}
+                                        className="flex flex-shrink-0 items-center gap-2"
+                                    >
+                                        <button
+                                            type="submit"
+                                            className="inline-flex items-center gap-2 rounded-full border border-transparent bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 dark:focus-visible:ring-offset-slate-950"
+                                            disabled={isSendingVerification}
+                                        >
+                                            {isSendingVerification ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                    Sending...
+                                                </>
+                                            ) : (
+                                                'Resend verification email'
+                                            )}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+
                         <FocusGreeting />
                     </div>
 

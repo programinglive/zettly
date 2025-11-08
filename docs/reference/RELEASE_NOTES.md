@@ -2,6 +2,23 @@
 
 Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
 
+## Unreleased
+
+### ✨ UI Polish
+
+- **Dashboard verification reminder** — Returning users with unverified email addresses now see an inline banner on the dashboard with a quick resend action so they can complete verification without leaving their workspace.
+
+### 🐛 Bug Fixes
+
+- **Drawing broadcasts respect Pusher limits** — Trim oversized TLDraw payloads from `DrawingUpdated` events when the serialized message would exceed the 10KB Pusher cap, preventing `BroadcastException` errors captured as TODOAPP-26. (@app/Events/DrawingUpdated.php, @tests/Unit/Events/DocumentBroadcastPayloadTest.php)
+- **Outgoing emails are queued** — Email verification and password reset notifications now implement `ShouldQueue`, ensuring mail dispatch happens asynchronously and is covered by updated registration feature tests. (@app/Notifications/QueuedVerifyEmail.php, @app/Notifications/QueuedResetPassword.php, @app/Models/User.php, @tests/Feature/Auth/RegistrationTest.php)
+
+## v0.9.8 · 2025-11-07
+
+### 🛡️ Security
+
+- **Email verification on signup** — Newly registered users now receive a verification email automatically and must confirm their address before accessing the dashboard and workspace features.
+
 ## v0.9.7 · 2025-11-06
 
 ### ✨ UI Polish

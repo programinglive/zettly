@@ -17,6 +17,8 @@ class DrawingUpdated implements ShouldBroadcast
 
     public const MAX_DOCUMENT_BYTES = 7000;
 
+    public const MAX_EVENT_BYTES = 9500;
+
     public int $drawingId;
 
     public string $title;
@@ -76,6 +78,14 @@ class DrawingUpdated implements ShouldBroadcast
             $payload['document_fingerprint'] = $this->documentFingerprint;
         }
 
+        if ($this->documentPayload !== null && $this->payloadTooLarge($payload)) {
+            $this->documentPayload = null;
+            $this->documentTooLarge = true;
+            $payload['document'] = null;
+            $payload['document_too_large'] = true;
+            $payload['error'] = 'payload_exceeds_limit';
+        }
+
         return $payload;
     }
 
@@ -106,5 +116,16 @@ class DrawingUpdated implements ShouldBroadcast
         }
 
         $this->documentTooLarge = true;
+    }
+
+    private function payloadTooLarge(array $payload): bool
+    {
+        try {
+            $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return $encoded !== false && strlen($encoded) > self::MAX_EVENT_BYTES;
     }
 }

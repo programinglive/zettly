@@ -40,7 +40,7 @@ Route::get('/legal/privacy', function () {
 })->name('legal.privacy');
 
 Route::get('/dashboard', DashboardController::class)
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {

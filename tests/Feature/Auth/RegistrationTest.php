@@ -4,7 +4,9 @@ namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -20,6 +22,8 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        Notification::fake();
+
         $response = $this->withSession(['_token' => 'test-token'])
             ->post('/register', [
                 'name' => 'Test User',
@@ -34,6 +38,28 @@ class RegistrationTest extends TestCase
         /** @var User $user */
         $user = User::where('email', 'test@example.com')->firstOrFail();
         $this->assertSame(UserRole::USER->value, $user->role?->value ?? $user->role);
+        $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user, QueuedVerifyEmail::class);
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_registration_sends_verification_email(): void
+    {
+        Notification::fake();
+
+        $this->withSession(['_token' => 'test-token'])
+            ->post('/register', [
+                'name' => 'Another User',
+                'email' => 'another@example.com',
+                'password' => 'password',
+                'password_confirmation' => 'password',
+                '_token' => 'test-token',
+            ]);
+
+        /** @var User $user */
+        $user = User::where('email', 'another@example.com')->firstOrFail();
+
+        $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user, QueuedVerifyEmail::class);
     }
 }
