@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.8](https://github.com/programinglive/todo/compare/v0.10.7...v0.10.8) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* queue password resets and trim drawing payload metadata ([d46ce61](https://github.com/programinglive/todo/commit/d46ce610496d6d2828c0ca6b37309d6284ad5750))
+
 ### [0.10.7](https://github.com/programinglive/todo/compare/v0.10.6...v0.10.7) (2025-11-08)
 
 
