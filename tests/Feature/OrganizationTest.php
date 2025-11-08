@@ -22,7 +22,7 @@ class OrganizationTest extends TestCase
         $this->otherUser = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_view_organizations_index()
     {
         $this->actingAs($this->user)
@@ -34,7 +34,7 @@ class OrganizationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_create_organization()
     {
         $response = $this->actingAs($this->user)
@@ -62,7 +62,7 @@ class OrganizationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function creator_is_automatically_admin()
     {
         $organization = Organization::factory()
@@ -84,7 +84,7 @@ class OrganizationTest extends TestCase
         $this->assertTrue($member->isAdmin());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organization_name_is_required()
     {
         $this->actingAs($this->user)
@@ -95,7 +95,7 @@ class OrganizationTest extends TestCase
             ->assertSessionHasErrors('name');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_view_organization()
     {
         $organization = Organization::factory()
@@ -117,7 +117,7 @@ class OrganizationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_member_cannot_view_organization()
     {
         $organization = Organization::factory()
@@ -129,7 +129,7 @@ class OrganizationTest extends TestCase
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_invite_user()
     {
         $organization = Organization::factory()
@@ -155,7 +155,7 @@ class OrganizationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_invite_user()
     {
         $organization = Organization::factory()
@@ -177,7 +177,7 @@ class OrganizationTest extends TestCase
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function cannot_invite_user_already_member()
     {
         $organization = Organization::factory()
@@ -203,7 +203,7 @@ class OrganizationTest extends TestCase
             ->assertSessionHas('error');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_remove_member()
     {
         $organization = Organization::factory()
@@ -231,7 +231,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function cannot_remove_last_admin()
     {
         $organization = Organization::factory()
@@ -253,7 +253,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_leave_organization()
     {
         $organization = Organization::factory()
@@ -275,7 +275,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_cannot_leave_if_last_admin()
     {
         $organization = Organization::factory()
@@ -297,7 +297,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_organization()
     {
         $organization = Organization::factory()
@@ -324,7 +324,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_delete_organization()
     {
         $organization = Organization::factory()
@@ -346,7 +346,7 @@ class OrganizationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_view_organization_settings()
     {
         $organization = Organization::factory()
@@ -369,7 +369,7 @@ class OrganizationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_view_organization_settings()
     {
         $organization = Organization::factory()
@@ -387,7 +387,7 @@ class OrganizationTest extends TestCase
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_member_role()
     {
         $organization = Organization::factory()

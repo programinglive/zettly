@@ -72,6 +72,11 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Push subscription endpoints (store, destroy, test send).
 - Broadcasting configuration (Pusher-compatible) for live updates.
 - Gemini chat endpoints handling timeout errors.
+- Email notification checklist:
+  - [x] User registration verification email
+  - [x] Password reset email
+  - [x] Todo creation notification (queued)
+  - [x] Todo update notification (queued)
 
 ### 6.6 Super Administrator System Monitoring
 - `UserRole` enum with `user` and `super_admin` values.

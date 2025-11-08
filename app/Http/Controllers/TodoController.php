@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TodoCreated;
+use App\Mail\TodoUpdated;
 use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\TodoAttachment;
@@ -596,6 +597,7 @@ class TodoController extends Controller
         }
 
         $todo->refresh();
+        $todo->loadMissing('user');
 
         if ($stateChanged && $reason !== null) {
             TodoStatusEvent::create([
@@ -605,6 +607,14 @@ class TodoController extends Controller
                 'to_state' => $toState,
                 'reason' => $reason,
             ]);
+        }
+
+        if ($todo->type === Todo::TYPE_TODO && $todo->user?->email) {
+            try {
+                Mail::to($todo->user)->queue(new \App\Mail\TodoUpdated($todo));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
         }
 
         return redirect()->route('dashboard')->with('success', 'Todo updated successfully.');

@@ -22,7 +22,7 @@ class OrganizationUITest extends TestCase
         $this->otherUser = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_index_page_renders_with_proper_layout()
     {
         $organization = Organization::factory()
@@ -52,7 +52,7 @@ class OrganizationUITest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_index_shows_member_count()
     {
         $organization = Organization::factory()
@@ -79,7 +79,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_index_shows_creation_date()
     {
         $organization = Organization::factory()
@@ -100,7 +100,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_show_page_displays_all_members()
     {
         $organization = Organization::factory()
@@ -130,7 +130,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_show_page_indicates_admin_status()
     {
         $organization = Organization::factory()
@@ -151,7 +151,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_show_page_indicates_member_status()
     {
         $organization = Organization::factory()
@@ -172,7 +172,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_settings_page_shows_organization_details()
     {
         $organization = Organization::factory()
@@ -200,7 +200,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_settings_page_shows_creator_info()
     {
         $organization = Organization::factory()
@@ -222,7 +222,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_settings_page_shows_all_members_with_roles()
     {
         $organization = Organization::factory()
@@ -253,7 +253,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_create_page_renders()
     {
         $response = $this->actingAs($this->user)
@@ -265,7 +265,7 @@ class OrganizationUITest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_edit_page_renders_for_admin()
     {
         $organization = Organization::factory()
@@ -288,7 +288,7 @@ class OrganizationUITest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_edit_page_forbidden_for_non_admin()
     {
         $organization = Organization::factory()
@@ -307,7 +307,7 @@ class OrganizationUITest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organizations_index_empty_state_renders()
     {
         $response = $this->actingAs($this->user)
@@ -320,7 +320,7 @@ class OrganizationUITest extends TestCase
             );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organization_logo_url_is_nullable()
     {
         $organization = Organization::factory()
@@ -343,7 +343,7 @@ class OrganizationUITest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function organization_description_is_nullable()
     {
         $organization = Organization::factory()

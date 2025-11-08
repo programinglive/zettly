@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\TodoUpdated;
 use App\Models\Todo;
 use App\Models\TodoChecklistItem;
 use App\Models\TodoStatusEvent;
@@ -142,6 +143,38 @@ class TodoTest extends TestCase
 
         Mail::assertQueued(\App\Mail\TodoCreated::class, function ($mail) use ($user, $todoData) {
             return $mail->todo->title === $todoData['title']
+                && $mail->hasTo($user->email);
+        });
+    }
+
+    public function test_user_receives_email_when_todo_updated(): void
+    {
+        Mail::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Original Title',
+            'description' => 'Original Description',
+        ]);
+
+        $payload = [
+            'title' => 'Updated Title',
+            'description' => 'Updated Description',
+            'priority' => Todo::PRIORITY_NOT_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'type' => 'todo',
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => 'test-token'])
+            ->put(route('todos.update', $todo), array_merge($payload, ['_token' => 'test-token']));
+
+        $response->assertRedirect();
+
+        Mail::assertQueued(TodoUpdated::class, function (TodoUpdated $mail) use ($todo, $user) {
+            return $mail->todo->id === $todo->id
                 && $mail->hasTo($user->email);
         });
     }
