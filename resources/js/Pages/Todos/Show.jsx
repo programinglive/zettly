@@ -13,6 +13,24 @@ import AttachmentList from '../../Components/AttachmentList';
 import Checkbox from '../../Components/Checkbox';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 
+const getCookieCsrfToken = () => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    if (!match) {
+        return null;
+    }
+
+    try {
+        return decodeURIComponent(match[1]);
+    } catch (error) {
+        return null;
+    }
+};
+
 const resolveCsrfToken = () => {
     const inertiaToken = router?.page?.props?.csrf_token;
 
@@ -30,7 +48,6 @@ const resolveCsrfToken = () => {
 };
 
 export default function Show({ todo, availableTodos, statusEvents = [] }) {
-    const { delete: destroy } = useForm();
     const toggleForm = useForm({ reason: '' });
     const archiveForm = useForm({ reason: '' });
     const restoreForm = useForm({ reason: '' });
@@ -39,11 +56,18 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
 
     // Confirmation modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteProcessing, setDeleteProcessing] = useState(false);
     const [attachments, setAttachments] = useState(todo.attachments || []);
     const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
     const [reasonTargetState, setReasonTargetState] = useState(todo.is_completed ? 'pending' : 'completed');
     const isNote = (todo.type ?? '').toLowerCase() === 'note';
     const isArchived = Boolean(todo.archived);
+
+    const [csrfToken, setCsrfToken] = useState(resolveCsrfToken());
+
+    useEffect(() => {
+        setCsrfToken(resolveCsrfToken());
+    }, [todo.id]);
 
     const deriveChecklistItems = () => (todo.checklistItems || todo.checklist_items || []).map((item) => ({
         id: item.id,
@@ -90,8 +114,19 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
     };
 
     const handleDeleteConfirm = () => {
-        destroy(`/todos/${todo.id}`);
-        setShowDeleteModal(false);
+        setDeleteProcessing(true);
+
+        // Submit a hidden form so Laravel receives classic POST with _token + _method
+        const form = document.getElementById('delete-todo-form');
+        if (form) {
+            const input = form.querySelector('input[name="_token"]');
+            if (input) {
+                input.value = resolveCsrfToken() || '';
+            }
+            form.submit();
+        } else {
+            setDeleteProcessing(false);
+        }
     };
 
     const handleDeleteCancel = () => {
@@ -572,8 +607,14 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                     message={`Are you sure you want to delete "${todo.title}"? This action cannot be undone.`}
                     confirmText={isNote ? 'Delete Note' : 'Delete Todo'}
                     confirmButtonVariant="destructive"
-                    isLoading={destroy.processing}
+                    isLoading={deleteProcessing}
                 />
+
+                {/* Hidden form for reliable CSRF + method spoofing */}
+                <form id="delete-todo-form" action={`/todos/${todo.id}`} method="POST" className="hidden">
+                    <input type="hidden" name="_method" value="DELETE" />
+                    <input type="hidden" name="_token" value={csrfToken || ''} />
+                </form>
             </div>
         </AppLayout>
     );

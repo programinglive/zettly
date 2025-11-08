@@ -92,16 +92,14 @@ createInertiaApp({
     setup({ el, App, props }) {
         if (!csrfListenerRegistered) {
             router.on('before', (event) => {
-                const token = resolveCsrfToken();
-
-                if (!token) {
-                    return;
-                }
+                const cookieToken = getCookieCsrfToken();
+                const headerToken = router?.page?.props?.csrf_token ?? getMetaCsrfToken() ?? cookieToken;
 
                 event.detail.visit.headers = {
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest',
                     ...(event.detail.visit.headers ?? {}),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(headerToken ? { 'X-CSRF-TOKEN': headerToken } : {}),
+                    ...(cookieToken ? { 'X-XSRF-TOKEN': cookieToken } : {}),
                 };
 
                 const method = (event.detail.visit.method ?? 'get').toLowerCase();
@@ -113,8 +111,8 @@ createInertiaApp({
                 const payload = event.detail.visit.data;
 
                 if (payload instanceof FormData) {
-                    if (!payload.has('_token')) {
-                        payload.set('_token', token);
+                    if (headerToken && !payload.has('_token')) {
+                        payload.set('_token', headerToken);
                     }
 
                     return;
@@ -122,7 +120,7 @@ createInertiaApp({
 
                 event.detail.visit.data = {
                     ...(payload ?? {}),
-                    _token: payload?._token ?? token,
+                    ...(headerToken ? { _token: payload?._token ?? headerToken } : {}),
                 };
             });
 

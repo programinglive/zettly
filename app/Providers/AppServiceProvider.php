@@ -126,6 +126,10 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         LogViewer::auth(static function ($request): bool {
+            if (! app()->environment('production')) {
+                return $request->user() !== null;
+            }
+
             $user = $request->user();
 
             return $user !== null

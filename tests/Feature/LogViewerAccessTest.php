@@ -10,25 +10,49 @@ class LogViewerAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authorized_user_can_access_log_viewer(): void
+    public function test_any_authenticated_user_can_access_log_viewer_outside_production(): void
     {
-        $user = User::factory()->create([
-            'email' => 'mahatma.mahardhika@programinglive.com',
-        ]);
+        $originalEnv = $this->app['env'];
+        $this->app['env'] = 'local';
+        config(['app.env' => 'local']);
 
-        $this->actingAs($user)
-            ->get('/log-viewer')
-            ->assertStatus(200);
+        try {
+            $user = User::factory()->create();
+
+            $this->actingAs($user)
+                ->get('/log-viewer')
+                ->assertStatus(200);
+        } finally {
+            $this->app['env'] = $originalEnv;
+            config(['app.env' => $originalEnv]);
+        }
     }
 
-    public function test_unauthorized_user_cannot_access_log_viewer(): void
+    public function test_production_access_is_limited_to_owner_email(): void
     {
-        $user = User::factory()->create([
-            'email' => 'other@example.com',
-        ]);
+        $originalEnv = $this->app['env'];
+        $this->app['env'] = 'production';
+        config(['app.env' => 'production']);
 
-        $this->actingAs($user)
-            ->get('/log-viewer')
-            ->assertStatus(403);
+        try {
+            $owner = User::factory()->create([
+                'email' => 'mahatma.mahardhika@programinglive.com',
+            ]);
+
+            $this->actingAs($owner)
+                ->get('/log-viewer')
+                ->assertStatus(200);
+
+            $other = User::factory()->create([
+                'email' => 'other@example.com',
+            ]);
+
+            $this->actingAs($other)
+                ->get('/log-viewer')
+                ->assertStatus(403);
+        } finally {
+            $this->app['env'] = $originalEnv;
+            config(['app.env' => $originalEnv]);
+        }
     }
 }

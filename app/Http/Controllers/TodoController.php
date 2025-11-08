@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TodoCreated;
+use App\Mail\TodoDeleted;
 use App\Mail\TodoUpdated;
 use App\Models\Tag;
 use App\Models\Todo;
@@ -625,6 +626,20 @@ class TodoController extends Controller
      */
     public function destroy(Todo $todo)
     {
+        if ($todo->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $todo->loadMissing('user');
+
+        try {
+            if ($todo->user?->email) {
+                Mail::to($todo->user)->queue(new TodoDeleted($todo));
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
         $todo->delete();
 
         return redirect()->route('todos.index')

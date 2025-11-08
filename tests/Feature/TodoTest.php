@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Mail\TodoCreated;
+use App\Mail\TodoDeleted;
 use App\Mail\TodoUpdated;
 use App\Models\Todo;
 use App\Models\TodoChecklistItem;
@@ -141,7 +143,7 @@ class TodoTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        Mail::assertQueued(\App\Mail\TodoCreated::class, function ($mail) use ($user, $todoData) {
+        Mail::assertQueued(TodoCreated::class, function (TodoCreated $mail) use ($user, $todoData) {
             return $mail->todo->title === $todoData['title']
                 && $mail->hasTo($user->email);
         });
@@ -530,16 +532,24 @@ class TodoTest extends TestCase
 
     public function test_user_can_delete_todo(): void
     {
+        Mail::fake();
+
         /** @var User $user */
         $user = User::factory()->create();
         $todo = Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
+        // Get a real CSRF token from the session
+        $this->actingAs($user)->get(route('todos.show', $todo));
+        $token = $this->app['session.store']->token();
+
         $response = $this->actingAs($user)
-            ->withSession(['_token' => 'test-token'])
-            ->delete(route('todos.destroy', $todo), ['_token' => 'test-token']);
+            ->delete(route('todos.destroy', $todo), ['_token' => $token]);
 
         $response->assertRedirect();
         $this->assertSoftDeleted('todos', ['id' => $todo->id]);
+        Mail::assertQueued(TodoDeleted::class, function (TodoDeleted $mail) use ($todo, $user) {
+            return $mail->todo->is($todo) && $mail->hasTo($user->email);
+        });
     }
 
     public function test_user_can_toggle_todo_completion(): void
