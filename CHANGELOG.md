@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.12](https://github.com/programinglive/todo/compare/v0.10.11...v0.10.12) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* ensure todo deletion sends valid CSRF token ([187b3c3](https://github.com/programinglive/todo/commit/187b3c30ae731ab9210fd0b6e7b57895e786742b))
+
+
+### 🧹 Chores
+
+* add plesk laravel integration dependency ([a59498a](https://github.com/programinglive/todo/commit/a59498a16bf42f71121ff65b2c085b00f95dc438))
+
 ### [0.10.11](https://github.com/programinglive/todo/compare/v0.10.10...v0.10.11) (2025-11-08)
 
 
