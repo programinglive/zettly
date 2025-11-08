@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.10](https://github.com/programinglive/todo/compare/v0.10.9...v0.10.10) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* prevent duplicate verification emails on signup ([1e16b24](https://github.com/programinglive/todo/commit/1e16b245e90bbd51f3002f65e60f1a6e8836b050))
+
 ### [0.10.9](https://github.com/programinglive/todo/compare/v0.10.8...v0.10.9) (2025-11-08)
 
 
