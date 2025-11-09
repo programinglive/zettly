@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.17](https://github.com/programinglive/todo/compare/v0.10.16...v0.10.17) (2025-11-09)
+
+
+### 🐛 Bug Fixes
+
+* harden database cache fallback ([5601e34](https://github.com/programinglive/todo/commit/5601e34e1bebfef6180bfe144bfc994a23436eb5))
+* harden database connection handling ([9d8a4e6](https://github.com/programinglive/todo/commit/9d8a4e61903bd26ed961b6701b20b93a0d7ded53))
+
 ### [0.10.16](https://github.com/programinglive/todo/compare/v0.10.15...v0.10.16) (2025-11-09)
 
 
