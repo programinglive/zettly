@@ -10,6 +10,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 ### v0.10.x
 
+- **v0.10.18** (2025-11-09) — Release notes refactoring with detailed feature documentation. [See feature](features/release-notes-refactoring.md)
 - **v0.10.17** (2025-11-09) — Patch maintenance after database resiliency hardening. [See feature](features/database-resiliency.md)
 - **v0.10.16** (2025-11-09) — Database resiliency with PDO timeouts and cache fallbacks. [See feature](features/database-resiliency.md)
 - **v0.10.15** (2025-11-09) — Profile workspace preference CSRF token refresh. [See feature](features/workspace-switcher.md)
