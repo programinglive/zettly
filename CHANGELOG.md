@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.18](https://github.com/programinglive/todo/compare/v0.10.17...v0.10.18) (2025-11-09)
+
+
+### 📝 Documentation
+
+* add v0.10.18 release notes with detailed feature documentation ([820f303](https://github.com/programinglive/todo/commit/820f303c18309718053b5d6dce1a9b754c7da200))
+* extract key features into individual markdown files ([7536a2b](https://github.com/programinglive/todo/commit/7536a2b1e00ce8e437793c0cc317fc7192174713))
+
 ### [0.10.17](https://github.com/programinglive/todo/compare/v0.10.16...v0.10.17) (2025-11-09)
 
 
