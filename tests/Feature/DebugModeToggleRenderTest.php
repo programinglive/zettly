@@ -43,9 +43,9 @@ class DebugModeToggleRenderTest extends TestCase
             'role' => UserRole::SUPER_ADMIN,
         ]);
 
-        $this->assertTrue($superAdmin->role === UserRole::SUPER_ADMIN, 
+        $this->assertTrue($superAdmin->role === UserRole::SUPER_ADMIN,
             'Super admin user should have SUPER_ADMIN role');
-        $this->assertEquals('super_admin', $superAdmin->role->value, 
+        $this->assertEquals('super_admin', $superAdmin->role->value,
             'Super admin role value should be super_admin string');
     }
 
@@ -56,9 +56,9 @@ class DebugModeToggleRenderTest extends TestCase
         $john = User::where('email', 'john@example.com')->first();
 
         $this->assertNotNull($john, 'John should be seeded');
-        $this->assertTrue($john->role === UserRole::SUPER_ADMIN, 
+        $this->assertTrue($john->role === UserRole::SUPER_ADMIN,
             'John should be a super administrator');
-        $this->assertEquals('super_admin', $john->role->value, 
+        $this->assertEquals('super_admin', $john->role->value,
             'John role value should be super_admin string');
     }
 
@@ -66,14 +66,14 @@ class DebugModeToggleRenderTest extends TestCase
     {
         // Verify the built JavaScript contains the Debug Settings UI
         $buildDir = public_path('build/assets');
-        $files = glob($buildDir . '/Edit-*.js');
-        
+        $files = glob($buildDir.'/Edit-*.js');
+
         $this->assertNotEmpty($files, 'Edit component should be built');
-        
+
         $content = file_get_contents($files[0]);
         // The minified code contains the Debug Settings UI
         // Check for the presence of debug-related strings in the bundle
-        $this->assertStringContainsString('Debug', $content, 
+        $this->assertStringContainsString('Debug', $content,
             'Built Edit component should contain Debug related code');
     }
 }

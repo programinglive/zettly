@@ -13,9 +13,7 @@ class TodoDeleted extends Mailable implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public readonly Todo $todo)
-    {
-    }
+    public function __construct(public readonly Todo $todo) {}
 
     /**
      * Build the message.

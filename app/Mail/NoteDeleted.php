@@ -13,9 +13,7 @@ class NoteDeleted extends Mailable implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public readonly Todo $note)
-    {
-    }
+    public function __construct(public readonly Todo $note) {}
 
     public function build(): self
     {

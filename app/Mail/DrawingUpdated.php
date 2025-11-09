@@ -13,9 +13,7 @@ class DrawingUpdated extends Mailable implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public readonly Drawing $drawing)
-    {
-    }
+    public function __construct(public readonly Drawing $drawing) {}
 
     public function build(): self
     {

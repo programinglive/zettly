@@ -17,7 +17,7 @@ class OrganizationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         $organizations = $user->organizations()
             ->with('creator')
             ->withCount('users')
@@ -50,7 +50,7 @@ class OrganizationController extends Controller
         $organization = Organization::create([
             'created_by' => $request->user()->id,
             'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']) . '-' . Str::random(6),
+            'slug' => Str::slug($validated['name']).'-'.Str::random(6),
             'description' => $validated['description'] ?? null,
             'logo_url' => $validated['logo_url'] ?? null,
         ]);
@@ -73,8 +73,8 @@ class OrganizationController extends Controller
     {
         // Check if user is a member of this organization
         $isMember = $organization->users()->where('user_id', $request->user()->id)->exists();
-        
-        if (!$isMember && $organization->created_by !== $request->user()->id) {
+
+        if (! $isMember && $organization->created_by !== $request->user()->id) {
             abort(403, 'Unauthorized access to this organization.');
         }
 
@@ -223,7 +223,7 @@ class OrganizationController extends Controller
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$member) {
+        if (! $member) {
             abort(403, 'You are not a member of this organization.');
         }
 
@@ -248,7 +248,7 @@ class OrganizationController extends Controller
             ->where('role', 'admin')
             ->exists();
 
-        if (!$isAdmin) {
+        if (! $isAdmin) {
             abort(403, 'You must be an admin to perform this action.');
         }
     }

@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Organization;
 use App\Models\OrganizationMember;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder
@@ -89,9 +88,9 @@ class OrganizationSeeder extends Seeder
         );
 
         $this->command->info('Organizations seeded successfully!');
-        $this->command->info("Test credentials:");
-        $this->command->info("  John (john@example.com) - Admin of Acme Corp, Member of Tech Startup");
-        $this->command->info("  Jane (jane@example.com) - Admin of Tech Startup, Member of Acme Corp");
-        $this->command->info("  Bob (bob@example.com) - Member of Acme Corp");
+        $this->command->info('Test credentials:');
+        $this->command->info('  John (john@example.com) - Admin of Acme Corp, Member of Tech Startup');
+        $this->command->info('  Jane (jane@example.com) - Admin of Tech Startup, Member of Acme Corp');
+        $this->command->info('  Bob (bob@example.com) - Member of Acme Corp');
     }
 }

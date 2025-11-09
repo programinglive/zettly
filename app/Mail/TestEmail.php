@@ -17,8 +17,7 @@ class TestEmail extends Mailable
         public readonly string $subjectLine,
         public readonly string $body,
         public readonly ?string $senderName = null
-    ) {
-    }
+    ) {}
 
     /**
      * Build the message.

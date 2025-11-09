@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\TodoStatusEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -97,7 +96,7 @@ class Todo extends Model
     public static function hasKanbanOrderColumn(): bool
     {
         if (self::$kanbanOrderColumnExists === null) {
-            self::$kanbanOrderColumnExists = Schema::hasColumn((new self())->getTable(), 'kanban_order');
+            self::$kanbanOrderColumnExists = Schema::hasColumn((new self)->getTable(), 'kanban_order');
         }
 
         return self::$kanbanOrderColumnExists;

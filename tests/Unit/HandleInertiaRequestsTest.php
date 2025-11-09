@@ -10,7 +10,7 @@ class HandleInertiaRequestsTest extends TestCase
 {
     public function test_share_includes_csrf_token(): void
     {
-        $middleware = new HandleInertiaRequests();
+        $middleware = new HandleInertiaRequests;
 
         $this->app['session']->start();
         $expectedToken = csrf_token();

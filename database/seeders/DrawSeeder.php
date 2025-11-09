@@ -146,7 +146,7 @@ class DrawSeeder extends Seeder
                 ],
                 'page' => [],
                 'page_state' => [
-                    'current_page_id' => 'page-' . ($seedOffset + 1),
+                    'current_page_id' => 'page-'.($seedOffset + 1),
                 ],
                 'asset' => [],
             ],

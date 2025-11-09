@@ -173,14 +173,15 @@ class AppServiceProvider extends ServiceProvider
         $originalCacheManager = app('cache');
 
         app()->singleton('cache', function ($app) use ($originalCacheManager) {
-            return new class($originalCacheManager) {
+            return new class($originalCacheManager)
+            {
                 public function __construct(private $originalManager) {}
 
                 public function __call($method, $parameters)
                 {
                     try {
                         return $this->originalManager->$method(...$parameters);
-                    } catch (\PDOException | \Illuminate\Database\QueryException $e) {
+                    } catch (\PDOException|\Illuminate\Database\QueryException $e) {
                         // If database cache fails, use array cache as fallback
                         if (str_contains($e->getMessage(), 'FATAL') || str_contains($e->getMessage(), 'connection')) {
                             return $this->originalManager->store('array')->$method(...$parameters);

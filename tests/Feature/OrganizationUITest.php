@@ -13,6 +13,7 @@ class OrganizationUITest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $otherUser;
 
     protected function setUp(): void

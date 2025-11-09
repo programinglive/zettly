@@ -61,7 +61,7 @@ class EmailTestController extends Controller
             $message = 'Failed to send test email. Please verify the mail configuration.';
 
             if ($details->isNotEmpty()) {
-                $message .= ' (' . $details . ')';
+                $message .= ' ('.$details.')';
             }
 
             return redirect()

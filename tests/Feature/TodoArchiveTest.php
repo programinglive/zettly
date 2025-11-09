@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Todo;
-use App\Models\TodoStatusEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

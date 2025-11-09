@@ -2,10 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Drawing;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DrawGalleryTest extends TestCase
