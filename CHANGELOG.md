@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.16](https://github.com/programinglive/todo/compare/v0.10.15...v0.10.16) (2025-11-09)
+
+
+### 🐛 Bug Fixes
+
+* handle database connection errors gracefully ([6dae4ae](https://github.com/programinglive/todo/commit/6dae4ae7c15c2360e0a55f0e9df477578d266783))
+
 ### [0.10.15](https://github.com/programinglive/todo/compare/v0.10.14...v0.10.15) (2025-11-08)
 
 
