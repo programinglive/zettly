@@ -1,299 +1,82 @@
-# Zettly Release Notes
+# Zettly Release Notes (Compact)
 
-Centralized history of notable changes, fixes, and enhancements to the Zettly platform. Pair this with the GitHub releases page for the latest tags and download artifacts.
+Centralized history of notable changes, fixes, and enhancements to the Zettly platform. See [Full Release Notes](RELEASE_NOTES_FULL.md) for detailed per-version documentation.
 
 ## Unreleased
 
 - _No changes yet._
 
-## v0.10.15 · 2025-11-09
-
-### 🐛 Bug Fixes
-
-- **Profile workspace preference 419s** — Refresh CSRF tokens and retry once before persisting the preference, keeping optimistic UI updates in sync and preventing token mismatch errors after idle sessions. (@resources/js/hooks/useWorkspacePreference.js, @resources/js/utils/csrf.js, @tests/Feature/WorkspacePreferenceTest.php)
-
-## v0.10.14 · 2025-11-08
-
-### ✨ Features
-
-- **Drawing notifications** — Added create/update/delete mailers so drawing collaborators receive email updates, mirroring the todo workflow. (@app/Http/Controllers/DrawingController.php, @app/Mail/DrawingCreated.php, @app/Mail/DrawingUpdated.php, @app/Mail/DrawingDeleted.php, @resources/views/emails/drawings/*.blade.php, @tests/Feature/DrawTest.php)
-
-## v0.10.13 · 2025-11-08
-
-### ✨ UI Polish
-
-- **Dashboard verification reminder** — Returning users with unverified email addresses now see an inline banner on the dashboard with a quick resend action so they can complete verification without leaving their workspace.
-
-### 🐛 Bug Fixes
-
-- **Drawing broadcasts respect Pusher limits** — Trim oversized TLDraw payloads from `DrawingUpdated` events when the serialized message would exceed the 10KB Pusher cap, preventing `BroadcastException` errors captured as TODOAPP-26. (@app/Events/DrawingUpdated.php, @tests/Unit/Events/DocumentBroadcastPayloadTest.php)
-- **Outgoing emails are queued** — Email verification and password reset notifications now implement `ShouldQueue`, ensuring mail dispatch happens asynchronously and is covered by updated registration feature tests. (@app/Notifications/QueuedVerifyEmail.php, @app/Notifications/QueuedResetPassword.php, @app/Models/User.php, @tests/Feature/Auth/RegistrationTest.php)
-- **Todo creation email** — Automatically queues a `TodoCreated` notification whenever a user creates a new todo, complete with Markdown template and feature test coverage. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoCreated.php, @resources/views/emails/todos/created.blade.php, @tests/Feature/TodoTest.php)
-- **Todo update email** — Queues a `TodoUpdated` notification whenever a todo is updated so owners are alerted to changes. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoUpdated.php, @resources/views/emails/todos/updated.blade.php, @tests/Feature/TodoTest.php)
-- **Todo deletion email** — Notifies owners when a todo is removed, with soft-delete recovery guidance. (@app/Http/Controllers/TodoController.php, @app/Mail/TodoDeleted.php, @resources/views/emails/todos/deleted.blade.php, @tests/Feature/TodoTest.php)
-- **Note notifications** — Mirrored create/update/delete mailers for notes so personal knowledge entries trigger the same queued emails as todos. (@app/Http/Controllers/TodoController.php, @app/Mail/NoteCreated.php, @app/Mail/NoteUpdated.php, @app/Mail/NoteDeleted.php, @resources/views/emails/notes/*.blade.php, @tests/Feature/TodoTest.php)
-- **Drawing notifications** — Added create/update/delete mailers for drawings to keep creatives informed when sketches change or are removed. (@app/Http/Controllers/DrawingController.php, @app/Mail/DrawingCreated.php, @app/Mail/DrawingUpdated.php, @app/Mail/DrawingDeleted.php, @resources/views/emails/drawings/*.blade.php, @tests/Feature/DrawTest.php)
-- **Welcome email & verification** — New registrations queue both the `QueuedVerifyEmail` notification and a `UserWelcome` mailable through a single listener so every account immediately receives the verification link plus onboarding guidance. (@app/Listeners/SendWelcomeEmail.php, @app/Mail/UserWelcome.php, @resources/views/emails/users/welcome.blade.php, @app/Providers/EventServiceProvider.php, @tests/Feature/Auth/RegistrationTest.php)
-
-## v0.10.12 · 2025-11-08
-
-### 🐛 Bug Fixes
-
-- **Todo deletion CSRF** — Ensured delete requests include a valid token when removing todos so the action no longer fails with a 419. (@resources/js/Components/TodoList.vue, @resources/js/__tests__/todoDeleteCsrf.test.js)
-
-## v0.10.11 · 2025-11-08
-
-### 🐛 Bug Fixes
-
-- **Post-logout CSRF refresh** — Automatically fetch a fresh token from the cookie after logging out to keep subsequent authenticated actions from failing with 419. (@resources/js/bootstrap.js, @resources/js/__tests__/authLogoutCsrf.test.js)
-
-## v0.10.10 · 2025-11-08
-
-### 🐛 Bug Fixes
-
-- **Duplicate verification emails** — Prevent the signup flow from sending multiple verification messages, ensuring users receive exactly one confirmation email. (@app/Notifications/QueuedVerifyEmail.php, @tests/Feature/Auth/RegistrationTest.php)
-
-## v0.10.9 · 2025-11-08
-
-### ✨ Features
-
-- **Welcome email automation** — Queue a welcome message for new users and restrict the log viewer to super admins so onboarding stays informative without exposing debug tooling broadly. (@app/Listeners/SendWelcomeEmail.php, @resources/js/Pages/Admin/SystemMonitor.jsx)
-
-### 🧹 Chores
-
-- **Auth branding polish** — Swapped the authentication logo and tightened resend verification CSRF handling for a cleaner first impression. (@resources/js/Layouts/GuestLayout.jsx, @resources/js/__tests__/authResendVerification.test.js)
-
-## v0.10.8 · 2025-11-08
-
-### 🐛 Bug Fixes
-
-- **Password reset & drawing payloads** — Queued password reset notifications and trimmed oversized drawing metadata so transactional emails send reliably and broadcasts stay within limits. (@app/Notifications/QueuedResetPassword.php, @app/Events/DrawingUpdated.php)
-
-## v0.10.7 · 2025-11-08
-
-### ✨ Features
-
-- **Todo update emails** — Notify assignees when todos change while cleaning up organization test fixtures for faster runs. (@app/Http/Controllers/TodoController.php, @tests/Feature/OrganizationTest.php)
-
-## v0.10.6 · 2025-11-08
-
-### ✨ Features
-
-- **Todo creation emails** — Queue notifications on create and quiet noisy broadcast logs so inboxes and log streams stay actionable. (@app/Mail/TodoCreated.php, @app/Providers/EventServiceProvider.php)
-
-## v0.10.5 · 2025-11-08
-
-### 🐛 Bug Fixes
-
-- **Broadcast + email safeguards** — Enforced payload limits and ensured notifications queue properly across todo workflows. (@app/Events/DrawingUpdated.php, @app/Mail/TodoUpdated.php)
-
-## v0.10.4 · 2025-11-07
-
-### 🐛 Bug Fixes
-
-- **SMTP configuration hardening** — Normalized mail settings and locked down the email test endpoint for safer diagnostics. (@config/mail.php, @app/Http/Controllers/EmailTestController.php)
-
-## v0.10.3 · 2025-11-07
-
-### 🐛 Bug Fixes
-
-- **Organization invite CSRF** — Ensured the invite form always sends a valid token, preventing 419s when adding teammates. (@resources/js/Pages/Organizations/Show.jsx, @resources/js/__tests__/organizationInviteCsrf.test.js)
-
-## v0.10.2 · 2025-11-07
-
-### 🐛 Bug Fixes
-
-- **Case-sensitive imports** — Corrected Organization component paths so builds succeed on case-sensitive filesystems. (@resources/js/Pages/Organizations/*)
-
-## v0.10.1 · 2025-11-07
-
-### 🐛 Bug Fixes
-
-- **Shadcn replacement** — Swapped Organization pages back to the project’s component library to restore consistent styling and behavior. (@resources/js/Pages/Organizations/*.jsx)
-
-## v0.10.0 · 2025-11-07
-
-### ✨ Features
-
-- **Organization management** — Introduced full CRUD, member roles, and invite flows for organizations, expanding collaboration across the app. (@app/Http/Controllers/OrganizationController.php, @resources/js/Pages/Organizations/*.jsx, @tests/Feature/OrganizationTest.php)
-
-## v0.9.8 · 2025-11-07
-
-### 🛡️ Security
-
-- **Email verification on signup** — Newly registered users now receive a verification email automatically and must confirm their address before accessing the dashboard and workspace features.
-
-## v0.9.7 · 2025-11-06
-
-### ✨ UI Polish
-
-- **Focus dialog input sizing** — Expanded the Focus Title field to span the modal width and added internal padding for better readability in both light and dark themes.
-
-## v0.9.6 · 2025-11-06
-
-### 🧪 Quality
-
-- **Email test console (super-admin only)** — Added `/test/email` Inertia page with backend controller, mailable, and Blade template so administrators can verify outbound email configuration safely.
-
-### 🛡️ Security
-
-- **Fetch CSRF hardening** — Updated Kanban and Eisenhower reorder requests plus attachment deletion to always send credentials, Accept headers, and CSRF tokens, preventing 419 responses.
-
-## v0.9.5 · 2025-11-06
-
-### ℹ️ Notes
-
-- Internal maintenance release with no user-facing changes.
-
-## v0.9.2 · 2025-11-06
-
-### ✨ Features
-
-- **Focus history filtering** — Added a date picker to the Recent Focus History card that defaults to today, with matching backend support so you can review completions for any day without leaving the dashboard.
-
-## v0.9.1 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Focus history wrapping** — Added defensive `break-all` styling so long URLs and reasons stay within the dashboard card across light and dark themes.
-
-## v0.9.0 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban drag ordering** — Ensured dragging cards downward inserts them after the intended target so optimistic updates match the persisted order.
-
-## v0.8.20 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Eisenhower matrix reorder** — Returned JSON responses for quadrant moves to eliminate the "plain JSON response" redirect error during drag-and-drop.
-
-## v0.8.19 · 2025-11-05
-
-### ℹ️ Notes
-
-- No user-facing changes were recorded for this maintenance release.
-
-## v0.8.18 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban board reorder** — Synced local todo ordering immediately after drag events so the UI reflects the updated sequence without waiting for a reload.
-
-## v0.8.17 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban cross-column moves** — Propagated column metadata changes when cards travel between lists to keep status and column attributes in sync.
-
-## v0.8.16 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban reorder requests** — Swapped to the Fetch API for drag submissions, matching Eisenhower handling and preventing Inertia response parsing errors.
-
-## v0.8.15 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Dark theme toggle** — Restored the appearance toggle in dark mode and added reorder debug logging for production diagnostics.
-
-## v0.8.14 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban error recovery** — Reverted todo ordering to the pre-drag snapshot whenever the reorder request fails so boards never stay in an invalid state.
-
-## v0.8.13 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban success handling** — Removed the assumption that reorder responses return Inertia page props, avoiding silent failures after successful drags.
-
-## v0.8.12 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban reorder endpoint** — Returned JSON instead of redirects so Inertia keeps the optimistic UI state applied by the drag-and-drop operation.
-
-## v0.8.11 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Eisenhower drag CSRF** — Relied on Inertia's shared middleware for tokens when moving todos between quadrants, fixing the 419 error regression.
-
-## v0.8.10 · 2025-11-05
-
-### 🐛 Bug Fixes
-
-- **Kanban & Eisenhower reordering** — Switched Eisenhower matrix reorder calls to use `fetch` with JSON/CSRF headers, matching the Kanban board. This prevents Inertia from expecting a full page response and eliminates the "plain JSON response" error in production when dragging todos across quadrants.
-
-## v0.8.9 · 2025-11-04
-
-### ✨ Features
-
-- **Focus demo data** — Added `FocusSeeder` so every seeded user starts with an active focus and recent completion history, complete with status events for the dashboard timeline.
-- **Drawing gallery demo data** — Added `DrawSeeder` to provision workspace sketches, mind maps, and dashboard wireframes that showcase the TLDraw workspace out of the box.
-
-### 🐛 Bug Fixes
-
-- **Kanban ordering** — Guard all kanban `orderBy` clauses and reorder paths when the `kanban_order` column is unavailable, preventing SQL errors in legacy databases.
-
-### ✅ Tests
-
-- `php artisan test --filter=FocusTest`
-- `php artisan test --filter=DrawTest`
-
-## v0.7.6 · 2025-11-03
-
-### 🛠️ Bug Fixes
-
-- **Context Panel Tag Order** — Moved tag chips beneath created metadata within the context drawer so tablet users see tags next to other timeline details.
-- **Todo Detail Tag Placement** — Ensured tags render directly under created/updated metadata on todo and note detail views.
-- **Due Date Inputs** — Normalized ISO timestamps to the `yyyy-MM-dd` format before populating `<input type="date">` fields to stop console warnings and preserve selection state.
-- **Editor Toolbar Layering** — Lowered the Zettly editor toolbar stacking context so the navbar remains in front while keeping the editor layout intact.
-
-### ✅ Tests
-
-- Re-ran `npm test -- dashboardWorkspace.test.js` to cover dashboard/todo regressions.
-
-## v0.7.5 · 2025-11-03
-
-### 🛠️ Bug Fixes
-
-- **Reason Dialog Hydration** — Added hydration guards and Inertia `transform()` usage across dashboard, todo detail, Eisenhower Matrix, and Kanban views to ensure archive/restore/toggle dialogs respect the first submitted reason and surface validation errors consistently.
-- **Archive Reason Dialog (Dashboard & Detail View)** — Reintroduced archive/restore reason prompts with consistent UX and ensured CSRF tokens are appended automatically.
-
-### 📚 Documentation
-
-- Added dedicated community guidelines (Code of Conduct, Contributing, Security policy) and refreshed README badges plus contact details for maintainers.
-- Documented the hydration fix workflow in `docs/reference/REASON_DIALOG_HYDRATION.md`.
-
-## v0.7.4 · 2025-11-02
-
-### 🐞 Bug Fix Highlights
-
-- **Debug Mode Toggle Missing** — Fixed a template-literal typo that hid the toggle for super admins and added regression tests. (@resources/js/Pages/Profile/Edit.jsx, @tests/js/DebugModeToggle.test.js)
-- **Draw Gallery Runtime Error** — Replaced stale TLDraw handlers to avoid `TypeError: h is not a function` when returning to `/draw`. (@resources/js/Pages/Draw/Index.jsx, @tests/js/Draw.test.js)
-- **Note Edit 419 Errors** — Ensured CSRF tokens are included when saving notes via Inertia. (@resources/js/Pages/Todos/Edit.jsx, @resources/js/__tests__/todoEditCsrf.test.js)
-- **Login 419 Errors** — Mirrored token fix for the login form. (@resources/js/Pages/Auth/Login.jsx, @resources/js/__tests__/loginCsrf.test.js)
-- **Drawing Editor Infinite Loop** — Reduced hook dependencies to stop runaway renders and covered with tests. (@resources/js/Pages/Draw/Index.jsx, @resources/js/__tests__/DrawInfiniteLoopTest.test.js)
-- **Passive Event Listener Warnings** — Centralized TLDraw event configuration to suppress console noise and allow `preventDefault`. (@resources/js/Pages/Draw/Index.jsx, @resources/js/__tests__/DrawPassiveEventFixTest.test.js)
-- **Drawing Gallery Thumbnails** — Generated PNG previews on autosave and surfaced them throughout the UI plus tests. (Multiple files including `DrawingController`, `DrawingUpdated` event, migration, and @tests/js/Draw.test.js)
-
-### 🧪 Regression Coverage
-
-- Expanded JS test suite to guard all fixes above, including TLDraw autosave behavior and debug toggle rendering.
-
-## v0.0.1 · 2025-10-15
-
-Initial public release delivering the full-stack foundation:
-
-- User authentication via Laravel Fortify
-- Todo and note management with tagging, linking, and priority support
-- Responsive dashboard with Eisenhower Matrix and Kanban workspaces
-- TLDraw-powered sketching workspace with autosave and real-time sync
-- Built on Laravel 12, React 19, Inertia.js, TailwindCSS, and Vite
-
-See the [README Quick Start](../../README.md#quick-start) for setup instructions and seeded demo credentials.
+## Recent Releases (Compact Summary)
+
+### v0.10.x
+
+- **v0.10.17** (2025-11-09) — Patch maintenance after database resiliency hardening. [See feature](features/database-resiliency.md)
+- **v0.10.16** (2025-11-09) — Database resiliency with PDO timeouts and cache fallbacks. [See feature](features/database-resiliency.md)
+- **v0.10.15** (2025-11-09) — Profile workspace preference CSRF token refresh. [See feature](features/workspace-switcher.md)
+- **v0.10.14** (2025-11-08) — Drawing notifications and email queuing.
+- **v0.10.13** (2025-11-08) — Dashboard verification reminder and broadcast payload trimming.
+- **v0.10.12** (2025-11-08) — Todo deletion CSRF fix.
+- **v0.10.11** (2025-11-08) — Post-logout CSRF token refresh.
+- **v0.10.10** (2025-11-08) — Duplicate verification email prevention.
+- **v0.10.9** (2025-11-08) — Welcome email automation and log viewer restrictions.
+- **v0.10.8** (2025-11-08) — Password reset and drawing payload hardening.
+- **v0.10.7** (2025-11-08) — Todo update emails and org test cleanup.
+- **v0.10.6** (2025-11-08) — Todo creation emails.
+- **v0.10.5** (2025-11-08) — Broadcast and email safeguards.
+- **v0.10.4** (2025-11-07) — SMTP configuration hardening.
+- **v0.10.3** (2025-11-07) — Organization invite CSRF fix. [See feature](features/organization-management.md)
+- **v0.10.2** (2025-11-07) — Case-sensitive import fixes. [See feature](features/organization-management.md)
+- **v0.10.1** (2025-11-07) — Shadcn component replacement. [See feature](features/organization-management.md)
+- **v0.10.0** (2025-11-07) — Organization CRUD and member management. [See feature](features/organization-management.md)
+
+### v0.9.x Series
+- **v0.9.2** (2025-11-05) — Focus history filtering. [See feature](features/focus-mode.md)
+- **v0.9.1** (2025-11-05) — Focus history wrapping fix. [See feature](features/focus-mode.md)
+- **v0.9.0** (2025-11-05) — Kanban drag ordering fix. [See feature](features/kanban-workspace.md)
+
+### v0.8.x Series
+- **v0.8.20** (2025-11-05) — Eisenhower reorder JSON responses. [See feature](features/eisenhower-matrix.md)
+- **v0.8.13** (2025-11-05) — Kanban success handling. [See feature](features/kanban-workspace.md)
+- **v0.8.12** (2025-11-05) — Kanban/Eisenhower JSON responses. [See feature](features/kanban-workspace.md)
+- **v0.8.11** (2025-11-05) — Eisenhower CSRF fix. [See feature](features/eisenhower-matrix.md)
+- **v0.8.9** (2025-11-04) — Focus and drawing demo data. [See feature](features/focus-mode.md)
+- **v0.8.0** (2025-11-04) — Focus mode launch. [See feature](features/focus-mode.md)
+
+### v0.7.x Series
+- **v0.7.13** (2025-11-02) — Navbar search improvements.
+- **v0.7.7** (2025-11-01) — Email test console.
+- **v0.7.6** (2025-11-03) — Context panel tag order and due date fixes.
+- **v0.7.0** (2025-10-22) — Eisenhower Matrix and Kanban workspaces. [See features](features/eisenhower-matrix.md) | [Kanban](features/kanban-workspace.md)
+
+### v0.6.x Series
+- **v0.6.10** (2025-10-21) — Sentry performance instrumentation.
+- **v0.6.0** (2025-10-20) — Sentry error reporting and queue workers.
+
+### v0.5.x Series
+- **v0.5.62** (2025-10-19) — Realtime drawing sync.
+- **v0.5.1** (2025-10-19) — GCS upload optimization.
+
+### v0.4.x Series
+- **v0.4.28** (2025-10-18) — Personalized focus digests. [See feature](features/focus-mode.md)
+- **v0.4.5** (2025-10-18) — Workspace switcher. [See feature](features/workspace-switcher.md)
+- **v0.4.0** (2025-10-18) — Workspaces launch. [See feature](features/workspace-switcher.md)
+
+### v0.3.x Series
+- **v0.3.35** (2025-10-17) — Tag management.
+- **v0.3.0** (2025-10-17) — Core features.
+
+### v0.2.x Series
+- **v0.2.16** (2025-10-16) — Polish and refinements.
+- **v0.2.0** (2025-10-16) — Second major release.
+
+### v0.1.x Series
+- **v0.1.22** (2025-10-15) — Final v0.1 patch.
+- **v0.1.0** (2025-10-15) — First major release.
+
+### v0.0.x Series
+- **v0.0.5** (2025-10-14) — Early patch.
+- **v0.0.1** (2025-10-14) — Initial release.
+
+---
+
+**For detailed release notes per version, see the [Full Release Notes](RELEASE_NOTES_FULL.md) file.**
