@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Support\ResilientDatabaseStore;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -103,5 +105,17 @@ class DatabaseConnectionErrorTest extends TestCase
 
         $store->put('test_key', 'test_value', 60);
         $this->assertEquals('test_value', $store->get('test_key'));
+    }
+
+    /**
+     * Test that the database cache store uses the resilient wrapper with array fallback.
+     */
+    public function test_database_cache_store_uses_resilient_wrapper(): void
+    {
+        $repository = Cache::store('database');
+        $store = $repository->getStore();
+
+        $this->assertInstanceOf(ResilientDatabaseStore::class, $store);
+        $this->assertInstanceOf(ArrayStore::class, $store->getFallbackStore());
     }
 }

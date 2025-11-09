@@ -6,10 +6,14 @@ use App\Models\Tag;
 use App\Models\Todo;
 use App\Observers\TagObserver;
 use App\Observers\TodoObserver;
+use App\Support\ResilientDatabaseStore;
 use Google\Cloud\Storage\StorageClient;
+use Illuminate\Cache\Repository;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use League\Flysystem\Config as FlysystemConfig;
 use League\Flysystem\Filesystem;
@@ -33,12 +37,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerResilientDatabaseCache();
+
         // Register model observers for Algolia indexing
         Todo::observe(TodoObserver::class);
         Tag::observe(TagObserver::class);
-
-        // Add cache fallback for database connection failures
-        $this->configureCacheFallback();
 
         Storage::extend('gcs', function ($app, $config) {
             $clientOptions = [];
@@ -163,34 +166,24 @@ class AppServiceProvider extends ServiceProvider
         return null;
     }
 
-    /**
-     * Configure cache fallback for database connection failures.
-     * When the database cache driver fails, fall back to array cache.
-     */
-    private function configureCacheFallback(): void
+    private function registerResilientDatabaseCache(): void
     {
-        // Wrap cache operations to handle database connection failures
-        $originalCacheManager = app('cache');
+        Cache::extend('database', function ($app) {
+            $config = $app['config']->get('cache.stores.database', []);
 
-        app()->singleton('cache', function ($app) use ($originalCacheManager) {
-            return new class($originalCacheManager)
-            {
-                public function __construct(private $originalManager) {}
+            $connectionName = $config['connection'] ?? null;
+            $connection = $app['db']->connection($connectionName);
 
-                public function __call($method, $parameters)
-                {
-                    try {
-                        return $this->originalManager->$method(...$parameters);
-                    } catch (\PDOException|\Illuminate\Database\QueryException $e) {
-                        // If database cache fails, use array cache as fallback
-                        if (str_contains($e->getMessage(), 'FATAL') || str_contains($e->getMessage(), 'connection')) {
-                            return $this->originalManager->store('array')->$method(...$parameters);
-                        }
+            $table = $config['table'] ?? 'cache';
+            $prefix = $config['prefix']
+                ?? $app['config']->get('cache.prefix', Str::slug((string) $app['config']->get('app.name', 'laravel')).'-cache-');
 
-                        throw $e;
-                    }
-                }
-            };
+            $store = ResilientDatabaseStore::withArrayFallback($connection, $table, $prefix);
+
+            $repository = new Repository($store);
+            $repository->setEventDispatcher($app['events']);
+
+            return $repository;
         });
     }
 }
