@@ -1,9 +1,8 @@
-#!/usr/bin/env node
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const fs = require('fs');
-const path = require('path');
-
-function updateReleaseNotes({
+export function updateReleaseNotes({
   rootDir = process.cwd(),
   releaseNotesRelativePath = path.join('docs', 'release-notes', 'RELEASE_NOTES.md'),
   changelogRelativePath = 'CHANGELOG.md',
@@ -65,7 +64,7 @@ function updateReleaseNotes({
   return true;
 }
 
-function insertReleaseNotesEntry({ content, version, releaseDate, highlight, sectionHeading, detailBullets }) {
+export function insertReleaseNotesEntry({ content, version, releaseDate, highlight, sectionHeading, detailBullets }) {
   const lines = content.split('\n');
   const headerSeparatorIndex = lines.findIndex((line) => line.trim().startsWith('|---------'));
   if (headerSeparatorIndex === -1) {
@@ -98,7 +97,7 @@ function insertReleaseNotesEntry({ content, version, releaseDate, highlight, sec
   return lines.join('\n');
 }
 
-function extractChangelogInfo({ changelogContent, version }) {
+export function extractChangelogInfo({ changelogContent, version }) {
   const versionHeadingRegex = new RegExp(`^### \\[${escapeRegExp(version)}\\][^\n]*`, 'm');
   const match = changelogContent.match(versionHeadingRegex);
   if (!match) {
@@ -141,38 +140,29 @@ function extractChangelogInfo({ changelogContent, version }) {
   };
 }
 
-function sanitizeText(text) {
+export function sanitizeText(text) {
   return text
     .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function escapeRegExp(string) {
+export function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function escapePipes(text) {
+export function escapePipes(text) {
   return text.replace(/\|/g, '\\|');
 }
 
-function formatDate(date) {
+export function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-module.exports = {
-  updateReleaseNotes,
-  insertReleaseNotesEntry,
-  extractChangelogInfo,
-  sanitizeText,
-  escapePipes,
-  formatDate
-};
-
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     updateReleaseNotes();
   } catch (error) {

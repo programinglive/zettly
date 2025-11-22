@@ -1,17 +1,25 @@
-#!/usr/bin/env node
+import { spawnSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const { spawnSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { updateReleaseNotes } from './update-release-notes.js';
 
-const { updateReleaseNotes } = require('./update-release-notes');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 const fsFokPreloadPath = path.join(__dirname, 'preload', 'fs-f-ok.cjs');
 const FS_FOK_PRELOAD_FLAG = buildPreloadFlag(fsFokPreloadPath);
 
+// require('./preload/fs-f-ok.cjs'); // Side-effect import, but it's CJS. Let's try to import it or just rely on the preload flag.
+// Since we are building the preload flag, maybe we don't need to require it here if we are spawning a child process with it?
+// But the original code required it. Let's require it using the created require.
 require('./preload/fs-f-ok.cjs');
 
-const VALID_RELEASE_TYPES = new Set([
+export const VALID_RELEASE_TYPES = new Set([
   'major',
   'minor',
   'patch',
@@ -21,7 +29,7 @@ const VALID_RELEASE_TYPES = new Set([
   'prerelease'
 ]);
 
-const SEMVER_REGEX = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+export const SEMVER_REGEX = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 const LOCKFILE_PREFERENCES = [
   { manager: 'pnpm', file: 'pnpm-lock.yaml' },
@@ -30,7 +38,7 @@ const LOCKFILE_PREFERENCES = [
   { manager: 'npm', file: 'package-lock.json' }
 ];
 
-function getCliArguments(argv = process.argv) {
+export function getCliArguments(argv = process.argv) {
   const rawArgs = argv.slice(2);
   if (rawArgs.length === 0) {
     return { releaseType: undefined, extraArgs: [] };
@@ -44,7 +52,7 @@ function getCliArguments(argv = process.argv) {
   return { releaseType: firstArg, extraArgs: rest };
 }
 
-function getNpmRunArgument(env = process.env) {
+export function getNpmRunArgument(env = process.env) {
   try {
     const npmArgs = JSON.parse(env.npm_config_argv || '{}');
     const original = npmArgs.original || [];
@@ -58,7 +66,7 @@ function getNpmRunArgument(env = process.env) {
   return undefined;
 }
 
-function buildStandardVersionArgs({ releaseType, extraArgs }) {
+export function buildStandardVersionArgs({ releaseType, extraArgs }) {
   const args = [];
   if (releaseType) {
     const normalized = releaseType.trim();
@@ -77,7 +85,7 @@ function buildStandardVersionArgs({ releaseType, extraArgs }) {
   return args;
 }
 
-function loadPackageJson(cwd = process.cwd()) {
+export function loadPackageJson(cwd = process.cwd()) {
   try {
     const packageJsonPath = path.join(cwd, 'package.json');
     const contents = fs.readFileSync(packageJsonPath, 'utf8');
@@ -87,7 +95,7 @@ function loadPackageJson(cwd = process.cwd()) {
   }
 }
 
-function detectPackageManager({ env = process.env, cwd = process.cwd() } = {}) {
+export function detectPackageManager({ env = process.env, cwd = process.cwd() } = {}) {
   const userAgent = env.npm_config_user_agent || '';
   if (userAgent.startsWith('pnpm/')) return 'pnpm';
   if (userAgent.startsWith('yarn/')) return 'yarn';
@@ -102,7 +110,7 @@ function detectPackageManager({ env = process.env, cwd = process.cwd() } = {}) {
   return 'npm';
 }
 
-function buildTestCommand(packageManager) {
+export function buildTestCommand(packageManager) {
   switch (packageManager) {
     case 'pnpm':
       return { command: 'pnpm', args: ['test'] };
@@ -115,7 +123,7 @@ function buildTestCommand(packageManager) {
   }
 }
 
-function runProjectTests({ spawn = spawnSync, env = process.env, cwd = process.cwd() } = {}) {
+export function runProjectTests({ spawn = spawnSync, env = process.env, cwd = process.cwd() } = {}) {
   const packageJson = loadPackageJson(cwd);
   const scripts = packageJson && packageJson.scripts ? packageJson.scripts : {};
 
@@ -134,7 +142,7 @@ function runProjectTests({ spawn = spawnSync, env = process.env, cwd = process.c
   });
 }
 
-function runRelease({
+export function runRelease({
   argv = process.argv,
   env = process.env,
   spawn = spawnSync,
@@ -191,31 +199,6 @@ function runRelease({
   return releaseResult;
 }
 
-if (require.main === module) {
-  try {
-    const result = runRelease();
-    if (result.status !== 0) {
-      process.exit(result.status ?? 1);
-    }
-  } catch (error) {
-    console.error(`❌ ${error.message}`);
-    process.exit(1);
-  }
-}
-
-module.exports = {
-  VALID_RELEASE_TYPES,
-  SEMVER_REGEX,
-  getCliArguments,
-  getNpmRunArgument,
-  buildStandardVersionArgs,
-  loadPackageJson,
-  detectPackageManager,
-  runProjectTests,
-  runRelease,
-  isWorkingTreeClean
-};
-
 function buildPreloadFlag(filePath) {
   const resolved = path.resolve(filePath);
   const escaped = resolved.includes(' ')
@@ -231,7 +214,7 @@ function appendPreloadToNodeOptions(env, preloadFlag) {
   return nextEnv;
 }
 
-function isWorkingTreeClean({ cwd = process.cwd() } = {}) {
+export function isWorkingTreeClean({ cwd = process.cwd() } = {}) {
   const result = spawnSync('git', ['status', '--porcelain'], {
     cwd,
     encoding: 'utf8'
@@ -249,4 +232,16 @@ function isWorkingTreeClean({ cwd = process.cwd() } = {}) {
 
   const output = typeof result.stdout === 'string' ? result.stdout : '';
   return output.trim().length === 0;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    const result = runRelease();
+    if (result.status !== 0) {
+      process.exit(result.status ?? 1);
+    }
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
+    process.exit(1);
+  }
 }
