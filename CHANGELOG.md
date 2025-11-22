@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.10.19](https://github.com/programinglive/todo/compare/v0.10.18...v0.10.19) (2025-11-22)
+
+
+### 🧹 Chores
+
+* **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 ([754d0f7](https://github.com/programinglive/todo/commit/754d0f76c5358fc652a848e954adc9f4d2b71f0a))
+* **deps:** bump glob from 10.4.5 to 10.5.0 ([7071d22](https://github.com/programinglive/todo/commit/7071d2279bbdef7e28fcd761778b42a63cbd09a9))
+* **deps:** bump symfony/http-foundation from 7.3.5 to 7.3.7 ([6811092](https://github.com/programinglive/todo/commit/6811092609044e0bf35ab6436d4f97ef7a4e1d04))
+* save current work before fixing csrf issues ([3a96610](https://github.com/programinglive/todo/commit/3a966107a14bf6cc4f430ceea936eccfe27160e3))
+
+
+### 🐛 Bug Fixes
+
+* resolve csrf token mismatch and add regression tests ([4dc4a32](https://github.com/programinglive/todo/commit/4dc4a32702c8e1f1e80901d4f6da549821d097e9))
+* update release scripts to support ESM ([7652b20](https://github.com/programinglive/todo/commit/7652b200d63949bdc3a754f7ff72304104687a28))
+
 ### [0.10.18](https://github.com/programinglive/todo/compare/v0.10.17...v0.10.18) (2025-11-09)
 
 
