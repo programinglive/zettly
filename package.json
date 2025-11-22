@@ -12,19 +12,20 @@
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "dev": "vite",
-    "release": "node ./scripts/run-release.mjs",
-    "release:patch": "npm run release -- --release-as patch",
-    "release:minor": "npm run release -- --release-as minor",
-    "release:major": "npm run release -- --release-as major",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
     "test": "npm run test:js",
     "test:js": "node --test resources/js/**/*.test.js",
-    "test:php": "php artisan test"
+    "test:php": "php artisan test",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@headlessui/react": "^2.0.0",
-    "@programinglive/commiter": "^1.1.0",
+    "@programinglive/commiter": "^1.1.8",
     "@tailwindcss/forms": "^0.5.3",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
