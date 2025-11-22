@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { 
-    Image, 
-    FileText, 
-    Trash2, 
+import {
+    Image,
+    FileText,
+    Trash2,
     Download,
     Eye,
     X
@@ -28,18 +28,9 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
         setDeletingId(attachmentId);
 
         try {
-            const response = await fetch(`/attachments/${attachmentId}`, {
-                method: 'DELETE',
-                credentials: 'same-origin',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-            });
+            const response = await axios.delete(`/attachments/${attachmentId}`);
 
-            if (response.ok) {
+            if (response.status === 200 || response.status === 204) {
                 if (onAttachmentDeleted) {
                     onAttachmentDeleted(attachmentId);
                 }
@@ -75,12 +66,12 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
         const units = ['B', 'KB', 'MB', 'GB'];
         let size = bytes;
         let unitIndex = 0;
-        
+
         while (size >= 1024 && unitIndex < units.length - 1) {
             size /= 1024;
             unitIndex++;
         }
-        
+
         return `${size.toFixed(1)} ${units[unitIndex]}`;
     };
 
@@ -114,7 +105,7 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                         {/* Thumbnail or Icon */}
                         <div className="flex-shrink-0">
                             {attachment.type === 'image' ? (
-                                <div 
+                                <div
                                     className="relative cursor-pointer group"
                                     onClick={() => openImagePreview(attachment)}
                                 >
@@ -163,7 +154,7 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
                             >
                                 <Download className="h-4 w-4" />
                             </button>
-                            
+
                             <button
                                 onClick={() => openDeleteModal(attachment)}
                                 disabled={deletingId === attachment.id}
@@ -183,7 +174,7 @@ export default function AttachmentList({ attachments = [], onAttachmentDeleted, 
 
             {/* Image Preview Modal */}
             {previewImage && (
-                <div 
+                <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
                     onClick={closeImagePreview}
                 >

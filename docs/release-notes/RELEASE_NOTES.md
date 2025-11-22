@@ -6,8 +6,33 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.10.20 | 2025-11-26 | **fix:** CSRF token mismatch - Refactored to use Axios with cookie-based CSRF protection |
 | 0.10.19 | 2025-11-22 | **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 (754d0f7) |
 
+
+## 0.10.20 – 🔒 Security Fix
+
+Released on **2025-11-26**.
+
+### Fixed
+- **CSRF Token Mismatch**: Refactored frontend to use Axios with cookie-based CSRF protection
+  - Updated `bootstrap.js` to remove manual `X-CSRF-TOKEN` header setting
+  - Modified `csrf.js` to prioritize `XSRF-TOKEN` cookie over meta tags and Inertia props
+  - Refactored components to use Axios instead of fetch:
+    - `KanbanBoard.jsx` - Reordering functionality
+    - `FocusGreeting.jsx` - All CRUD operations
+    - `EisenhowerMatrix.jsx` - Reordering functionality
+    - `AttachmentList.jsx` - Delete operations
+    - `WebSocketTest.jsx` - Auth tests
+    - `PusherTest.jsx` - Broadcast tests
+  - Removed obsolete `parseJsonSafely` function from `FocusGreeting.jsx`
+  - Updated all static analysis tests to verify Axios usage
+  - Resolved stale token issues that occurred with multiple tabs or session rotation
+
+### Technical Details
+- Axios automatically handles the `XSRF-TOKEN` cookie and sends it as `X-XSRF-TOKEN` header
+- This eliminates the need for manual CSRF token management in components
+- Prevents "CSRF token mismatch" errors caused by stale meta tags
 
 ## 0.10.19 – 🧹 Chores
 

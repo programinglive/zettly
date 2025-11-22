@@ -193,11 +193,10 @@ test('kanban board toggle and priority update use transform for reason submissio
     );
 
     assert.ok(
-        kanbanSource.includes("fetch('/todos/reorder'") &&
+        kanbanSource.includes("axios.post('/todos/reorder'") &&
         kanbanSource.includes("todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id)") &&
-        kanbanSource.includes("'X-CSRF-TOKEN'") &&
-        kanbanSource.includes('JSON.stringify(payload)'),
-        'Expected Kanban board to use fetch API for JSON reorder endpoint with CSRF token.'
+        !kanbanSource.includes("'X-CSRF-TOKEN'"),
+        'Expected Kanban board to use axios for JSON reorder endpoint without manual CSRF token.'
     );
 });
 

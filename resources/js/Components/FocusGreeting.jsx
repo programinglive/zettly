@@ -49,19 +49,7 @@ export default function FocusGreeting() {
         return pointerIsCoarse && maxTouchPoints > 1 && minViewport >= 600;
     };
 
-    const parseJsonSafely = async (response) => {
-        const contentType = response.headers?.get?.('content-type') ?? '';
-        if (!contentType.includes('application/json')) {
-            return null;
-        }
 
-        try {
-            return await response.json();
-        } catch (error) {
-            console.error('Failed to parse JSON response:', error);
-            return null;
-        }
-    };
 
     // Get current hour for greeting
     const getGreeting = () => {
@@ -92,20 +80,15 @@ export default function FocusGreeting() {
             } else {
                 setIsLoading(true);
             }
-            const response = await fetch(`/focus/current${queryString}`, {
-                credentials: 'same-origin',
-                headers: {
-                    Accept: 'application/json',
-                },
-            });
-            const data = await parseJsonSafely(response);
-            if (response.ok && data?.success) {
+            const response = await axios.get(`/focus/current${queryString}`);
+            const data = response.data;
+            if (data?.success) {
                 setCurrentFocus(data.data);
                 const history = Array.isArray(data.recent_events)
                     ? data.recent_events
                     : Array.isArray(data.data?.status_events)
-                      ? data.data.status_events
-                      : [];
+                        ? data.data.status_events
+                        : [];
                 setStatusEvents(history);
                 if (typeof data.filter_date === 'string') {
                     setHistoryDate(data.filter_date);
@@ -147,27 +130,15 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-            const response = await fetch('/focus', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify({
-                    title: title.trim(),
-                    description: description.trim() || null,
-                }),
+            const response = await axios.post('/focus', {
+                title: title.trim(),
+                description: description.trim() || null,
             });
 
-            const data = await parseJsonSafely(response);
+            const data = response.data;
 
-            if (!response.ok) {
-                const message =
-                    data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to create focus');
+            if (!data) {
+                const message = 'Failed to create focus';
                 setError(message);
                 return;
             }
@@ -199,33 +170,16 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-            const response = await fetch(`/focus/${currentFocus.id}/complete`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify({
-                    reason,
-                    filter_date: historyDate || getTodayDateString(),
-                }),
+            const response = await axios.post(`/focus/${currentFocus.id}/complete`, {
+                reason,
+                filter_date: historyDate || getTodayDateString(),
             });
 
-            const data = await parseJsonSafely(response);
+            const data = response.data;
 
-            if (!response.ok) {
-                if (response.status === 422 && data?.errors?.reason?.[0]) {
-                    setReasonError(data.errors.reason[0]);
-                    setShowReasonDialog(true);
-                } else {
-                    const message =
-                        data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to complete focus');
-                    setError(message);
-                }
+            if (!data) {
+                const message = 'Failed to complete focus';
+                setError(message);
                 return;
             }
 
@@ -254,7 +208,12 @@ export default function FocusGreeting() {
             }
         } catch (err) {
             console.error('Failed to complete focus:', err);
-            setError('An error occurred while completing focus');
+            if (err.response?.status === 422 && err.response?.data?.errors?.reason?.[0]) {
+                setReasonError(err.response.data.errors.reason[0]);
+                setShowReasonDialog(true);
+            } else {
+                setError(err.response?.data?.message || 'An error occurred while completing focus');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -271,22 +230,12 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-            const response = await fetch(`/focus/${currentFocus.id}`, {
-                method: 'DELETE',
-                credentials: 'same-origin',
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
-                },
-            });
+            const response = await axios.delete(`/focus/${currentFocus.id}`);
 
-            const data = await parseJsonSafely(response);
+            const data = response.data;
 
-            if (!response.ok) {
-                const message =
-                    data?.message || (response.status === 419 ? 'Session expired. Please refresh and try again.' : 'Failed to delete focus');
+            if (!data) {
+                const message = 'Failed to delete focus';
                 setError(message);
                 return;
             }

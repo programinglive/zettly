@@ -17,16 +17,12 @@ const hasCredentialsSameOrigin = (src) => /credentials:\s*['"]same-origin['"]/m.
 const hasAcceptJsonHeader = (src) => /Accept:\s*['"]application\/json['"]/m.test(src);
 const hasCsrfHeader = (src) => /'X-CSRF-TOKEN':/m.test(src);
 
-test('Eisenhower reorder fetch includes credentials, Accept JSON, and CSRF header', () => {
-  assert.ok(eisenhowerSrc.includes("fetch('/todos/reorder'"), 'Expected EisenhowerMatrix to call /todos/reorder');
-  assert.ok(hasCredentialsSameOrigin(eisenhowerSrc), 'Expected credentials: same-origin on Eisenhower reorder fetch');
-  assert.ok(hasAcceptJsonHeader(eisenhowerSrc), 'Expected Accept: application/json on Eisenhower reorder fetch');
-  assert.ok(hasCsrfHeader(eisenhowerSrc), 'Expected X-CSRF-TOKEN header on Eisenhower reorder fetch');
+test('Eisenhower reorder uses axios and does NOT manually set CSRF header', () => {
+  assert.ok(eisenhowerSrc.includes("axios.post('/todos/reorder'"), 'Expected EisenhowerMatrix to call /todos/reorder with axios');
+  assert.ok(!hasCsrfHeader(eisenhowerSrc), 'Expected NO manual X-CSRF-TOKEN header on Eisenhower reorder (handled by axios)');
 });
 
-test('Kanban reorder fetch includes credentials, Accept JSON, and CSRF header', () => {
-  assert.ok(kanbanSrc.includes("fetch('/todos/reorder'"), 'Expected KanbanBoard to call /todos/reorder');
-  assert.ok(hasCredentialsSameOrigin(kanbanSrc), 'Expected credentials: same-origin on Kanban reorder fetch');
-  assert.ok(hasAcceptJsonHeader(kanbanSrc), 'Expected Accept: application/json on Kanban reorder fetch');
-  assert.ok(hasCsrfHeader(kanbanSrc), 'Expected X-CSRF-TOKEN header on Kanban reorder fetch');
+test('Kanban reorder uses axios and does NOT manually set CSRF header', () => {
+  assert.ok(kanbanSrc.includes("axios.post('/todos/reorder'"), 'Expected KanbanBoard to call /todos/reorder with axios');
+  assert.ok(!hasCsrfHeader(kanbanSrc), 'Expected NO manual X-CSRF-TOKEN header on Kanban reorder (handled by axios)');
 });
