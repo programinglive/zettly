@@ -37,12 +37,6 @@ export const resolveCsrfToken = () => {
         return inertiaToken;
     }
 
-    const cookieToken = getCookieCsrfToken();
-
-    if (cookieToken) {
-        return cookieToken;
-    }
-
     return getMetaCsrfToken();
 };
 

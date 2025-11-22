@@ -93,7 +93,7 @@ createInertiaApp({
         if (!csrfListenerRegistered) {
             router.on('before', (event) => {
                 const cookieToken = getCookieCsrfToken();
-                const headerToken = router?.page?.props?.csrf_token ?? getMetaCsrfToken() ?? cookieToken;
+                const headerToken = router?.page?.props?.csrf_token ?? getMetaCsrfToken();
 
                 event.detail.visit.headers = {
                     ...(event.detail.visit.headers ?? {}),
