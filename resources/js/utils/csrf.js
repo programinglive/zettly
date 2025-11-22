@@ -31,6 +31,11 @@ export const getMetaCsrfToken = () => {
 };
 
 export const resolveCsrfToken = () => {
+    const cookieToken = getCookieCsrfToken();
+    if (cookieToken) {
+        return cookieToken;
+    }
+
     const inertiaToken = router?.page?.props?.csrf_token;
 
     if (inertiaToken) {

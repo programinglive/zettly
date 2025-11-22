@@ -17,7 +17,7 @@ function PusherTest() {
         // Test connection to Pusher
         try {
             const pusher = window.Echo.connector.pusher;
-            
+
             pusher.connection.bind('connected', () => {
                 setConnectionStatus('connected');
                 setTestResult('✅ Successfully connected to Pusher!');
@@ -34,7 +34,7 @@ function PusherTest() {
 
             // Listen to a test channel
             const channel = window.Echo.channel('test-channel');
-            
+
             channel.listen('TestEvent', (e) => {
                 setMessages(prev => [...prev, `Received: ${JSON.stringify(e)}`]);
             });
@@ -51,16 +51,10 @@ function PusherTest() {
 
     const testBroadcast = async () => {
         try {
-            const response = await fetch('/test/pusher/broadcast', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            });
-            
-            const result = await response.json();
-            
+            const response = await axios.post('/test/pusher/broadcast');
+
+            const result = response.data;
+
             if (result.success) {
                 setMessages(prev => [...prev, `✅ Broadcast sent: ${result.message}`]);
             } else {
@@ -74,18 +68,17 @@ function PusherTest() {
     return (
         <AppLayout>
             <Head title="Pusher Connection Test" />
-            
+
             <div className="max-w-4xl mx-auto p-6">
                 <h1 className="text-3xl font-bold mb-6">Pusher WebSocket Test</h1>
-                
+
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                     <h2 className="text-xl font-semibold mb-4">Connection Status</h2>
                     <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${
-                            connectionStatus === 'connected' ? 'bg-green-500' :
-                            connectionStatus === 'disconnected' ? 'bg-gray-400' :
-                            'bg-red-500'
-                        }`} />
+                        <div className={`w-3 h-3 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' :
+                                connectionStatus === 'disconnected' ? 'bg-gray-400' :
+                                    'bg-red-500'
+                            }`} />
                         <span className="capitalize">{connectionStatus}</span>
                     </div>
                     {testResult && (

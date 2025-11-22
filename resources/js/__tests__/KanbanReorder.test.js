@@ -10,8 +10,8 @@ test('KanbanBoard has reorder endpoint call', () => {
     const content = read(kanbanPath);
 
     assert.ok(
-        content.includes("fetch('/todos/reorder'"),
-        'KanbanBoard should call /todos/reorder endpoint'
+        content.includes("axios.post('/todos/reorder'"),
+        'KanbanBoard should call /todos/reorder endpoint using axios'
     );
 });
 
@@ -70,7 +70,7 @@ test('KanbanBoard uses optimistic UI updates without refreshing from server', ()
     const content = read(kanbanPath);
 
     assert.ok(
-        content.includes('.then(data => {'),
+        /then\(\(?response\)?\s*=>\s*{/.test(content),
         'Should have then handler for successful response'
     );
     assert.ok(
@@ -100,23 +100,15 @@ test('KanbanBoard saves original state for error recovery', () => {
     );
 });
 
-test('KanbanBoard uses fetch for JSON reorder endpoint', () => {
+test('KanbanBoard uses axios for JSON reorder endpoint', () => {
     const content = read(kanbanPath);
 
     assert.ok(
-        content.includes("fetch('/todos/reorder'"),
-        'Should use fetch API for reorder endpoint'
+        content.includes("axios.post('/todos/reorder'"),
+        'Should use axios for reorder endpoint'
     );
     assert.ok(
-        content.includes("'Content-Type': 'application/json'"),
-        'Should set Content-Type to application/json'
-    );
-    assert.ok(
-        content.includes("'X-CSRF-TOKEN'"),
-        'Should include CSRF token in headers'
-    );
-    assert.ok(
-        content.includes('JSON.stringify(payload)'),
-        'Should stringify payload'
+        !content.includes("'X-CSRF-TOKEN'"),
+        'Should NOT manually include CSRF token (handled by axios)'
     );
 });

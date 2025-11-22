@@ -122,7 +122,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 15. Organization resources are scoped and only visible to organization members.
 
 ## 8. Non-Functional Requirements
-- **Security:** Role-based access control, CSRF compliance, masked diagnostics, hashed passwords.
+- **Security:** Role-based access control, CSRF compliance with cookie-based token handling via Axios, masked diagnostics, hashed passwords.
 - **Performance:** Vite bundling, hydration via Inertia, caching defaults, pagination for resource-heavy pages.
 - **Reliability:** WebSocket reconnection handling, debounced autosave, queue listeners for broadcasts.
 - **Scalability:** Algolia indexing, configurable broadcasting cluster, background queues.

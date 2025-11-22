@@ -54,7 +54,7 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
         transform,
         transition,
         isDragging,
-    } = useSortable({ 
+    } = useSortable({
         id: String(todo.id),
         data: {
             type: 'todo',
@@ -73,9 +73,8 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${
-                isDragging ? 'z-50 opacity-50' : ''
-            }`}
+            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${isDragging ? 'z-50 opacity-50' : ''
+                }`}
             onClick={() => {
                 if (!isDragging && typeof onSelect === 'function') {
                     onSelect(todo);
@@ -83,14 +82,14 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
             }}
         >
             <div className="flex items-start space-x-3">
-                <div 
+                <div
                     {...attributes}
                     {...listeners}
                     className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                     <GripVertical className="w-4 h-4" />
                 </div>
-                
+
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
@@ -114,7 +113,7 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
                             {getDescriptionPreview(todo.description)}
                         </p>
                     )}
-                    
+
                     {/* Tags */}
                     {todo.tags && todo.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2 mb-1">
@@ -331,9 +330,9 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             preserveScroll: true,
             onSuccess: () => {
                 // Mark completed todos as archived in local state
-                setTodos(prevTodos => 
-                    prevTodos.map(todo => 
-                        todo.is_completed 
+                setTodos(prevTodos =>
+                    prevTodos.map(todo =>
+                        todo.is_completed
                             ? { ...todo, archived: true, archived_at: new Date().toISOString() }
                             : todo
                     )
@@ -467,26 +466,10 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
         console.log('Sending reorder request:', { payload, originalTodos, newTodos });
 
-        // Use fetch instead of router.post for JSON endpoint to avoid Inertia response expectation
-        fetch('/todos/reorder', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify(payload),
-        })
+        // Use axios instead of fetch to automatically handle CSRF token via cookie
+        axios.post('/todos/reorder', payload)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Reorder successful:', data);
+                console.log('Reorder successful:', response.data);
             })
             .catch(error => {
                 console.error('Reorder failed:', error);
@@ -611,13 +594,12 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
 
         const displayTodos = todos.slice(0, visibleCount);
         const todoIds = displayTodos.map(todo => String(todo.id));
-        
+
         return (
             <div
                 ref={setNodeRef}
-                className={`flex-1 min-w-0 transition-colors ${
-                    isOver ? 'ring-2 ring-indigo-400 ring-opacity-60' : ''
-                }`}
+                className={`flex-1 min-w-0 transition-colors ${isOver ? 'ring-2 ring-indigo-400 ring-opacity-60' : ''
+                    }`}
             >
                 <div className={`${bgColor} ${textColor} p-4 rounded-t-2xl shadow-sm`}>
                     <div className="flex items-start justify-between gap-3">
@@ -646,7 +628,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     )}
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
-                    <div 
+                    <div
                         className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-2xl min-h-[220px] max-h-[540px] overflow-y-auto space-y-3 border border-gray-200/70 dark:border-slate-800/80"
                     >
                         {displayTodos.length > 0 ? (
@@ -802,12 +784,12 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                     </div>
                 )}
             </div>
-            
+
             <DragOverlay>
                 {activeId ? (
-                    <DraggableTodoCard 
-                        todo={todos.find(todo => String(todo.id) === String(activeId))} 
-                        onToggle={() => {}} 
+                    <DraggableTodoCard
+                        todo={todos.find(todo => String(todo.id) === String(activeId))}
+                        onToggle={() => { }}
                     />
                 ) : null}
             </DragOverlay>

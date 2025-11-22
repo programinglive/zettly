@@ -15,12 +15,12 @@ export default function WebSocketTest() {
             const checkDebugMode = () => {
                 setDebugMode(localStorage.getItem('zettly-debug-mode') === 'true');
             };
-            
+
             checkDebugMode();
-            
+
             // Listen for debug mode changes
             window.addEventListener('zettly:debug-mode-changed', checkDebugMode);
-            
+
             return () => {
                 window.removeEventListener('zettly:debug-mode-changed', checkDebugMode);
             };
@@ -39,7 +39,7 @@ export default function WebSocketTest() {
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
                         Enable debug mode in your profile settings to see WebSocket diagnostics and testing tools.
                     </p>
-                    <a 
+                    <a
                         href="/profile"
                         className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
@@ -55,12 +55,12 @@ export default function WebSocketTest() {
     const copyAllResults = () => {
         const allResults = Object.entries(testResults).map(([testName, result]) => {
             const testDisplayName = testName === 'server' ? 'Server Configuration' :
-                                   testName === 'auth' ? 'Test Auth Endpoint' :
-                                   testName === 'realAuth' ? 'Real Broadcasting Auth' :
-                                   testName === 'websocket' ? 'WebSocket Connection' :
-                                   testName === 'channel' ? 'Channel Subscription (Test)' :
-                                   testName === 'realDrawing' ? 'Channel Subscription (Real Drawing)' : testName;
-            
+                testName === 'auth' ? 'Test Auth Endpoint' :
+                    testName === 'realAuth' ? 'Real Broadcasting Auth' :
+                        testName === 'websocket' ? 'WebSocket Connection' :
+                            testName === 'channel' ? 'Channel Subscription (Test)' :
+                                testName === 'realDrawing' ? 'Channel Subscription (Real Drawing)' : testName;
+
             let resultText = `${testDisplayName}: ${result.message}\n`;
             if (result.details) {
                 resultText += `Details: ${JSON.stringify(result.details, null, 2)}\n`;
@@ -69,9 +69,9 @@ export default function WebSocketTest() {
         }).join('\n');
 
         const fullReport = `WebSocket Integration Test Results - ${new Date().toISOString()}\n` +
-                          `Environment: ${testResults.server?.details?.environment?.toUpperCase() || 'UNKNOWN'}\n` +
-                          `Version: ${version}\n` +
-                          `${'='.repeat(50)}\n${allResults}`;
+            `Environment: ${testResults.server?.details?.environment?.toUpperCase() || 'UNKNOWN'}\n` +
+            `Version: ${version}\n` +
+            `${'='.repeat(50)}\n${allResults}`;
 
         navigator.clipboard.writeText(fullReport).then(() => {
             setCopied(true);
@@ -81,14 +81,14 @@ export default function WebSocketTest() {
 
     const runTest = async (testName, testFunction) => {
         setTestResults(prev => ({ ...prev, [testName]: { status: 'running', message: 'Testing...' } }));
-        
+
         try {
             const result = await testFunction();
             setTestResults(prev => ({ ...prev, [testName]: result }));
         } catch (error) {
-            setTestResults(prev => ({ 
-                ...prev, 
-                [testName]: { status: 'error', message: error.message } 
+            setTestResults(prev => ({
+                ...prev,
+                [testName]: { status: 'error', message: error.message }
             }));
         }
     };
@@ -97,7 +97,7 @@ export default function WebSocketTest() {
         try {
             const response = await axios.get('/test-broadcasting');
             const data = response.data;
-            
+
             // Check for critical issues
             const issues = [];
             if (data.broadcast_driver !== 'pusher') {
@@ -109,10 +109,10 @@ export default function WebSocketTest() {
             if (!data.user_authenticated) {
                 issues.push('User is not authenticated');
             }
-            
+
             return {
                 status: issues.length > 0 ? 'warning' : 'success',
-                message: issues.length > 0 
+                message: issues.length > 0
                     ? `Issues: ${issues.join(', ')}`
                     : `Environment: ${data.environment?.toUpperCase() || 'UNKNOWN'}, Version: ${data.app_version}, Pusher: ✓`,
                 details: data,
@@ -128,24 +128,13 @@ export default function WebSocketTest() {
     };
 
     const testAuthEndpoint = async () => {
-        const response = await fetch('/test-broadcasting-auth', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-            },
-            body: JSON.stringify({
-                socket_id: '1234.5678',
-                channel_name: 'private-drawings.1'
-            })
+        const response = await axios.post('/test-broadcasting-auth', {
+            socket_id: '1234.5678',
+            channel_name: 'private-drawings.1'
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
+
+        const data = response.data;
+
         return {
             status: data.auth ? 'success' : 'error',
             message: data.auth ? 'Auth successful' : 'Auth failed',
@@ -154,45 +143,35 @@ export default function WebSocketTest() {
     };
 
     const testRealBroadcastingAuth = async () => {
-        const response = await fetch('/broadcasting/auth', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-            },
-            body: JSON.stringify({
+        try {
+            const response = await axios.post('/broadcasting/auth', {
                 socket_id: '1234.5678',
                 channel_name: 'private-drawings.1'
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.text();
-        
-        if (data.trim() === '') {
+            });
+
+            const data = response.data;
+
+            // Axios automatically parses JSON, so if we get here it's likely valid JSON
+            // But we should check if it's the expected structure
+
             return {
-                status: 'error',
-                message: 'Empty response - this is the main issue!',
-                details: { response: 'empty_string', headers: response.headers }
+                status: data.auth ? 'success' : 'error',
+                message: data.auth ? 'Real auth successful' : 'Real auth failed',
+                details: data
             };
-        }
-        
-        try {
-            const jsonData = JSON.parse(data);
-            return {
-                status: jsonData.auth ? 'success' : 'error',
-                message: jsonData.auth ? 'Real auth successful' : 'Real auth failed',
-                details: jsonData
-            };
-        } catch (e) {
-            return {
-                status: 'error',
-                message: 'Non-JSON response',
-                details: { response: data.substring(0, 200), error: e.message }
-            };
+        } catch (error) {
+            // Check for empty response or non-JSON response which Axios might throw as error or handle differently
+            // If it's a 200 OK but empty body, Axios might return empty string data
+
+            if (error.response && error.response.data === '') {
+                return {
+                    status: 'error',
+                    message: 'Empty response - this is the main issue!',
+                    details: { response: 'empty_string', headers: error.response.headers }
+                };
+            }
+
+            throw error;
         }
     };
 
@@ -203,7 +182,7 @@ export default function WebSocketTest() {
                 message: 'Echo not initialized'
             };
         }
-        
+
         try {
             const connectionState = window.Echo.connector.pusher.connection.state;
             return {
@@ -225,11 +204,11 @@ export default function WebSocketTest() {
                 message: 'Echo not initialized'
             };
         }
-        
+
         return new Promise((resolve) => {
             const testChannel = window.Echo.private('test.123'); // Echo.private() will add private- prefix
             let subscriptionResolved = false;
-            
+
             const timeout = setTimeout(() => {
                 if (!subscriptionResolved) {
                     subscriptionResolved = true;
@@ -244,7 +223,7 @@ export default function WebSocketTest() {
                     });
                 }
             }, 5000);
-            
+
             // Enhanced subscription success handler
             testChannel.subscribed(() => {
                 if (!subscriptionResolved) {
@@ -261,7 +240,7 @@ export default function WebSocketTest() {
                     });
                 }
             });
-            
+
             // Enhanced subscription error handler
             testChannel.error((error) => {
                 if (!subscriptionResolved) {
@@ -289,15 +268,15 @@ export default function WebSocketTest() {
                 message: 'Echo not initialized'
             };
         }
-        
+
         // Get the drawing ID from the page props or use a default
         const drawingId = page?.props?.drawing?.id || 2;
         const channelName = `drawings.${drawingId}`; // Echo.private() will add private- prefix
-        
+
         return new Promise((resolve) => {
             const testChannel = window.Echo.private(channelName);
             let subscriptionResolved = false;
-            
+
             const timeout = setTimeout(() => {
                 if (!subscriptionResolved) {
                     subscriptionResolved = true;
@@ -313,7 +292,7 @@ export default function WebSocketTest() {
                     });
                 }
             }, 5000);
-            
+
             // Listen for subscription success
             testChannel.subscribed(() => {
                 if (!subscriptionResolved) {
@@ -330,7 +309,7 @@ export default function WebSocketTest() {
                     });
                 }
             });
-            
+
             // Listen for subscription errors
             try {
                 if (typeof testChannel.subscriptionError === 'function') {
@@ -354,7 +333,7 @@ export default function WebSocketTest() {
             } catch (e) {
                 // subscriptionError method not available, continue with timeout
             }
-            
+
             // Also listen for general errors
             try {
                 testChannel.error((error) => {
@@ -381,14 +360,14 @@ export default function WebSocketTest() {
 
     const runAllTests = async () => {
         setIsRunning(true);
-        
+
         await runTest('server', testServerConfig);
         await runTest('auth', testAuthEndpoint);
         await runTest('realAuth', testRealBroadcastingAuth);
         await runTest('websocket', testWebSocketConnection);
         await runTest('channel', testChannelSubscription);
         await runTest('realDrawing', testRealDrawingSubscription);
-        
+
         setIsRunning(false);
     };
 
@@ -473,41 +452,41 @@ export default function WebSocketTest() {
                                     {getStatusIcon(result.status)}
                                     <span className="font-medium capitalize text-gray-900 dark:text-white">
                                         {testName === 'server' ? 'Server Configuration' :
-                                         testName === 'auth' ? 'Test Auth Endpoint' :
-                                         testName === 'realAuth' ? 'Real Broadcasting Auth' :
-                                         testName === 'websocket' ? 'WebSocket Connection' :
-                                         testName === 'channel' ? 'Channel Subscription (Test)' :
-                                         testName === 'realDrawing' ? <div className="mb-4">
-                                            <svg
-                                                className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
-                                                viewBox="0 0 100 32"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <rect width="32" height="32" rx="6" fill="#FF6B6B"/>
-                                                <path
-                                                    d="M8 16L12 12L16 16L20 12L24 16"
-                                                    stroke="white"
-                                                    strokeWidth="2.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                                <path
-                                                    d="M8 20L12 16L16 20L20 16L24 20"
-                                                    stroke="white"
-                                                    strokeWidth="2.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                                <text x="38" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B6B">tldraw</text>
-                                            </svg>
-                                        </div> : testName}
+                                            testName === 'auth' ? 'Test Auth Endpoint' :
+                                                testName === 'realAuth' ? 'Real Broadcasting Auth' :
+                                                    testName === 'websocket' ? 'WebSocket Connection' :
+                                                        testName === 'channel' ? 'Channel Subscription (Test)' :
+                                                            testName === 'realDrawing' ? <div className="mb-4">
+                                                                <svg
+                                                                    className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
+                                                                    viewBox="0 0 100 32"
+                                                                    fill="none"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                >
+                                                                    <rect width="32" height="32" rx="6" fill="#FF6B6B" />
+                                                                    <path
+                                                                        d="M8 16L12 12L16 16L20 12L24 16"
+                                                                        stroke="white"
+                                                                        strokeWidth="2.5"
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                    />
+                                                                    <path
+                                                                        d="M8 20L12 16L16 20L20 16L24 20"
+                                                                        stroke="white"
+                                                                        strokeWidth="2.5"
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                    />
+                                                                    <text x="38" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B6B">tldraw</text>
+                                                                </svg>
+                                                            </div> : testName}
                                     </span>
                                     <span className={`text-sm ${getStatusColor(result.status)}`}>
                                         {result.message}
                                     </span>
                                 </div>
-                                
+
                                 {result.issues && (
                                     <div className="mb-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
                                         <div className="text-sm text-red-700 dark:text-red-300 font-medium">Critical Issues:</div>
@@ -518,7 +497,7 @@ export default function WebSocketTest() {
                                         </ul>
                                     </div>
                                 )}
-                                
+
                                 {result.details && (
                                     <details className="mt-2">
                                         <summary className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer">

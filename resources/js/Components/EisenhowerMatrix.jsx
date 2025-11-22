@@ -76,13 +76,11 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md ${
-                isDragging ? 'z-50 opacity-50' : ''
-            } ${
-                isSelected
+            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md ${isDragging ? 'z-50 opacity-50' : ''
+                } ${isSelected
                     ? 'border-indigo-400 ring-2 ring-indigo-300/60 dark:border-indigo-500 dark:ring-indigo-500/40'
                     : 'border-gray-200 dark:border-slate-800'
-            }`}
+                }`}
             onClick={() => {
                 if (typeof onSelect === 'function') {
                     onSelect(todo);
@@ -153,7 +151,7 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
 
 const MAX_VISIBLE = 4;
 
-const NO_OP = () => {};
+const NO_OP = () => { };
 
 export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, selectedTaskId = null, onTaskUpdate = NO_OP }) {
     const [activeId, setActiveId] = useState(null);
@@ -285,28 +283,10 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         };
 
         const postReorder = () => {
-            const csrfToken = resolveCsrfToken();
-
-            fetch('/todos/reorder', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken ?? '',
-                },
-                body: JSON.stringify(payload),
-            })
+            axios.post('/todos/reorder', payload)
                 .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then((data) => {
                     if (process.env.NODE_ENV === 'development') {
-                        console.log('Eisenhower reorder successful:', data);
+                        console.log('Eisenhower reorder successful:', response.data);
                     }
                     onTaskUpdate();
                 })
@@ -429,9 +409,8 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         return (
             <div
                 ref={setNodeRef}
-                className={`flex flex-col rounded-lg border-2 border-gray-200 dark:border-slate-700 overflow-hidden transition-all ${
-                    isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
-                }`}
+                className={`flex flex-col rounded-lg border-2 border-gray-200 dark:border-slate-700 overflow-hidden transition-all ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+                    }`}
             >
                 <div className={`${bgColor} text-white p-4`}>
                     <div className="flex items-start justify-between gap-2">
@@ -536,7 +515,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                     {activeId ? (
                         <DraggableTaskCard
                             todo={localTodos.find(t => String(t.id) === String(activeId))}
-                            onToggle={() => {}}
+                            onToggle={() => { }}
                         />
                     ) : null}
                 </DragOverlay>

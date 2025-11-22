@@ -21,13 +21,13 @@ test('focus greeting auto-opens dialog when no current focus and not skipping', 
 
     assert.ok(
         focusGreetingSource.includes('if (!data.data && !autoOpenRef.current)') &&
-            /if \(!skipAutoOpen\) {\s*setShowDialog\(true\);/m.test(focusGreetingSource),
+        /if \(!skipAutoOpen\) {\s*setShowDialog\(true\);/m.test(focusGreetingSource),
         'Expected focus greeting to open the dialog automatically when no focus exists and auto-open is not skipped.'
     );
 
     assert.ok(
         focusGreetingSource.includes('autoOpenRef.current = true;') &&
-            focusGreetingSource.match(/setShowDialog\(false\);\s*autoOpenRef\.current = true;/),
+        focusGreetingSource.match(/setShowDialog\(false\);\s*autoOpenRef\.current = true;/),
         'Expected focus greeting to mark that the dialog has auto-opened after creating a focus or fetching an existing one.'
     );
 });
@@ -53,22 +53,16 @@ test('focus greeting skips auto-open on tablets', () => {
 
 test('focus greeting fetches include credentials and safe parsing', () => {
     assert.ok(
-        /fetch\(`\/focus\/current\$\{queryString\}`, {\s*credentials: 'same-origin',\s*headers: {\s*Accept: 'application\/json'/m.test(focusGreetingSource),
-        'Expected current focus fetch to include credentials and accept header.'
+        /axios\.get\(`\/focus\/current\$\{queryString\}`/.test(focusGreetingSource),
+        'Expected current focus fetch to use axios.get.'
     );
 
     assert.ok(
-        /fetch\('\/focus', {\s*method: 'POST',\s*credentials: 'same-origin',\s*headers: {\s*'Content-Type': 'application\/json',\s*Accept: 'application\/json',\s*'X-Requested-With': 'XMLHttpRequest',\s*'X-CSRF-TOKEN':/m.test(
-            focusGreetingSource
-        ),
-        'Expected create focus request to send CSRF token and use JSON headers.'
+        /axios\.post\('\/focus', {\s*title: title\.trim\(\),/.test(focusGreetingSource),
+        'Expected create focus request to use axios.post.'
     );
 
-    assert.ok(
-        /const parseJsonSafely = async \(response\) => {/m.test(focusGreetingSource) &&
-            /const data = await parseJsonSafely\(response\);/m.test(focusGreetingSource),
-        'Expected focus greeting to parse responses safely before accessing JSON.'
-    );
+
 });
 
 test('focus greeting completion reason dialog is wired correctly', () => {
@@ -83,8 +77,8 @@ test('focus greeting completion reason dialog is wired correctly', () => {
     );
 
     assert.ok(
-        /body: JSON\.stringify\({\s*reason,\s*filter_date:/m.test(focusGreetingSource),
-        'Expected focus greeting to send the completion reason and filter_date in the request body.'
+        /axios\.post\(`\/focus\/\$\{currentFocus\.id\}\/complete`,\s*{\s*reason,\s*filter_date:/.test(focusGreetingSource),
+        'Expected focus greeting to send the completion reason and filter_date in the axios request body.'
     );
 
     assert.ok(
@@ -101,7 +95,7 @@ test('focus greeting completion reason dialog is wired correctly', () => {
 test('focus greeting history renders focus title and description', () => {
     assert.ok(
         /event\.focus\?\.title \? \(/.test(focusGreetingSource) &&
-            /event\.focus\.description \? \(/.test(focusGreetingSource),
+        /event\.focus\.description \? \(/.test(focusGreetingSource),
         'Expected recent focus history entries to include focus title and optional description.'
     );
 });

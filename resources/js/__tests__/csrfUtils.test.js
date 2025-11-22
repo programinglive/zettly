@@ -20,7 +20,7 @@ if (!global.window) {
 // It defines functions, so it should be fine.
 import { resolveCsrfToken, getCookieCsrfToken, getMetaCsrfToken } from '../utils/csrf.js';
 
-test('resolveCsrfToken prioritizes inertia page prop', () => {
+test('resolveCsrfToken prioritizes cookie over inertia page prop', () => {
     // Setup
     router.page = { props: { csrf_token: 'inertia-token' } };
     global.document.cookie = 'XSRF-TOKEN=cookie-token';
@@ -29,13 +29,13 @@ test('resolveCsrfToken prioritizes inertia page prop', () => {
     const token = resolveCsrfToken();
 
     // Assert
-    assert.equal(token, 'inertia-token');
+    assert.equal(token, 'cookie-token');
 });
 
-test('resolveCsrfToken falls back to meta tag if inertia prop missing', () => {
+test('resolveCsrfToken falls back to meta tag if cookie and inertia prop missing', () => {
     // Setup
     router.page = { props: {} };
-    global.document.cookie = 'XSRF-TOKEN=cookie-token';
+    global.document.cookie = ''; // Ensure no cookie for fallback test
 
     // Mock querySelector for meta tag
     const originalQuerySelector = global.document.querySelector;
@@ -56,10 +56,7 @@ test('resolveCsrfToken falls back to meta tag if inertia prop missing', () => {
     global.document.querySelector = originalQuerySelector;
 });
 
-test('resolveCsrfToken does NOT return cookie value if others missing', () => {
-    // This is the critical regression test for the bug we fixed.
-    // The bug was that it would return the encrypted cookie token if unencrypted tokens were missing.
-
+test('resolveCsrfToken returns cookie value if available', () => {
     // Setup
     router.page = { props: {} };
     global.document.cookie = 'XSRF-TOKEN=encrypted-cookie-token';
@@ -72,9 +69,8 @@ test('resolveCsrfToken does NOT return cookie value if others missing', () => {
     const token = resolveCsrfToken();
 
     // Assert
-    // It should return null (or undefined), but definitely NOT the cookie token
-    assert.notEqual(token, 'encrypted-cookie-token');
-    assert.equal(token, null);
+    // It SHOULD return the cookie token now
+    assert.equal(token, 'encrypted-cookie-token');
 
     // Cleanup
     global.document.querySelector = originalQuerySelector;
