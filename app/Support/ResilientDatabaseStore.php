@@ -16,7 +16,7 @@ class ResilientDatabaseStore extends DatabaseStore
         ConnectionInterface $connection,
         string $table,
         string $prefix = '',
-        private readonly Store $fallback
+        private readonly ?Store $fallback = null
     ) {
         parent::__construct($connection, $table, $prefix);
     }
@@ -97,7 +97,7 @@ class ResilientDatabaseStore extends DatabaseStore
         );
     }
 
-    public function getFallbackStore(): Store
+    public function getFallbackStore(): ?Store
     {
         return $this->fallback;
     }
@@ -110,7 +110,7 @@ class ResilientDatabaseStore extends DatabaseStore
         try {
             return $callback();
         } catch (PDOException|QueryException $exception) {
-            if ($this->isConnectionFailure($exception)) {
+            if ($this->isConnectionFailure($exception) && $this->fallback !== null) {
                 return $fallback();
             }
 
