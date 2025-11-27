@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.11.0](https://github.com/programinglive/todo/compare/v0.10.19...v0.11.0) (2025-11-27)
+
+
+### 📝 Documentation
+
+* consolidate release notes and update for v0.10.19 ([2561015](https://github.com/programinglive/todo/commit/2561015af0f1607f5f02d97a310ff6c9ecabc949))
+
+
+### 🐛 Bug Fixes
+
+* csrf token mismatch - refactor to use axios with cookie-based csrf protection ([aa6b2c8](https://github.com/programinglive/todo/commit/aa6b2c811ea8efc84b3eecc011eeec7a6f747d39))
+* php 8+ parameter order warning in ResilientDatabaseStore ([0e5f2be](https://github.com/programinglive/todo/commit/0e5f2bef7ad1ad5e9a1ce86db6dee2ad5534e723))
+
+
+### ✨ Features
+
+* add focus edit functionality and fix history auto-update ([506ad55](https://github.com/programinglive/todo/commit/506ad5505622045241820bdc63c096e45a3861fa))
+
 ### [0.10.19](https://github.com/programinglive/todo/compare/v0.10.18...v0.10.19) (2025-11-22)
 
 
