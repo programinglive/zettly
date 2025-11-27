@@ -9,6 +9,7 @@ The Focus feature in Zettly allows users to set and track their daily focus. Whe
 - **Greeting**: Dynamic greeting based on time of day (Good morning/afternoon/evening)
 - **Set Focus**: Create a new focus with title and optional description
 - **Track Focus**: View current active focus on the dashboard
+- **Edit Focus**: Update the title and description of an active focus
 - **Complete Focus**: Mark focus as completed
 - **Delete Focus**: Remove a focus item
 - **Focus History**: View past foci with captured title, description, and completion reason
@@ -173,6 +174,63 @@ Content-Type: application/json
 }
 ```
 
+### Update Focus
+```
+PUT /focus/{focus}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+    "title": "Updated project proposal",
+    "description": "Revised Q4 project proposal with feedback"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "user_id": 1,
+        "title": "Updated project proposal",
+        "description": "Revised Q4 project proposal with feedback",
+        "started_at": "2025-11-04T10:30:00Z",
+        "completed_at": null,
+        "created_at": "2025-11-04T10:30:00Z",
+        "updated_at": "2025-11-27T17:35:00Z"
+    }
+}
+```
+
+**Validation Errors (422):**
+```json
+{
+    "success": false,
+    "errors": {
+        "title": ["The title field is required."]
+    }
+}
+```
+
+**Error - Cannot Update Completed Focus (400):**
+```json
+{
+    "success": false,
+    "message": "Cannot update a completed focus"
+}
+```
+
+**Error - Unauthorized (403):**
+```json
+{
+    "success": false,
+    "message": "Unauthorized"
+}
+```
+
 ### Complete Focus
 ```
 POST /focus/{focus}/complete
@@ -243,7 +301,8 @@ Located at: `resources/js/Components/FocusGreeting.jsx`
 - Shows current active focus if one exists
 - Automatically opens the focus dialog for first-time/first-session users who do not have a focus yet
 - Skips the automatic dialog open on tablet devices to avoid disruptive overlays on medium screens
-- Allows user to complete or delete current focus
+- Allows user to edit, complete, or delete current focus
+- Edit button opens a dialog with pre-filled title and description for quick updates
 - Requires a completion reason when finishing a focus and records it to `focus_status_events`
 - When a focus is completed, automatically reopens the dialog with cleared fields so the user can immediately set the next focus
 - Provides dialog to set a new focus using an enlarged layout (3xl width, generous spacing) for improved readability
@@ -282,6 +341,8 @@ Comprehensive test suite available at: `tests/Feature/FocusTest.php`
 - Getting current focus
 - Getting all foci
 - Creating focus with validation
+- Updating focus with validation
+- Preventing update of completed focus
 - Completing focus
 - Preventing completion of already completed focus
 - Authorization checks (preventing users from modifying other users' foci)
@@ -309,13 +370,21 @@ php artisan test tests/Feature/FocusTest.php
    - Focus is created with `started_at` set to current time
    - Component updates to show active focus
 
-3. **User completes focus**
+3. **User edits focus**
+   - Clicks "Edit" button
+   - Dialog opens with current title and description pre-filled
+   - User modifies focus details
+   - Submits form via PUT to `/focus/{id}`
+   - Focus is updated
+   - Component updates to show modified focus
+
+4. **User completes focus**
    - Clicks "Complete Focus" button
    - Sends POST request to `/focus/{id}/complete`
    - Focus is marked with `completed_at` timestamp
    - Dialog automatically reopens with cleared fields, prompting the user to define the next focus
 
-4. **User deletes focus**
+5. **User deletes focus**
    - Clicks "Delete" button
    - Confirmation dialog appears
    - Sends DELETE request to `/focus/{id}`
@@ -325,9 +394,10 @@ php artisan test tests/Feature/FocusTest.php
 ## Security
 
 - All endpoints require authentication
-- Users can only view, complete, or delete their own foci
+- Users can only view, edit, complete, or delete their own foci
+- Cannot edit completed focuses
 - Authorization checks prevent cross-user access
-- CSRF token validation on all POST/DELETE requests
+- CSRF token validation on all POST/PUT/DELETE requests
 
 ## Future Enhancements
 

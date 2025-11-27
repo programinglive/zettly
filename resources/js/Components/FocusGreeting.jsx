@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertCircle, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Plus, Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import PrimaryButton from './PrimaryButton';
 import SecondaryButton from './SecondaryButton';
@@ -26,6 +26,9 @@ export default function FocusGreeting() {
     const [historyDate, setHistoryDate] = useState(() => getTodayDateString());
     const [showReasonDialog, setShowReasonDialog] = useState(false);
     const [reasonError, setReasonError] = useState(null);
+    const [showEditDialog, setShowEditDialog] = useState(false);
+    const [editTitle, setEditTitle] = useState('');
+    const [editDescription, setEditDescription] = useState('');
     const autoOpenRef = useRef(false);
     const tabletDetectionRef = useRef(false);
 
@@ -170,9 +173,12 @@ export default function FocusGreeting() {
             setIsSubmitting(true);
             setError(null);
 
+            // Always use today's date when completing a focus
+            const todayDate = getTodayDateString();
+
             const response = await axios.post(`/focus/${currentFocus.id}/complete`, {
                 reason,
-                filter_date: historyDate || getTodayDateString(),
+                filter_date: todayDate,
             });
 
             const data = response.data;
@@ -194,10 +200,11 @@ export default function FocusGreeting() {
             autoOpenRef.current = false;
             setShowReasonDialog(false);
             setReasonError(null);
-            if (typeof data?.filter_date === 'string') {
-                setHistoryDate(data.filter_date);
-            }
 
+            // Ensure history date is set to today to show the completed focus
+            setHistoryDate(todayDate);
+
+            // Update status events with the recent events from the response
             if (Array.isArray(data?.recent_events)) {
                 setStatusEvents(data.recent_events);
             } else if (data?.event) {
@@ -214,6 +221,47 @@ export default function FocusGreeting() {
             } else {
                 setError(err.response?.data?.message || 'An error occurred while completing focus');
             }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleRequestEditFocus = () => {
+        if (!currentFocus) return;
+        setEditTitle(currentFocus.title);
+        setEditDescription(currentFocus.description || '');
+        setShowEditDialog(true);
+    };
+
+    const handleEditFocus = async (e) => {
+        e.preventDefault();
+        if (!currentFocus || !editTitle.trim()) {
+            setError('Focus title is required');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            setError(null);
+
+            const response = await axios.put(`/focus/${currentFocus.id}`, {
+                title: editTitle.trim(),
+                description: editDescription.trim() || null,
+            });
+
+            const data = response.data;
+
+            if (!data) {
+                const message = 'Failed to update focus';
+                setError(message);
+                return;
+            }
+
+            setCurrentFocus(data.data);
+            setShowEditDialog(false);
+        } catch (err) {
+            console.error('Failed to update focus:', err);
+            setError('An error occurred while updating focus');
         } finally {
             setIsSubmitting(false);
         }
@@ -313,6 +361,14 @@ export default function FocusGreeting() {
                                 >
                                     <CheckCircle2 className="w-4 h-4" />
                                     Complete Focus
+                                </button>
+                                <button
+                                    onClick={handleRequestEditFocus}
+                                    disabled={isSubmitting}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit
                                 </button>
                                 <button
                                     onClick={handleDeleteFocus}
@@ -479,6 +535,69 @@ export default function FocusGreeting() {
                 targetState="completed"
                 error={reasonError}
             />
+
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Focus</DialogTitle>
+                        <DialogDescription>
+                            Update your focus details
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleEditFocus} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                Focus Title *
+                            </label>
+                            <TextInput
+                                type="text"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                placeholder="e.g., Complete project proposal"
+                                disabled={isSubmitting}
+                                className="w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                Description (optional)
+                            </label>
+                            <textarea
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                placeholder="Add any details about your focus..."
+                                disabled={isSubmitting}
+                                rows="3"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-slate-900/80 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/40 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="flex gap-2 justify-end">
+                            <SecondaryButton
+                                type="button"
+                                onClick={() => setShowEditDialog(false)}
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </SecondaryButton>
+                            <PrimaryButton
+                                type="submit"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Updating...' : 'Update Focus'}
+                            </PrimaryButton>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -119,6 +119,57 @@ class FocusController extends Controller
     }
 
     /**
+     * Update an existing focus.
+     */
+    public function update(Request $request, Focus $focus): JsonResponse
+    {
+        // Ensure user can only update their own focus
+        if ($focus->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if ($focus->isCompleted()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot update a completed focus',
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $focus->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        $focus->load([
+            'statusEvents' => function ($query) {
+                $query->with('user:id,name')
+                    ->latest('id')
+                    ->limit(10);
+            },
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $focus,
+        ]);
+    }
+
+    /**
      * Complete the current focus.
      */
     public function complete(Request $request, Focus $focus): JsonResponse

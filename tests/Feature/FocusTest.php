@@ -408,4 +408,161 @@ class FocusTest extends TestCase
 
         $this->assertEquals($currentFocus->id, $user->currentFocus->id);
     }
+
+    public function test_user_can_update_focus(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Original Title',
+            'description' => 'Original Description',
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        $payload = [
+            'title' => 'Updated Title',
+            'description' => 'Updated Description',
+        ];
+
+        $response = $this->actingAs($user)->put(route('focus.update', $focus), $payload);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'data' => [
+                'id' => $focus->id,
+                'title' => 'Updated Title',
+                'description' => 'Updated Description',
+                'user_id' => $user->id,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('foci', [
+            'id' => $focus->id,
+            'title' => 'Updated Title',
+            'description' => 'Updated Description',
+        ]);
+    }
+
+    public function test_user_can_update_focus_title_only(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Original Title',
+            'description' => 'Original Description',
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        $payload = [
+            'title' => 'New Title',
+            'description' => null,
+        ];
+
+        $response = $this->actingAs($user)->put(route('focus.update', $focus), $payload);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'data' => [
+                'title' => 'New Title',
+                'description' => null,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('foci', [
+            'id' => $focus->id,
+            'title' => 'New Title',
+            'description' => null,
+        ]);
+    }
+
+    public function test_user_cannot_update_focus_without_title(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        $payload = [
+            'title' => '',
+            'description' => 'Some description',
+        ];
+
+        $response = $this->actingAs($user)->put(route('focus.update', $focus), $payload);
+
+        $response->assertStatus(422);
+        $response->assertJson(['success' => false]);
+    }
+
+    public function test_user_cannot_update_completed_focus(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Completed Focus',
+            'started_at' => now()->subHours(2),
+            'completed_at' => now(),
+        ]);
+
+        $payload = [
+            'title' => 'Trying to update',
+            'description' => 'This should fail',
+        ];
+
+        $response = $this->actingAs($user)->put(route('focus.update', $focus), $payload);
+
+        $response->assertStatus(400);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Cannot update a completed focus',
+        ]);
+
+        // Verify the focus wasn't updated
+        $this->assertDatabaseHas('foci', [
+            'id' => $focus->id,
+            'title' => 'Completed Focus',
+        ]);
+    }
+
+    public function test_user_cannot_update_other_users_focus(): void
+    {
+        /** @var User $user1 */
+        $user1 = User::factory()->create();
+        /** @var User $user2 */
+        $user2 = User::factory()->create();
+        $focus = Focus::factory()->create([
+            'user_id' => $user1->id,
+            'title' => 'User 1 Focus',
+            'started_at' => now(),
+            'completed_at' => null,
+        ]);
+
+        $payload = [
+            'title' => 'Unauthorized update',
+            'description' => 'This should fail',
+        ];
+
+        $response = $this->actingAs($user2)->put(route('focus.update', $focus), $payload);
+
+        $response->assertStatus(403);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Unauthorized',
+        ]);
+
+        // Verify the focus wasn't updated
+        $this->assertDatabaseHas('foci', [
+            'id' => $focus->id,
+            'title' => 'User 1 Focus',
+        ]);
+    }
 }

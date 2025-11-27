@@ -6,8 +6,37 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.10.21 | 2025-11-27 | **feat:** Focus edit functionality and history auto-update |
 | 0.10.20 | 2025-11-26 | **fix:** CSRF token mismatch - Refactored to use Axios with cookie-based CSRF protection |
 | 0.10.19 | 2025-11-22 | **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 (754d0f7) |
+
+
+## 0.10.21 – ✨ Focus Feature Enhancement
+
+Released on **2025-11-27**.
+
+### Added
+- **Focus Edit Functionality**: Users can now edit active focus title and description
+  - New blue "Edit" button in focus greeting card
+  - Edit dialog with pre-filled current values
+  - PUT `/focus/{focus}` endpoint for updates
+  - Validation prevents editing completed focuses
+  - Authorization ensures users can only edit their own focuses
+  - Comprehensive test coverage (5 new tests)
+
+### Fixed
+- **Focus History Auto-Update**: Completed focuses now appear immediately in recent history
+  - No longer requires page reload to see completed focus
+  - History date filter automatically set to today when completing
+  - Status events update correctly from backend response
+
+### Technical Details
+- Added `FocusController::update()` method with validation and authorization
+- Added `PUT /focus/{focus}` route
+- Updated `FocusGreeting.jsx` with edit state management and dialog
+- Added Edit icon from lucide-react
+- Tests: `test_user_can_update_focus`, `test_user_can_update_focus_title_only`, `test_user_cannot_update_focus_without_title`, `test_user_cannot_update_completed_focus`, `test_user_cannot_update_other_users_focus`
+- Updated documentation: FOCUS_FEATURE.md, PRD.md
 
 
 ## 0.10.20 – 🔒 Security Fix
