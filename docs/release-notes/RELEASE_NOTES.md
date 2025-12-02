@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.3 | 2025-12-02 | make husky installation optional in production (78f27cc) |
 | 0.11.2 | 2025-12-02 | add database sync command for production to local sync (29fb811) |
 | 0.11.1 | 2025-12-02 | cleanup project structure and update dependencies (85858e5) |
 | 0.10.21 | 2025-11-27 | **feat:** Focus edit functionality and history auto-update |
@@ -14,6 +15,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.3 – 🐛 Bug Fixes
+
+Released on **2025-12-02**.
+
+- make husky installation optional in production (78f27cc)
+- move @headlessui/react to dependencies (9b634ca)
+- move axios, laravel-echo, pusher-js to dependencies (36d19a2)
+- move build dependencies to production dependencies (db0f1d1)
+- move vite-plugin-pwa to dependencies (d915487)
 
 ## 0.11.2 – ✨ Features
 
