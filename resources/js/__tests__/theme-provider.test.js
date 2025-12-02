@@ -2,7 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 
-const themeProviderPath = '/Users/mahardhika/code/project/mine/web/zettly/resources/js/Components/theme-provider.jsx';
+import path from 'node:path';
+
+const themeProviderPath = path.resolve('resources/js/Components/theme-provider.jsx');
+
 
 const read = (path) => fs.readFileSync(path, 'utf8');
 

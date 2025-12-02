@@ -2,7 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 
-const kanbanPath = '/Users/mahardhika/code/project/mine/web/zettly/resources/js/Components/KanbanBoard.jsx';
+import path from 'node:path';
+
+const kanbanPath = path.resolve('resources/js/Components/KanbanBoard.jsx');
+
 
 const read = (path) => fs.readFileSync(path, 'utf8');
 

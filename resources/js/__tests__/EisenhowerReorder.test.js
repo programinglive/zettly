@@ -2,8 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 
-const file = '/Users/mahardhika/code/project/mine/web/zettly/resources/js/Components/EisenhowerMatrix.jsx';
+import path from 'node:path';
+
+const file = path.resolve('resources/js/Components/EisenhowerMatrix.jsx');
 const src = fs.readFileSync(file, 'utf8');
+
 
 test('EisenhowerMatrix posts reorder payload to /todos/reorder using axios', () => {
   assert.ok(
