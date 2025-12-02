@@ -10,7 +10,7 @@
     "npm": ">=9"
   },
   "scripts": {
-    "build": "node ./scripts/build.mjs",
+    "build": "vite build",
     "dev": "vite",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
