@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.3](https://github.com/programinglive/todo/compare/v0.11.2...v0.11.3) (2025-12-02)
+
+
+### 🐛 Bug Fixes
+
+* make husky installation optional in production ([78f27cc](https://github.com/programinglive/todo/commit/78f27cc58a9c4099e3b5a2b5623fa8d82d0d8e3c))
+* move @headlessui/react to dependencies ([9b634ca](https://github.com/programinglive/todo/commit/9b634ca214d803ce14720788607302a113d72dc4))
+* move axios, laravel-echo, pusher-js to dependencies ([36d19a2](https://github.com/programinglive/todo/commit/36d19a27d8a869d54c6642cfef759bb1f63a0f4f))
+* move build dependencies to production dependencies ([db0f1d1](https://github.com/programinglive/todo/commit/db0f1d17a68103f9ae0486878809798cace29d39))
+* move vite-plugin-pwa to dependencies ([d915487](https://github.com/programinglive/todo/commit/d915487e6b3184c55fad562a5f1366059c8fd2d1))
+
 ### [0.11.2](https://github.com/programinglive/todo/compare/v0.11.1...v0.11.2) (2025-12-02)
 
 
