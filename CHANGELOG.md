@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.4](https://github.com/programinglive/todo/compare/v0.11.3...v0.11.4) (2025-12-02)
+
+
+### 🐛 Bug Fixes
+
+* force https scheme in production ([c4a9d9d](https://github.com/programinglive/todo/commit/c4a9d9df3df7c9bee8cdb618f654044885e8aec4))
+
 ### [0.11.3](https://github.com/programinglive/todo/compare/v0.11.2...v0.11.3) (2025-12-02)
 
 
