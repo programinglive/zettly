@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.2](https://github.com/programinglive/todo/compare/v0.11.1...v0.11.2) (2025-12-02)
+
+
+### ✨ Features
+
+* add database sync command for production to local sync ([29fb811](https://github.com/programinglive/todo/commit/29fb811c340fd6e5cb66d679d4046e3330699a05))
+
 ### [0.11.1](https://github.com/programinglive/todo/compare/v0.11.0...v0.11.1) (2025-12-02)
 
 
