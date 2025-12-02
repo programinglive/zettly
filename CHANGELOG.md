@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.1](https://github.com/programinglive/todo/compare/v0.11.0...v0.11.1) (2025-12-02)
+
+
+### 🧹 Chores
+
+* cleanup project structure and update dependencies ([85858e5](https://github.com/programinglive/todo/commit/85858e5048999b1ff0f0eeab1414d845a7ece809))
+
 ## [0.11.0](https://github.com/programinglive/todo/compare/v0.10.19...v0.11.0) (2025-11-27)
 
 
