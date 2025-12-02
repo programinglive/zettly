@@ -6,10 +6,22 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.1 | 2025-12-02 | cleanup project structure and update dependencies (85858e5) |
 | 0.10.21 | 2025-11-27 | **feat:** Focus edit functionality and history auto-update |
 | 0.10.20 | 2025-11-26 | **fix:** CSRF token mismatch - Refactored to use Axios with cookie-based CSRF protection |
 | 0.10.19 | 2025-11-22 | **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 (754d0f7) |
 
+
+
+## 0.11.1 – 🧹 Chores
+
+Released on **2025-12-02**.
+
+- cleanup project structure and update dependencies (85858e5)
+- consolidate release notes and update for v0.10.19 (2561015)
+- csrf token mismatch - refactor to use axios with cookie-based csrf protection (aa6b2c8)
+- php 8+ parameter order warning in ResilientDatabaseStore (0e5f2be)
+- add focus edit functionality and fix history auto-update (506ad55)
 
 ## 0.10.21 – ✨ Focus Feature Enhancement
 
