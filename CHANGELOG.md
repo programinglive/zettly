@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.5](https://github.com/programinglive/todo/compare/v0.11.4...v0.11.5) (2025-12-02)
+
+
+### 🐛 Bug Fixes
+
+* use standard vite build command to ensure env vars are loaded ([e503e8d](https://github.com/programinglive/todo/commit/e503e8d924a21d009f3b5192ac45ade80a1d5082))
+
 ### [0.11.4](https://github.com/programinglive/todo/compare/v0.11.3...v0.11.4) (2025-12-02)
 
 
