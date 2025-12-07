@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
-import { CheckCircle, Circle, ArrowRight, GripVertical } from 'lucide-react';
+import { CheckCircle, Circle, ArrowRight, GripVertical, AlertTriangle, CalendarClock, Users, Trash2 } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
@@ -482,7 +482,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             description="Urgent & Important"
                             todos={groupedTodos.q1}
                             bgColor="bg-gray-800"
-                            icon="🚨"
+                            icon={<AlertTriangle className="w-5 h-5 text-gray-100" />}
                         />
                         <QuadrantColumn
                             id="q2"
@@ -490,7 +490,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             description="Not Urgent & Important"
                             todos={groupedTodos.q2}
                             bgColor="bg-gray-700"
-                            icon="📅"
+                            icon={<CalendarClock className="w-5 h-5 text-gray-100" />}
                         />
                         <QuadrantColumn
                             id="q3"
@@ -499,7 +499,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             todos={groupedTodos.q3}
                             bgColor="bg-gray-600"
                             textColor="text-white"
-                            icon="👥"
+                            icon={<Users className="w-5 h-5 text-gray-100" />}
                         />
                         <QuadrantColumn
                             id="q4"
@@ -507,7 +507,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             description="Not Urgent & Not Important"
                             todos={groupedTodos.q4}
                             bgColor="bg-gray-500"
-                            icon="🗑️"
+                            icon={<Trash2 className="w-5 h-5 text-gray-100" />}
                         />
                     </div>
                 </div>

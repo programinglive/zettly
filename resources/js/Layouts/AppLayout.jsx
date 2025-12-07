@@ -35,7 +35,7 @@ export default function AppLayout({
             label: 'Dashboard',
             description: 'Return to your home workspace',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5v6m4-6v6m4-6v6" />
                 </svg>
@@ -47,7 +47,7 @@ export default function AppLayout({
             label: 'My Todos',
             description: 'View active tasks and notes',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
             ),
@@ -58,7 +58,7 @@ export default function AppLayout({
             label: 'My Notes',
             description: 'Review personal notes and drafts',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10l-6-6z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4a2 2 0 002 2h4" />
                 </svg>
@@ -70,7 +70,7 @@ export default function AppLayout({
             label: 'Draw',
             description: 'Open the sketch workspace',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
@@ -102,7 +102,7 @@ export default function AppLayout({
             label: 'Organizations',
             description: 'Manage team workspaces',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 8.048M7 14H5a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2h-2m-1-12a4 4 0 110 8m-5 10v2m5-12v2m5 10v2" />
                 </svg>
             ),
@@ -121,8 +121,33 @@ export default function AppLayout({
             label: 'System Monitor',
             description: 'Monitor queues, jobs, and system health',
             icon: (
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l.562 1.726a1 1 0 00.95.69h1.813c.969 0 1.371 1.24.588 1.81l-1.467 1.067a1 1 0 00-.364 1.118l.562 1.726c.3.921-.755 1.688-1.54 1.118l-1.467-1.067a1 1 0 00-1.176 0l-1.467 1.067c-.784.57-1.838-.197-1.539-1.118l.562-1.726a1 1 0 00-.364-1.118L4.62 7.153c-.783-.57-.38-1.81.588-1.81h1.812a1 1 0 00.951-.69l.562-1.726z" />
+                <svg
+                    className="w-4 h-4 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    {/* Monitor frame */}
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"
+                    />
+                    {/* Stand */}
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 17h4m-6 2h8"
+                    />
+                    {/* Heartbeat / activity line */}
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6.5 11H9l1.2-2.4L12.5 13l1.3-2H17.5"
+                    />
                 </svg>
             ),
             group: 'admin',
@@ -309,7 +334,7 @@ export default function AppLayout({
                                                     {desktopMenuOpen && (
                                                         <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 z-50">
                                                             <div className="py-2">
-                                                                <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 dark:text-slate-500">
                                                                     Quick access
                                                                 </div>
 
@@ -338,7 +363,7 @@ export default function AppLayout({
                                                                     </Link>
                                                                 ))}
 
-                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 dark:text-slate-500">
                                                                     History & archives
                                                                 </div>
                                                                 <div className="mt-1 space-y-1 px-4 pb-3">
@@ -353,7 +378,7 @@ export default function AppLayout({
                                                                     ))}
                                                                 </div>
 
-                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-slate-500">
+                                                                <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 dark:text-slate-500">
                                                                     Tools
                                                                 </div>
                                                                 <div className="mt-1 space-y-1 px-4 pb-3">

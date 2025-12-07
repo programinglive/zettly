@@ -121,7 +121,7 @@ export default function PwaInstallPrompt() {
                     <button
                         type="button"
                         onClick={handleInstall}
-                        className="flex-1 rounded-full bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                        className="flex-1 rounded-full bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
                     >
                         Install app
                     </button>

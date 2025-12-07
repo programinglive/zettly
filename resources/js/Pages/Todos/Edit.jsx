@@ -206,7 +206,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                     type="submit"
                                     form="edit-todo-form"
                                     disabled={processing}
-                                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                    className="inline-flex items-center justify-center rounded-xl bg-gray-800 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-gray-700 dark:hover:bg-gray-600"
                                 >
                                     {processing ? 'Updating…' : isNote ? 'Update Note' : 'Update Todo'}
                                 </Button>
@@ -300,7 +300,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                                 </label>
                                                 <textarea
                                                     id="completion_reason"
-                                                    className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${errors.reason ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+                                                    className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${errors.reason ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
                                                     rows={3}
                                                     placeholder="Provide the context for completing this todo..."
                                                     value={data.completion_reason}

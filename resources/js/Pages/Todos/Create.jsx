@@ -162,7 +162,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                     type="submit"
                                     form="create-todo-form"
                                     disabled={processing}
-                                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-indigo-500 dark:hover:bg-indigo-400 z-0"
+                                    className="inline-flex items-center justify-center rounded-xl bg-gray-800 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-gray-700 dark:hover:bg-gray-600 z-0"
                                 >
                                     {processing ? 'Creating…' : isNote ? 'Create Note' : 'Create Todo'}
                                 </Button>

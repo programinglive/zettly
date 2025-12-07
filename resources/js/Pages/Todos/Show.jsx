@@ -47,6 +47,11 @@ const resolveCsrfToken = () => {
     return tokenMeta?.content ?? null;
 };
 
+const formatPriorityText = (priority) => {
+        if (!priority) return priority;
+        return priority.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
 export default function Show({ todo, availableTodos, statusEvents = [] }) {
     const toggleForm = useForm({ reason: '' });
     const archiveForm = useForm({ reason: '' });
@@ -378,7 +383,7 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                 <article className="mt-6 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <header className="flex flex-col gap-6 border-b border-gray-200/60 px-5 py-6 dark:border-gray-800 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:px-10 lg:py-10">
                         <div className="space-y-4 lg:max-w-3xl">
-                            <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200">
+                            <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                 {isNote ? 'Note' : 'Todo'}
                             </span>
                             <h1 className="text-3xl font-semibold leading-snug text-gray-900 dark:text-white md:text-4xl">
@@ -449,19 +454,19 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                     className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase text-white"
                                     style={{ backgroundColor: todo.priority_color ?? '#6B7280' }}
                                 >
-                                    {todo.priority}
+                                    {formatPriorityText(todo.priority)}
                                 </span>
                             )}
 
                             {isArchived && (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase text-white dark:bg-slate-200 dark:text-slate-900">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-gray-800 px-3 py-1 text-xs font-semibold uppercase text-white dark:bg-gray-200 dark:text-gray-900">
                                     Archived
                                 </span>
                             )}
 
                             {checklistProgress && (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
-                                    {checklistProgress.completed}/{checklistProgress.total} tasks • {checklistProgress.percent}%
+                                <span className="inline-flex items-center gap-2 rounded-full bg-gray-600 px-3 py-1 text-xs font-semibold text-white dark:bg-gray-700 dark:text-gray-200">
+                                    {checklistProgress.completed}/{checklistProgress.total} tasks {checklistProgress.percent}%
                                 </span>
                             )}
                         </div>
@@ -470,7 +475,7 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                     <div className="px-5 py-6 text-gray-700 dark:text-gray-200 lg:px-10 lg:py-10">
                         <section>
                             {hasDescription ? (
-                                <SanitizedHtml className="prose prose-slate max-w-none text-base dark:prose-invert" html={cleanedDescriptionMarkup} />
+                                <SanitizedHtml className="prose prose-gray max-w-none text-base dark:prose-invert" html={cleanedDescriptionMarkup} />
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-400">
                                     No description provided yet.
@@ -506,9 +511,9 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                                                 type="button"
                                                                 onClick={() => handleChecklistToggle(item)}
                                                                 disabled={!item.id || updatingChecklistIds.includes(item.id)}
-                                                                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+                                                                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 ${
                                                                     item.is_completed
-                                                                        ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-200'
+                                                                        ? 'border-gray-300 bg-gray-100 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200'
                                                                         : 'border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
                                                                 }`}
                                                             >
@@ -549,7 +554,7 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                                                     {statusEvents.map((event) => (
                                                         <div key={event.id} className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                                                             <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                                     {event.from_state ?? 'unknown'} → {event.to_state}
                                                                 </span>
                                                                 <span>{event.created_at_human ?? ''}</span>
@@ -572,19 +577,18 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
 
                         <div className="mt-12 flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-800 sm:flex-row sm:justify-end lg:gap-4">
                             <Link href={`/todos/${todo.id}/edit`} className="sm:w-auto">
-                                <Button variant="outline" className="flex w-full items-center justify-center gap-2">
+                                <button className="flex w-full items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white rounded-md px-4 py-2 font-medium sm:w-auto">
                                     <Edit className="h-4 w-4" />
                                     Edit {isNote ? 'note' : 'todo'}
-                                </Button>
+                                </button>
                             </Link>
-                            <Button
-                                variant="destructive"
+                            <button
                                 onClick={handleDeleteClick}
-                                className="flex w-full items-center justify-center gap-2 sm:w-auto"
+                                className="flex w-full items-center justify-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 rounded-md px-4 py-2 font-medium dark:border-gray-600 dark:text-gray-400 dark:hover:text-gray-200 sm:w-auto"
                             >
                                 <Trash2 className="h-4 w-4" />
                                 Delete {isNote ? 'note' : 'todo'}
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </article>

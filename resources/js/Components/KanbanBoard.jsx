@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
-import { CheckCircle, Circle, Plus, Eye, ArrowRight, GripVertical, Archive } from 'lucide-react';
+import {
+    CheckCircle,
+    Circle,
+    Plus,
+    Eye,
+    ArrowRight,
+    GripVertical,
+    Archive,
+    AlertTriangle,
+    CalendarClock,
+    Users,
+    Trash2,
+} from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import CompletionReasonDialog from './CompletionReasonDialog';
 import {
@@ -598,7 +610,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         return (
             <div
                 ref={setNodeRef}
-                className={`flex-1 min-w-0 transition-colors ${isOver ? 'ring-2 ring-indigo-400 ring-opacity-60' : ''
+                className={`flex-1 min-w-0 transition-colors ${isOver ? 'ring-2 ring-gray-400 ring-opacity-60' : ''
                     }`}
             >
                 <div className={`${bgColor} ${textColor} p-4 rounded-t-2xl shadow-sm`}>
@@ -712,7 +724,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         onLoadMore={loadMoreHandlers.q1}
                         bgColor="bg-gray-800"
                         textColor="text-white"
-                        icon="🚨"
+                        icon={<AlertTriangle className="w-5 h-5 text-gray-100" />}
                     />
                     <DroppableColumn
                         id="q2"
@@ -725,7 +737,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         onLoadMore={loadMoreHandlers.q2}
                         bgColor="bg-gray-700"
                         textColor="text-white"
-                        icon="📅"
+                        icon={<CalendarClock className="w-5 h-5 text-gray-100" />}
                     />
                     <DroppableColumn
                         id="q3"
@@ -737,8 +749,8 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         hasMore={q3HasMore}
                         onLoadMore={loadMoreHandlers.q3}
                         bgColor="bg-gray-600"
-                        textColor="text-gray-900"
-                        icon="👥"
+                        textColor="text-white"
+                        icon={<Users className="w-5 h-5 text-gray-100" />}
                     />
                     <DroppableColumn
                         id="q4"
@@ -751,7 +763,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         onLoadMore={loadMoreHandlers.q4}
                         bgColor="bg-gray-500"
                         textColor="text-white"
-                        icon="🗑️"
+                        icon={<Trash2 className="w-5 h-5 text-gray-100" />}
                     />
                     <DroppableColumn
                         id="completed"

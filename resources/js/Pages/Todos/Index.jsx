@@ -284,7 +284,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                             href="/todos/create"
                             className="w-full sm:w-auto"
                         >
-                            <Button className="w-full gap-2 bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                            <Button className="w-full gap-2 bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600">
                                 <Plus className="w-4 h-4" />
                                 New Todo
                             </Button>
@@ -311,7 +311,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                     href={buildUrl({ filter: key })}
                                     className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                         filter === key
-                                            ? 'bg-black text-white hover:bg-gray-800 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400'
+                                            ? 'bg-black text-white hover:bg-gray-800 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                                     }`}
                                 >
@@ -347,14 +347,9 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                             href={buildUrl({ tag: tag.id })}
                                             className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
                                                 isSelected
-                                                    ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-900'
-                                                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/70'
+                                                    ? 'bg-gray-800 text-white border-gray-800 ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-900 dark:bg-gray-700 dark:border-gray-700'
+                                                    : 'bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600'
                                             }`}
-                                            style={{
-                                                backgroundColor: `${tag.color}20`,
-                                                color: tag.color,
-                                                border: `1px solid ${tag.color}40`,
-                                            }}
                                         >
                                             {tag.name}
                                             {isSelected && (
@@ -390,7 +385,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                             <div className="flex items-start justify-between gap-2">
                                                 <button
                                                     onClick={() => handleToggle(todo)}
-                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
+                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500 ${
                                                         todo.is_completed
                                                             ? 'border-green-200 bg-green-50 text-green-600 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300'
                                                             : 'border-white/60 bg-white/90 text-gray-400 hover:text-gray-600 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-gray-100'
