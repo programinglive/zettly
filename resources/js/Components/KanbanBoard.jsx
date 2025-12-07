@@ -98,9 +98,9 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
                     className="flex-shrink-0 mt-0.5"
                 >
                     {todo.is_completed ? (
-                        <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
+                        <CheckCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     ) : (
-                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-500" />
                     )}
                 </button>
 
@@ -690,7 +690,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         {showCreateButton && (
                             <Link
                                 href="/todos/create"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                             >
                                 <Plus className="w-4 h-4" />
                                 New Todo
@@ -710,7 +710,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         visibleCount={q1Visible}
                         hasMore={q1HasMore}
                         onLoadMore={loadMoreHandlers.q1}
-                        bgColor="bg-rose-600"
+                        bgColor="bg-gray-800"
                         textColor="text-white"
                         icon="🚨"
                     />
@@ -723,7 +723,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         visibleCount={q2Visible}
                         hasMore={q2HasMore}
                         onLoadMore={loadMoreHandlers.q2}
-                        bgColor="bg-blue-600"
+                        bgColor="bg-gray-700"
                         textColor="text-white"
                         icon="📅"
                     />
@@ -736,7 +736,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         visibleCount={q3Visible}
                         hasMore={q3HasMore}
                         onLoadMore={loadMoreHandlers.q3}
-                        bgColor="bg-amber-500"
+                        bgColor="bg-gray-600"
                         textColor="text-gray-900"
                         icon="👥"
                     />
@@ -749,7 +749,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         visibleCount={q4Visible}
                         hasMore={q4HasMore}
                         onLoadMore={loadMoreHandlers.q4}
-                        bgColor="bg-slate-600"
+                        bgColor="bg-gray-500"
                         textColor="text-white"
                         icon="🗑️"
                     />
@@ -762,7 +762,7 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         visibleCount={completedVisible}
                         hasMore={completedHasMore}
                         onLoadMore={loadMoreHandlers.completed}
-                        bgColor="bg-green-500"
+                        bgColor="bg-gray-400"
                         textColor="text-white"
                         icon="✅"
                     />

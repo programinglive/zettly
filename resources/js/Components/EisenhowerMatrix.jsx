@@ -78,7 +78,7 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
             style={style}
             className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md ${isDragging ? 'z-50 opacity-50' : ''
                 } ${isSelected
-                    ? 'border-indigo-400 ring-2 ring-indigo-300/60 dark:border-indigo-500 dark:ring-indigo-500/40'
+                    ? 'border-gray-400 ring-2 ring-gray-300/60 dark:border-gray-500 dark:ring-gray-500/40'
                     : 'border-gray-200 dark:border-slate-800'
                 }`}
             onClick={() => {
@@ -104,9 +104,9 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
                     className="flex-shrink-0 mt-0.5"
                 >
                     {todo.is_completed ? (
-                        <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
+                        <CheckCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     ) : (
-                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                        <Circle className="w-5 h-5 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-500" />
                     )}
                 </button>
 
@@ -409,7 +409,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         return (
             <div
                 ref={setNodeRef}
-                className={`flex flex-col rounded-lg border-2 border-gray-200 dark:border-slate-700 overflow-hidden transition-all ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+                className={`flex flex-col rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden transition-all ${isOver ? 'ring-2 ring-gray-400 ring-opacity-50' : ''
                     }`}
             >
                 <div className={`${bgColor} text-white p-4`}>
@@ -481,7 +481,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             title="Q1: Do First"
                             description="Urgent & Important"
                             todos={groupedTodos.q1}
-                            bgColor="bg-red-600"
+                            bgColor="bg-gray-800"
                             icon="🚨"
                         />
                         <QuadrantColumn
@@ -489,7 +489,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             title="Q2: Schedule"
                             description="Not Urgent & Important"
                             todos={groupedTodos.q2}
-                            bgColor="bg-blue-600"
+                            bgColor="bg-gray-700"
                             icon="📅"
                         />
                         <QuadrantColumn
@@ -497,7 +497,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             title="Q3: Delegate"
                             description="Urgent & Not Important"
                             todos={groupedTodos.q3}
-                            bgColor="bg-yellow-600"
+                            bgColor="bg-gray-600"
                             icon="👥"
                         />
                         <QuadrantColumn
@@ -505,7 +505,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             title="Q4: Eliminate"
                             description="Not Urgent & Not Important"
                             todos={groupedTodos.q4}
-                            bgColor="bg-gray-600"
+                            bgColor="bg-gray-500"
                             icon="🗑️"
                         />
                     </div>

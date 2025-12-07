@@ -89,7 +89,7 @@ export default function CompletionReasonDialog({
                         type="button"
                         onClick={handleConfirm}
                         disabled={processing || !isHydrated}
-                        className="min-w-[120px]"
+                        className="min-w-[120px] bg-gray-800 hover:bg-gray-900 text-white"
                     >
                         {processing ? 'Saving...' : 'Submit reason'}
                     </Button>

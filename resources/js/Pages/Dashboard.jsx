@@ -110,9 +110,9 @@ const resolveDayHighlightAppearance = (tagColors, hasOverdue) => {
         return {
             className: 'text-white shadow-md',
             style: {
-                backgroundColor: '#F87171',
-                border: '1px solid rgba(248, 113, 113, 0.85)',
-                boxShadow: '0 8px 16px -8px rgba(248, 113, 113, 0.6)',
+                backgroundColor: '#6B7280',
+                border: '1px solid rgba(107, 114, 128, 0.85)',
+                boxShadow: '0 8px 16px -8px rgba(107, 114, 128, 0.6)',
             },
         };
     }
@@ -123,9 +123,9 @@ const resolveDayHighlightAppearance = (tagColors, hasOverdue) => {
         return {
             className: 'text-white shadow-md',
             style: {
-                backgroundColor: '#6366F1',
-                border: '1px solid rgba(99, 102, 241, 0.85)',
-                boxShadow: '0 8px 16px -8px rgba(99, 102, 241, 0.6)',
+                backgroundColor: '#6B7280',
+                border: '1px solid rgba(107, 114, 128, 0.85)',
+                boxShadow: '0 8px 16px -8px rgba(107, 114, 128, 0.6)',
             },
         };
     }
@@ -237,7 +237,7 @@ const DueDateCalendar = ({ tasks }) => {
                                     isCurrentMonth
                                         ? 'text-gray-700 dark:text-gray-200'
                                         : 'text-gray-400 dark:text-gray-600'
-                                } ${isToday ? 'ring-1 ring-indigo-400/60 dark:ring-indigo-400/60' : ''} ${highlight ? 'hover:border-transparent' : 'hover:border-indigo-500/40'}`}
+                                } ${isToday ? 'ring-1 ring-gray-400/60 dark:ring-gray-400/60' : ''} ${highlight ? 'hover:border-transparent' : 'hover:border-gray-500/40'}`}
                                 style={{
                                     ...(highlight?.style ? { ...highlight.style, color: highlight.className.includes('text-white') ? '#fff' : undefined } : {}),
                                 }}
@@ -584,7 +584,7 @@ export default function Dashboard({
                     <Link
                         href="/todos/create"
                         onClick={handleFabClose}
-                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500"
+                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-700/30 transition hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
                     >
                         <ListTodo className="h-4 w-4" />
                         New Todo
@@ -592,7 +592,7 @@ export default function Dashboard({
                     <Link
                         href="/todos/create?type=note"
                         onClick={handleFabClose}
-                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-lg shadow-slate-400/20 transition hover:bg-gray-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-600/30 transition hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500"
                     >
                         <FileText className="h-4 w-4" />
                         New Note
@@ -600,7 +600,7 @@ export default function Dashboard({
                     <Link
                         href="/draw"
                         onClick={handleFabClose}
-                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-600/30 transition hover:bg-violet-500"
+                        className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-gray-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-500/30 transition hover:bg-gray-400 dark:bg-gray-500 dark:hover:bg-gray-400"
                     >
                         <PenTool className="h-4 w-4" />
                         Open Draw
@@ -611,7 +611,7 @@ export default function Dashboard({
                     onClick={handleFabToggle}
                     aria-expanded={fabOpen}
                     aria-label={fabOpen ? 'Hide quick create actions' : 'Show quick create actions'}
-                    className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-xl shadow-indigo-600/30 transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+                    className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-700 text-white shadow-xl shadow-gray-700/30 transition hover:bg-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus-visible:ring-offset-gray-900"
                 >
                     <Plus className={`h-6 w-6 transition-transform ${fabOpen ? 'rotate-45' : ''}`} />
                     <span className="sr-only">Toggle quick create menu</span>
