@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.5 | 2025-12-02 | use standard vite build command to ensure env vars are loaded (e503e8d) |
 | 0.11.4 | 2025-12-02 | force https scheme in production (c4a9d9d) |
 | 0.11.3 | 2025-12-02 | make husky installation optional in production (78f27cc) |
 | 0.11.2 | 2025-12-02 | add database sync command for production to local sync (29fb811) |
@@ -18,6 +19,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.5 – 🐛 Bug Fixes
+
+Released on **2025-12-02**.
+
+- use standard vite build command to ensure env vars are loaded (e503e8d)
 
 ## 0.11.4 – 🐛 Bug Fixes
 
