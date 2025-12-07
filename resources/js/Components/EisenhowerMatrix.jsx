@@ -498,6 +498,7 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                             description="Urgent & Not Important"
                             todos={groupedTodos.q3}
                             bgColor="bg-gray-600"
+                            textColor="text-white"
                             icon="👥"
                         />
                         <QuadrantColumn
