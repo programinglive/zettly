@@ -96,15 +96,28 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
     };
 
     const submitReason = (reason) => {
+        const token = resolveCsrfToken();
         toggleForm.setData('reason', reason);
+        toggleForm.transform(() => ({
+            reason,
+            ...(token ? { _token: token } : {}),
+        }));
         toggleForm.post(`/todos/${todo.id}/toggle`, {
             preserveScroll: true,
             onSuccess: () => {
                 setReasonDialogOpen(false);
                 toggleForm.reset('reason');
+                toggleForm.transform((data) => data);
             },
             onError: () => {
                 setReasonDialogOpen(true);
+                toggleForm.transform(() => ({
+                    reason,
+                    ...(token ? { _token: token } : {}),
+                }));
+            },
+            onFinish: () => {
+                toggleForm.transform((data) => data);
             },
         });
     };
