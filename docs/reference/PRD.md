@@ -1,12 +1,14 @@
 ---
 title: Zettly Product Requirements Document (PRD)
 author: Platform Team
-last_updated: 2025-11-27
+last_updated: 2025-12-07
 status: Draft
 ---
 
 ## 1. Executive Summary
 Zettly is an integrated productivity platform for managing todos, notes, drawings, and knowledge artifacts with real-time collaboration. It merges Eisenhower prioritization, Kanban workflows, Algolia-powered search, TLDraw sketching, and push notifications into a single workspace. The most recent major enhancement introduces **Organizations** — enabling teams to create shared workspaces where members can collaboratively view and manage todos, notes, drawings, and tags. Combined with the super administrator System Monitor, Zettly now supports both individual and team-based productivity workflows.
+
+**CRITICAL DESIGN REQUIREMENT**: Zettly implements a strict two-color design system using ONLY black, white, and gray colors throughout the entire application. This monochromatic approach ensures visual consistency, reduces cognitive load, and creates a clean, professional interface.
 
 ## 2. Problem Statement
 Knowledge workers rely on fragmented toolchains for tasks, documentation, and visual planning, creating silos and delaying execution. Teams struggle to share and collaborate on work artifacts without context switching between tools. Support teams similarly lack centralized operational visibility once the product is deployed. Zettly solves these challenges by unifying productivity flows, enabling team collaboration through organizations, and empowering super administrators with runtime diagnostics.
@@ -45,6 +47,37 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Automated alerting integrations (Slack/email).
 - Native mobile applications (responsive web/PWA only).
 - Advanced permission models (e.g., read-only, editor roles).
+- **Colored UI elements**: Any use of colors outside the black/white/gray palette is strictly prohibited.
+
+## 5.3 Design System Requirements
+
+### 5.3.1 Two-Color Mode Specification
+**MANDATORY**: All UI components must adhere to a strict two-color design system:
+
+**Allowed Colors:**
+- Black (`#000000`)
+- White (`#FFFFFF`) 
+- Gray scale (`gray-50` through `gray-900`)
+
+**Prohibited Colors:**
+- Red, blue, green, yellow, orange, purple, pink, or any other colors
+- No colored status indicators, badges, or alerts
+- No colored buttons or interactive elements
+- No colored backgrounds beyond gray variations
+
+**Implementation Standards:**
+- **Primary Actions**: `bg-gray-800 hover:bg-gray-900 text-white`
+- **Secondary Actions**: `bg-gray-600 hover:bg-gray-700 text-white`
+- **Outline Actions**: `border-gray-300 text-gray-600 hover:bg-gray-100`
+- **Error States**: `bg-gray-200 text-gray-900 border-gray-300` (no red)
+- **Success States**: `bg-gray-700 text-white` (no green)
+- **Warning States**: `bg-gray-300 text-gray-900` (no yellow)
+
+**AI Development Guidelines:**
+- All AI assistants and developers must strictly follow this two-color system
+- No exceptions for colored icons, buttons, or status indicators
+- When in doubt, use gray variations instead of colors
+- This requirement supersedes any standard UI conventions that use colors
 
 ## 6. Feature Breakdown
 ### 6.1 Task & Note Management

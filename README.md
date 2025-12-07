@@ -8,6 +8,38 @@
 
 Zettly is a modern, full-stack todo list application built with Laravel 12, React, Inertia.js, TailwindCSS, and shadcn/ui. Create, manage, and track your todos with a beautiful and responsive interface.
 
+## Design System: Two-Color Mode
+
+**IMPORTANT**: Zettly uses a strict two-color design system - **ONLY black, white, and gray colors** are allowed throughout the entire application.
+
+### Color Palette Guidelines
+
+- **Primary Colors**: Black (`#000000`) and White (`#FFFFFF`)
+- **Accent Colors**: Gray scale (`gray-50` through `gray-900`)
+- **NO colored elements**: No red, blue, green, yellow, orange, purple, or any other colors
+- **Consistent theme**: All UI components must adhere to this monochromatic palette
+
+### Implementation Rules
+
+1. **Buttons**: Use gray scale only (gray-500, gray-600, gray-700, gray-800, gray-900)
+2. **Backgrounds**: White or gray variations only
+3. **Text**: Black, white, or gray tones only
+4. **Borders**: Gray colors only
+5. **Icons**: Black, white, or gray
+6. **Status indicators**: Use gray intensity instead of colored badges
+7. **Error states**: Use gray backgrounds with darker gray text (no red)
+8. **Success states**: Use darker gray backgrounds (no green)
+
+### Component Examples
+
+- **Primary buttons**: `bg-gray-800 hover:bg-gray-900 text-white`
+- **Secondary buttons**: `bg-gray-600 hover:bg-gray-700 text-white`
+- **Outline buttons**: `border-gray-300 text-gray-600 hover:bg-gray-100`
+- **Error messages**: `bg-gray-200 text-gray-900 border-gray-300`
+- **Success messages**: `bg-gray-700 text-white`
+
+This two-color system ensures visual consistency, reduces cognitive load, and creates a clean, professional interface.
+
 ## Release Notes
 
 Detailed historical changes live in [docs/reference/RELEASE_NOTES.md](./docs/reference/RELEASE_NOTES.md) and on the [GitHub releases page](https://github.com/programinglive/zettly/releases).
