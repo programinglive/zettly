@@ -26,7 +26,6 @@
     },
 
     /* Vite specific */
-    "types": ["vite/client"]
   },
   "include": [
     "resources/js/**/*",
