@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.6](https://github.com/programinglive/todo/compare/v0.11.5...v0.11.6) (2025-12-07)
+
+
+### 🧹 Chores
+
+* update documentation 0.11.5 ([0efb951](https://github.com/programinglive/todo/commit/0efb951adb956d3eac8d2f4cdfe0eea8712edeca))
+
+
+### ♻️ Refactors
+
+* simplify dashboard layout to use only black, white, and gray colors ([b96ad4f](https://github.com/programinglive/todo/commit/b96ad4f527608ace2da89294a5c5a9d9f079fdb2))
+
+
+### 📝 Documentation
+
+* add comprehensive two-color design system documentation ([b8d5c46](https://github.com/programinglive/todo/commit/b8d5c469a2ed0c7c375a7563742aaa83fa40abc8))
+
+
+### 🐛 Bug Fixes
+
+* add text color to Q3 delegate quadrant for better contrast ([415ffc5](https://github.com/programinglive/todo/commit/415ffc51bb6e47f55f2d92d187919c166e87b1e4))
+* resolve 419 CSRF error when marking todo as complete ([ce4511d](https://github.com/programinglive/todo/commit/ce4511dca3d113363598705586c0183052d2e461))
+
+
+### 💄 Styles
+
+* apply two-color UI to todos and navigation ([fb0bc6c](https://github.com/programinglive/todo/commit/fb0bc6c6eb3e95289cca8fd28b6581d72e244913))
+
 ### [0.11.5](https://github.com/programinglive/todo/compare/v0.11.4...v0.11.5) (2025-12-02)
 
 
