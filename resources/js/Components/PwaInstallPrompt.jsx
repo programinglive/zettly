@@ -29,17 +29,27 @@ export default function PwaInstallPrompt() {
     const [promptMode, setPromptMode] = useState(null); // "event" | "ios"
 
     useEffect(() => {
-        if (shouldSkipPrompt()) {
+        const forceShow = typeof window !== 'undefined' && window.localStorage.getItem('zettly-pwa-force-show') === 'true';
+
+        if (shouldSkipPrompt() && !forceShow) {
             return undefined;
         }
 
+        if (forceShow && isDebugMode()) {
+            console.debug('[PWA] Force showing install prompt');
+            setPromptMode('event');
+            setVisible(true);
+        }
+
         if (isIosDevice()) {
+            console.debug('[PWA] iOS device detected');
             setPromptMode('ios');
             setVisible(true);
         }
 
         const handler = (event) => {
-            event.preventDefault();
+            console.debug('[PWA] beforeinstallprompt event fired');
+            // Stash the event so it can be triggered later.
             setDeferredPrompt(event);
             setPromptMode('event');
             setVisible(true);
@@ -51,6 +61,14 @@ export default function PwaInstallPrompt() {
             window.removeEventListener('beforeinstallprompt', handler);
         };
     }, []);
+
+    // Helper to check debug mode from app.jsx logic
+    const isDebugMode = () => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('zettly-debug-mode') === 'true';
+        }
+        return false;
+    };
 
     const handleInstall = useCallback(async () => {
         if (!deferredPrompt) {
@@ -80,9 +98,28 @@ export default function PwaInstallPrompt() {
         setPromptMode(null);
     }, []);
 
+    const isDev = import.meta.env.DEV;
+
     if (!visible) {
+        if (isDev && isDebugMode()) {
+            return (
+                <div className="fixed bottom-4 left-4 z-50 rounded-lg bg-orange-500/10 border border-orange-500/20 p-2 text-[10px] text-orange-600 dark:text-orange-400 backdrop-blur">
+                    PWA: Event not yet captured. Try refreshing or use a private window.
+                </div>
+            );
+        }
         return null;
     }
+
+    const DevHint = () => (
+        isDev && (
+            <div className="mt-2 border-t border-gray-100 pt-2 dark:border-slate-800">
+                <p className="text-[10px] leading-tight text-gray-400 dark:text-gray-500 italic">
+                    Note: Browser banners are often suppressed on localhost. If "Install app" doesn't show a browser dialog, try using a mobile device or production build.
+                </p>
+            </div>
+        )
+    );
 
     if (promptMode === 'ios') {
         return (
@@ -103,6 +140,7 @@ export default function PwaInstallPrompt() {
                             Got it
                         </button>
                     </div>
+                    <DevHint />
                 </div>
             </div>
         );
@@ -133,6 +171,7 @@ export default function PwaInstallPrompt() {
                         Maybe later
                     </button>
                 </div>
+                <DevHint />
             </div>
         </div>
     );

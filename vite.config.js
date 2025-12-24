@@ -53,7 +53,7 @@ export default defineConfig({
                 ]
             },
             devOptions: {
-                enabled: false,
+                enabled: true,
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg}'],

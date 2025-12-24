@@ -459,6 +459,8 @@ export function NavbarSearch({ className }) {
                                 setOpen(true);
                             }
                         }}
+                        id="navbar-search-input"
+                        name="q"
                         placeholder={ENABLED ? 'Search todos, notes, tags…' : 'Search unavailable'}
                         className="pl-9 pr-12 h-11 rounded-full border border-border/60 bg-white/95 text-foreground shadow-sm transition focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-0 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:border-slate-700"
                         aria-expanded={open}
