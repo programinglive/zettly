@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.8](https://github.com/programinglive/todo/compare/v0.11.7...v0.11.8) (2025-12-24)
+
+
+### 🐛 Bug Fixes
+
+* **pwa:** improve install prompt behavior and fix search input accessibility ([e422dbc](https://github.com/programinglive/todo/commit/e422dbc79d7803b5b239953267d59481b36a5a94))
+
 ### [0.11.7](https://github.com/programinglive/todo/compare/v0.11.6...v0.11.7) (2025-12-24)
 
 
