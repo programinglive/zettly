@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.11](https://github.com/programinglive/todo/compare/v0.11.10...v0.11.11) (2025-12-24)
+
+
+### 🐛 Bug Fixes
+
+* **graph:** allow production origin in graph service CORS ([d74cc20](https://github.com/programinglive/todo/commit/d74cc20ef49ba8b4f91c08b22136d6d68fc0d1d4))
+
 ### [0.11.10](https://github.com/programinglive/todo/compare/v0.11.9...v0.11.10) (2025-12-24)
 
 
