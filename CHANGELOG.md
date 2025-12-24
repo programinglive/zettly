@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.7](https://github.com/programinglive/todo/compare/v0.11.6...v0.11.7) (2025-12-24)
+
+
+### 🧹 Chores
+
+* **tooling:** setup commiter and clean tsconfig types ([e0f31ff](https://github.com/programinglive/todo/commit/e0f31ffab15051548114ac59163b04b3760997d5))
+
+
+### ✨ Features
+
+* **graph:** implement real-time graph visualization for todos and notes ([4b4b384](https://github.com/programinglive/todo/commit/4b4b38421a2f047ec9eea748aa4889492818e74e))
+
 ### [0.11.6](https://github.com/programinglive/todo/compare/v0.11.5...v0.11.6) (2025-12-07)
 
 
