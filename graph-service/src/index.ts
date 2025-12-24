@@ -28,6 +28,7 @@ app.use(cors({
             'https://localhost:8000',
             'http://zettly.test',
             'https://zettly.test',
+            'https://zettly.programinglive.com',
             /^https?:\/\/.*\.zettly\.test$/
         ];
 
