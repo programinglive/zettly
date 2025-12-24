@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.10](https://github.com/programinglive/todo/compare/v0.11.9...v0.11.10) (2025-12-24)
+
+
+### 🐛 Bug Fixes
+
+* **graph:** add flexible URL config for production websocket and api ([3efeec4](https://github.com/programinglive/todo/commit/3efeec45879ad9d2c68fe842a5117e92c09ed785))
+
 ### [0.11.9](https://github.com/programinglive/todo/compare/v0.11.8...v0.11.9) (2025-12-24)
 
 
