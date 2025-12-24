@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.9](https://github.com/programinglive/todo/compare/v0.11.8...v0.11.9) (2025-12-24)
+
+
+### 🐛 Bug Fixes
+
+* **build:** make husky optional during installation to avoid server build failures ([4dba928](https://github.com/programinglive/todo/commit/4dba9281e1535dc03bb7e46783e18fd5f9188206))
+
 ### [0.11.8](https://github.com/programinglive/todo/compare/v0.11.7...v0.11.8) (2025-12-24)
 
 
