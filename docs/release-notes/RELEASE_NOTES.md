@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.8 | 2025-12-24 | **pwa:** improve install prompt behavior and fix search input accessibility (e422dbc) |
 | 0.11.7 | 2025-12-24 | **tooling:** setup commiter and clean tsconfig types (e0f31ff) |
 | 0.11.6 | 2025-12-07 | update documentation 0.11.5 (0efb951) |
 | 0.11.5 | 2025-12-02 | use standard vite build command to ensure env vars are loaded (e503e8d) |
@@ -24,6 +25,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.8 – 🐛 Bug Fixes
+
+Released on **2025-12-24**.
+
+- **pwa:** improve install prompt behavior and fix search input accessibility (e422dbc)
 
 ## 0.11.7 – 🧹 Chores
 

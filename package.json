@@ -19,7 +19,7 @@
     "test": "npm run test:js",
     "test:js": "node --test resources/js/**/*.test.js",
     "test:php": "php artisan test",
-    "prepare": "husky"
+    "prepare": "test -f node_modules/.bin/husky && husky || true"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
