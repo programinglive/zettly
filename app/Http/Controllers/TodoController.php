@@ -10,6 +10,7 @@ use App\Mail\TodoDeleted;
 use App\Mail\TodoUpdated;
 use App\Models\Tag;
 use App\Models\Todo;
+use App\Services\GraphSyncService;
 use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
 use App\Models\TodoStatusEvent;
@@ -994,6 +995,9 @@ class TodoController extends Controller
         // Create the relationship
         $todo->relatedTodos()->syncWithoutDetaching($validated['related_todo_id']);
 
+        // Sync to graph service
+        app(GraphSyncService::class)->syncLinkToGraph($todo->id, $validated['related_todo_id']);
+
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'Todos linked successfully']);
@@ -1027,6 +1031,9 @@ class TodoController extends Controller
             ->where('todo_id', $validated['related_todo_id'])
             ->where('related_todo_id', $todo->id)
             ->delete();
+
+        // Sync to graph service
+        app(GraphSyncService::class)->deleteLinkFromGraph($todo->id, $validated['related_todo_id']);
 
         // JSON for API, redirect for web/Inertia
         if ($request->wantsJson() || $request->is('api/*')) {

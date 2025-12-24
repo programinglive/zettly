@@ -4,14 +4,18 @@ namespace App\Observers;
 
 use App\Models\Todo;
 use App\Services\AlgoliaIndexer;
+use App\Services\GraphSyncService;
 
 class TodoObserver
 {
     private AlgoliaIndexer $indexer;
 
-    public function __construct(AlgoliaIndexer $indexer)
+    private GraphSyncService $graphSync;
+
+    public function __construct(AlgoliaIndexer $indexer, GraphSyncService $graphSync)
     {
         $this->indexer = $indexer;
+        $this->graphSync = $graphSync;
     }
 
     /**
@@ -24,6 +28,9 @@ class TodoObserver
         if ($indexName) {
             $this->indexer->indexModel($todo, $indexName);
         }
+
+        // Sync to graph service
+        $this->graphSync->syncTodoToGraph($todo, 'node:add');
     }
 
     /**
@@ -36,6 +43,9 @@ class TodoObserver
         if ($indexName) {
             $this->indexer->indexModel($todo, $indexName);
         }
+
+        // Sync to graph service
+        $this->graphSync->syncTodoToGraph($todo, 'node:update');
     }
 
     /**
@@ -48,6 +58,9 @@ class TodoObserver
         if ($indexName) {
             $this->indexer->deleteModel($todo, $indexName);
         }
+
+        // Sync to graph service
+        $this->graphSync->deleteTodoFromGraph($todo->id);
     }
 
     private function getSearchIndex(): ?string

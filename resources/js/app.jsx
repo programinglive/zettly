@@ -61,7 +61,7 @@ const getCookieCsrfToken = () => {
     }
 };
 
-const pages = import.meta.glob('./Pages/**/*.jsx', { eager: false });
+const pages = import.meta.glob('./Pages/**/*.{jsx,tsx}', { eager: false });
 
 let csrfListenerRegistered = false;
 
@@ -79,7 +79,10 @@ const resolveCsrfToken = () => {
 
 createInertiaApp({
     resolve: async (name) => {
-        const importer = pages[`./Pages/${name}.jsx`];
+        // Try .jsx first, then .tsx
+        const jsxImporter = pages[`./Pages/${name}.jsx`];
+        const tsxImporter = pages[`./Pages/${name}.tsx`];
+        const importer = jsxImporter || tsxImporter;
 
         if (!importer) {
             throw new Error(`Unknown Inertia page: ${name}`);

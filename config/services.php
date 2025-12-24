@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'graph' => [
+        'url' => env('GRAPH_SERVICE_URL', 'http://localhost:3001'),
+    ],
+
 ];
