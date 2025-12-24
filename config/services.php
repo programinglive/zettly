@@ -37,6 +37,8 @@ return [
 
     'graph' => [
         'url' => env('GRAPH_SERVICE_URL', 'http://localhost:3001'),
+        'api_url' => env('GRAPH_API_URL'),
+        'ws_url' => env('GRAPH_WS_URL'),
     ],
 
 ];

@@ -12,8 +12,8 @@ class GraphController extends Controller
      */
     public function index(): Response
     {
-        $graphServiceUrl = config('services.graph.url', 'http://localhost:3001');
-        $wsUrl = str_replace('http://', 'ws://', $graphServiceUrl);
+        $graphServiceUrl = config('services.graph.api_url', config('services.graph.url', 'http://localhost:3001'));
+        $wsUrl = config('services.graph.ws_url', str_replace('http://', 'ws://', $graphServiceUrl));
 
         return Inertia::render('Graph/Index', [
             'graphServiceUrl' => $graphServiceUrl,

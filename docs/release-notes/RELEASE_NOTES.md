@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.9 | 2025-12-24 | **build:** make husky optional during installation to avoid server build failures (4dba928) |
 | 0.11.8 | 2025-12-24 | **pwa:** improve install prompt behavior and fix search input accessibility (e422dbc) |
 | 0.11.7 | 2025-12-24 | **tooling:** setup commiter and clean tsconfig types (e0f31ff) |
 | 0.11.6 | 2025-12-07 | update documentation 0.11.5 (0efb951) |
@@ -26,6 +27,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.9 – 🐛 Bug Fixes
+
+Released on **2025-12-24**.
+
+- **build:** make husky optional during installation to avoid server build failures (4dba928)
 
 ## 0.11.8 – 🐛 Bug Fixes
 
