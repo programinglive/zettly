@@ -18,7 +18,8 @@ class GeminiChatTest extends TestCase
 
     public function test_chat_endpoint_returns_gateway_timeout_on_gemini_timeout(): void
     {
-        $user = User::factory()->create();
+        /** @var \App\Models\User $user */
+        $user = User::factory()->createOne();
         Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
         $clientException = new class('timeout') extends Exception implements ClientExceptionInterface {};
@@ -44,7 +45,8 @@ class GeminiChatTest extends TestCase
     {
         $this->assertNotEmpty(env('GEMINI_API_KEY'), 'GEMINI_API_KEY must be configured for this test.');
 
-        $user = User::factory()->create();
+        /** @var \App\Models\User $user */
+        $user = User::factory()->createOne();
         Todo::factory()->asTask()->create(['user_id' => $user->id]);
 
         $response = $this->actingAs($user)->postJson(route('gemini.chat'), [
