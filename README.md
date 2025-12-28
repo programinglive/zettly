@@ -344,6 +344,7 @@ Zettly uses Algolia for full-text search across todos, notes, and tags. The inte
 
 - Ensure `GEMINI_API_KEY` (and optional `GEMINI_REQUEST_TIMEOUT`) are set before hitting the chat endpoint in `routes/web.php`.
 - `GeminiTestController::chat()` now returns a `504` JSON response when the upstream request times out and logs the failure for later inspection.
+- To verify the project has a stored API key in Google Cloud Secret Manager, run `gcloud secrets list`. If no secret is listed, create one (for example `gcloud secrets create gemini-api-key --data-file=-`) and reference it in your deployment pipeline or populate `.env` with `GEMINI_API_KEY`.
 
 ## Release workflow
 

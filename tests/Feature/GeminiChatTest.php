@@ -8,6 +8,7 @@ use Exception;
 use Gemini\Exceptions\TransporterException;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Psr\Http\Client\ClientExceptionInterface;
 use Tests\TestCase;
 
@@ -37,5 +38,21 @@ class GeminiChatTest extends TestCase
         $response->assertJson([
             'error' => 'Gemini service timed out. Please try again later.',
         ]);
+    }
+
+    public function test_chat_endpoint_calls_real_gemini(): void
+    {
+        $this->assertNotEmpty(env('GEMINI_API_KEY'), 'GEMINI_API_KEY must be configured for this test.');
+
+        $user = User::factory()->create();
+        Todo::factory()->asTask()->create(['user_id' => $user->id]);
+
+        $response = $this->actingAs($user)->postJson(route('gemini.chat'), [
+            'message' => 'Give me a one sentence focus reminder.',
+        ]);
+
+        $response->assertStatus(200, $response->getContent());
+        $response->assertJson(fn (AssertableJson $json) => $json->has('response'));
+        $this->assertNotEmpty($response->json('response'));
     }
 }
