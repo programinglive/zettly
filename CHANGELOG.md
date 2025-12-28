@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.12](https://github.com/programinglive/todo/compare/v0.11.11...v0.11.12) (2025-12-28)
+
+
+### ✨ Features
+
+* **gemini:** enhance chat UI and live tests ([982f1aa](https://github.com/programinglive/todo/commit/982f1aae18f74bcc75269c93fe11fbcce251eac8))
+
+
+### 🧹 Chores
+
+* cleanup post release ([8b84f64](https://github.com/programinglive/todo/commit/8b84f641381a25eaaddf64b6c91944609786d46b))
+* sync remote changes ([6281537](https://github.com/programinglive/todo/commit/62815377801a7c43ff2c14191ed5aef7e2501a8d))
+
+
+### 🐛 Bug Fixes
+
+* **tests:** ensure user factory returns authenticatable ([dd4412b](https://github.com/programinglive/todo/commit/dd4412b448c91d77f5135eac0cb329419a3c8899))
+
 ### [0.11.11](https://github.com/programinglive/todo/compare/v0.11.10...v0.11.11) (2025-12-24)
 
 
