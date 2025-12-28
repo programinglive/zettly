@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.12 | 2025-12-28 | **gemini:** enhance chat UI and live tests (982f1aa) |
 | 0.11.11 | 2025-12-24 | **graph:** allow production origin in graph service CORS (d74cc20) |
 | 0.11.10 | 2025-12-24 | **graph:** add flexible URL config for production websocket and api (3efeec4) |
 | 0.11.9 | 2025-12-24 | **build:** make husky optional during installation to avoid server build failures (4dba928) |
@@ -32,6 +33,16 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.12 – ✨ Features
+
+Released on **2025-12-28**.
+
+- **gemini:** enhance chat UI and live tests (982f1aa)
+- cleanup post release (8b84f64)
+- sync remote changes (6281537)
+- **tests:** ensure user factory returns authenticatable (dd4412b)
 
 ## 0.11.11 – 🐛 Bug Fixes
 
