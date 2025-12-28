@@ -69,29 +69,7 @@ class SyncProductionDatabaseTest extends TestCase
         }
     }
 
-    public function test_pgpass_file_uses_correct_filename_for_windows()
-    {
-        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            $this->markTestSkipped('This test is only for Windows');
-        }
-
-        $command = new \App\Console\Commands\SyncProductionDatabase();
-        
-        $reflection = new \ReflectionClass($command);
-        $method = $reflection->getMethod('createPgpassFile');
-        $method->setAccessible(true);
-
-        $pgpassFile = $method->invoke($command, 'localhost', '5432', 'testdb', 'testuser', 'testpass');
-
-        $this->assertStringContainsString('pgpass.conf', $pgpassFile);
-
-        // Cleanup
-        if (file_exists($pgpassFile)) {
-            unlink($pgpassFile);
-        }
-    }
-
-    public function test_pgpass_file_uses_correct_filename_for_unix()
+    public function test_pgpass_file_uses_correct_filename_for_current_os()
     {
         $command = new \App\Console\Commands\SyncProductionDatabase();
         

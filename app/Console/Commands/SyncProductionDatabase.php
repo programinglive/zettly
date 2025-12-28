@@ -48,6 +48,9 @@ class SyncProductionDatabase extends Command
         $this->info('Starting database sync...');
 
         try {
+            // Step 0: Check for required binaries
+            $this->checkBinaries();
+
             // Step 1: Create dump from production
             $this->info('Creating production database dump...');
             $dumpFile = $this->createProductionDump();
@@ -101,9 +104,8 @@ class SyncProductionDatabase extends Command
                 escapeshellarg($dumpFile)
             );
 
-            // Set PGPASSFILE environment variable
-            $env = $_ENV;
-            $env['PGPASSFILE'] = $pgpassFile;
+            // Set environment variables, inheriting from current environment to preserve PATH
+            $env = array_merge(getenv(), ['PGPASSFILE' => $pgpassFile]);
 
             $this->info('Connecting to production database...');
             
@@ -259,9 +261,6 @@ class SyncProductionDatabase extends Command
         try {
             $this->info('Importing data to local database...');
             
-            // Set environment variable for pgpass file
-            putenv('PGPASSFILE=' . $pgpassFile);
-            
             $command = sprintf(
                 'psql -h %s -p %s -U %s -d %s -f %s 2>&1',
                 escapeshellarg($host),
@@ -271,20 +270,68 @@ class SyncProductionDatabase extends Command
                 escapeshellarg($dumpFile)
             );
 
-            $output = shell_exec($command);
+            // Inherit environment to preserve PATH and set PGPASSFILE
+            $env = array_merge(getenv(), ['PGPASSFILE' => $pgpassFile]);
+
+            $process = proc_open(
+                $command,
+                [
+                    0 => ['pipe', 'r'],
+                    1 => ['pipe', 'w'],
+                    2 => ['pipe', 'w'],
+                ],
+                $pipes,
+                null,
+                $env
+            );
+
+            if (!is_resource($process)) {
+                throw new \Exception('Failed to start psql process');
+            }
+
+            fclose($pipes[0]);
+            $output = stream_get_contents($pipes[1]);
+            $errorOutput = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+
+            $returnVar = proc_close($process);
             
-            // Check if there were actual errors (not just normal SQL output)
-            if ($output && (stripos($output, 'psql: error:') !== false || stripos($output, 'FATAL:') !== false)) {
-                throw new \Exception('Failed to restore database: ' . $output);
+            // Check if there were actual errors
+            if ($returnVar !== 0 || stripos($output . $errorOutput, 'psql: error:') !== false || stripos($output . $errorOutput, 'FATAL:') !== false) {
+                throw new \Exception('Failed to restore database: ' . $output . $errorOutput);
             }
 
             $this->info('✅ Database restored successfully');
         } finally {
-            // Clean up pgpass file and env var
-            putenv('PGPASSFILE');
             if (file_exists($pgpassFile)) {
                 unlink($pgpassFile);
             }
+        }
+    }
+
+    protected function checkBinaries(): void
+    {
+        $binaries = ['pg_dump', 'psql'];
+        $missing = [];
+
+        foreach ($binaries as $binary) {
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            $checkCommand = $isWindows ? "where $binary" : "which $binary";
+            exec($checkCommand, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                $missing[] = $binary;
+            }
+        }
+
+        if (!empty($missing)) {
+            $binaryList = implode(' and ', $missing);
+            throw new \Exception(
+                "Required binary '$binaryList' not found in system PATH.\n" .
+                "Please ensure PostgreSQL client tools are installed and added to your PATH.\n" .
+                "Installation help: https://www.postgresql.org/download/"
+            );
         }
     }
 
