@@ -23,6 +23,10 @@ Route::get('/developer', function () {
     return Inertia::render('Developer');
 })->name('developer');
 
+Route::get('/docs', function () {
+    return Inertia::render('Docs');
+})->name('docs');
+
 Route::get('/test/pusher-ui', function () {
     return Inertia::render('Test/PusherTest');
 })->name('test.pusher.ui');

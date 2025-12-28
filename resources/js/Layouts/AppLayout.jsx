@@ -254,6 +254,7 @@ export default function AppLayout({
                                         <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Features</a>
                                         <a href="#why" className="hover:text-gray-900 dark:hover:text-white transition-colors">Why Zettly</a>
                                         <a href="#developer" className="hover:text-gray-900 dark:hover:text-white transition-colors">Developer</a>
+                                        <Link href="/docs" className="hover:text-gray-900 dark:hover:text-white transition-colors">Docs</Link>
                                     </div>
 
                                     <div className="hidden md:flex items-center gap-3">
@@ -286,6 +287,9 @@ export default function AppLayout({
                                             <a href="#developer" className="rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800" onClick={() => setMobileMenuOpen(false)}>
                                                 Developer
                                             </a>
+                                            <Link href="/docs" className="rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800" onClick={() => setMobileMenuOpen(false)}>
+                                                Docs
+                                            </Link>
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             {!auth?.user ? (
