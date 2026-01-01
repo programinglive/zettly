@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Target, Plus, Sparkles } from 'lucide-react';
 
-import DashboardLayout from '../../Layouts/DashboardLayout';
+import AppLayout from '../../Layouts/AppLayout';
 
 const HabitCreate = ({ organizations, currentOrganization }) => {
     const { data, setData, post, processing, errors } = useForm({
@@ -59,40 +59,29 @@ const HabitCreate = ({ organizations, currentOrganization }) => {
     };
 
     return (
-        <>
-            <Head title="Create Habit" />
-
-            <DashboardLayout>
-                {/* Gradient Header */}
-                <div className="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                        <Link
-                            href={route('habits.index', {
-                                organization_id: currentOrganization
-                            })}
-                            className="inline-flex items-center gap-2 text-white/90 hover:text-white mb-6 font-medium"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                            Back to Habits
+        <AppLayout title="Create Habit">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                            Create habit
+                        </h1>
+                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            Design your path to consistency by setting clear goals and tracking your daily progress.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Link href={route('habits.index', { organization_id: currentOrganization })}>
+                            <button className="rounded-full px-6 py-3 text-sm font-semibold transition border border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-slate-900 dark:text-white">
+                                <ArrowLeft className="w-4 h-4 mr-2 inline" />
+                                Back to Habits
+                            </button>
                         </Link>
-
-                        <div className="flex items-center gap-4">
-                            <div className="bg-white/20 backdrop-blur-lg p-4 rounded-2xl">
-                                <Sparkles className="w-10 h-10" />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold mb-2">
-                                    Create New Habit
-                                </h1>
-                                <p className="text-lg opacity-90">
-                                    Design your path to consistency
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="mt-8 transition-all duration-700 animate-in fade-in slide-in-from-bottom-4">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Form */}
                         <div className="lg:col-span-2">
@@ -159,8 +148,8 @@ const HabitCreate = ({ organizations, currentOrganization }) => {
                                                         type="button"
                                                         onClick={() => setData('color', color.value)}
                                                         className={`relative h-16 rounded-xl transition-all duration-200 ${data.color === color.value
-                                                                ? 'ring-4 ring-offset-2 scale-105 shadow-lg'
-                                                                : 'hover:scale-105'
+                                                            ? 'ring-4 ring-offset-2 scale-105 shadow-lg'
+                                                            : 'hover:scale-105'
                                                             }`}
                                                         style={{
                                                             backgroundColor: color.value,
@@ -196,8 +185,8 @@ const HabitCreate = ({ organizations, currentOrganization }) => {
                                                         type="button"
                                                         onClick={() => setData('icon', icon.name)}
                                                         className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center transition-all duration-200 ${data.icon === icon.name
-                                                                ? 'border-purple-500 bg-purple-50 scale-110 shadow-lg'
-                                                                : 'border-gray-200 bg-white hover:border-gray-300 hover:scale-105'
+                                                            ? 'border-purple-500 bg-purple-50 scale-110 shadow-lg'
+                                                            : 'border-gray-200 bg-white hover:border-gray-300 hover:scale-105'
                                                             }`}
                                                     >
                                                         <span className="text-2xl">{icon.display}</span>
@@ -380,8 +369,8 @@ const HabitCreate = ({ organizations, currentOrganization }) => {
                         </div>
                     </div>
                 </div>
-            </DashboardLayout>
-        </>
+            </div>
+        </AppLayout>
     );
 };
 
