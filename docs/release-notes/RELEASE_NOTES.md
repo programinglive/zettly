@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.13 | 2026-01-01 | cleanup post release (215a8aa) |
 | 0.11.12 | 2025-12-28 | **gemini:** enhance chat UI and live tests (982f1aa) |
 | 0.11.11 | 2025-12-24 | **graph:** allow production origin in graph service CORS (d74cc20) |
 | 0.11.10 | 2025-12-24 | **graph:** add flexible URL config for production websocket and api (3efeec4) |
@@ -34,6 +35,27 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.11.13 – 🧹 Chores
+
+Released on **2026-01-01**.
+
+- cleanup post release (215a8aa)
+- resolve PHP pcntl extension warning and update Windows dev setup (993c17b)
+- add comprehensive test coverage for seeders (c5d366c)
+- stabilize gemini suite and update commiter config (51b474b)
+- add paratest usage to workflow rules (e270e79)
+- remove SENTRY_TODO.md and move PRD.md to docs/ for commiter compliance (e146dfe)
+- add habit tracker feature (a50a5e2)
+- add sidebar navigation and simplify design (9e56c32)
+- clean up profile menu and simplify system monitor (0b4cef7)
+- **docs:** add gitbook-style documentation hub (2ad547d)
+- revamp Habits layout with modern design and fix Inertia response errors (e615141)
+- update UserSeeder with actual credentials (cf1670b)
+- optimize TodoSeeder for faster execution (3cc888d)
+- remove test credentials output from OrganizationSeeder (f760120)
+- revamp dashboard layout and fix test suite regressions (b42cde8)
 
 ## 0.11.12 – ✨ Features
 

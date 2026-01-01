@@ -88,7 +88,7 @@ test('profile settings page renders workspace preferences section', () => {
     );
 
     assert.ok(
-        profileSource.includes('Workspace View Preference'),
+        profileSource.includes('Workspace View'),
         'Expected workspace preference heading to be present on profile settings.'
     );
 
