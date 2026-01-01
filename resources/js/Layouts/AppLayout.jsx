@@ -53,15 +53,15 @@ export default function AppLayout({
             group: 'main',
         },
         {
-            href: '/todos',
-            label: 'My Todos',
-            icon: CheckSquare,
-            group: 'main',
-        },
-        {
             href: '/todos/board',
             label: 'Todo Board',
             icon: LayoutDashboard,
+            group: 'main',
+        },
+        {
+            href: '/todos',
+            label: 'My Todos',
+            icon: CheckSquare,
             group: 'main',
         },
         {
