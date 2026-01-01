@@ -56,15 +56,15 @@ let isEventListenerOverrideActive = false;
 
 const overrideEventListeners = () => {
     if (isEventListenerOverrideActive) return;
-    
-    EventTarget.prototype.addEventListener = function(type, listener, options) {
+
+    EventTarget.prototype.addEventListener = function (type, listener, options) {
         // For touch, wheel, and pointer events that TLDraw uses, make them non-passive
-        if (type === 'touchstart' || type === 'touchmove' || type === 'touchend' || 
-            type === 'wheel' || type === 'mousewheel' || 
+        if (type === 'touchstart' || type === 'touchmove' || type === 'touchend' ||
+            type === 'wheel' || type === 'mousewheel' ||
             type === 'pointerdown' || type === 'pointermove' || type === 'pointerup') {
-            return originalAddEventListener.call(this, type, listener, { 
-                ...options, 
-                passive: false 
+            return originalAddEventListener.call(this, type, listener, {
+                ...options,
+                passive: false
             });
         }
         return originalAddEventListener.call(this, type, listener, options);
@@ -85,9 +85,9 @@ overrideEventListeners();
 const originalConsoleError = console.error;
 console.error = (...args) => {
     const message = args[0];
-    if (typeof message === 'string' && 
+    if (typeof message === 'string' &&
         (message.includes('Unable to preventDefault inside passive event listener') ||
-         message.includes('passive event listener'))) {
+            message.includes('passive event listener'))) {
         // Always suppress passive event listener warnings
         return;
     }
@@ -128,7 +128,7 @@ const normalizeSnapshotForPersist = (snapshot, nameFallback = 'Untitled drawing'
 
         if (next.document.store && typeof next.document.store === 'object') {
             const store = { ...next.document.store };
-            
+
             // Fix image assets with null URLs
             Object.keys(store).forEach(key => {
                 const asset = store[key];
@@ -143,7 +143,7 @@ const normalizeSnapshotForPersist = (snapshot, nameFallback = 'Untitled drawing'
                     };
                 }
             });
-            
+
             const documentNode = store['document:document'];
             if (documentNode && typeof documentNode === 'object') {
                 const updatedNode = { ...documentNode };
@@ -239,9 +239,9 @@ const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle
                                 <Input
                                     value={editTitle}
                                     onChange={(e) => {
-                                    setEditTitle(e.target.value);
-                                    autoSaveGalleryTitle(drawing.id, e.target.value);
-                                }}
+                                        setEditTitle(e.target.value);
+                                        autoSaveGalleryTitle(drawing.id, e.target.value);
+                                    }}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') handleSave(drawing.id);
                                         if (e.key === 'Escape') handleCancel();
@@ -251,7 +251,7 @@ const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle
                                     autoFocus
                                 />
                             ) : (
-                                <CardTitle 
+                                <CardTitle
                                     className="text-sm font-medium truncate flex-1"
                                     onClick={() => onDrawingClick(drawing.id)}
                                 >
@@ -336,7 +336,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
     useEffect(() => {
         if (typeof window === 'undefined') {
-            return () => {};
+            return () => { };
         }
 
         const handleWindowError = (event) => {
@@ -413,7 +413,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         async (id, payload, { announce = true } = {}) => {
             debugLog('[Draw] persistDrawing called:', { id, payloadKeys: Object.keys(payload), announce });
             prodLog('Drawing save started');
-            
+
             if (!id) {
                 debugLog('[Draw] No drawing ID provided, skipping persist');
                 return;
@@ -445,7 +445,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     documentKeys: normalizedPayload ? Object.keys(normalizedPayload) : [],
                     hasStore: !!normalizedPayload?.store,
                     storeKeys: normalizedPayload?.store ? Object.keys(normalizedPayload.store) : [],
-                    shapeCount: normalizedPayload?.store ? 
+                    shapeCount: normalizedPayload?.store ?
                         Object.keys(normalizedPayload.store).filter(key => key.startsWith('shape:')).length : 0
                 });
 
@@ -456,10 +456,10 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 };
 
                 const { data } = await window.axios.patch(route('draw.update', { drawing: id }), payloadToSend);
-                
+
                 debugLog('[Draw] ✅ SUCCESS! Server response:', data.status, data);
                 prodLog('Drawing saved successfully');
-                
+
                 // DISABLED: Don't update cache
                 // drawingCacheRef.current.set(id, data.drawing);
                 setActiveDrawing((previous) =>
@@ -469,11 +469,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     prev.map((drawing) =>
                         drawing.id === id
                             ? {
-                                  ...drawing,
-                                  title: data.drawing.title,
-                                  updated_at: data.drawing.updated_at,
-                                  thumbnail: data.drawing.thumbnail,
-                              }
+                                ...drawing,
+                                title: data.drawing.title,
+                                updated_at: data.drawing.updated_at,
+                                thumbnail: data.drawing.thumbnail,
+                            }
                             : drawing,
                     ),
                 );
@@ -514,7 +514,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const queueSave = useCallback(
         (snapshot) => {
             debugLog('[Draw] queueSave called');
-            
+
             if (suppressAutosaveRef.current) {
                 debugLog('[Draw] ⏸️ queueSave suppressed (initial load or cleanup)');
                 return;
@@ -587,11 +587,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
     const flushPendingSave = useCallback(async () => {
         debugLog('[Draw] flushPendingSave called');
-        
+
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
             saveTimeoutRef.current = null;
-            
+
             if (pendingSnapshotRef.current && activeDrawing?.id) {
                 const snapshot = pendingSnapshotRef.current;
                 pendingSnapshotRef.current = null;
@@ -616,7 +616,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const loadDrawingIntoEditor = useCallback(
         (drawing, editorInstance = null) => {
             debugLog('[Draw] loadDrawingIntoEditor called with drawing:', drawing?.id || 'null');
-            
+
             // Use the passed editor instance or fall back to the ref
             const editor = editorInstance || editorRef.current;
             if (!editor) {
@@ -631,14 +631,14 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 hasNestedDocument: !!drawing?.document?.document,
                 hasStore: !!drawing?.document?.document?.store,
                 storeKeys: drawing?.document?.document?.store ? Object.keys(drawing.document.document.store) : [],
-                shapeCount: drawing?.document?.document?.store ? 
+                shapeCount: drawing?.document?.document?.store ?
                     Object.keys(drawing.document.document.store).filter(key => key.startsWith('shape:')).length : 0
             });
 
             // Extract the actual TLDraw document from the nested structure
             const tldrawDocument = drawing?.document?.document || drawing?.document || {};
             const actualStore = tldrawDocument?.store || {};
-            
+
             debugLog('[Draw] Extracted TLDraw document:', {
                 hasTldrawDocument: !!tldrawDocument,
                 hasStore: !!actualStore,
@@ -649,7 +649,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             // Clear existing shapes before loading new snapshot
             // Since we have an editor instance, we can proceed regardless of editorReady state
             debugLog('[Draw] ✅ Editor instance available, proceeding with load...');
-            
+
             // Get current shapes before clearing
             const currentShapeIdsRaw = editor.getCurrentPageShapeIds();
             const currentShapeIds = Array.isArray(currentShapeIdsRaw)
@@ -664,7 +664,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             if (currentShapeIds.length > 0) {
                 editor.deleteShapes(currentShapeIds);
                 debugLog('[Draw] Shapes deleted successfully');
-                
+
                 // Verify shapes are gone
                 const remainingShapesRaw = editor.getCurrentPageShapeIds();
                 const remainingShapes = Array.isArray(remainingShapesRaw)
@@ -679,22 +679,22 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             try {
                 // Get current snapshot from editor
                 const currentSnapshot = editor.getSnapshot();
-                
+
                 // Process the actual store that contains the shapes
                 if (actualStore && Object.keys(actualStore).length > 0) {
                     debugLog('[Draw] 🎯 Processing store with records:', Object.keys(actualStore).length);
-                    
+
                     const validStoredRecords = {};
                     Object.entries(actualStore).forEach(([key, record]) => {
                         debugLog('[Draw] Processing record:', { key, type: typeof record, isObject: typeof record === 'object' });
-                        
+
                         // Include shape records - be more lenient with validation
                         if (key.startsWith('shape:') && record && typeof record === 'object') {
                             // Validate shape has required properties and no null values for critical fields
-                            const isValidShape = record.typeName && 
+                            const isValidShape = record.typeName &&
                                 (!record.props || record.props.url !== null) && // Filter out shapes with null URLs
                                 (!record.props || record.props.text !== null); // Filter out shapes with null text
-                            
+
                             if (isValidShape) {
                                 validStoredRecords[key] = record;
                                 debugLog('[Draw] ✅ Found shape record:', { key, type: record.typeName || 'unknown' });
@@ -712,12 +712,12 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                             debugLog('[Draw] ⏭️ Skipping record:', { key, type: typeof record });
                         }
                     });
-                    
+
                     debugLog('[Draw] 📊 Valid records collected:', {
                         count: Object.keys(validStoredRecords).length,
                         keys: Object.keys(validStoredRecords)
                     });
-                    
+
                     const snapshotToLoad = {
                         ...currentSnapshot,
                         document: {
@@ -731,7 +731,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                             }
                         }
                     };
-                    
+
                     debugLog('[Draw] 📋 Snapshot details:', {
                         hasStore: !!snapshotToLoad.document.store,
                         storeKeys: Object.keys(snapshotToLoad.document.store),
@@ -739,7 +739,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                         documentExists: !!snapshotToLoad.document,
                         documentName: snapshotToLoad.document.name
                     });
-                    
+
                     debugLog('[Draw] 🚀 Loading snapshot into editor...');
                     editor.loadSnapshot(snapshotToLoad);
                     debugLog('[Draw] ✅ Snapshot loaded successfully');
@@ -760,7 +760,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     const loadDrawing = useCallback(
         async (id) => {
             debugLog('[Draw] loadDrawing called with id:', id);
-            
+
             if (!id) {
                 debugLog('[Draw] No id provided, loading null drawing');
                 loadDrawingIntoEditor(null);
@@ -779,10 +779,10 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                     documentType: typeof freshDrawing?.document,
                     hasStore: !!freshDrawing?.document?.store,
                     storeKeys: freshDrawing?.document?.store ? Object.keys(freshDrawing.document.store) : [],
-                    shapeCount: freshDrawing?.document?.store ? 
+                    shapeCount: freshDrawing?.document?.store ?
                         Object.keys(freshDrawing.document.store).filter(key => key.startsWith('shape:')).length : 0
                 });
-                
+
                 // DISABLED: Don't update cache
                 // drawingCacheRef.current.set(id, freshDrawing);
                 debugLog('[Draw] Setting active drawing to:', freshDrawing.id);
@@ -810,7 +810,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
         try {
             const title = `Untitled sketch ${drawings.length + 1}`;
-            
+
             // If editor is mounted, use its snapshot; otherwise send minimal document
             let documentPayload;
             if (editorRef.current) {
@@ -835,7 +835,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             drawingCacheRef.current.set(data.drawing.id, data.drawing);
             setDrawings((prev) => [data.drawing, ...prev]);
             setActiveDrawing(data.drawing);
-            
+
             // Navigate to the new drawing
             router.get(`/draw/${data.drawing.id}`);
         } catch (error) {
@@ -917,7 +917,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             clearTimeout(drawingTitleSaveTimeoutRef.current);
             drawingTitleSaveTimeoutRef.current = null;
         }
-        
+
         if (!activeDrawing?.id) {
             return;
         }
@@ -945,14 +945,14 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         if (drawingTitleSaveTimeoutRef.current) {
             clearTimeout(drawingTitleSaveTimeoutRef.current);
         }
-        
+
         // Show saving status
         setTitleSaveStatus(prev => ({ saving: true, lastSaved: prev.lastSaved }));
-        
+
         // Set new timeout to save after 1.5 seconds of inactivity
         drawingTitleSaveTimeoutRef.current = setTimeout(async () => {
             if (!activeDrawing?.id) return;
-            
+
             const trimmed = title.trim();
             if (!trimmed || trimmed === activeDrawing.title) {
                 setTitleDraft(activeDrawing.title);
@@ -961,7 +961,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             }
 
             debugLog('[Draw] Auto-saving drawing title:', { id: activeDrawing.id, title: trimmed });
-            
+
             setActiveDrawing((prev) =>
                 prev ? { ...prev, title: trimmed } : prev,
             );
@@ -971,7 +971,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 title: trimmed,
                 document: normalizeSnapshotForPersist(currentSnapshot, trimmed),
             });
-            
+
             // Update status to show saved
             setTitleSaveStatus({ saving: false, lastSaved: new Date() });
         }, 1500);
@@ -995,9 +995,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             const { data } = await window.axios.patch(route('draw.update', { drawing: id }), {
                 title: newTitle,
             });
-            
+
             setDrawings(prev => prev.map(d => d.id === id ? data.drawing : d));
-            
+
             // If this is the current active drawing, update it too
             if (activeDrawing?.id === id) {
                 setActiveDrawing(data.drawing);
@@ -1023,7 +1023,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         if (titleSaveTimeoutRef.current) {
             clearTimeout(titleSaveTimeoutRef.current);
         }
-        
+
         // Set new timeout to save after 1 second of inactivity
         titleSaveTimeoutRef.current = setTimeout(() => {
             if (title.trim() && title !== drawings.find(d => d.id === id)?.title) {
@@ -1039,7 +1039,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             clearTimeout(titleSaveTimeoutRef.current);
             titleSaveTimeoutRef.current = null;
         }
-        
+
         if (editTitle.trim() && editTitle !== drawings.find(d => d.id === id)?.title) {
             await handleEditTitle(id, editTitle.trim());
         }
@@ -1053,7 +1053,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             clearTimeout(titleSaveTimeoutRef.current);
             titleSaveTimeoutRef.current = null;
         }
-        
+
         setEditingId(null);
         setEditTitle('');
     };
@@ -1065,9 +1065,9 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
         try {
             await window.axios.delete(route('draw.destroy', { drawing: id }));
-            
+
             setDrawings(prev => prev.filter(d => d.id !== id));
-            
+
             // If we deleted the current drawing, go back to gallery
             if (activeDrawing?.id === id) {
                 router.get('/draw');
@@ -1092,33 +1092,33 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
     const handleEditorMount = useCallback((editor) => {
         debugLog('[Draw] Editor mounted');
-        
+
         editorRef.current = editor;
-        
+
         // Store cleanup function on editor for later use
         editorRef.current._cleanup = () => {
             debugLog('[Draw] Editor cleanup called');
             suppressAutosaveRef.current = true;
-            
+
             // Clear all timeouts and intervals
             if (saveTimeoutRef.current) {
                 clearTimeout(saveTimeoutRef.current);
                 saveTimeoutRef.current = null;
             }
-            
+
             if (titleSaveTimeoutRef.current) {
                 clearTimeout(titleSaveTimeoutRef.current);
                 titleSaveTimeoutRef.current = null;
             }
-            
+
             if (changeCheckIntervalRef.current) {
                 clearInterval(changeCheckIntervalRef.current);
                 changeCheckIntervalRef.current = null;
             }
         };
-        
+
         setEditorReady(true);
-        
+
         // Check if there's a pending load and execute it
         if (pendingLoadRef.current) {
             debugLog('[Draw] Loading pending drawing after mount');
@@ -1172,7 +1172,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             if (typeof cleanup === 'function') {
                 try {
                     cleanup();
-                } catch (_e) {}
+                } catch (_e) { }
             }
         };
     }, [isGallery]);
@@ -1199,7 +1199,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             if (typeof cleanup === 'function') {
                 try {
                     cleanup();
-                } catch (_e) {}
+                } catch (_e) { }
             }
             editorRef.current = null;
 
@@ -1218,12 +1218,12 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
     useEffect(() => {
         if (!activeDrawing?.id || !window.Echo) {
             debugLog('[WebSocket] Skipping listener - activeDrawing:', !!activeDrawing?.id, 'Echo:', !!window.Echo);
-            return () => {};
+            return () => { };
         }
 
         const channelName = `drawings.${activeDrawing.id}`;
         debugLog('[WebSocket] Setting up listener for channel:', channelName);
-        
+
         const channel = window.Echo.private(channelName);
 
         // Log subscription success
@@ -1238,11 +1238,11 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
 
         channel.listen('.DrawingUpdated', (e) => {
             debugLog('[WebSocket] Received DrawingUpdated event:', e);
-            
+
             // Don't update if this is the same drawing that was just saved by this client
             const lastSavedByThisClient = saveStatus.lastSavedAt;
             const serverUpdatedAt = new Date(e.updated_at);
-            
+
             if (lastSavedByThisClient && serverUpdatedAt <= new Date(lastSavedByThisClient)) {
                 debugLog('[WebSocket] Ignoring update from this client');
                 return; // Ignore updates that are from this client
@@ -1262,7 +1262,7 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             }
 
             // Update the drawings list if title changed
-            setDrawings(prev => prev.map(d => 
+            setDrawings(prev => prev.map(d =>
                 d.id === e.id ? { ...d, title: e.title, updated_at: e.updated_at, thumbnail: e.thumbnail } : d
             ));
         });
@@ -1307,36 +1307,45 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         return (
             <AppLayout title="Drawings">
                 <Head title="Drawings" />
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                            Drawings
-                        </h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Create and manage your drawings. Click on any drawing to open it in the editor.
-                        </p>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    {/* Header */}
+                    <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                        <div className="flex-1">
+                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                Drawings
+                            </h1>
+                            <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                                Sketch ideas, plan projects, or brainstorm visually with the TLDraw canvas.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                onClick={handleCreateDrawing}
+                                disabled={creating}
+                                className="rounded-full px-6 py-6 h-auto text-base font-semibold transition shadow-sm bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                            >
+                                {creating ? (
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                ) : (
+                                    <Plus className="mr-2 h-5 w-5" />
+                                )}
+                                New Drawing
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-1">
-                        <Card className="flex flex-col overflow-hidden">
-                            <CardHeader className="space-y-4 border-b border-gray-100 pt-4 pb-4 dark:border-slate-800">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <Card className="flex flex-col overflow-hidden rounded-[2.5rem] border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                            <CardHeader className="space-y-4 border-b border-gray-100/50 pt-8 pb-6 px-8 dark:border-slate-800/50">
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                     <div className="space-y-1">
-                                        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                        <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
                                             Your Drawings
                                         </CardTitle>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-500 dark:text-slate-400">
                                             {drawings.length} {drawings.length === 1 ? 'drawing' : 'drawings'}
                                         </p>
                                     </div>
-                                    <Button onClick={handleCreateDrawing} disabled={creating}>
-                                        {creating ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Plus className="mr-2 h-4 w-4" />
-                                        )}
-                                        New Drawing
-                                    </Button>
                                 </div>
                             </CardHeader>
                             <CardContent className="flex-1 overflow-hidden p-6">
@@ -1376,50 +1385,32 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         <AppLayout title="Draw">
             <Head title="Draw" />
 
-            <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                        Draw
-                    </h1>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Sketch ideas, plan projects, or brainstorm visually with the TLDraw canvas.
-                        Drawings auto-save while you work.
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={() => router.get('/draw')}
-                        className="lg:w-auto"
-                    >
-                        ← Back to Gallery
-                    </Button>
-
-                    {process.env.NODE_ENV === 'development' && (
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                            Drawing Studio
+                        </h1>
+                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            {activeDrawing ? `Editing "${activeDrawing.title}"` : 'Create and refine your visual ideas.'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
                         <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const editor = editorRef.current;
-                                if (editor && activeDrawing?.id) {
-                                    debugLog('[Draw] 🔧 Manual test: Triggering save');
-                                    const snapshot = editor.getSnapshot();
-                                    console.log('🔧 Manual test - Current snapshot:', snapshot);
-                                    queueSave(snapshot);
-                                } else {
-                                    console.log('❌ Manual test failed - no editor or drawing');
-                                }
-                            }}
-                            className="lg:w-auto text-xs"
+                            variant="outline"
+                            onClick={() => router.get('/draw')}
+                            className="rounded-full px-6 transition-all hover:bg-gray-100 dark:hover:bg-slate-800"
                         >
-                            🔧 Test Save
+                            <ChevronLeft className="h-4 w-4 mr-2" />
+                            Back to Gallery
                         </Button>
-                    )}
+                    </div>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-1">
-                    <Card className="flex h-[75vh] flex-col overflow-hidden">
-                        <CardHeader className="space-y-4 border-b border-gray-100 pt-4 pb-4 dark:border-slate-800">
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <Card className="flex h-[75vh] flex-col overflow-hidden rounded-[2.5rem] border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                        <CardHeader className="space-y-4 border-b border-gray-100/50 pt-8 pb-6 px-8 dark:border-slate-800/50">
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="space-y-1">
                                     <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
