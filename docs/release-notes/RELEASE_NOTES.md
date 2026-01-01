@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.14 | 2026-01-01 | revamp profile settings with minimal black/white design (7643e35) |
 
 | 0.11.13 | 2026-01-01 | cleanup post release (215a8aa) |
 | 0.11.12 | 2025-12-28 | **gemini:** enhance chat UI and live tests (982f1aa) |
@@ -24,3 +25,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 | 0.10.20 | 2025-11-26 | **fix:** CSRF token mismatch - Refactored to use Axios with cookie-based CSRF protection |
 | 0.10.19 | 2025-11-22 | **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 (754d0f7) |
 
+
+
+## 0.11.14 – ♻️ Refactors
+
+Released on **2026-01-01**.
+
+- revamp profile settings with minimal black/white design (7643e35)
+- profile settings react warnings and accessibility issues (84aee21)
+- add todo board view and fix profile menu items (bdaa1d3)
+- **dashboard:** total revamp with premium hero layout and centered content (2b2d647)
+- extract todo board to dedicated page and refine dashboard (32820ed)
