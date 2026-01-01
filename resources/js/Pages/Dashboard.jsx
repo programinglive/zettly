@@ -68,11 +68,11 @@ export default function Dashboard({
             <Head title="Dashboard" />
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header */}
-                <div className="mb-12">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+                <div className="mb-16">
+                    <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
                         Dashboard
                     </h1>
-                    <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 max-w-2xl">
+                    <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
                         Stay focused and track your progress through the day.
                     </p>
                 </div>

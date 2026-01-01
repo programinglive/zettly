@@ -186,27 +186,27 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
     return (
         <AppLayout title="Profile">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 pb-24">
-                <Head title="Profile Settings" />
-
-                {/* Page Header */}
-                <div className="mb-16">
-                    <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Settings</h1>
-                            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl">
-                                Manage your personal information, security preferences, and workspace configuration.
-                            </p>
-                            <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span>Member since {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                <span>•</span>
-                                <span>Email {mustVerifyEmail ? 'verification required' : 'verified'}</span>
-                            </div>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                            Settings
+                        </h1>
+                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            Manage your personal information, security preferences, and workspace configuration.
+                        </p>
+                        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-gray-400 dark:text-slate-500 uppercase tracking-widest">
+                            <span>Member since {new Date(user.created_at).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>Email {mustVerifyEmail ? 'verification required' : 'verified'}</span>
                         </div>
+                    </div>
+                    <div className="flex items-center gap-3">
                         <Link href="/dashboard">
                             <Button
                                 variant="outline"
-                                className="rounded-lg border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-800 dark:bg-transparent dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                                className="rounded-full px-6 transition-all hover:bg-gray-100 dark:hover:bg-slate-800"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to Dashboard
@@ -234,7 +234,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     value={data.name}
                                     autoComplete="name"
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className={`rounded-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
+                                    className={`rounded-xl bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
                                     required
                                 />
                                 {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
@@ -251,14 +251,14 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     value={data.email}
                                     autoComplete="email"
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className={`rounded-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
+                                    className={`rounded-xl bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
                                     required
                                 />
                                 {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                             </div>
 
                             <div className="pt-2">
-                                <Button type="submit" disabled={processing} className="rounded-lg bg-gray-900 hover:bg-black text-white px-5 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                                <Button type="submit" disabled={processing} className="rounded-full bg-gray-900 hover:bg-black text-white px-8 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all">
                                     {processing ? 'Saving...' : 'Save Changes'}
                                 </Button>
                             </div>
@@ -330,7 +330,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                             </div>
 
                             <div className="pt-2">
-                                <Button type="submit" disabled={passwordForm.processing} className="rounded-lg bg-gray-900 hover:bg-black text-white px-5 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                                <Button type="submit" disabled={passwordForm.processing} className="rounded-full bg-gray-900 hover:bg-black text-white px-8 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all">
                                     {passwordForm.processing ? 'Updating...' : 'Update Password'}
                                 </Button>
                             </div>
@@ -360,7 +360,7 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                         className="rounded-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 flex-1"
                                         disabled={tokenForm.processing}
                                     />
-                                    <Button type="submit" disabled={tokenForm.processing} className="rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-gray-900">
+                                    <Button type="submit" disabled={tokenForm.processing} className="rounded-full bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-gray-900 px-6 transition-all">
                                         <Plus className="w-4 h-4 mr-2" />
                                         Create
                                     </Button>
