@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.14](https://github.com/programinglive/todo/compare/v0.11.13...v0.11.14) (2026-01-01)
+
+
+### ♻️ Refactors
+
+* revamp profile settings with minimal black/white design ([7643e35](https://github.com/programinglive/todo/commit/7643e35e9f3dde45e45295817ff290333d63c3af))
+
+
+### 🐛 Bug Fixes
+
+* profile settings react warnings and accessibility issues ([84aee21](https://github.com/programinglive/todo/commit/84aee21a76deaa6be2c4746e0d3bc607d6f992e3))
+
+
+### ✨ Features
+
+* add todo board view and fix profile menu items ([bdaa1d3](https://github.com/programinglive/todo/commit/bdaa1d37603baf120e683acad7e1a5e853f602dc))
+* **dashboard:** total revamp with premium hero layout and centered content ([2b2d647](https://github.com/programinglive/todo/commit/2b2d647a045c85235c81ffaec28d8a7957c0f646))
+* extract todo board to dedicated page and refine dashboard ([32820ed](https://github.com/programinglive/todo/commit/32820ed010cdfe80e8885cb2e977a89e9b5c92af))
+
 ### [0.11.13](https://github.com/programinglive/todo/compare/v0.11.12...v0.11.13) (2026-01-01)
 
 
