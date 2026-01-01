@@ -1,7 +1,7 @@
 ---
 trigger: always_on
 ---
-
+- Use paratest for running tests when available
 - FIX THE BUG
 - CREATE TEST ABOUT LAST FIXES
 - UPDATE DOCUMENTATION
