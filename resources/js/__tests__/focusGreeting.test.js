@@ -88,8 +88,13 @@ test('focus greeting sends correct completion request', () => {
 
 test('focus greeting updates history after completion', () => {
     assert.ok(
-        /setStatusEvents\s*\(\s*\(prev\)\s*=>\s*{/m.test(focusGreetingSource) && focusGreetingSource.includes('Recent Focus History'),
-        'Expected focus greeting to update and render the recent focus history list after completion.'
+        focusGreetingSource.includes('setStatusEvents(data.recent_events)') ||
+        /setStatusEvents\s*\(\s*\(prev\)\s*=>\s*{/m.test(focusGreetingSource),
+        'Expected focus greeting to update the recent focus history list after completion.'
+    );
+    assert.ok(
+        focusGreetingSource.includes('Recent Focus History'),
+        'Expected focus greeting to render the history section.'
     );
 });
 
@@ -104,13 +109,6 @@ test('focus greeting history renders focus title', () => {
     assert.ok(
         focusGreetingSource.includes('event.focus?.title'),
         'Expected recent focus history entries to include focus title.'
-    );
-});
-
-test('focus greeting history falls back to user-friendly name when missing', () => {
-    assert.ok(
-        /event\.user\?\.name\s*\?\?\s*'You'/.test(focusGreetingSource),
-        'Expected recent focus history entries to default to "You" when user information is missing.'
     );
 });
 

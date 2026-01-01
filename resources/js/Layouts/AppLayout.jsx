@@ -231,14 +231,17 @@ export default function AppLayout({
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${active
-                                                        ? 'bg-gray-900 dark:bg-slate-700 text-white'
-                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-all relative group ${active
+                                                        ? 'bg-gray-50/80 dark:bg-slate-800/40 text-gray-900 dark:text-white'
+                                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white'
                                                         }`}
                                                     title={!sidebarOpen ? item.label : undefined}
                                                 >
-                                                    <Icon className="w-5 h-5 flex-shrink-0" />
-                                                    {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                                                    <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'}`} />
+                                                    {active && (
+                                                        <div className="absolute left-0 w-1 h-5 bg-gray-900 dark:bg-white rounded-r-full" />
+                                                    )}
+                                                    {sidebarOpen && <span className={`font-semibold tracking-tight ${active ? 'opacity-100' : 'opacity-80'}`}>{item.label}</span>}
                                                 </Link>
                                             );
                                         })}

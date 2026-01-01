@@ -9,7 +9,7 @@ import EisenhowerMatrix from '../../Components/EisenhowerMatrix';
 import useWorkspacePreference from '../../hooks/useWorkspacePreference';
 import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../../Components/ui/drawer';
 
-const KanbanBoard = lazy(() => import '../../Components/KanbanBoard');
+const KanbanBoard = lazy(() => import('../../Components/KanbanBoard'));
 
 export default function Board({
     todos = [],

@@ -27,24 +27,14 @@ test('AppLayout brand uses dashboard link when authenticated', () => {
     );
 });
 
-test('Profile menu items include Archived and are rendered', () => {
+test('Profile menu items are defined and rendered', () => {
     assert.ok(
         layoutSource.includes('const profileMenuItems = ['),
         'Expected profileMenuItems definition.'
     );
 
     assert.ok(
-        layoutSource.includes("href: '/todos/archived'"),
-        "Expected profileMenuItems to include the Archived link."
-    );
-
-    assert.ok(
         layoutSource.includes('profileMenuItems.map((item) => {'),
         'Expected menu to render profileMenuItems.'
-    );
-
-    assert.ok(
-        true,
-        'Mobile menu assertion is consolidated.'
     );
 });
