@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.12.0](https://github.com/programinglive/todo/compare/v0.11.14...v0.12.0) (2026-01-01)
+
+
+### 🧹 Chores
+
+* cleanup after release ([6a79ca9](https://github.com/programinglive/todo/commit/6a79ca96488e73d4d4398fbdfe9a18a418688f60))
+
+
+### 🐛 Bug Fixes
+
+* **sidebar:** prevent multiple active links by using most specific path match ([8270142](https://github.com/programinglive/todo/commit/827014214bd1b490a85c3ffd9f5677992e7ec686))
+
+
+### ✨ Features
+
+* extract manage tags to standalone page and revamp UI宣 ([401fe24](https://github.com/programinglive/todo/commit/401fe247f377850f9dae5c0489a6ccf8860b2f14))
+* revamp habits module with hero headers and applayout standardization ([599ebff](https://github.com/programinglive/todo/commit/599ebff7a476c1901ff53e168641503ac3fc1f42))
+* revamp todo board with premium centered layout and refined components ([8541415](https://github.com/programinglive/todo/commit/8541415b1e3ba3351f7379ed08a3fd90375348df))
+* revamp todo list page with premium centered layout ([1aaf271](https://github.com/programinglive/todo/commit/1aaf2719dc632ef4519a43b24c33287442e53bee))
+* **sidebar:** move todo board below dashboard for better flow ([1c65bf7](https://github.com/programinglive/todo/commit/1c65bf77e33a9bf57f944d3220c316ea6026c6d9))
+* standardize notes and drawings gallery with premium hero headers ([d590176](https://github.com/programinglive/todo/commit/d590176c999d5fe55c69bc7adea50a12226cdeb6))
+* standardize organization pages with premium centered layout ([3a09b3e](https://github.com/programinglive/todo/commit/3a09b3e92d87a347b1d6a04bd5f12864457519f4))
+* standardize profile, docs, and developer portal with hero styling ([9a2a140](https://github.com/programinglive/todo/commit/9a2a140bb1cd3706984130812fdf449927a226e2))
+* standardize tags page and fix container width consistency ([4f322f5](https://github.com/programinglive/todo/commit/4f322f5b83533fc36ec1fd9d8efd146e9d79616f))
+* standardize todo module with premium hero layout and centered containers ([c6edd89](https://github.com/programinglive/todo/commit/c6edd8993d2f7d21973a41609d6e3fd22f7fc621))
+
 ### [0.11.14](https://github.com/programinglive/todo/compare/v0.11.13...v0.11.14) (2026-01-01)
 
 
