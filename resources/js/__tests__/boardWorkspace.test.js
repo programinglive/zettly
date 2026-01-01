@@ -58,7 +58,9 @@ test('board uses shared workspace preference hook', () => {
 
 test('board conditionally renders matrix or kanban workspace', () => {
     assert.ok(
-        boardSource.includes('workspaceView === \'matrix\' ? renderMatrixWorkspace() : renderKanbanWorkspace()'),
+        boardSource.includes("workspaceView === 'matrix' ? (") &&
+        boardSource.includes('<EisenhowerMatrix') &&
+        boardSource.includes('<KanbanBoard'),
         'Expected workspace toggle to render matrix or kanban content.'
     );
 });

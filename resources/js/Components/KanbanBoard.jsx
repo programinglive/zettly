@@ -85,7 +85,7 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${isDragging ? 'z-50 opacity-50' : ''
+            className={`bg-white dark:bg-slate-950/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-slate-700 transition-all hover:-translate-y-0.5 ${isDragging ? 'z-50 opacity-50' : ''
                 }`}
             onClick={() => {
                 if (!isDragging && typeof onSelect === 'function') {
@@ -189,7 +189,12 @@ const columnKeyToProps = {
     completed: { importance: null, priority: null, is_completed: true },
 };
 
-export default function KanbanBoard({ todos: initialTodos, showCreateButton = true, onSelect }) {
+export default function KanbanBoard({
+    todos: initialTodos,
+    showCreateButton = true,
+    onSelect,
+    hideHeader = false
+}) {
     const toggleForm = useForm({ reason: '' });
     const updateForm = useForm({ reason: '', priority: null, importance: null, is_completed: false });
     const [todos, setTodos] = useState(initialTodos);
@@ -610,19 +615,21 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
         return (
             <div
                 ref={setNodeRef}
-                className={`flex-1 min-w-0 transition-colors ${isOver ? 'ring-2 ring-gray-400 ring-opacity-60' : ''
+                className={`flex-1 min-w-0 transition-all flex flex-col rounded-3xl border border-gray-200/60 dark:border-slate-800/60 overflow-hidden bg-white/50 dark:bg-slate-900/20 backdrop-blur-sm ${isOver ? 'ring-2 ring-gray-900/10 dark:ring-white/10' : ''
                     }`}
             >
-                <div className={`${bgColor} ${textColor} p-4 rounded-t-2xl shadow-sm`}>
+                <div className="p-5 border-b border-gray-100 dark:border-slate-800/60">
                     <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-2">
-                            <span className="text-xl leading-none">{icon}</span>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl ${bgColor.replace('bg-', 'bg-').replace('-800', '-50').replace('-700', '-50').replace('-600', '-50').replace('-500', '-50').replace('-400', '-50')} ${bgColor.replace('bg-', 'text-').replace('-800', '-600').replace('-700', '-600').replace('-600', '-600').replace('-500', '-600').replace('-400', '-600')} dark:bg-slate-800/50 dark:text-slate-300`}>
+                                {icon}
+                            </div>
                             <div>
-                                <h3 className="text-sm font-semibold uppercase tracking-wide">{title}</h3>
-                                {subtitle && <p className="text-xs opacity-80">{subtitle}</p>}
+                                <h3 className="font-bold text-gray-900 dark:text-white leading-tight uppercase tracking-wider text-xs">{title}</h3>
+                                {subtitle && <p className="text-[11px] font-medium text-gray-400 dark:text-slate-500 mt-0.5">{subtitle}</p>}
                             </div>
                         </div>
-                        <span className="inline-flex items-center justify-center rounded-full bg-white/25 px-2 py-0.5 text-xs font-semibold">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11px] font-bold text-gray-500 dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-400">
                             {totalCount}
                         </span>
                     </div>
@@ -630,18 +637,18 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
                         <div className="mt-3 flex justify-end">
                             <button
                                 onClick={handleArchiveCompleted}
-                                className="text-[11px] bg-white/25 hover:bg-white/35 px-2 py-1 rounded-full transition-colors flex items-center gap-1"
+                                className="text-[10px] font-bold text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 uppercase tracking-widest transition-colors flex items-center gap-1.5"
                                 title="Archive all completed todos"
                             >
-                                <Archive className="w-3 h-3" />
-                                <span>Archive</span>
+                                <Archive className="w-3.5 h-3.5" />
+                                <span>Archive All</span>
                             </button>
                         </div>
                     )}
                 </div>
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
                     <div
-                        className="bg-gray-50/90 dark:bg-slate-950/60 p-3 rounded-b-2xl min-h-[220px] max-h-[540px] overflow-y-auto space-y-3 border border-gray-200/70 dark:border-slate-800/80"
+                        className="p-3 min-h-[220px] max-h-[540px] overflow-y-auto space-y-3"
                     >
                         {displayTodos.length > 0 ? (
                             displayTodos.map(todo => (
@@ -684,32 +691,34 @@ export default function KanbanBoard({ todos: initialTodos, showCreateButton = tr
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <div className="space-y-6">
+            <div className="space-y-10">
                 {/* Header */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Todo Board</h2>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage priorities and capture new tasks in one place.</p>
-                    </div>
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                        <Link
-                            href="/todos"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                            <Eye className="w-4 h-4" />
-                            View All
-                        </Link>
-                        {showCreateButton && (
+                {!hideHeader && (
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Todo Board</h2>
+                            <p className="mt-2 text-lg text-gray-500 dark:text-gray-400 font-light">Manage priorities and capture new tasks in one place.</p>
+                        </div>
+                        <div className="flex items-center gap-3">
                             <Link
-                                href="/todos/create"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                href="/todos"
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:text-gray-900 dark:border-slate-800 dark:bg-slate-900 dark:text-gray-300 dark:hover:border-slate-700 dark:hover:text-white"
                             >
-                                <Plus className="w-4 h-4" />
-                                New Todo
+                                <Eye className="w-4 h-4" />
+                                View All
                             </Link>
-                        )}
+                            {showCreateButton && (
+                                <Link
+                                    href="/todos/create"
+                                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    New Todo
+                                </Link>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Kanban Board */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">

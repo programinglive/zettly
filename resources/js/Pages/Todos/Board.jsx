@@ -118,29 +118,6 @@ export default function Board({
         }
     }, [selectedTask]);
 
-    const renderMatrixWorkspace = () => (
-        <EisenhowerMatrix
-            todos={tasks}
-            onTaskSelect={handleTaskSelect}
-            selectedTaskId={selectedTaskId}
-            onTaskUpdate={handleTaskUpdate}
-        />
-    );
-
-    const renderKanbanWorkspace = () => (
-        <Suspense
-            fallback={
-                <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-12 text-center text-gray-500 dark:text-gray-400">
-                    Loading board...
-                </div>
-            }
-        >
-            <div className="space-y-6">
-                <KanbanBoard todos={tasks} onSelect={handleTaskSelect} />
-            </div>
-        </Suspense>
-    );
-
     return (
         <DashboardLayout title="Todo Board">
             <Drawer
@@ -154,32 +131,59 @@ export default function Board({
                 }}
             >
                 <Head title="Todo Board" />
-                <div className="grid min-h-screen grid-rows-[auto_1fr] pb-48 lg:pb-0">
-                    {/* Header */}
-                    <div className="mb-8 flex items-end justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Todo Board</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Manage priorities and capture new tasks in one place.</p>
+                <div className="min-h-screen pb-48 lg:pb-0">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                        {/* Header */}
+                        <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                            <div className="flex-1">
+                                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                    Todo Board
+                                </h1>
+                                <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                                    Manage priorities and capture new tasks in one place.
+                                </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setContextOpen((prev) => !prev)}
+                                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition shadow-sm ${contextOpen
+                                        ? 'bg-gray-900 border-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-300 dark:hover:border-slate-700 dark:hover:text-white'
+                                        }`}
+                                    disabled={!selectedTask}
+                                >
+                                    {contextOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                                    {contextOpen ? 'Hide details' : 'Show details'}
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Show details Toggle */}
-                        <div className="flex justify-end gap-3 mb-1">
-                            <button
-                                type="button"
-                                onClick={() => setContextOpen((prev) => !prev)}
-                                className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white"
-                                disabled={!selectedTask}
-                            >
-                                {contextOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-                                {contextOpen ? 'Hide details' : 'Show details'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Main Layout */}
-                    <div className="flex flex-col gap-4">
-                        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/60">
-                            {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
+                        {/* Main Layout */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {workspaceView === 'matrix' ? (
+                                <EisenhowerMatrix
+                                    todos={tasks}
+                                    onTaskSelect={handleTaskSelect}
+                                    selectedTaskId={selectedTaskId}
+                                    onTaskUpdate={handleTaskUpdate}
+                                    hideHeader={true}
+                                />
+                            ) : (
+                                <Suspense fallback={
+                                    <div className="flex items-center justify-center p-24">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
+                                    </div>
+                                }>
+                                    <KanbanBoard
+                                        todos={tasks}
+                                        onSelect={handleTaskSelect}
+                                        hideHeader={true}
+                                    />
+                                </Suspense>
+                            )}
                         </div>
                     </div>
                 </div>

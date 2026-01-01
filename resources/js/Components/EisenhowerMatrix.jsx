@@ -76,10 +76,10 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white dark:bg-slate-950/80 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-slate-700 ${isDragging ? 'z-50 opacity-50' : ''
+            className={`bg-white dark:bg-slate-950/80 p-4 rounded-2xl border transition-all shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-slate-700 hover:-translate-y-0.5 ${isDragging ? 'z-50 opacity-50' : ''
                 } ${isSelected
-                    ? 'border-gray-400 ring-2 ring-gray-300/60 dark:border-gray-500 dark:ring-gray-500/40'
-                    : 'border-gray-200 dark:border-slate-800'
+                    ? 'border-gray-900 ring-2 ring-gray-900/5 dark:border-white/40 dark:ring-white/5'
+                    : 'border-gray-100 dark:border-slate-800'
                 }`}
             onClick={() => {
                 if (typeof onSelect === 'function') {
@@ -153,7 +153,13 @@ const MAX_VISIBLE = 4;
 
 const NO_OP = () => { };
 
-export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, selectedTaskId = null, onTaskUpdate = NO_OP }) {
+export default function EisenhowerMatrix({
+    todos = [],
+    onTaskSelect = NO_OP,
+    selectedTaskId = null,
+    onTaskUpdate = NO_OP,
+    hideHeader = false
+}) {
     const [activeId, setActiveId] = useState(null);
     const [localTodos, setLocalTodos] = useState(todos);
     const [visibleCounts, setVisibleCounts] = useState({
@@ -409,19 +415,21 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         return (
             <div
                 ref={setNodeRef}
-                className={`flex flex-col rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden transition-all bg-white dark:bg-slate-900/40 ${isOver ? 'ring-2 ring-gray-400 ring-opacity-50' : ''
+                className={`flex flex-col rounded-3xl border border-gray-200/60 dark:border-slate-800/60 overflow-hidden transition-all bg-white/50 dark:bg-slate-900/20 backdrop-blur-sm ${isOver ? 'ring-2 ring-gray-900/10 dark:ring-white/10' : ''
                     }`}
             >
-                <div className={`${bgColor} text-white p-4`}>
-                    <div className="flex items-start justify-between gap-2">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xl opacity-90">{icon}</span>
-                                <h3 className="font-semibold text-base">{title}</h3>
+                <div className="p-5 border-b border-gray-100 dark:border-slate-800/60">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl ${bgColor.replace('bg-', 'bg-').replace('-800', '-50').replace('-700', '-50').replace('-600', '-50').replace('-500', '-50')} ${bgColor.replace('bg-', 'text-').replace('-800', '-600').replace('-700', '-600').replace('-600', '-600').replace('-500', '-600')} dark:bg-slate-800/50 dark:text-slate-300`}>
+                                {icon}
                             </div>
-                            <p className="text-xs opacity-80">{description}</p>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white leading-tight">{title}</h3>
+                                <p className="text-[11px] font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">{description}</p>
+                            </div>
                         </div>
-                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-white/20 text-xs font-semibold">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11px] font-bold text-gray-500 dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-400">
                             {quadTodos.length}
                         </span>
                     </div>
@@ -472,11 +480,13 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
             >
-                <div className="space-y-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Eisenhower Matrix</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Prioritize by urgency and importance</p>
-                    </div>
+                <div className="space-y-10">
+                    {!hideHeader && (
+                        <div>
+                            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Eisenhower Matrix</h2>
+                            <p className="mt-2 text-lg text-gray-500 dark:text-gray-400 font-light">Prioritize by urgency and importance</p>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <QuadrantColumn
