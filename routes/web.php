@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/system-status', SystemStatusController::class)->name('system.status');
 
     Route::get('notes', [TodoController::class, 'notes'])->name('notes.index');
+    Route::get('todos/board', [TodoController::class, 'board'])->name('todos.board');
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');

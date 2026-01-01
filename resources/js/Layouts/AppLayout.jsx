@@ -59,6 +59,12 @@ export default function AppLayout({
             group: 'main',
         },
         {
+            href: '/todos/board',
+            label: 'Todo Board',
+            icon: LayoutDashboard,
+            group: 'main',
+        },
+        {
             href: '/notes',
             label: 'My Notes',
             icon: FileText,
@@ -89,9 +95,6 @@ export default function AppLayout({
 
     // Profile menu items
     const profileMenuItems = [
-        { href: '/todos/completed', label: 'Completed' },
-        { href: '/todos/archived', label: 'Archived' },
-        { href: '/todos/deleted', label: 'Trash' },
         { href: '/manage/tags', label: 'Manage Tags' },
         {
             href: '/organizations',

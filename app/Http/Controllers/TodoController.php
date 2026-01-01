@@ -30,6 +30,68 @@ use Inertia\Inertia;
 class TodoController extends Controller
 {
     /**
+     * Display the Kanban board view.
+     */
+    public function board(Request $request)
+    {
+        $user = $request->user();
+
+        $selectedTagIds = collect($request->input('tags', []))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $todosQuery = $user->todos()
+            ->notArchived()
+            ->tasks()
+            ->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])
+            ->orderBy('is_completed', 'asc')
+            ->orderByRaw("CASE 
+            WHEN priority = 'urgent' THEN 1 
+            WHEN priority = 'not_urgent' THEN 2 
+            ELSE 3 END")
+            ->orderByRaw("CASE 
+            WHEN importance = 'important' THEN 1 
+            WHEN importance = 'not_important' THEN 2 
+            ELSE 3 END");
+
+        if (Todo::hasKanbanOrderColumn()) {
+            $todosQuery->orderBy('kanban_order');
+        }
+
+        $todosQuery->orderBy('created_at', 'desc');
+
+        if (! empty($selectedTagIds)) {
+            $todosQuery->whereHas('tags', function ($query) use ($selectedTagIds) {
+                $query->whereIn('tags.id', $selectedTagIds);
+            });
+        }
+
+        $todos = $todosQuery->get();
+
+        $todos->each(function (Todo $todo) {
+            $todo->attachments->each(fn ($attachment) => $attachment->append(['url', 'thumbnail_url']));
+        });
+
+        $availableTags = $user->tags()
+            ->orderBy('name')
+            ->get(['id', 'name', 'color']);
+
+        return Inertia::render('Todos/Board', [
+            'todos' => $todos,
+            'filters' => [
+                'tags' => $selectedTagIds,
+            ],
+            'availableTags' => $availableTags,
+            'preferences' => [
+                'workspace_view' => $user->workspace_view ?? null,
+            ],
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
