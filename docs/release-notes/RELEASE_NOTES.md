@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.0 | 2026-01-01 | See CHANGELOG for details. |
 | 0.11.14 | 2026-01-01 | revamp profile settings with minimal black/white design (7643e35) |
 
 | 0.11.13 | 2026-01-01 | cleanup post release (215a8aa) |
@@ -26,6 +27,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 | 0.10.19 | 2025-11-22 | **deps-dev:** bump js-yaml from 4.1.0 to 4.1.1 (754d0f7) |
 
 
+
+
+## 0.12.0
+
+Released on **2026-01-01**.
+
+- See CHANGELOG for details.
 
 ## 0.11.14 – ♻️ Refactors
 
