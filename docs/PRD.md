@@ -88,8 +88,10 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Linked todos, checklist items, attachments, due dates.
 
 ### 6.2 Tag Management
-- CRUD operations with color picker UI and soft-delete restore.
-- API endpoints for search and association with todos.
+- Dedicated standalone interface accessible via primary sidebar navigation and enhanced Hero layout.
+- Comprehensive CRUD operations with visual color picker and soft-delete restoration support.
+- Independent tag creation flow natively integrated into the organizational workspace.
+- API endpoints for search and seamless association across todos and other resources.
 
 ### 6.3 Drawing Workspace
 - TLDraw-powered canvas per user.

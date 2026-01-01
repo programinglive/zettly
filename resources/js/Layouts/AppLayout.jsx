@@ -12,7 +12,8 @@ import {
     Menu,
     PanelLeftClose,
     PanelLeftOpen,
-    Monitor
+    Monitor,
+    Hash
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
@@ -82,6 +83,12 @@ export default function AppLayout({
             icon: Target,
             group: 'main',
         },
+        {
+            href: '/manage/tags',
+            label: 'Tags',
+            icon: Hash,
+            group: 'main',
+        },
     ];
 
     if (isSuperAdmin) {
@@ -95,7 +102,6 @@ export default function AppLayout({
 
     // Profile menu items
     const profileMenuItems = [
-        { href: '/manage/tags', label: 'Manage Tags' },
         {
             href: '/organizations',
             label: 'Organizations',

@@ -116,7 +116,7 @@ php artisan config:clear
 - ✅ **Create & Manage Todos** - Add, edit, delete, and complete todos
 - ✅ **Priority System** - Set priority levels (Low, Medium, High, Urgent) with color-coded badges; completed or archived todos automatically drop their priority so the "Completed" lane stays clean, and API updates mirror the same behavior for parity across clients
 - ✅ **Smart Sorting** - Todos automatically sorted by priority and completion status
-- ✅ **Tag Management** - Organize todos with customizable colored tags
+- ✅ **Standalone Tags Workspace** - Promoted Tag Management to a dedicated first-class page in the navigation. Create, edit, and restore tags independently of todo creation with a premium, focused interface.
 - ✅ **Todo Linking** - Create relationships between related todos
 - ✅ **Attachments** - Upload images/documents, preview images, download files, and delete with a confirmation modal
 - ✅ **Rich Text Descriptions** - Compose todos with the Zettly Editor (TipTap). The app sanitizes all saved HTML, highlights code blocks with Highlight.js, and shows a concise plain-text preview on the overview cards to keep layouts tidy.
