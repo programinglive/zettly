@@ -59,7 +59,7 @@ class HabitController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -84,7 +84,9 @@ class HabitController extends Controller
             'longest_streak' => 0,
         ]);
 
-        return response()->json($habit, 201);
+        return redirect()->route('habits.index', [
+            'organization_id' => $validated['organization_id'] ?? null
+        ])->with('success', 'Habit created successfully!');
     }
 
     /**
@@ -128,7 +130,7 @@ class HabitController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Habit $habit): JsonResponse
+    public function update(Request $request, Habit $habit)
     {
         $this->authorizeHabit($habit, $request);
 
@@ -145,19 +147,21 @@ class HabitController extends Controller
 
         $habit->update($validated);
 
-        return response()->json($habit);
+        return redirect()->route('habits.show', $habit)
+            ->with('success', 'Habit updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Habit $habit): JsonResponse
+    public function destroy(Habit $habit)
     {
         $this->authorizeHabit($habit, request());
 
         $habit->delete();
 
-        return response()->json(null, 204);
+        return redirect()->route('habits.index')
+            ->with('success', 'Habit deleted successfully!');
     }
 
     /**

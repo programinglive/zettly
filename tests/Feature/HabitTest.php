@@ -67,7 +67,8 @@ class HabitTest extends TestCase
         ];
 
         $this->post('/habits', $payload)
-            ->assertStatus(201);
+            ->assertRedirect(route('habits.index'))
+            ->assertSessionHas('success');
 
         $habit = Habit::latest('id')->first();
         $this->assertNotNull($habit);
@@ -131,7 +132,8 @@ class HabitTest extends TestCase
         ];
 
         $this->put("/habits/{$habit->id}", $payload)
-            ->assertStatus(200);
+            ->assertRedirect(route('habits.show', $habit))
+            ->assertSessionHas('success');
 
         $this->assertDatabaseHas('habits', [
             'id' => $habit->id,
@@ -157,7 +159,8 @@ class HabitTest extends TestCase
         $habit = Habit::factory()->create(['user_id' => $user->id]);
 
         $this->delete("/habits/{$habit->id}")
-            ->assertStatus(204);
+            ->assertRedirect(route('habits.index'))
+            ->assertSessionHas('success');
 
         $this->assertSoftDeleted('habits', ['id' => $habit->id]);
     }

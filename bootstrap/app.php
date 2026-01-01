@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -13,7 +14,6 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         then: function () {
             Route::middleware('web')->group(base_path('routes/tldraw-sync.php'));
-            Route::middleware('web')->group(base_path('routes/test-broadcasting.php'));
         },
         health: '/up',
     )
