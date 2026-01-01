@@ -42,35 +42,32 @@ export default function Deleted({ todos }) {
         <AppLayout title="Deleted Todos & Notes">
             <Head title="Deleted Todos & Notes" />
 
-            <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 py-10 space-y-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-start gap-4">
-                        <Link
-                            href="/todos"
-                            className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:-translate-x-0.5 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:text-white"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
-                        <div className="space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full bg-rose-100/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">
-                                <Trash2 className="h-4 w-4" />
-                                Deleted Items
-                            </div>
-                            <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                                Restore deleted todos and notes before they're gone for good
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-6">
+                            <Link
+                                href="/todos"
+                                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-100 bg-white text-gray-400 transition hover:bg-gray-900 hover:text-white dark:bg-slate-900/60 dark:border-slate-800 dark:hover:bg-white dark:hover:text-gray-900 shadow-sm"
+                            >
+                                <ArrowLeft className="h-5 w-5" />
+                            </Link>
+                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                Trash Bin
                             </h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Recently deleted items stay in this recovery area for 30 days. Restore them to bring them back into your workspace.
-                            </p>
                         </div>
+                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            Recover any items deleted within the last 30 days. After that, they'll be gone for good.
+                        </p>
                     </div>
 
-                    <div className="flex flex-col gap-1 rounded-2xl border border-gray-200 bg-white p-5 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900/70">
-                        <span className="text-gray-500 dark:text-gray-400">Deleted items</span>
-                        <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{totalDeleted}</span>
+                    <div className="flex flex-col gap-1 rounded-[2rem] border border-gray-100 bg-white p-8 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-slate-500">Items Pending</span>
+                        <span className="text-3xl font-black text-gray-900 dark:text-white">{totalDeleted}</span>
                         {deletionStats?.mostRecent && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
-                                Last deleted {new Date(deletionStats.mostRecent).toLocaleDateString()}
+                            <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 mt-1">
+                                LAST DELETED {new Date(deletionStats.mostRecent).toLocaleDateString()}
                             </span>
                         )}
                     </div>
@@ -176,11 +173,10 @@ export default function Deleted({ todos }) {
                                                     href={link.url}
                                                     preserveScroll
                                                     preserveState
-                                                    className={`inline-flex min-w-[2.25rem] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition ${
-                                                        link.active
+                                                    className={`inline-flex min-w-[2.25rem] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition ${link.active
                                                             ? 'bg-rose-600 text-white shadow-sm'
                                                             : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
-                                                    }`}
+                                                        }`}
                                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                                 />
                                             ) : (

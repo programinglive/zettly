@@ -82,7 +82,7 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Create FormData to handle file uploads
         const formData = new FormData();
 
@@ -96,17 +96,17 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
         if (!isNote && data.due_date) {
             formData.append('due_date', normalizeDateForInput(data.due_date));
         }
-        
+
         // Append tag IDs
         data.tag_ids.forEach((tagId, index) => {
             formData.append(`tag_ids[${index}]`, tagId);
         });
-        
+
         // Append related todo IDs
         data.related_todo_ids.forEach((todoId, index) => {
             formData.append(`related_todo_ids[${index}]`, todoId);
         });
-        
+
         // Append checklist items
         (data.checklist_items || []).forEach((item, index) => {
             formData.append(`checklist_items[${index}][title]`, item.title ?? '');
@@ -142,34 +142,37 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
 
     return (
         <AppLayout title={isNote ? 'Create Note' : 'Create Todo'}>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10">
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="sticky top-0 z-20 border-b border-gray-200/60 bg-white/95 pb-6 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-gray-700/60 dark:bg-gray-900/80 lg:px-10 lg:py-8">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:gap-10">
-                            <div className="space-y-3 lg:max-w-3xl">
-                                <CardTitle className="text-2xl text-gray-900 dark:text-white md:text-3xl">{isNote ? 'Create New Note' : 'Create New Todo'}</CardTitle>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Capture details, choose tags, and attach files to keep your work organized.</p>
-                            </div>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                                <Link
-                                    href={isNote ? '/notes' : '/todos'}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white"
-                                >
-                                    <ArrowLeft className="w-4 h-4" />
-                                    Back
-                                </Link>
-                                <Button
-                                    type="submit"
-                                    form="create-todo-form"
-                                    disabled={processing}
-                                    className="inline-flex items-center justify-center rounded-xl bg-gray-800 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-gray-700 dark:hover:bg-gray-600 z-0"
-                                >
-                                    {processing ? 'Creating…' : isNote ? 'Create Note' : 'Create Todo'}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-6 sm:p-8 lg:px-10 lg:py-10">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                            {isNote ? 'Create Note' : 'Create Todo'}
+                        </h1>
+                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            Capture details, choose tags, and attach files to keep your work organized.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Link href={isNote ? '/notes' : '/todos'}>
+                            <Button variant="outline" className="rounded-full px-6 transition-all hover:bg-gray-100 dark:hover:bg-slate-800">
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back
+                            </Button>
+                        </Link>
+                        <Button
+                            type="submit"
+                            form="create-todo-form"
+                            disabled={processing}
+                            className="rounded-full px-8 bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all shadow-lg"
+                        >
+                            {processing ? 'Creating...' : isNote ? 'Create Note' : 'Create Todo'}
+                        </Button>
+                    </div>
+                </div>
+
+                <Card className="bg-white dark:bg-gray-900/40 border-gray-100 dark:border-gray-800 shadow-sm rounded-[2.5rem] overflow-hidden">
+                    <CardContent className="p-8 sm:p-12 lg:p-16">
                         <form id="create-todo-form" onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
                             <div className="lg:grid lg:grid-cols-12 lg:gap-8">
                                 <div className="space-y-6 lg:col-span-8">

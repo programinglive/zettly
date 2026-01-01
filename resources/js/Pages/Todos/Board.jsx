@@ -58,7 +58,6 @@ export default function Board({
     const [selectedTaskId, setSelectedTaskId] = useState(null);
     const [workspaceView] = useWorkspacePreference(preferences?.workspace_view);
     const [fabOpen, setFabOpen] = useState(false);
-    const [contextOpen, setContextOpen] = useState(true);
 
     const tasks = useMemo(
         () => todos.filter((todo) => todo.type === 'todo' && !todo.archived),
@@ -100,9 +99,6 @@ export default function Board({
 
     const handleTaskSelect = useCallback((todo) => {
         setSelectedTaskId(todo?.id ?? null);
-        if (todo) {
-            setContextOpen(true);
-        }
     }, []);
 
     const handleTaskUpdate = useCallback(() => {
@@ -112,21 +108,15 @@ export default function Board({
     const handleFabToggle = () => setFabOpen((prev) => !prev);
     const handleFabClose = () => setFabOpen(false);
 
-    useEffect(() => {
-        if (!selectedTask) {
-            setContextOpen(false);
-        }
-    }, [selectedTask]);
+    // No auto-close logic needed for contextOpen as it's removed
 
     return (
         <DashboardLayout title="Todo Board">
             <Drawer
-                open={Boolean(selectedTask) && contextOpen}
+                open={Boolean(selectedTask)}
                 onOpenChange={(open) => {
                     if (!open) {
-                        setContextOpen(false);
-                    } else if (selectedTask) {
-                        setContextOpen(true);
+                        setSelectedTaskId(null);
                     }
                 }}
             >
@@ -142,22 +132,6 @@ export default function Board({
                                 <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
                                     Manage priorities and capture new tasks in one place.
                                 </p>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setContextOpen((prev) => !prev)}
-                                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition shadow-sm ${contextOpen
-                                        ? 'bg-gray-900 border-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-300 dark:hover:border-slate-700 dark:hover:text-white'
-                                        }`}
-                                    disabled={!selectedTask}
-                                >
-                                    {contextOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-                                    {contextOpen ? 'Hide details' : 'Show details'}
-                                </button>
                             </div>
                         </div>
 
@@ -261,6 +235,6 @@ export default function Board({
                     <span className="sr-only">Toggle quick create menu</span>
                 </button>
             </div>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 }

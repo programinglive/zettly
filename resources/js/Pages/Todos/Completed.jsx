@@ -92,35 +92,32 @@ export default function Completed({ todos }) {
         <AppLayout title="Completed Todos">
             <Head title="Completed Todos" />
 
-            <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 py-10 space-y-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-start gap-4">
-                        <Link
-                            href="/todos"
-                            className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:-translate-x-0.5 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:text-white"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
-                        <div className="space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
-                                <CheckCircle2 className="h-4 w-4" />
-                                Completed Todos
-                            </div>
-                            <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                                Celebrate your wins and revisit them any time
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Header */}
+                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-6">
+                            <Link
+                                href="/todos"
+                                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-100 bg-white text-gray-400 transition hover:bg-gray-900 hover:text-white dark:bg-slate-900/60 dark:border-slate-800 dark:hover:bg-white dark:hover:text-gray-900 shadow-sm"
+                            >
+                                <ArrowLeft className="h-5 w-5" />
+                            </Link>
+                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                Completed Wins
                             </h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Need to pick something back up? Flip a completed todo back to active status without losing any metadata.
-                            </p>
                         </div>
+                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                            Celebrate your achievements and revisit them any time. Need to pick something back up? Just flip it back to active.
+                        </p>
                     </div>
 
-                    <div className="flex flex-col gap-1 rounded-2xl border border-gray-200 bg-white p-5 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900/70">
-                        <span className="text-gray-500 dark:text-gray-400">Completed todos</span>
-                        <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{totalCompleted}</span>
+                    <div className="flex flex-col gap-1 rounded-[2rem] border border-gray-100 bg-white p-8 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-slate-500">Total Completed</span>
+                        <span className="text-3xl font-black text-gray-900 dark:text-white">{totalCompleted}</span>
                         {completionStats?.mostRecent && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
-                                Last completed {new Date(completionStats.mostRecent).toLocaleDateString()}
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                                LAST WIN {new Date(completionStats.mostRecent).toLocaleDateString()}
                             </span>
                         )}
                     </div>
@@ -230,11 +227,10 @@ export default function Completed({ todos }) {
                                                     href={link.url}
                                                     preserveScroll
                                                     preserveState
-                                                    className={`inline-flex min-w-[2.25rem] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition ${
-                                                        link.active
+                                                    className={`inline-flex min-w-[2.25rem] items-center justify-center rounded-full px-3 py-2 text-sm font-medium transition ${link.active
                                                             ? 'bg-emerald-600 text-white shadow-sm'
                                                             : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
-                                                    }`}
+                                                        }`}
                                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                                 />
                                             ) : (
