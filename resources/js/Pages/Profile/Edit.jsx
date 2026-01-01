@@ -229,8 +229,10 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                 </label>
                                 <Input
                                     id="name"
+                                    name="name"
                                     type="text"
                                     value={data.name}
+                                    autoComplete="name"
                                     onChange={(e) => setData('name', e.target.value)}
                                     className={`rounded-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
                                     required
@@ -244,8 +246,10 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                 </label>
                                 <Input
                                     id="email"
+                                    name="email"
                                     type="email"
                                     value={data.email}
+                                    autoComplete="email"
                                     onChange={(e) => setData('email', e.target.value)}
                                     className={`rounded-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-gray-900 dark:focus:ring-gray-400'}`}
                                     required
@@ -270,14 +274,15 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                             <p className="text-sm text-gray-500 dark:text-gray-400">Ensure your account is secure with a strong password.</p>
                         </div>
                         <form onSubmit={handlePasswordSubmit} className="max-w-lg space-y-6">
-                            <input type="email" autoComplete="username" className="hidden" aria-hidden="true" />
+                            <input type="email" autoComplete="username" name="hidden_username" id="hidden_username" className="hidden" aria-hidden="true" />
 
                             <div className="space-y-2">
-                                <label htmlFor="current_password" class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                <label htmlFor="current_password" className="text-sm font-medium text-gray-900 dark:text-gray-200">
                                     Current Password
                                 </label>
                                 <Input
                                     id="current_password"
+                                    name="current_password"
                                     type="password"
                                     autoComplete="current-password"
                                     value={passwordForm.data.current_password}
@@ -290,11 +295,12 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
 
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="password" class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                    <label htmlFor="new_password" className="text-sm font-medium text-gray-900 dark:text-gray-200">
                                         New Password
                                     </label>
                                     <Input
-                                        id="password"
+                                        id="new_password"
+                                        name="new_password"
                                         type="password"
                                         autoComplete="new-password"
                                         value={passwordForm.data.password}
@@ -306,11 +312,12 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label htmlFor="password_confirmation" class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                    <label htmlFor="confirm_password" className="text-sm font-medium text-gray-900 dark:text-gray-200">
                                         Confirm Password
                                     </label>
                                     <Input
-                                        id="password_confirmation"
+                                        id="confirm_password"
+                                        name="confirm_password"
                                         type="password"
                                         autoComplete="new-password"
                                         value={passwordForm.data.password_confirmation}
@@ -344,6 +351,8 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                 <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Create New Token</h3>
                                 <form onSubmit={handleTokenSubmit} className="flex gap-3">
                                     <Input
+                                        id="token_name"
+                                        name="token_name"
                                         type="text"
                                         placeholder="Token name (e.g. Mobile App)"
                                         value={tokenForm.data.name}
@@ -444,13 +453,13 @@ export default function Edit({ auth, mustVerifyEmail, status, tokens, new_token 
                                     type="button"
                                     onClick={() => setWorkspaceView(option.id)}
                                     className={`group relative flex flex-col items-start gap-4 rounded-xl border p-5 text-left transition-all ${option.isActive
-                                            ? 'border-gray-900 bg-gray-50 ring-1 ring-gray-900 dark:border-gray-100 dark:bg-gray-800 dark:ring-gray-100'
-                                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-transparent dark:hover:bg-gray-900'
+                                        ? 'border-gray-900 bg-gray-50 ring-1 ring-gray-900 dark:border-gray-100 dark:bg-gray-800 dark:ring-gray-100'
+                                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-transparent dark:hover:bg-gray-900'
                                         }`}
                                 >
                                     <div className={`rounded-lg p-2 ${option.isActive
-                                            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                                            : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                                        ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                                         }`}>
                                         {option.id === 'matrix' ? <Columns className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
                                     </div>

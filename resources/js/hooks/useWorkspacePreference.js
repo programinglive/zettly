@@ -67,7 +67,6 @@ export default function useWorkspacePreference(initialPreference = null) {
                     {
                         headers: {
                             Accept: 'application/json',
-                            'X-CSRF-TOKEN': token ?? undefined,
                             'X-Requested-With': 'XMLHttpRequest',
                         },
                         withCredentials: true,
@@ -107,7 +106,7 @@ export default function useWorkspacePreference(initialPreference = null) {
 
     useEffect(() => {
         if (typeof window === 'undefined') {
-            return () => {};
+            return () => { };
         }
 
         // Sync state with localStorage on mount
