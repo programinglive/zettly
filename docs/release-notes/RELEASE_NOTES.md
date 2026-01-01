@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.11.14 | 2026-01-01 | **feat:** Extract Todo Board and refine Dashboard |
 | 0.11.13 | 2026-01-01 | cleanup post release (215a8aa) |
 | 0.11.12 | 2025-12-28 | **gemini:** enhance chat UI and live tests (982f1aa) |
 | 0.11.11 | 2025-12-24 | **graph:** allow production origin in graph service CORS (d74cc20) |

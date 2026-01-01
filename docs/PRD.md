@@ -30,7 +30,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 
 ## 5. Product Scope
 ### 5.1 In Scope
-- Todo and note management (CRUD, prioritization, Eisenhower matrix, Kanban, archiving).
+- Todo and note management (CRUD, prioritization, dedicated Board view with Eisenhower/Kanban support).
 - Tag management with color coding, restore, search.
 - Drawing workspace with TLDraw autosave, gallery thumbnails, WebSocket sync.
 - Attachments (upload, preview, download, delete) and checklist items.
@@ -82,9 +82,9 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 ## 6. Feature Breakdown
 ### 6.1 Task & Note Management
 - Rich-text editor with sanitized HTML output.
-- Priorities (urgent/not urgent) and importance classification surfaced in Eisenhower matrix.
+- Priorities (urgent/not urgent) and importance classification surfaced in the dedicated Todo Board.
 - Tag filters, completion toggles, archival/restoration flows.
-- Kanban board with drag-and-drop ordering that persists column sequences per user.
+- **Dedicated Todo Board** (`/todos/board`) supporting both Eisenhower Matrix and Kanban views (user-selectable preference).
 - Linked todos, checklist items, attachments, due dates.
 
 ### 6.2 Tag Management

@@ -1,12 +1,15 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool } from 'lucide-react';
 
 import DashboardLayout from '../../Layouts/DashboardLayout';
 import ContextPanel from '../../Components/ContextPanel';
 import ReorderDebug from '../../Components/ReorderDebug';
-import KanbanBoard from '../../Components/KanbanBoard';
+import EisenhowerMatrix from '../../Components/EisenhowerMatrix';
+import useWorkspacePreference from '../../hooks/useWorkspacePreference';
 import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../../Components/ui/drawer';
+
+const KanbanBoard = lazy(() => import '../../Components/KanbanBoard');
 
 export default function Board({
     todos = [],
@@ -53,6 +56,7 @@ export default function Board({
     }, [isSuperAdmin]);
 
     const [selectedTaskId, setSelectedTaskId] = useState(null);
+    const [workspaceView] = useWorkspacePreference(preferences?.workspace_view);
     const [fabOpen, setFabOpen] = useState(false);
     const [contextOpen, setContextOpen] = useState(true);
 
@@ -114,6 +118,29 @@ export default function Board({
         }
     }, [selectedTask]);
 
+    const renderMatrixWorkspace = () => (
+        <EisenhowerMatrix
+            todos={tasks}
+            onTaskSelect={handleTaskSelect}
+            selectedTaskId={selectedTaskId}
+            onTaskUpdate={handleTaskUpdate}
+        />
+    );
+
+    const renderKanbanWorkspace = () => (
+        <Suspense
+            fallback={
+                <div className="bg-white/90 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 rounded-lg p-12 text-center text-gray-500 dark:text-gray-400">
+                    Loading board...
+                </div>
+            }
+        >
+            <div className="space-y-6">
+                <KanbanBoard todos={tasks} onSelect={handleTaskSelect} />
+            </div>
+        </Suspense>
+    );
+
     return (
         <DashboardLayout title="Todo Board">
             <Drawer
@@ -152,7 +179,7 @@ export default function Board({
                     {/* Main Layout */}
                     <div className="flex flex-col gap-4">
                         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/60">
-                            <KanbanBoard todos={tasks} onSelect={handleTaskSelect} />
+                            {workspaceView === 'matrix' ? renderMatrixWorkspace() : renderKanbanWorkspace()}
                         </div>
                     </div>
                 </div>
