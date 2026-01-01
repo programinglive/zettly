@@ -41,20 +41,4 @@ class GeminiChatTest extends TestCase
         ]);
     }
 
-    public function test_chat_endpoint_calls_real_gemini(): void
-    {
-        $this->assertNotEmpty(env('GEMINI_API_KEY'), 'GEMINI_API_KEY must be configured for this test.');
-
-        /** @var \App\Models\User $user */
-        $user = User::factory()->createOne();
-        Todo::factory()->asTask()->create(['user_id' => $user->id]);
-
-        $response = $this->actingAs($user)->postJson(route('gemini.chat'), [
-            'message' => 'Give me a one sentence focus reminder.',
-        ]);
-
-        $response->assertStatus(200, $response->getContent());
-        $response->assertJson(fn (AssertableJson $json) => $json->has('response'));
-        $this->assertNotEmpty($response->json('response'));
-    }
 }

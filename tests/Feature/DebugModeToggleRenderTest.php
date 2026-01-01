@@ -13,6 +13,7 @@ class DebugModeToggleRenderTest extends TestCase
 
     public function test_super_admin_can_access_profile_page(): void
     {
+        /** @var User $superAdmin */
         $superAdmin = User::factory()->create([
             'role' => UserRole::SUPER_ADMIN,
         ]);
@@ -26,6 +27,7 @@ class DebugModeToggleRenderTest extends TestCase
 
     public function test_regular_user_can_access_profile_page(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'role' => UserRole::USER,
         ]);
@@ -70,10 +72,15 @@ class DebugModeToggleRenderTest extends TestCase
 
         $this->assertNotEmpty($files, 'Edit component should be built');
 
-        $content = file_get_contents($files[0]);
-        // The minified code contains the Debug Settings UI
-        // Check for the presence of debug-related strings in the bundle
-        $this->assertStringContainsString('Debug', $content,
-            'Built Edit component should contain Debug related code');
+        $containsDebug = collect($files)->contains(function ($file) {
+            $content = file_get_contents($file);
+
+            return str_contains($content, 'Debug');
+        });
+
+        $this->assertTrue(
+            $containsDebug,
+            'Built Edit component should contain Debug related code'
+        );
     }
 }
