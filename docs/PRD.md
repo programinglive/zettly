@@ -1,7 +1,7 @@
 ---
 title: Zettly Product Requirements Document (PRD)
 author: Platform Team
-last_updated: 2025-12-07
+last_updated: 2026-01-01
 status: Draft
 ---
 

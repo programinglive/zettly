@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -12,6 +13,7 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -63,16 +65,26 @@ export default function Login({ status, canResetPassword }) {
                     <div>
                         <InputLabel htmlFor="password" value="Password" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block" />
 
-                        <TextInput
-                            id="password"
-                            type="password"
-                            name="password"
-                            value={data.password}
-                            className="mt-1 block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100"
-                            autoComplete="current-password"
-                            onChange={(e) => setData('password', e.target.value)}
-                            placeholder="Enter your password"
-                        />
+                        <div className="relative mt-1">
+                            <TextInput
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                name="password"
+                                value={data.password}
+                                className="block w-full px-4 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 pr-16"
+                                autoComplete="current-password"
+                                onChange={(e) => setData('password', e.target.value)}
+                                placeholder="Enter your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute inset-y-0 right-0 px-4 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800"
+                                aria-pressed={showPassword}
+                            >
+                                {showPassword ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
 
                         <InputError message={errors.password} className="mt-2" />
                     </div>

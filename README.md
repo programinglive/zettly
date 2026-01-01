@@ -84,6 +84,20 @@ Detailed historical changes live in [docs/reference/RELEASE_NOTES.md](./docs/ref
    composer run dev
    ```
 
+### Windows Development Setup
+
+For Windows users, the development environment is configured to work without the `pcntl` extension (which is Unix/Linux only):
+
+- **PHP Configuration**: The `pcntl` extension is disabled in `php.ini` to avoid startup warnings
+- **Mail System**: Uses log driver (`MAIL_MAILER=log`) for development - emails are logged instead of sent
+- **Composer Scripts**: `composer run dev` starts Laravel server, queue worker, and Vite frontend
+
+If you encounter mail job failures, clear the queue:
+```bash
+php artisan queue:clear
+php artisan config:clear
+```
+
 ### Tests
 
 - **PHPUnit**
