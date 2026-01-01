@@ -51,17 +51,17 @@ class DebugModeToggleRenderTest extends TestCase
             'Super admin role value should be super_admin string');
     }
 
-    public function test_seeded_john_user_is_super_admin(): void
+    public function test_seeded_default_user_is_super_admin(): void
     {
         $this->seed(\Database\Seeders\UserSeeder::class);
 
-        $john = User::where('email', 'john@example.com')->first();
+        $admin = User::where('email', 'mahatma.mahardhika@programinglive.com')->first();
 
-        $this->assertNotNull($john, 'John should be seeded');
-        $this->assertTrue($john->role === UserRole::SUPER_ADMIN,
-            'John should be a super administrator');
-        $this->assertEquals('super_admin', $john->role->value,
-            'John role value should be super_admin string');
+        $this->assertNotNull($admin, 'Default super admin should be seeded');
+        $this->assertTrue($admin->role === UserRole::SUPER_ADMIN,
+            'Default user should be a super administrator');
+        $this->assertEquals('super_admin', $admin->role->value,
+            'Role value should be super_admin string');
     }
 
     public function test_debug_mode_toggle_renders_in_built_component(): void

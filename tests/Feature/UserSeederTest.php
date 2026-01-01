@@ -13,29 +13,29 @@ class UserSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_john_is_seeded_as_super_admin(): void
+    public function test_default_super_admin_is_seeded(): void
     {
         $this->seed(UserSeeder::class);
 
-        $john = User::where('email', 'john@example.com')->first();
+        $admin = User::where('email', 'mahatma.mahardhika@programinglive.com')->first();
 
-        $this->assertNotNull($john, 'Seeded John user should exist.');
-        $this->assertTrue($john->role === UserRole::SUPER_ADMIN, 'Seeded John user should be a super administrator.');
-        $this->assertTrue(Hash::check('password123', $john->password), 'Seeded John user should have the default password.');
+        $this->assertNotNull($admin, 'Seeded super admin user should exist.');
+        $this->assertTrue($admin->role === UserRole::SUPER_ADMIN, 'Seeded default user should be a super administrator.');
+        $this->assertTrue(Hash::check('Programinglive@123', $admin->password), 'Seeded super admin user should have the default password.');
     }
 
-    public function test_existing_john_user_is_promoted_to_super_admin(): void
+    public function test_existing_user_promoted_to_super_admin(): void
     {
         User::factory()->create([
-            'email' => 'john@example.com',
+            'email' => 'mahatma.mahardhika@programinglive.com',
             'role' => UserRole::USER,
         ]);
 
         $this->seed(UserSeeder::class);
 
-        $john = User::where('email', 'john@example.com')->firstOrFail();
+        $admin = User::where('email', 'mahatma.mahardhika@programinglive.com')->firstOrFail();
 
-        $this->assertTrue($john->role === UserRole::SUPER_ADMIN, 'Existing John user should be promoted to super administrator.');
-        $this->assertTrue(Hash::check('password123', $john->password), 'Existing John user password should be reset to the default.');
+        $this->assertTrue($admin->role === UserRole::SUPER_ADMIN, 'Existing default user should be promoted to super administrator.');
+        $this->assertTrue(Hash::check('Programinglive@123', $admin->password), 'Existing super admin user password should be reset to the default.');
     }
 }

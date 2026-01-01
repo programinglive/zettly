@@ -89,6 +89,10 @@ export default function AppLayout({
 
     // Profile menu items
     const profileMenuItems = [
+        { href: '/todos/completed', label: 'Completed' },
+        { href: '/todos/archived', label: 'Archived' },
+        { href: '/todos/deleted', label: 'Trash' },
+        { href: '/manage/tags', label: 'Manage Tags' },
         {
             href: '/organizations',
             label: 'Organizations',

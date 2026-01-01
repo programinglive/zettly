@@ -65,38 +65,45 @@ test('focus greeting fetches include credentials and safe parsing', () => {
 
 });
 
-test('focus greeting completion reason dialog is wired correctly', () => {
+test('focus greeting renders CompletionReasonDialog', () => {
     assert.ok(
         focusGreetingSource.includes('CompletionReasonDialog'),
         'Expected focus greeting to render the shared CompletionReasonDialog component.'
     );
+});
 
+test('focus greeting opens reason dialog on completion request', () => {
     assert.ok(
-        /setShowReasonDialog\(true\);/m.test(focusGreetingSource) && focusGreetingSource.includes('handleRequestCompleteFocus'),
+        /setShowReasonDialog\s*\(\s*true\s*\);/m.test(focusGreetingSource) && focusGreetingSource.includes('handleRequestCompleteFocus'),
         'Expected focus greeting to open the reason dialog when completion is requested.'
     );
+});
 
+test('focus greeting sends correct completion request', () => {
     assert.ok(
-        /axios\.post\(`\/focus\/\$\{currentFocus\.id\}\/complete`,\s*{\s*reason,\s*filter_date:/.test(focusGreetingSource),
+        /axios\.post\s*\(\s*`\/focus\/\$\{currentFocus\.id\}\/complete`\s*,\s*{\s*reason,\s*filter_date:/m.test(focusGreetingSource),
         'Expected focus greeting to send the completion reason and filter_date in the axios request body.'
     );
+});
 
+test('focus greeting updates history after completion', () => {
     assert.ok(
-        /setStatusEvents\(\(prev\) => {/m.test(focusGreetingSource) && focusGreetingSource.includes('Recent Focus History'),
+        /setStatusEvents\s*\(\s*\(prev\)\s*=>\s*{/m.test(focusGreetingSource) && focusGreetingSource.includes('Recent Focus History'),
         'Expected focus greeting to update and render the recent focus history list after completion.'
     );
+});
 
+test('focus greeting handles text wrapping', () => {
     assert.ok(
-        focusGreetingSource.includes('whitespace-pre-line break-words'),
+        focusGreetingSource.includes('line-clamp-2'),
         'Expected focus greeting to wrap long reason text without overflowing the card.'
     );
 });
 
-test('focus greeting history renders focus title and description', () => {
+test('focus greeting history renders focus title', () => {
     assert.ok(
-        /event\.focus\?\.title \? \(/.test(focusGreetingSource) &&
-        /event\.focus\.description \? \(/.test(focusGreetingSource),
-        'Expected recent focus history entries to include focus title and optional description.'
+        focusGreetingSource.includes('event.focus?.title'),
+        'Expected recent focus history entries to include focus title.'
     );
 });
 

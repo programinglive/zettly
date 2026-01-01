@@ -76,7 +76,7 @@ function DraggableTaskCard({ todo, onToggle, onSelect, isSelected }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white/95 dark:bg-slate-950/70 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md ${isDragging ? 'z-50 opacity-50' : ''
+            className={`bg-white dark:bg-slate-950/80 p-3 rounded-lg border transition-all shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-slate-700 ${isDragging ? 'z-50 opacity-50' : ''
                 } ${isSelected
                     ? 'border-gray-400 ring-2 ring-gray-300/60 dark:border-gray-500 dark:ring-gray-500/40'
                     : 'border-gray-200 dark:border-slate-800'
@@ -409,26 +409,26 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
         return (
             <div
                 ref={setNodeRef}
-                className={`flex flex-col rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden transition-all ${isOver ? 'ring-2 ring-gray-400 ring-opacity-50' : ''
+                className={`flex flex-col rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden transition-all bg-white dark:bg-slate-900/40 ${isOver ? 'ring-2 ring-gray-400 ring-opacity-50' : ''
                     }`}
             >
                 <div className={`${bgColor} text-white p-4`}>
                     <div className="flex items-start justify-between gap-2">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="text-2xl">{icon}</span>
-                                <h3 className="font-semibold text-lg">{title}</h3>
+                                <span className="text-xl opacity-90">{icon}</span>
+                                <h3 className="font-semibold text-base">{title}</h3>
                             </div>
-                            <p className="text-sm opacity-90">{description}</p>
+                            <p className="text-xs opacity-80">{description}</p>
                         </div>
-                        <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/20 text-sm font-semibold">
+                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-white/20 text-xs font-semibold">
                             {quadTodos.length}
                         </span>
                     </div>
                 </div>
 
                 <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
-                    <div className="bg-gray-50/90 dark:bg-slate-950/60 p-3 min-h-[200px] space-y-3 flex-1">
+                    <div className="flex-1 p-3 min-h-[200px] space-y-3">
                         {displayTodos.length > 0 ? (
                             displayTodos.map(todo => (
                                 <DraggableTaskCard
@@ -440,8 +440,11 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                                 />
                             ))
                         ) : (
-                            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-                                <p className="text-xs">{icon} No tasks</p>
+                            <div className="flex h-full min-h-[160px] items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-slate-800/50 p-6 text-center text-gray-400 dark:text-gray-600">
+                                <div>
+                                    <div className="mx-auto mb-2 opacity-50">{icon}</div>
+                                    <p className="text-xs font-medium">No tasks here</p>
+                                </div>
                             </div>
                         )}
                         {quadTodos.length > visibleCount && (
@@ -450,9 +453,9 @@ export default function EisenhowerMatrix({ todos = [], onTaskSelect = NO_OP, sel
                                     ...prev,
                                     [id]: prev[id] + MAX_VISIBLE
                                 }))}
-                                className="w-full text-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 py-2"
+                                className="w-full rounded-lg border border-gray-100 bg-gray-50 py-2 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-slate-800 dark:bg-slate-900 dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-300"
                             >
-                                +{quadTodos.length - visibleCount} more
+                                Show {quadTodos.length - visibleCount} more
                             </button>
                         )}
                     </div>

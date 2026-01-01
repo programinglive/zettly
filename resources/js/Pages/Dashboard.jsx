@@ -5,7 +5,6 @@ import { Plus, ListTodo, FileText, PanelRightOpen, PanelRightClose, PenTool, Mai
 import DashboardLayout from '../Layouts/DashboardLayout';
 import EisenhowerMatrix from '../Components/EisenhowerMatrix';
 import ContextPanel from '../Components/ContextPanel';
-import SystemStatus from '../Components/SystemStatus';
 import FocusGreeting from '../Components/FocusGreeting';
 import ReorderDebug from '../Components/ReorderDebug';
 import useWorkspacePreference from '../hooks/useWorkspacePreference';
@@ -221,8 +220,8 @@ const DueDateCalendar = ({ tasks }) => {
                                 dueTasks.flatMap((todo) =>
                                     Array.isArray(todo?.tags)
                                         ? todo.tags
-                                              .map((tag) => normalizeHexColor(tag?.color))
-                                              .filter(Boolean)
+                                            .map((tag) => normalizeHexColor(tag?.color))
+                                            .filter(Boolean)
                                         : []
                                 )
                             )
@@ -233,11 +232,10 @@ const DueDateCalendar = ({ tasks }) => {
                         return (
                             <div
                                 key={key + isCurrentMonth}
-                                className={`relative flex h-12 flex-col justify-start rounded-lg border border-transparent px-1.5 pt-2 pb-2 text-[11px] transition-colors ${
-                                    isCurrentMonth
-                                        ? 'text-gray-700 dark:text-gray-200'
-                                        : 'text-gray-400 dark:text-gray-600'
-                                } ${isToday ? 'ring-1 ring-gray-400/60 dark:ring-gray-400/60' : ''} ${highlight ? 'hover:border-transparent' : 'hover:border-gray-500/40'}`}
+                                className={`relative flex h-12 flex-col justify-start rounded-lg border border-transparent px-1.5 pt-2 pb-2 text-[11px] transition-colors ${isCurrentMonth
+                                    ? 'text-gray-700 dark:text-gray-200'
+                                    : 'text-gray-400 dark:text-gray-600'
+                                    } ${isToday ? 'ring-1 ring-gray-400/60 dark:ring-gray-400/60' : ''} ${highlight ? 'hover:border-transparent' : 'hover:border-gray-500/40'}`}
                                 style={{
                                     ...(highlight?.style ? { ...highlight.style, color: highlight.className.includes('text-white') ? '#fff' : undefined } : {}),
                                 }}
@@ -250,15 +248,15 @@ const DueDateCalendar = ({ tasks }) => {
                                     <div className="absolute left-1/2 bottom-1 flex h-1 w-4 -translate-x-1/2 overflow-hidden rounded-full bg-white/80 dark:bg-slate-950/80">
                                         {tagColors.length
                                             ? tagColors.slice(0, 4).map((color) => (
-                                                  <span
-                                                      key={`${key}-${color}`}
-                                                      className="flex-1"
-                                                      style={{ backgroundColor: color }}
-                                                  />
-                                              ))
+                                                <span
+                                                    key={`${key}-${color}`}
+                                                    className="flex-1"
+                                                    style={{ backgroundColor: color }}
+                                                />
+                                            ))
                                             : (
-                                                  <span className="flex-1 bg-white/0" />
-                                              )}
+                                                <span className="flex-1 bg-white/0" />
+                                            )}
                                     </div>
                                 )}
                             </div>
@@ -299,7 +297,7 @@ export default function Dashboard({
 
         // Allow debug mode for super admins or if explicitly enabled via localStorage
         const debugEnabled = window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
-        
+
         if (!isSuperAdmin && !debugEnabled) {
             window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
             setHasDebugFlag(false);
@@ -314,7 +312,7 @@ export default function Dashboard({
 
         setHasDebugFlag(debugEnabled);
         console.log('🔍 Debug mode initialized:', debugEnabled, 'Super Admin:', isSuperAdmin);
-        
+
         window.addEventListener('zettly:debug-mode-changed', handleDebugChange);
 
         return () => {
@@ -577,9 +575,8 @@ export default function Dashboard({
 
             <div className="pointer-events-none fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
                 <div
-                    className={`flex flex-col gap-2 transition-all duration-150 ${
-                        fabOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-2 opacity-0'
-                    }`}
+                    className={`flex flex-col gap-2 transition-all duration-150 ${fabOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-2 opacity-0'
+                        }`}
                 >
                     <Link
                         href="/todos/create"
@@ -617,7 +614,6 @@ export default function Dashboard({
                     <span className="sr-only">Toggle quick create menu</span>
                 </button>
             </div>
-            <SystemStatus />
         </DashboardLayout>
     );
 }

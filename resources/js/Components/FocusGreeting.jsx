@@ -320,8 +320,8 @@ export default function FocusGreeting() {
     }
 
     return (
-        <div className="bg-gray-100 rounded-lg p-6 border border-gray-300 dark:bg-gray-900 dark:border-gray-700">
-            <div className="md:grid md:grid-cols-2 md:gap-6">
+        <div className="bg-white dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 transition-all">
+            <div className="md:grid md:grid-cols-2 md:gap-8">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
                         {getGreeting()}! 👋
@@ -330,32 +330,33 @@ export default function FocusGreeting() {
                     {currentFocus ? (
                         <div className="space-y-4">
                             <div className="flex items-start gap-3">
-                                <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-1 flex-shrink-0" />
+                                <AlertCircle className="w-5 h-5 text-gray-900 dark:text-gray-100 mt-1 flex-shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                                        What are you focusing on today?
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                        Active Focus
                                     </p>
-                                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-300 dark:border-gray-600">
+                                    <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 border border-gray-100 dark:border-slate-800">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+                                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                                     {currentFocus.title}
                                                 </h3>
                                                 {currentFocus.description && (
-                                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                                                         {currentFocus.description}
                                                     </p>
                                                 )}
                                                 {currentFocus.started_at && (
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                        Started: {new Date(currentFocus.started_at).toLocaleString()}
+                                                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-3 flex items-center gap-1">
+                                                        <span>Started:</span>
+                                                        <span>{new Date(currentFocus.started_at).toLocaleString()}</span>
                                                     </p>
                                                 )}
                                             </div>
                                             <button
                                                 onClick={handleRequestEditFocus}
                                                 disabled={isSubmitting}
-                                                className="flex-shrink-0 ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:text-gray-300 rounded-lg transition-colors dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700"
+                                                className="flex-shrink-0 ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
@@ -461,55 +462,66 @@ export default function FocusGreeting() {
                     )}
                 </div>
 
-                <div className="mt-6 md:mt-0">
-                    <div className="h-full rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200">Recent Focus History</h3>
-                        <div className="mt-3 flex flex-wrap items-center gap-3">
-                            <label htmlFor="focus-history-date" className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                Filter Date
-                            </label>
+                <div className="mt-8 md:mt-0">
+                    <div className="h-full rounded-2xl border border-gray-200 bg-gray-50/50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                Recent Focus History
+                            </h3>
                             <div className="flex items-center gap-2">
+                                <label htmlFor="focus-history-date" className="sr-only">
+                                    Filter Date
+                                </label>
                                 <input
                                     id="focus-history-date"
                                     type="date"
                                     value={historyDate}
                                     onChange={handleHistoryDateChange}
                                     max={getTodayDateString()}
-                                    className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-700 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    className="h-8 rounded-lg border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 shadow-sm focus:border-gray-900 focus:ring-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300"
                                 />
-                                {isHistoryLoading ? (
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Loading…</span>
-                                ) : null}
+                                {isHistoryLoading && (
+                                    <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
+                                )}
                             </div>
                         </div>
+
                         {statusEvents.length > 0 ? (
-                            <div className="mt-4 space-y-3">
+                            <div className="space-y-3">
                                 {statusEvents.map((event) => (
-                                    <div key={event.id} className="rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600 p-3">
-                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                            <span className="font-medium text-gray-700 dark:text-gray-100">{event.user?.name ?? 'You'}</span>
-                                            {event.created_at ? <span>{new Date(event.created_at).toLocaleString()}</span> : null}
+                                    <div key={event.id} className="group relative rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-gray-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+                                        <div className="flex items-center justify-between text-xs mb-2">
+                                            <span className="font-semibold text-gray-900 dark:text-white">
+                                                {event.user?.name ?? 'You'}
+                                            </span>
+                                            {event.created_at && (
+                                                <span className="text-gray-400 dark:text-gray-500">
+                                                    {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            )}
                                         </div>
-                                        {event.focus?.title ? (
-                                            <div className="mt-3">
-                                                <p className="text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Focus</p>
-                                                <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100 break-words break-all">
+
+                                        {event.focus?.title && (
+                                            <div className="mb-3">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words line-clamp-2">
                                                     {event.focus.title}
                                                 </p>
-                                                {event.focus.description ? (
-                                                    <p className="mt-1 max-w-full text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line break-words break-all">
-                                                        {event.focus.description}
-                                                    </p>
-                                                ) : null}
                                             </div>
-                                        ) : null}
-                                        <p className="mt-3 text-[0.75rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</p>
-                                        <p className="mt-1 max-w-full text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line break-words break-all">{event.reason}</p>
+                                        )}
+
+                                        <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <span className="shrink-0 uppercase tracking-wide text-[10px] font-semibold text-gray-400 dark:text-gray-600 mt-0.5">
+                                                Reason
+                                            </span>
+                                            <p className="line-clamp-2">{event.reason}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">No focus has been completed yet.</p>
+                            <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-gray-200 dark:border-slate-800">
+                                <p className="text-sm text-gray-400 dark:text-gray-500">No focus history for this date.</p>
+                            </div>
                         )}
                     </div>
                 </div>
