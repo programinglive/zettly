@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.13](https://github.com/programinglive/todo/compare/v0.11.12...v0.11.13) (2026-01-01)
+
+
+### 🧹 Chores
+
+* cleanup post release ([215a8aa](https://github.com/programinglive/todo/commit/215a8aa2d9055cbdae920e74fe0ecc9d553ddb96))
+
+
+### 🐛 Bug Fixes
+
+* resolve PHP pcntl extension warning and update Windows dev setup ([993c17b](https://github.com/programinglive/todo/commit/993c17be73cb5cf04fadc4c24222362a4be27a17))
+
+
+### ✅ Tests
+
+* add comprehensive test coverage for seeders ([c5d366c](https://github.com/programinglive/todo/commit/c5d366c3653b797e9a2863fbbb0216f27c01ec95))
+* stabilize gemini suite and update commiter config ([51b474b](https://github.com/programinglive/todo/commit/51b474b78cefa254130704693ce888f9533189a7))
+
+
+### 📝 Documentation
+
+* add paratest usage to workflow rules ([e270e79](https://github.com/programinglive/todo/commit/e270e790196e89b0b2a46387fb1c2ebc29eee54c))
+* remove SENTRY_TODO.md and move PRD.md to docs/ for commiter compliance ([e146dfe](https://github.com/programinglive/todo/commit/e146dfefa4d159803ee1a1ab362651edcfdfeea9))
+
+
+### ✨ Features
+
+* add habit tracker feature ([a50a5e2](https://github.com/programinglive/todo/commit/a50a5e27e8db6673923f978f7852efd8fef396ac))
+* add sidebar navigation and simplify design ([9e56c32](https://github.com/programinglive/todo/commit/9e56c321a8bf933fa9d3d0e6eac6572a23e9f023))
+* clean up profile menu and simplify system monitor ([0b4cef7](https://github.com/programinglive/todo/commit/0b4cef73f7a4f51db288135bda5df9f253e2277c))
+* **docs:** add gitbook-style documentation hub ([2ad547d](https://github.com/programinglive/todo/commit/2ad547d6841de9f2b93c276c69bc687f9b1bcc94))
+* revamp Habits layout with modern design and fix Inertia response errors ([e615141](https://github.com/programinglive/todo/commit/e61514115b996a4e7f8064b4f198ce607ff730c4))
+* update UserSeeder with actual credentials ([cf1670b](https://github.com/programinglive/todo/commit/cf1670b0b9e0fab3322668077f9628a2a7ab7722))
+
+
+### ♻️ Refactors
+
+* optimize TodoSeeder for faster execution ([3cc888d](https://github.com/programinglive/todo/commit/3cc888dd8e80acdf0979f7a417f027d044c0b2e1))
+* remove test credentials output from OrganizationSeeder ([f760120](https://github.com/programinglive/todo/commit/f760120ba0b26fa071e7cc914fa157d754880250))
+* revamp dashboard layout and fix test suite regressions ([b42cde8](https://github.com/programinglive/todo/commit/b42cde87bc0fd7f10d5456fd1440f78e1d43ff31))
+
 ### [0.11.12](https://github.com/programinglive/todo/compare/v0.11.11...v0.11.12) (2025-12-28)
 
 
