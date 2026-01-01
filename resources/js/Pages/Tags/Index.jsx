@@ -58,7 +58,7 @@ export default function Index({ auth, tags, deletedTags }) {
         <AppLayout title="Tags">
             <Head title="Tags" />
 
-            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 py-12">
+            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 py-12">
                 {/* Header Section */}
                 <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
                     <div className="space-y-4">
@@ -89,7 +89,7 @@ export default function Index({ auth, tags, deletedTags }) {
                 {/* Main Content */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
                     {tags && tags.length > 0 ? (
-                        <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {tags.map((tag) => (
                                 <div
                                     key={tag.id}
