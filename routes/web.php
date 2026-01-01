@@ -14,6 +14,7 @@ use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\UploadTestController;
+use App\Http\Controllers\HabitController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -140,6 +141,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('organizations/{organization}/members/{member}', [OrganizationController::class, 'removeMember'])->name('organizations.remove-member');
     Route::patch('organizations/{organization}/members/{member}/role', [OrganizationController::class, 'updateMemberRole'])->name('organizations.update-member-role');
     Route::post('organizations/{organization}/leave', [OrganizationController::class, 'leave'])->name('organizations.leave');
+
+    // Habit tracking routes
+    Route::resource('habits', HabitController::class);
+    Route::post('habits/{habit}/toggle', [HabitController::class, 'toggle'])->name('habits.toggle');
+    Route::get('habits/{habit}/stats', [HabitController::class, 'stats'])->name('habits.stats');
 });
 
 require __DIR__.'/auth.php';

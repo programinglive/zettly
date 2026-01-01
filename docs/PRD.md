@@ -6,7 +6,7 @@ status: Draft
 ---
 
 ## 1. Executive Summary
-Zettly is an integrated productivity platform for managing todos, notes, drawings, and knowledge artifacts with real-time collaboration. It merges Eisenhower prioritization, Kanban workflows, Algolia-powered search, TLDraw sketching, and push notifications into a single workspace. The most recent major enhancement introduces **Organizations** — enabling teams to create shared workspaces where members can collaboratively view and manage todos, notes, drawings, and tags. Combined with the super administrator System Monitor, Zettly now supports both individual and team-based productivity workflows.
+Zettly is an integrated productivity platform for managing todos, notes, drawings, habits, and knowledge artifacts with real-time collaboration. It merges Eisenhower prioritization, Kanban workflows, Algolia-powered search, TLDraw sketching, habit tracking, and push notifications into a single workspace. The most recent major enhancements introduce **Organizations** and a **Habit Tracker** — enabling teams to create shared workspaces where members can collaboratively view and manage todos, notes, drawings, tags, and recurring habit commitments. Combined with the super administrator System Monitor, Zettly now supports both individual and team-based productivity workflows.
 
 **CRITICAL DESIGN REQUIREMENT**: Zettly implements a strict two-color design system using ONLY black, white, and gray colors throughout the entire application. This monochromatic approach ensures visual consistency, reduces cognitive load, and creates a clean, professional interface.
 
@@ -24,7 +24,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 ## 4. User Personas
 - **Individual Contributor (IC):** Plans personal work and tracks tasks, notes, and sketches. Can create and join organizations for team collaboration.
 - **Team Lead / Organization Admin:** Creates organizations, invites team members, oversees shared priorities, coordinates dependencies, and reviews dashboards.
-- **Organization Member:** Collaborates within organizations, viewing and managing shared todos, notes, drawings, and tags with team members.
+- **Organization Member:** Collaborates within organizations, viewing and managing shared todos, notes, drawings, habits, and tags with team members.
 - **Knowledge Manager:** Curates reusable notes, tags, and attachments; depends on search fidelity; can share knowledge across organizations.
 - **Super Administrator / Support Engineer:** Monitors system health, validates integrations, responds to incidents, and manages platform-wide settings.
 
@@ -34,12 +34,12 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Tag management with color coding, restore, search.
 - Drawing workspace with TLDraw autosave, gallery thumbnails, WebSocket sync.
 - Attachments (upload, preview, download, delete) and checklist items.
-- Global search via Algolia indexes for todos, notes, tags.
+- Global search via Algolia indexes for todos, notes, tags, habits.
 - Push notifications, broadcasting, and Gemini chat demo.
 - Super administrator role management and System Monitor diagnostics.
 - **Organizations:** Create, manage, and invite members to shared workspaces.
 - **Organization Membership:** Admin and member roles with permission-based access.
-- **Shared Resources:** Todos, notes, drawings, and tags scoped to organizations.
+- **Shared Resources:** Todos, notes, drawings, habits, and tags scoped to organizations.
 - **Organization Switching:** Users can switch between personal and organization workspaces.
 
 ### 5.2 Out of Scope (for current release)
@@ -131,11 +131,18 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 ### 6.7 Organizations & Team Collaboration
 - **Organization Creation:** Users can create organizations with name, slug, description, and optional logo.
 - **Organization Membership:** Admin and member roles; admins can invite/remove members.
-- **Shared Workspace:** All todos, notes, drawings, and tags created within an organization are visible to members.
-- **Scoped Resources:** Todos, notes, drawings, and tags can be personal (user-scoped) or organizational (org-scoped).
+- **Shared Workspace:** All todos, notes, drawings, habits, and tags created within an organization are visible to members.
+- **Scoped Resources:** Todos, notes, drawings, habits, and tags can be personal (user-scoped) or organizational (org-scoped).
 - **Organization Switching:** UI allows users to switch between personal workspace and joined organizations.
 - **Invitation Flow:** Admins can invite users by email; invitees receive notifications and can accept/decline.
 - **Member Management:** Admins can view members, change roles, and remove members from organizations.
+
+### 6.8 Habit Tracking
+- **Habit Creation & Metadata:** Users (or organizations) can create habits with title, description, monochromatic icon/color, target frequency, and cadence (daily/weekly/monthly). Habits default to personal scope but can optionally belong to an organization.
+- **Completion Logging:** Web UI toggles allow members to record completions per day. Each log stores date, count, notes, and references the owning habit.
+- **Progress Insights:** Dashboard widgets show today's progress, 30-day completion rate, and streak indicators (current/longest). Aggregate stats come from the new `habit_entries` and `habit_streaks` tables.
+- **Permissions:** Personal habits are visible to the owner only. Organization habits appear to any authenticated member of that organization via the `habits.accessibleBy` scope.
+- **Navigation & UX:** A dedicated Habits section lives in the dashboard navigation alongside Todos/Draw. Habit pages follow the two-color UI system and support create/edit/detail flows consistent with shadcn/ui patterns.
 
 ## 7. Functional Requirements
 1. Users can create, edit, prioritize, archive, and delete todos and notes (personal or organizational).
@@ -150,9 +157,11 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 10. Role changes performed via helper without direct DB access.
 11. Users can create organizations and invite other users as members.
 12. Organization admins can manage members, change roles, and remove members.
-13. All organization members can view and manage shared todos, notes, drawings, and tags.
+13. All organization members can view and manage shared todos, notes, drawings, habits, and tags.
 14. Users can switch between personal workspace and organization workspaces via UI selector.
 15. Organization resources are scoped and only visible to organization members.
+16. Users can create, edit, archive, and delete habits (personal or organizational) with frequency targets and monochrome icon/color options.
+17. Users can log daily/weekly/monthly completions, see streaks, and review historical entries for each habit.
 
 ## 8. Non-Functional Requirements
 - **Security:** Role-based access control, CSRF compliance with cookie-based token handling via Axios, masked diagnostics, hashed passwords.
