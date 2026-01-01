@@ -10,7 +10,8 @@ import {
     Settings,
     LogOut,
     Menu,
-    X,
+    PanelLeftClose,
+    PanelLeftOpen,
     Monitor
 } from 'lucide-react';
 
@@ -86,24 +87,8 @@ export default function AppLayout({
         });
     }
 
-    // Profile menu items (moved from Quick Access)
+    // Profile menu items
     const profileMenuItems = [
-        {
-            href: '/todos/completed',
-            label: 'Completed',
-        },
-        {
-            href: '/todos/archived',
-            label: 'Archived',
-        },
-        {
-            href: '/todos/deleted',
-            label: 'Trash',
-        },
-        {
-            href: '/manage/tags',
-            label: 'Manage Tags',
-        },
         {
             href: '/organizations',
             label: 'Organizations',
@@ -212,7 +197,7 @@ export default function AppLayout({
                                     } hidden lg:flex`}
                             >
                                 {/* Sidebar Header */}
-                                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-slate-800">
+                                <div className={`flex items-center h-16 px-4 border-b border-gray-200 dark:border-slate-800 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
                                     {sidebarOpen && (
                                         <Link href={brandHref} className="flex items-center gap-2">
                                             <span className="text-xl">📝</span>
@@ -221,9 +206,10 @@ export default function AppLayout({
                                     )}
                                     <button
                                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-600 dark:text-gray-400"
+                                        title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
                                     >
-                                        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                                        {sidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
                                     </button>
                                 </div>
 
@@ -267,9 +253,10 @@ export default function AppLayout({
                                             </Link>
                                             <button
                                                 onClick={() => setMobileSidebarOpen(false)}
-                                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-600 dark:text-gray-400"
+                                                title="Close sidebar"
                                             >
-                                                <X className="w-5 h-5" />
+                                                <PanelLeftClose className="w-5 h-5" />
                                             </button>
                                         </div>
 
