@@ -117,7 +117,16 @@ export default function AppLayout({
     }, []);
 
     const isActive = (href) => {
-        return url === href || url.startsWith(href + '/');
+        if (url === href) return true;
+        if (url.startsWith(href + '/')) {
+            // Check if there is a more specific link in the sidebar that also matches the current URL
+            return !sidebarNavigation.some(item =>
+                item.href !== href &&
+                (url === item.href || url.startsWith(item.href + '/')) &&
+                item.href.length > href.length
+            );
+        }
+        return false;
     };
 
     return (
