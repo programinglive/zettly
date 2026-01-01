@@ -13,10 +13,10 @@ class UserSeeder extends Seeder
     {
         // Always promote John to super admin even if the record already exists.
         \App\Models\User::updateOrCreate(
-            ['email' => 'john@example.com'],
+            ['email' => 'mahatma.mahardhika@programinglive.com'],
             [
-                'name' => 'John Doe',
-                'password' => bcrypt('password123'),
+                'name' => 'Mahatma Mahardhika',
+                'password' => bcrypt('Programinglive@123'),
                 'email_verified_at' => now(),
                 'role' => \App\Enums\UserRole::SUPER_ADMIN->value,
             ]
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             ['email' => 'jane@example.com'],
             [
                 'name' => 'Jane Smith',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('keepmoving'),
                 'email_verified_at' => now(),
             ]
         );
@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
             ['email' => 'bob@example.com'],
             [
                 'name' => 'Bob Johnson',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('keepmoving'),
                 'email_verified_at' => now(),
             ]
         );
