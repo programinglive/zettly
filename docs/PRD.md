@@ -235,5 +235,5 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 
 ## 16. Appendices
 - **Runbook:** `php artisan tinker` → `\App\Models\User::where('email', 'admin@example.com')->first()?->assignRole(\App\Enums\UserRole::SUPER_ADMIN);`
-- **Testing:** PHPUnit coverage across dashboard, todos, tags, system monitor (`SystemMonitorTest`, updated `RegistrationTest` for role defaults).
+- **Testing:** PHPUnit coverage across dashboard, todos, tags, system monitor (`SystemMonitorTest`, updated `RegistrationTest` for role defaults). Manual verification for UI enhancements (Notes page Hero layout).
 - **Supporting Docs:** README.md (setup & admin instructions), API_DOCUMENTATION.md (REST endpoints), CHANGELOG.md (release history), CSRF_TESTING.md (form submission guidelines).

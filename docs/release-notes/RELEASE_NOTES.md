@@ -41,6 +41,9 @@ Released on **2026-01-01**.
 
 - revamp profile settings with minimal black/white design (7643e35)
 - profile settings react warnings and accessibility issues (84aee21)
+- **Habit Streaks**: Monitor your progress with the brand new habit streaks visualization.
+- **Premium Notes Page**: Reimagined "My Notes" with a premium hero header, tag-based filtering, and a masonry-style card layout.
+- **Organization Onboarding**: Improved invitation flow for team members joining new workspaces.
 - add todo board view and fix profile menu items (bdaa1d3)
 - **dashboard:** total revamp with premium hero layout and centered content (2b2d647)
 - extract todo board to dedicated page and refine dashboard (32820ed)

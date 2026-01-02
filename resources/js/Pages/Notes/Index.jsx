@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import DashboardLayout from '../../Layouts/DashboardLayout';
+import { Plus, Eye, Edit, Trash2, FileText, Hash } from 'lucide-react';
 
-import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import ConfirmationModal from '../../Components/ConfirmationModal';
 import TagBadge from '../../Components/TagBadge';
@@ -128,116 +128,130 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
     const visibleNotes = accNotes;
 
     return (
-        <AppLayout title="Notes">
+        <DashboardLayout title="Notes">
             <Head title="My Notes" />
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Header */}
-                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                    <div className="flex-1">
-                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                            My Notes
-                        </h1>
-                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                            Capture ideas and reference information without worrying about due dates or priorities.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Link href="/todos/create?type=note">
-                            <Button className="rounded-full px-6 py-6 h-auto text-base font-semibold transition shadow-sm bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-                                <Plus className="w-5 h-5 mr-2" />
-                                New Note
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Filters */}
-                {tags && tags.length > 0 && (
-                    <div className="space-y-4 mb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                        <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">
-                                Filter by Tag
-                            </label>
-                            {selectedTag && (
-                                <Link
-                                    href={buildUrl({ tag: null })}
-                                    className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-white transition-colors"
-                                >
-                                    Clear filter
-                                </Link>
-                            )}
+                {/* Header Section */}
+                <div className="mb-20">
+                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+                        <div className="flex-1 space-y-4">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 animate-in fade-in slide-in-from-left-4 duration-500">
+                                <FileText className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-500">
+                                    Personal Archive
+                                </span>
+                            </div>
+                            <h1 className="text-5xl sm:text-6xl font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight animate-in fade-in slide-in-from-left-4 duration-700 delay-75">
+                                My <span className="text-gray-400 dark:text-slate-600 italic">Notes</span>
+                            </h1>
+                            <p className="text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl animate-in fade-in slide-in-from-left-4 duration-1000 delay-150">
+                                Capture ideas, documentation, and reference information in your centralized personal workspace.
+                            </p>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            {tags.map((tag) => {
-                                const isSelected = selectedTag == tag.id;
+                        <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+                            <Link href="/todos/create?type=note">
+                                <Button className="group relative overflow-hidden rounded-full px-8 py-7 h-auto text-lg font-bold shadow-2xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-95">
+                                    <Plus className="w-5 h-5 mr-2 transition-transform group-hover:rotate-90" />
+                                    New Note
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
 
-                                return (
+                    {/* Tags Carousel/Filter Area */}
+                    {tags && tags.length > 0 && (
+                        <div className="mt-16 pt-8 border-t border-gray-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <Hash className="w-4 h-4 text-gray-400" />
+                                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                                        Filter by Tag
+                                    </label>
+                                </div>
+                                {selectedTag && (
                                     <Link
-                                        key={tag.id}
-                                        href={buildUrl({ tag: tag.id })}
-                                        className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border transition-all shadow-sm ${isSelected
-                                            ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
-                                            : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-slate-700 dark:hover:text-white'
-                                            }`}
+                                        href={buildUrl({ tag: null })}
+                                        className="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white hover:opacity-60 transition-opacity flex items-center gap-1"
                                     >
-                                        {tag.name}
-                                        {isSelected && <span className="ml-2">×</span>}
+                                        Clear filter <span className="text-lg leading-none">×</span>
                                     </Link>
-                                );
-                            })}
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-2.5">
+                                {tags.map((tag) => {
+                                    const isSelected = selectedTag == tag.id;
+
+                                    return (
+                                        <Link
+                                            key={tag.id}
+                                            href={buildUrl({ tag: tag.id })}
+                                            className={`inline-flex items-center px-5 py-2 rounded-full text-xs font-bold border transition-all duration-300 ${isSelected
+                                                ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow-lg'
+                                                : 'bg-white text-gray-500 border-gray-100 hover:border-gray-900 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-white dark:hover:text-white shadow-sm'
+                                                }`}
+                                        >
+                                            {tag.name}
+                                            {isSelected && <span className="ml-2 font-normal opacity-50">×</span>}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Notes Grid */}
                 {visibleNotes.length > 0 ? (
-                    <div className="[column-fill:_balance] [column-gap:1.5rem] columns-1 md:columns-2 lg:columns-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                    <div className="[column-fill:_balance] [column-gap:2rem] columns-1 md:columns-2 lg:columns-3 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
                         {visibleNotes.map((note) => {
-                            const descriptionPreview = getDescriptionPreview(note.description);
+                            const descriptionPreview = getDescriptionPreview(note.description, 200);
 
                             return (
-                                <div key={note.id} className="mb-6 group">
-                                    <article className="relative flex flex-col p-6 rounded-[2rem] border transition-all duration-300 bg-white border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-gray-200 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-700 h-full">
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
-                                                    Added {new Date(note.created_at).toLocaleDateString()}
-                                                </span>
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Link
-                                                        href={`/todos/${note.id}`}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5" />
-                                                    </Link>
-                                                    <Link
-                                                        href={`/todos/${note.id}/edit`}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
-                                                    >
-                                                        <Edit className="w-3.5 h-3.5" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(note)}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-full border border-red-50 bg-red-10 text-red-400 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white transition-all shadow-sm"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
+                                <div key={note.id} className="mb-8 break-inside-avoid-column group">
+                                    <article className="relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-500 bg-white border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-2 hover:border-gray-900/10 dark:bg-slate-900/40 dark:border-slate-800 dark:hover:border-white/20 dark:hover:shadow-none h-full overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <Link
+                                                    href={`/todos/${note.id}`}
+                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    title="View Note"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Link>
+                                                <Link
+                                                    href={`/todos/${note.id}/edit`}
+                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    title="Edit Note"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDeleteClick(note)}
+                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    title="Delete Note"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
+                                        </div>
 
+                                        <div className="flex-1 space-y-6">
                                             <div>
-                                                <h3 className="text-xl font-bold leading-tight text-gray-900 dark:text-white">
+                                                <span className="text-[10px] font-black text-gray-300 dark:text-slate-600 uppercase tracking-[0.2em]">
+                                                    {new Date(note.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                                <h3 className="mt-4 text-2xl font-black leading-tight text-gray-900 dark:text-white group-hover:text-gray-500 dark:group-hover:text-slate-300 transition-colors">
                                                     {note.title}
                                                 </h3>
                                                 {descriptionPreview && (
-                                                    <p className="mt-2 text-base leading-relaxed text-gray-600 dark:text-gray-400 font-light line-clamp-4">
+                                                    <p className="mt-4 text-base leading-relaxed text-gray-500 dark:text-gray-400 font-light line-clamp-6">
                                                         {descriptionPreview}
                                                     </p>
                                                 )}
                                             </div>
 
                                             {note.tags && note.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 pt-2">
+                                                <div className="flex flex-wrap gap-1.5 pt-4 border-t border-gray-50 dark:border-slate-800/50">
                                                     {note.tags.map((tag) => (
                                                         <TagBadge key={tag.id} tag={tag} />
                                                     ))}
@@ -250,20 +264,20 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
                         })}
                     </div>
                 ) : (
-                    <div className="py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                        <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 mb-8 shadow-inner">
-                            <Plus className="w-10 h-10 text-gray-300 dark:text-slate-700" />
+                    <div className="py-32 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                        <div className="inline-flex items-center justify-center w-32 h-32 rounded-[3.5rem] bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 mb-10 shadow-inner group">
+                            <FileText className="w-12 h-12 text-gray-200 dark:text-slate-800 transition-transform group-hover:scale-110 duration-500" />
                         </div>
-                        <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4">
-                            No notes yet
+                        <h3 className="text-4xl font-black text-gray-900 dark:text-white mb-6">
+                            No notes found
                         </h3>
-                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light mb-12 max-w-md mx-auto leading-relaxed">
-                            Capture your first idea by creating a note.
+                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light mb-16 max-w-lg mx-auto leading-relaxed">
+                            {selectedTag ? "No notes are currently tagged with this selection. Try clearing the filter or creating a new note with this tag." : "Your personal knowledge base is empty. Start capturing your thoughts and ideas today."}
                         </p>
                         <Link href="/todos/create?type=note">
-                            <Button className="rounded-full px-8 py-7 h-auto text-lg font-bold shadow-xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-105 active:scale-95">
-                                <Plus className="w-6 h-6 mr-2" />
-                                Create Your First Note
+                            <Button className="rounded-full px-12 py-8 h-auto text-xl font-black shadow-2xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-105 active:scale-95">
+                                <Plus className="w-6 h-6 mr-3" />
+                                Create First Note
                             </Button>
                         </Link>
                     </div>
@@ -271,10 +285,10 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
             </div>
 
             {hasMore && (
-                <div className="flex justify-center pt-12 pb-12">
+                <div className="flex justify-center pt-20 pb-32">
                     <Button
                         variant="outline"
-                        className="rounded-full px-10 py-6 h-auto text-base font-semibold border-gray-100 hover:border-gray-900 hover:bg-gray-900 hover:text-white dark:border-slate-800 dark:hover:border-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-300 shadow-sm"
+                        className="rounded-full px-12 py-7 h-auto text-base font-bold border-gray-200 text-gray-500 hover:border-gray-900 hover:text-gray-900 dark:border-slate-800 dark:text-slate-500 dark:hover:border-white dark:hover:text-white transition-all duration-300 shadow-sm"
                         onClick={() => {
                             if (hasMoreServer && nextPageUrl) {
                                 appendNextRef.current = true;
@@ -284,7 +298,7 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
                             }
                         }}
                     >
-                        Load more notes
+                        Load More Notes
                     </Button>
                 </div>
             )}
@@ -296,11 +310,11 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
                 onClose={handleDeleteCancel}
                 onConfirm={handleDeleteConfirm}
                 title="Delete Note"
-                message={`Are you sure you want to delete "${noteToDelete?.title}"? This action cannot be undone.`}
-                confirmText="Delete"
+                message={`Are you sure you want to delete "${noteToDelete?.title}"? This permanent action cannot be undone.`}
+                confirmText="Delete Permanently"
                 confirmButtonVariant="destructive"
                 isLoading={deleteForm.processing}
             />
-        </AppLayout>
+        </DashboardLayout>
     );
 }
