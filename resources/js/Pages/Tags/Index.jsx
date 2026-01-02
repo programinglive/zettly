@@ -96,15 +96,15 @@ export default function Index({ auth, tags, deletedTags }) {
                                     className="group relative flex flex-col rounded-[2.5rem] border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-slate-800 dark:bg-slate-900/50"
                                 >
                                     <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-4 min-w-0">
                                             <div
-                                                className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
+                                                className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
                                                 style={{ backgroundColor: tag.color + '20' }}
                                             >
                                                 <TagIcon className="w-6 h-6" style={{ color: tag.color }} />
                                             </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate" title={tag.name}>
                                                     {tag.name}
                                                 </h3>
                                                 <div className="flex items-center gap-2 mt-1">
@@ -113,7 +113,7 @@ export default function Index({ auth, tags, deletedTags }) {
                                                     </span>
                                                     {tag.todos_count !== undefined && (
                                                         <>
-                                                            <span className="text-gray-300 dark:text-slate-700">px-1</span>
+                                                            <span className="text-gray-300 dark:text-slate-700">|</span>
                                                             <span className="text-xs font-bold text-gray-500 dark:text-slate-400">
                                                                 {tag.todos_count} {tag.todos_count === 1 ? 'todo' : 'todos'}
                                                             </span>
@@ -123,20 +123,20 @@ export default function Index({ auth, tags, deletedTags }) {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1">
+                                        <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full p-1 shadow-md">
                                             <button
                                                 onClick={() => handleEditClick(tag)}
-                                                className="p-2.5 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
+                                                className="p-2 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
                                                 title="Edit"
                                             >
-                                                <Edit className="w-5 h-5" />
+                                                <Edit className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteClick(tag)}
-                                                className="p-2.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                                                className="p-2 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                                                 title="Delete"
                                             >
-                                                <Trash2 className="w-5 h-5" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>
