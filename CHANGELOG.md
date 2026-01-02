@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.2](https://github.com/programinglive/todo/compare/v0.12.1...v0.12.2) (2026-01-02)
+
+
+### 🐛 Bug Fixes
+
+* resolve test failures in DrawGalleryTest and boardWorkspace.test.js ([32cfdd2](https://github.com/programinglive/todo/commit/32cfdd2e319127b4371733173b59302cafe92151))
+
 ### [0.12.1](https://github.com/programinglive/todo/compare/v0.12.0...v0.12.1) (2026-01-02)
 
 
