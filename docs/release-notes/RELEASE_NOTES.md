@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.1 | 2026-01-02 | cleanup after release (95c25c5) |
 | 0.12.0 | 2026-01-01 | See CHANGELOG for details. |
 | 0.11.14 | 2026-01-01 | revamp profile settings with minimal black/white design (7643e35) |
 
@@ -28,6 +29,26 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.1 – 🧹 Chores
+
+Released on **2026-01-02**.
+
+- cleanup after release (95c25c5)
+- improve notes page layout (c937b63)
+- cleanup after release (6a79ca9)
+- **sidebar:** prevent multiple active links by using most specific path match (8270142)
+- extract manage tags to standalone page and revamp UI宣 (401fe24)
+- revamp habits module with hero headers and applayout standardization (599ebff)
+- revamp todo board with premium centered layout and refined components (8541415)
+- revamp todo list page with premium centered layout (1aaf271)
+- **sidebar:** move todo board below dashboard for better flow (1c65bf7)
+- standardize notes and drawings gallery with premium hero headers (d590176)
+- standardize organization pages with premium centered layout (3a09b3e)
+- standardize profile, docs, and developer portal with hero styling (9a2a140)
+- standardize tags page and fix container width consistency (4f322f5)
+- standardize todo module with premium hero layout and centered containers (c6edd89)
 
 ## 0.12.0
 

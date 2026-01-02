@@ -9,7 +9,7 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
 import { Input } from '../../Components/ui/input';
-import { ChevronLeft, Download, Loader2, Plus, Trash2, Check, Edit, Eye } from 'lucide-react';
+import { ChevronLeft, Download, Loader2, Plus, Trash2, Check, Edit, Eye, Maximize2, Minimize2 } from 'lucide-react';
 import * as Sentry from '@sentry/react';
 
 const TldrawComponent = lazy(() => import('tldraw').then((module) => ({ default: module.Tldraw })));
@@ -312,8 +312,10 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         lastSavedAt: null,
         error: null,
     });
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [editorReady, setEditorReady] = useState(false);
 
+    const canvasContainerRef = useRef(null);
     const editorRef = useRef(null);
     const suppressAutosaveRef = useRef(false);
     const blankSnapshotRef = useRef(null);
@@ -1136,6 +1138,29 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
         }
     }, [isGallery, activeDrawing, editorReady, loadDrawingIntoEditor]);
 
+    const toggleFullscreen = useCallback(() => {
+        if (!canvasContainerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            canvasContainerRef.current.requestFullscreen().catch((err) => {
+                debugError(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
     useEffect(() => {
         return () => {
             if (saveTimeoutRef.current) {
@@ -1409,51 +1434,37 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                 </div>
 
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Card className="flex h-[75vh] flex-col overflow-hidden rounded-[2.5rem] border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-                        <CardHeader className="space-y-4 border-b border-gray-100/50 pt-8 pb-6 px-8 dark:border-slate-800/50">
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                                        Canvas
-                                    </CardTitle>
-                                    {statusBadge}
+                    <Card
+                        ref={canvasContainerRef}
+                        className={`flex h-[75vh] flex-col overflow-hidden transition-all duration-300 ${isFullscreen
+                            ? 'fixed inset-0 z-50 h-screen w-screen rounded-none border-none'
+                            : 'rounded-[2.5rem] border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60'
+                            }`}
+                    >
+                        <CardHeader className={`border-b border-gray-100/50 pt-3 pb-3 px-6 dark:border-slate-800/50 ${isFullscreen ? 'bg-white dark:bg-slate-900' : ''}`}>
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                            Canvas
+                                        </CardTitle>
+                                        {statusBadge}
+                                    </div>
                                 </div>
-                                {activeDrawing ? (
-                                    <div className="flex w-full flex-col gap-2 text-sm lg:w-auto lg:flex-row lg:items-center">
-                                        <div className="flex items-center gap-2">
-                                            <label
-                                                htmlFor="drawing-title"
-                                                className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                                            >
-                                                Title
-                                            </label>
-                                            {titleSaveStatus.saving && (
-                                                <div className="flex items-center gap-1 text-xs text-blue-500">
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                    Saving...
-                                                </div>
-                                            )}
-                                            {!titleSaveStatus.saving && titleSaveStatus.lastSaved && (
-                                                <div className="flex items-center gap-1 text-xs text-green-500">
-                                                    <Check className="h-3 w-3" />
-                                                    Saved
-                                                </div>
-                                            )}
-                                        </div>
+                                {activeDrawing && (
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Title</span>
                                         <Input
-                                            id="drawing-title"
+                                            id="drawing-title-input"
                                             value={titleDraft}
-                                            onChange={(event) => {
-                                                setTitleDraft(event.target.value);
-                                                autoSaveDrawingTitle(event.target.value);
+                                            onChange={(e) => {
+                                                setTitleDraft(e.target.value);
+                                                autoSaveDrawingTitle(e.target.value);
                                             }}
-                                            onBlur={handleTitleBlur}
-                                            onKeyDown={handleTitleKeyDown}
-                                            className="lg:w-64"
-                                            placeholder="Name your drawing"
+                                            className="h-7 w-40 text-xs bg-transparent border-gray-100 dark:border-slate-800"
                                         />
                                     </div>
-                                ) : null}
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent className="relative flex-1 overflow-hidden p-0">
@@ -1481,17 +1492,30 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
                                     </div>
                                 ) : null}
 
-                                {/* Bottom toolbar with Gallery button */}
-                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-                                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-zinc-700">
-                                        {saveStatus.lastSavedAt && (
-                                            <span className="text-xs text-green-600 dark:text-green-400">
-                                                Last saved: {new Date(saveStatus.lastSavedAt).toLocaleTimeString()}
-                                            </span>
-                                        )}
+                                {/* Floating controls - repositioned to avoid Tldraw UI overlap */}
+                                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-[1000]">
+                                    <div className="flex items-center gap-2 bg-gray-900/90 dark:bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-2xl border border-white/20 dark:border-black/10">
+                                        <button
+                                            onClick={toggleFullscreen}
+                                            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white dark:text-gray-900 hover:scale-105 transition-transform"
+                                            title={isFullscreen ? "Exit Full Screen" : "Go Full Screen"}
+                                        >
+                                            {isFullscreen ? (
+                                                <>
+                                                    <Minimize2 className="h-4 w-4" />
+                                                    <span>Exit Full Screen</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Maximize2 className="h-4 w-4" />
+                                                    <span>Full Screen</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        <div className="w-px h-3 bg-white/20 dark:bg-black/10 mx-1" />
                                         <button
                                             onClick={() => router.get('/draw')}
-                                            className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                            className="text-[11px] font-bold uppercase tracking-wider text-white/70 dark:text-gray-900/70 hover:text-white dark:hover:text-gray-900 transition-colors"
                                         >
                                             Gallery
                                         </button>

@@ -99,7 +99,7 @@ test('profile settings page renders workspace preferences section', () => {
 test('board matrix layout keeps three-column arrangement on wide screens', () => {
     assert.ok(
         boardSource.includes("import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../../Components/ui/drawer';") &&
-        boardSource.includes('open={Boolean(selectedTask) && contextOpen}') &&
+        boardSource.includes('open={Boolean(selectedTask)}') &&
         boardSource.includes('<Drawer'),
         'Expected board to render the context drawer using shadcn primitives anchored to the right when a task is selected.'
     );
