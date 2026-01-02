@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.2 | 2026-01-02 | resolve test failures in DrawGalleryTest and boardWorkspace.test.js (32cfdd2) |
 | 0.12.1 | 2026-01-02 | cleanup after release (95c25c5) |
 | 0.12.0 | 2026-01-01 | See CHANGELOG for details. |
 | 0.11.14 | 2026-01-01 | revamp profile settings with minimal black/white design (7643e35) |
@@ -30,6 +31,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.2 – 🐛 Bug Fixes
+
+Released on **2026-01-02**.
+
+- resolve test failures in DrawGalleryTest and boardWorkspace.test.js (32cfdd2)
 
 ## 0.12.1 – 🧹 Chores
 
