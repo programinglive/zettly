@@ -1,10 +1,16 @@
-import React, { lazy, useState, useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Plus, ListTodo, FileText, PenTool, MailWarning, Loader2 } from 'lucide-react';
+import React, { lazy, useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
+import { Plus, ListTodo, FileText, PenTool, MailWarning, Loader2, PanelRightClose } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import FocusGreeting from '../Components/FocusGreeting';
 import ReorderDebug from '../Components/ReorderDebug';
+import EisenhowerMatrix from '../Components/EisenhowerMatrix';
+import ContextPanel from '../Components/ContextPanel';
+import useWorkspacePreference from '../hooks/useWorkspacePreference';
+import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDescription } from '../Components/ui/drawer';
+
+const KanbanBoard = lazy(() => import('../Components/KanbanBoard'));
 
 export default function Dashboard({
     todos = [],
@@ -59,62 +65,175 @@ export default function Dashboard({
     }, [isSuperAdmin]);
 
     const [fabOpen, setFabOpen] = useState(false);
+    const [selectedTaskId, setSelectedTaskId] = useState(null);
+    const [workspaceView] = useWorkspacePreference(preferences?.workspace_view);
+
+    const tasks = useMemo(
+        () => todos.filter((todo) => todo.type === 'todo' && !todo.archived),
+        [todos]
+    );
+
+    const selectedTask = useMemo(
+        () => tasks.find((task) => task.id === selectedTaskId) ?? null,
+        [tasks, selectedTaskId]
+    );
+
+    const aggregateLinkedTodos = useMemo(() => {
+        if (!selectedTask) {
+            return [];
+        }
+
+        const related = Array.isArray(selectedTask.relatedTodos)
+            ? selectedTask.relatedTodos
+            : selectedTask.related_todos || [];
+
+        const linkedBy = Array.isArray(selectedTask.linkedByTodos)
+            ? selectedTask.linkedByTodos
+            : selectedTask.linked_by_todos || [];
+
+        const combined = [...related, ...linkedBy];
+        const seen = new Set();
+
+        return combined.filter((todo) => {
+            if (!todo?.id || todo.id === selectedTask.id) {
+                return false;
+            }
+            if (seen.has(todo.id)) {
+                return false;
+            }
+            seen.add(todo.id);
+            return true;
+        });
+    }, [selectedTask]);
+
+    const handleTaskSelect = useCallback((todo) => {
+        setSelectedTaskId(todo?.id ?? null);
+    }, []);
+
+    const handleTaskUpdate = useCallback(() => {
+        router.reload({ only: ['todos'] });
+    }, []);
 
     const handleFabToggle = () => setFabOpen((prev) => !prev);
     const handleFabClose = () => setFabOpen(false);
 
     return (
         <DashboardLayout title="Dashboard">
-            <Head title="Dashboard" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Header */}
-                <div className="mb-16">
-                    <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                        Dashboard
-                    </h1>
-                    <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                        Stay focused and track your progress through the day.
-                    </p>
-                </div>
+            <Drawer
+                open={Boolean(selectedTask)}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedTaskId(null);
+                    }
+                }}
+            >
+                <Head title="Dashboard" />
+                <div className="min-h-screen pb-48 lg:pb-0">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                        {/* Header */}
+                        <div className="mb-16">
+                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                Dashboard
+                            </h1>
+                            <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                                Stay focused and track your progress through the day.
+                            </p>
+                        </div>
 
-                {/* Focus Greeting */}
-                <div className="mb-6 space-y-4">
-                    {mustVerifyEmail && (
-                        <div className="py-4 border-b border-amber-200/50 dark:border-amber-500/20 mb-8">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-center gap-3">
-                                    <MailWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                                    <div>
-                                        <h2 className="text-sm font-bold tracking-tight text-amber-900 dark:text-amber-100">
-                                            Email Verification Required
-                                        </h2>
-                                        <p className="text-sm text-amber-800/80 dark:text-amber-200/60">
-                                            Check your inbox to unlock all features.
-                                        </p>
+                        {/* Focus Greeting */}
+                        <div className="mb-12 space-y-4">
+                            {mustVerifyEmail && (
+                                <div className="py-4 border-b border-amber-200/50 dark:border-amber-500/20 mb-8">
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <MailWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                                            <div>
+                                                <h2 className="text-sm font-bold tracking-tight text-amber-900 dark:text-amber-100">
+                                                    Email Verification Required
+                                                </h2>
+                                                <p className="text-sm text-amber-800/80 dark:text-amber-200/60">
+                                                    Check your inbox to unlock all features.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <form
+                                            onSubmit={(event) => {
+                                                event.preventDefault();
+                                                resendVerification(route('verification.send'));
+                                            }}
+                                        >
+                                            <button
+                                                type="submit"
+                                                className="text-sm font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 transition-colors underline decoration-2 underline-offset-4"
+                                                disabled={isSendingVerification}
+                                            >
+                                                {isSendingVerification ? 'Sending...' : 'Resend link'}
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
+                            )}
 
-                                <form
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        resendVerification(route('verification.send'));
-                                    }}
-                                >
-                                    <button
-                                        type="submit"
-                                        className="text-sm font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 transition-colors underline decoration-2 underline-offset-4"
-                                        disabled={isSendingVerification}
-                                    >
-                                        {isSendingVerification ? 'Sending...' : 'Resend link'}
-                                    </button>
-                                </form>
-                            </div>
+                            <FocusGreeting />
                         </div>
-                    )}
 
-                    <FocusGreeting />
+                        {/* Task Board */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {workspaceView === 'matrix' ? (
+                                <EisenhowerMatrix
+                                    todos={tasks}
+                                    onTaskSelect={handleTaskSelect}
+                                    selectedTaskId={selectedTaskId}
+                                    onTaskUpdate={handleTaskUpdate}
+                                    hideHeader={false}
+                                />
+                            ) : (
+                                <Suspense fallback={
+                                    <div className="flex items-center justify-center p-24">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
+                                    </div>
+                                }>
+                                    <KanbanBoard
+                                        todos={tasks}
+                                        onSelect={handleTaskSelect}
+                                        hideHeader={false}
+                                    />
+                                </Suspense>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <DrawerContent
+                    side="right"
+                    className="w-full max-w-full border-none bg-transparent p-0 sm:max-w-lg"
+                >
+                    <DrawerTitle className="sr-only">Task context details</DrawerTitle>
+                    <div className="flex items-center justify-end border-b border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+                        <DrawerClose asChild>
+                            <button
+                                type="button"
+                                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition hover:text-gray-800 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300"
+                            >
+                                <PanelRightClose className="h-4 w-4" />
+                                <span className="sr-only">Close context drawer</span>
+                            </button>
+                        </DrawerClose>
+                    </div>
+                    <DrawerBody className="flex-1 overflow-y-auto bg-white px-6 py-6 dark:bg-slate-900">
+                        <DrawerDescription className="sr-only">Additional task context including status history, attachments, and related links.</DrawerDescription>
+                        {selectedTask && (
+                            <ContextPanel
+                                selectedTask={selectedTask}
+                                linkedTodos={aggregateLinkedTodos}
+                                className="min-h-full"
+                                onTaskUpdate={handleTaskUpdate}
+                            />
+                        )}
+                    </DrawerBody>
+                </DrawerContent>
+            </Drawer>
 
             {hasDebugFlag && <ReorderDebug />}
 
