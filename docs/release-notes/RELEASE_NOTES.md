@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.4 | 2026-01-21 | cleanup after release (a4042cb) |
 | 0.12.3 | 2026-01-02 | cleanup after release (e340f2d) |
 | 0.12.2 | 2026-01-02 | resolve test failures in DrawGalleryTest and boardWorkspace.test.js (32cfdd2) |
 | 0.12.1 | 2026-01-02 | cleanup after release (95c25c5) |
@@ -34,6 +35,20 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.4 – 🧹 Chores
+
+Released on **2026-01-21**.
+
+- cleanup after release (a4042cb)
+- **deps:** bump paragonie/sodium_compat from 2.4.0 to 2.5.0 (2c68918)
+- **deps:** bump qs from 6.14.0 to 6.14.1 in /graph-service (c60b408)
+- **build:** resolve rollup win32 module and tiptap version mismatch (c2e5af3)
+- implement kanban board setting in dashboard (2bd2f83)
+- remove completed column from kanban board (bc771ff)
+- remove todo board header from dashboard (6620d43)
+- add focus api endpoints and insomnia collection (38bbace)
 
 ## 0.12.3 – 🧹 Chores
 
