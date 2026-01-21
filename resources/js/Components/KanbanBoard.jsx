@@ -158,7 +158,7 @@ function DraggableTodoCard({ todo, onToggle, onSelect }) {
 
 const MAX_VISIBLE_TODOS = 5;
 const LOAD_INCREMENT = 5;
-const KANBAN_COLUMNS = ['q1', 'q2', 'q3', 'q4', 'completed'];
+const KANBAN_COLUMNS = ['q1', 'q2', 'q3', 'q4'];
 
 const getColumnKey = (todo) => {
     if (todo.is_completed) {
@@ -721,7 +721,7 @@ export default function KanbanBoard({
                 )}
 
                 {/* Kanban Board */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     <DroppableColumn
                         id="q1"
                         title="Q1: Do First"
@@ -774,19 +774,6 @@ export default function KanbanBoard({
                         textColor="text-white"
                         icon={<Trash2 className="w-5 h-5 text-gray-100" />}
                     />
-                    <DroppableColumn
-                        id="completed"
-                        title="Completed"
-                        subtitle="Archived after review"
-                        todos={completedTodos}
-                        totalCount={completedTodos.length}
-                        visibleCount={completedVisible}
-                        hasMore={completedHasMore}
-                        onLoadMore={loadMoreHandlers.completed}
-                        bgColor="bg-gray-400"
-                        textColor="text-white"
-                        icon="✅"
-                    />
                 </div>
 
                 {todos.length === 0 && (
@@ -798,7 +785,7 @@ export default function KanbanBoard({
                             <Link href="/todos/create">
                                 <button className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md text-sm font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-colors">
                                     <Plus className="w-5 h-5 mr-2" />
-                                    Create Your First Todo
+                                    Create Todo
                                 </button>
                             </Link>
                         )}
