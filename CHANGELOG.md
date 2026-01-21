@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.4](https://github.com/programinglive/todo/compare/v0.12.3...v0.12.4) (2026-01-21)
+
+
+### 🧹 Chores
+
+* cleanup after release ([a4042cb](https://github.com/programinglive/todo/commit/a4042cbdc14d7e2cdb350088c89c73b691bd6d07))
+* **deps:** bump paragonie/sodium_compat from 2.4.0 to 2.5.0 ([2c68918](https://github.com/programinglive/todo/commit/2c6891857959600d621c59ac1ff5a25da39926a3))
+* **deps:** bump qs from 6.14.0 to 6.14.1 in /graph-service ([c60b408](https://github.com/programinglive/todo/commit/c60b4083dcbd2598061b08b8eca61a97d21487ec))
+
+
+### 🐛 Bug Fixes
+
+* **build:** resolve rollup win32 module and tiptap version mismatch ([c2e5af3](https://github.com/programinglive/todo/commit/c2e5af38f04053307850dbad7eb4bbcf57b6309e))
+* implement kanban board setting in dashboard ([2bd2f83](https://github.com/programinglive/todo/commit/2bd2f8368d3782257f929bc7ac0ab681df158386))
+* remove completed column from kanban board ([bc771ff](https://github.com/programinglive/todo/commit/bc771ffd5210b662ea94a8aba43ffc4a1c82c0c0))
+* remove todo board header from dashboard ([6620d43](https://github.com/programinglive/todo/commit/6620d43b2b29bb38f10f2770e56f99f9567a0cc3))
+
+
+### ✨ Features
+
+* add focus api endpoints and insomnia collection ([38bbace](https://github.com/programinglive/todo/commit/38bbace003f84f18e9d1dca71641af369c8798b4))
+
 ### [0.12.3](https://github.com/programinglive/todo/compare/v0.12.2...v0.12.3) (2026-01-02)
 
 
