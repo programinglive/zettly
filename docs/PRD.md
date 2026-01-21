@@ -41,6 +41,7 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - **Organization Membership:** Admin and member roles with permission-based access.
 - **Shared Resources:** Todos, notes, drawings, habits, and tags scoped to organizations.
 - **Organization Switching:** Users can switch between personal and organization workspaces.
+- **Mobile API:** Dedicated API endpoints for Focus feature (Set Focus, Complete Focus, History) to support mobile applications.
 
 ### 5.2 Out of Scope (for current release)
 - External calendar sync and time tracking.
@@ -115,7 +116,20 @@ Knowledge workers rely on fragmented toolchains for tasks, documentation, and vi
 - Registered event now uses the framework verification listener plus our queued welcome email listener so every new user gets both messages. See the detailed email checklist in [EMAILS.md](./EMAILS.md).
 - Log viewer UI is restricted to the owner account (`mahatma.mahardhika@programinglive.com`).
 
-### 6.6 Super Administrator System Monitoring
+- Log viewer UI is restricted to the owner account (`mahatma.mahardhika@programinglive.com`).
+
+### 6.6 Focus API (Mobile Support)
+- **Endpoints:** RESTful API endpoints for managing user focus.
+    - `GET /api/focus/current`: Retrieve the active focus session.
+    - `GET /api/focus`: List recent focus history.
+    - `POST /api/focus`: Start a new focus session.
+    - `PUT /api/focus/{focus}`: Update an existing focus session.
+    - `POST /api/focus/{focus}/complete`: Complete a focus session with a reason.
+    - `DELETE /api/focus/{focus}`: Delete a focus session.
+- **Authentication:** Uses Laravel Sanctum tokens.
+- **Testing:** Importable Insomnia collection (`zettly.json`) provided for developers.
+
+### 6.7 Super Administrator System Monitoring
 - `UserRole` enum with `user` and `super_admin` values.
 - Migration adds `role` column defaulting to `user`, with casting and helpers (`assignRole`, `scopeSuperAdmins`).
 - Middleware alias `super-admin` enforcing access to `/admin` routes.

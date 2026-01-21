@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\TodoController;
+use App\Http\Controllers\FocusController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\TagController;
 use Illuminate\Http\Request;
@@ -49,6 +50,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('api.push-subscriptions.store');
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('api.push-subscriptions.destroy');
     Route::post('push/test', [PushSubscriptionController::class, 'test'])->name('api.push-subscriptions.test');
+
+    // Focus API Routes
+    Route::get('/focus/current', [FocusController::class, 'current'])->name('api.focus.current');
+    Route::get('/focus', [FocusController::class, 'index'])->name('api.focus.index');
+    Route::post('/focus', [FocusController::class, 'store'])->name('api.focus.store');
+    Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('api.focus.update');
+    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.focus.complete');
+    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('api.focus.destroy');
 });
 
 // Push routes with session auth (for web clients)

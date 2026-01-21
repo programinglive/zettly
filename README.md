@@ -110,6 +110,14 @@ php artisan config:clear
   ```
   The Node test suite now includes targeted regression coverage for the drawing workspace to ensure we never reintroduce the infinite render loop or passive event listener warnings on the TLDraw canvas.
 
+### API Testing
+
+The project includes a comprehensive Insomnia collection for testing API endpoints (Focus, Todos, Tags, etc.).
+
+1.  **Import Collection**: Import the `zettly.json` file from the project root into Insomnia.
+2.  **Configure Environment**: Select the "Local Development" environment.
+3.  **Set Token**: Generate an API token from your user profile and update the `token` variable in the Insomnia environment.
+
 ## Features
 
 ### Core Functionality

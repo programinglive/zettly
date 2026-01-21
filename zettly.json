@@ -1,0 +1,357 @@
+{
+    "_type": "export",
+    "__export_format": 4,
+    "__export_date": "2026-01-21T09:45:00.000Z",
+    "__export_source": "insomnia.desktop.app:v2023.5.0",
+    "resources": [
+        {
+            "_id": "req_focus_current",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus/current",
+            "name": "Get Current Focus",
+            "description": "",
+            "method": "GET",
+            "body": {},
+            "parameters": [
+                {
+                    "name": "date",
+                    "value": "2026-01-21",
+                    "disabled": true
+                }
+            ],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_focus_list",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus",
+            "name": "List Recent Foci",
+            "description": "",
+            "method": "GET",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_focus_store",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus",
+            "name": "Start Focus",
+            "description": "",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"title\": \"Implement API endpoints\",\n\t\"description\": \"Working on the mobile API integration\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_focus_update",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus/1",
+            "name": "Update Focus",
+            "description": "Replace '1' with valid Focus ID",
+            "method": "PUT",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"title\": \"Implement API endpoints (Updated)\",\n\t\"description\": \"Updated description\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_focus_complete",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus/1/complete",
+            "name": "Complete Focus",
+            "description": "Replace '1' with valid Focus ID",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"reason\": \"Task completed successfully\",\n\t\"filter_date\": \"2026-01-21\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_focus_delete",
+            "parentId": "fld_focus",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/focus/1",
+            "name": "Delete Focus",
+            "description": "Replace '1' with valid Focus ID",
+            "method": "DELETE",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_todos_list",
+            "parentId": "fld_todos",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/todos",
+            "name": "List Todos",
+            "description": "",
+            "method": "GET",
+            "body": {},
+            "parameters": [
+                {
+                    "name": "type",
+                    "value": "todo",
+                    "disabled": false
+                },
+                {
+                    "name": "filter",
+                    "value": "pending",
+                    "disabled": true
+                }
+            ],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_todos_store",
+            "parentId": "fld_todos",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/todos",
+            "name": "Create Todo",
+            "description": "",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"title\": \"New Task\",\n\t\"description\": \"Description of the task\",\n\t\"type\": \"todo\",\n\t\"priority\": \"urgent\",\n\t\"importance\": \"important\",\n\t\"checklist_items\": [\n\t\t{\"title\": \"Step 1\"},\n\t\t{\"title\": \"Step 2\"}\n\t]\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_todos_priorities",
+            "parentId": "fld_todos",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/todos/priorities",
+            "name": "Get Priorities",
+            "description": "",
+            "method": "GET",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_user",
+            "parentId": "wrk_zettly",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "url": "{{ base_url }}/api/user",
+            "name": "Get User",
+            "description": "",
+            "method": "GET",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1705826700000,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_focus",
+            "parentId": "wrk_zettly",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "name": "Focus",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1705826700000,
+            "_type": "request_group"
+        },
+        {
+            "_id": "fld_todos",
+            "parentId": "wrk_zettly",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "name": "Todos",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1705826700000,
+            "_type": "request_group"
+        },
+        {
+            "_id": "wrk_zettly",
+            "parentId": null,
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "name": "Zettly API",
+            "description": "",
+            "scope": "collection",
+            "_type": "workspace"
+        },
+        {
+            "_id": "env_local",
+            "parentId": "env_base",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "name": "Local Development",
+            "data": {
+                "base_url": "http://localhost:8000",
+                "token": "YOUR_API_TOKEN_HERE"
+            },
+            "dataPropertyOrder": {
+                "&": [
+                    "base_url",
+                    "token"
+                ]
+            },
+            "color": null,
+            "isPrivate": false,
+            "metaSortKey": 1600000000000,
+            "_type": "environment"
+        },
+        {
+            "_id": "env_base",
+            "parentId": "wrk_zettly",
+            "modified": 1705826700000,
+            "created": 1705826700000,
+            "name": "Base Environment",
+            "data": {
+                "base_url": "http://localhost:8000"
+            },
+            "dataPropertyOrder": null,
+            "color": null,
+            "isPrivate": false,
+            "metaSortKey": 1600000000000,
+            "_type": "environment"
+        }
+    ]
+}
