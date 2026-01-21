@@ -186,7 +186,7 @@ export default function Dashboard({
                                     onTaskSelect={handleTaskSelect}
                                     selectedTaskId={selectedTaskId}
                                     onTaskUpdate={handleTaskUpdate}
-                                    hideHeader={false}
+                                    hideHeader={true}
                                 />
                             ) : (
                                 <Suspense fallback={
@@ -197,7 +197,7 @@ export default function Dashboard({
                                     <KanbanBoard
                                         todos={tasks}
                                         onSelect={handleTaskSelect}
-                                        hideHeader={false}
+                                        hideHeader={true}
                                     />
                                 </Suspense>
                             )}
