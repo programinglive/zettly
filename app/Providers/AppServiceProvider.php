@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Models\Tag;
 use App\Models\Todo;
-use App\Observers\TagObserver;
 use App\Observers\TodoObserver;
 use App\Support\ResilientDatabaseStore;
 use Google\Cloud\Storage\StorageClient;
@@ -43,9 +42,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerResilientDatabaseCache();
 
-        // Register model observers for Algolia indexing
+        // Register model observers
         Todo::observe(TodoObserver::class);
-        Tag::observe(TagObserver::class);
 
         Storage::extend('gcs', function ($app, $config) {
             $clientOptions = [];

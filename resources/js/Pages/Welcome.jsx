@@ -362,38 +362,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </p>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                                    {/* Algolia Sponsor */}
-                                    <a 
-                                        href="https://www.algolia.com/"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
-                                    >
-                                        <div className="mb-4">
-                                            <svg
-                                                className="h-16 w-auto group-hover:scale-110 transition-transform duration-300"
-                                                viewBox="0 0 110 32"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path
-                                                    d="M8.5 4.5C3.8 4.5 0 8.3 0 13s3.8 8.5 8.5 8.5 8.5-3.8 8.5-8.5-3.8-8.5-8.5-8.5zm0 13c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"
-                                                    fill="#003DFF"
-                                                />
-                                                <text x="25" y="22" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#003DFF">Algolia</text>
-                                            </svg>
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                            Algolia
-                                        </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                                            Powerful search API that delivers instant, relevant search results across all your drawings and content.
-                                        </p>
-                                        <div className="mt-4 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                                            algolia.com →
-                                        </div>
-                                    </a>
-
                                     {/* tldraw Sponsor */}
                                     <a 
                                         href="https://tldraw.com/"

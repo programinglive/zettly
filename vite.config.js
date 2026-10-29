@@ -57,19 +57,6 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-                runtimeCaching: [
-                    {
-                        urlPattern: /^https:\/\/api\.algolia\.net\/.*/i,
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'algolia-api-cache',
-                            expiration: {
-                                maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                            }
-                        }
-                    }
-                ]
             }
         }),
     ],

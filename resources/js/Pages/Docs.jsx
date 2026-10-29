@@ -88,7 +88,7 @@ export default function Docs() {
                             Documentation
                         </h1>
                         <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                            Discover how Zettly is built and how to extend it. Every feature—Todos, Focus plans, Gemini insights, and integrations—ships with an accompanying guide.
+                            Discover how Zettly is built and how to extend it. Every feature—Todos, Focus plans, and integrations—ships with an accompanying guide.
                         </p>
                     </div>
                     <div className="flex items-center gap-3">

@@ -26,7 +26,6 @@ export default function SystemStatus({ forceEnable = false, inline = false }) {
         websocket: { status: 'checking', message: 'Testing...' },
         pusher: { status: 'checking', message: 'Testing...' },
         authentication: { status: 'checking', message: 'Testing...' },
-        algolia: { status: 'checking', message: 'Testing...' },
         environment: { status: 'checking', message: 'Testing...' },
         server: { status: 'checking', message: 'Testing...' }
     });
@@ -75,21 +74,6 @@ export default function SystemStatus({ forceEnable = false, inline = false }) {
             return { status: 'success', message: `Logged in as ${page.props.auth.user.name}` };
         }
         return { status: 'error', message: 'Not authenticated - WebSocket will not work' };
-    };
-
-    const checkAlgolia = () => {
-        try {
-            const algoliaAppId = import.meta.env.VITE_ALGOLIA_APP_ID;
-            const algoliaSearchKey = import.meta.env.VITE_ALGOLIA_SEARCH_KEY;
-            
-            if (!algoliaAppId || !algoliaSearchKey) {
-                return { status: 'warning', message: 'Algolia not configured' };
-            }
-            
-            return { status: 'success', message: `App ID: ${algoliaAppId}` };
-        } catch (error) {
-            return { status: 'error', message: error.message };
-        }
     };
 
     const checkEnvironment = () => {
@@ -158,7 +142,6 @@ export default function SystemStatus({ forceEnable = false, inline = false }) {
             websocket: checkWebSocket(),
             pusher: checkPusher(),
             authentication: checkAuthentication(),
-            algolia: checkAlgolia(),
             environment: checkEnvironment(),
             server: await checkServer()
         };
@@ -277,13 +260,6 @@ export default function SystemStatus({ forceEnable = false, inline = false }) {
                 <span className="font-medium">Authentication:</span>
                 <span className={getStatusColor(status.authentication.status)}>
                     {status.authentication.message}
-                </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-                {getStatusIcon(status.algolia.status)}
-                <span className="font-medium">Algolia:</span>
-                <span className={getStatusColor(status.algolia.status)}>
-                    {status.algolia.message}
                 </span>
             </div>
             <div className="flex items-center gap-2 text-xs">

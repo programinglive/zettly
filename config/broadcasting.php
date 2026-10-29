@@ -48,6 +48,22 @@ return [
             ],
         ],
 
+        'reverb' => [
+            'driver' => 'reverb',
+            'key' => env('REVERB_APP_KEY'),
+            'secret' => env('REVERB_APP_SECRET'),
+            'app_id' => env('REVERB_APP_ID'),
+            'options' => [
+                // Server mem-publish langsung ke daemon lokal, bukan lewat nginx/TLS.
+                // Klien tetap menyambung lewat host publik (lihat VITE_PUSHER_*).
+                'host' => env('REVERB_SERVER_HOST', '127.0.0.1'),
+                'port' => env('REVERB_SERVER_PORT', 8080),
+                'scheme' => 'http',
+                'useTLS' => false,
+            ],
+            'client_options' => [],
+        ],
+
         'ably' => [
             'driver' => 'ably',
             'key' => env('ABLY_KEY'),

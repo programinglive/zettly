@@ -5,7 +5,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\FocusController;
-use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
@@ -110,10 +109,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/upload', [UploadTestController::class, 'show'])->name('upload.show');
     Route::post('/upload', [UploadTestController::class, 'store'])->name('upload.store');
 
-    // Gemini demo routes
-    Route::get('/gemini-test', [GeminiTestController::class, 'test'])->name('gemini.test');
-    Route::get('/gemini/chat', fn () => Inertia::render('Gemini/Chat'))->name('gemini.chat.page');
-    Route::post('/gemini/chat', [GeminiTestController::class, 'chat'])->name('gemini.chat');
 
     // Push notification routes
     Route::post('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');

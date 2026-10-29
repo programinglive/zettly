@@ -222,32 +222,6 @@ export default function Index({ message }) {
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                        {/* Algolia Sponsor */}
-                        <a 
-                            href="https://www.algolia.com/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex flex-col items-center p-8 rounded-xl bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-zinc-700"
-                        >
-                            <div className="mb-4">
-                                <img
-                                    src="/images/algolia.svg"
-                                    alt="Algolia official logo"
-                                    className="h-12 w-auto md:h-14 max-w-[176px] group-hover:scale-110 transition-transform duration-300"
-                                    loading="lazy"
-                                />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Algolia
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                                Powerful search API that delivers instant, relevant search results across all your drawings and content.
-                            </p>
-                            <div className="mt-4 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                                algolia.com →
-                            </div>
-                        </a>
-
                         {/* tldraw Sponsor */}
                         <a 
                             href="https://tldraw.com/"

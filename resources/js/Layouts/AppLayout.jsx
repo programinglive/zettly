@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
-import NavbarSearch from '../Components/NavbarSearch';
 import Footer from '../Components/Footer';
 import PwaInstallPrompt from '../Components/PwaInstallPrompt';
 import usePwaMode from '../hooks/usePwaMode';
@@ -29,9 +28,6 @@ export default function AppLayout({
     navClassName,
     variant,
 }) {
-    const ALGOLIA_ATTRIBUTION_URL =
-        'https://www.algolia.com/?utm_source=zettly&utm_medium=referral&utm_campaign=oss_search';
-
     const page = usePage();
     const { auth, flash } = page.props;
     const isSuperAdmin = auth?.user?.role === 'super_admin';
@@ -325,22 +321,9 @@ export default function AppLayout({
                                             <Menu className="w-5 h-5" />
                                         </button>
 
-                                        {/* Search Bar */}
-                                        <div className="hidden md:flex flex-1 max-w-2xl">
-                                            <NavbarSearch className="w-full" />
-                                        </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        {/* Mobile Search Button */}
-                                        <button
-                                            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-                                            className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </button>
 
                                         <ModeToggle />
 
@@ -396,12 +379,6 @@ export default function AppLayout({
                                     </div>
                                 </nav>
 
-                                {/* Mobile Search */}
-                                {mobileSearchOpen && (
-                                    <div className="md:hidden border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
-                                        <NavbarSearch className="w-full" />
-                                    </div>
-                                )}
 
                                 {/* Main Content */}
                                 <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
