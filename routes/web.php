@@ -9,7 +9,6 @@ use App\Http\Controllers\GeminiTestController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PusherTestController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
@@ -28,13 +27,11 @@ Route::get('/docs', function () {
     return Inertia::render('Docs');
 })->name('docs');
 
-Route::get('/test/pusher-ui', function () {
-    return Inertia::render('Test/PusherTest');
-})->name('test.pusher.ui');
-
-Route::get('/debug/broadcast', [App\Http\Controllers\BroadcastDebugController::class, 'debug'])
-    ->middleware(['web'])
-    ->name('debug.broadcast');
+// Rute debug Pusher DIHAPUS 29 Okt 2026: /test/pusher-ui dan /debug/broadcast
+// tidak memakai middleware auth dan terbukti HTTP 200 tanpa login.
+// /debug/broadcast mengembalikan info sesi, middleware, dan punya akses ke
+// broadcasting.connections.pusher.secret. Rincian:
+// docs/SECURITY-DEBUG-ROUTES-2026-10-29.md di repo bw-server-grooming.
 
 Route::get('/legal/terms', function () {
     return Inertia::render('Legal/Terms');
@@ -123,9 +120,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
     Route::post('/push/test', [\App\Http\Controllers\PushSubscriptionController::class, 'test'])->name('push.test');
 
-    // Pusher test routes (for development/testing)
-    Route::get('/test/pusher', [PusherTestController::class, 'test'])->name('test.pusher');
-    Route::post('/test/pusher/broadcast', [PusherTestController::class, 'testBroadcast'])->name('test.pusher.broadcast');
+    // Rute uji Pusher DIHAPUS 29 Okt 2026: halaman uji manual yang tidak dipakai
+    // fitur nyata, dan PusherTestController memuat jalur broadcast debug.
 
     // Focus management routes
     Route::get('/focus/current', [FocusController::class, 'current'])->name('focus.current');
