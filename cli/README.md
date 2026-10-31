@@ -39,6 +39,7 @@ zettly auth verify-email  # paste the signed URL from the verification email
 # Tasks, notes, archive, checklist, tags and links
 zettly todos list --filter pending
 zettly todos archived --json
+zettly todos priorities --json
 zettly todos deleted --json
 zettly todos create --title "Ship CLI" --priority urgent --importance important --due-date 2026-11-15
 zettly todos complete 42 --reason "Finished in CLI"
@@ -81,6 +82,6 @@ For destructive non-interactive use, pass `--yes`. Account deletion still prompt
 
 ## Command areas
 
-`todos`, `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, and `system` are the product command areas. `/api/v1` supports todo/note CRUD, completed/archived/deleted views, archive/restore, priority/Eisenhower placement, links, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/password change/delete and token list/revoke; account registration/password recovery; verification email resend/confirm; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Browser notification permission grants and visual canvas editing remain browser workflows.
+`todos`, `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, and `system` are the product command areas. `/api/v1` supports todo/note CRUD, completed/archived/deleted views, priority listing and assignment, archive/restore, Eisenhower placement, links, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/password change/delete and token list/revoke; account registration/password recovery; verification email resend/confirm; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Browser notification permission grants and visual canvas editing remain browser workflows.
 
 Drawings are managed as TLDraw document JSON. The CLI does not provide a visual canvas. Browser permission prompts for push notifications also remain browser-only.

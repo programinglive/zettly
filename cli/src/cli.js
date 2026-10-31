@@ -299,6 +299,7 @@ export async function run(argv) {
     if (sub === 'deleted') flags.trashed = 'only';
     print(await api('todos', 'GET', null, flags), flags.json); return;
   }
+  if (command === 'todos' && sub === 'priorities') { print(await api('todos/priorities', 'GET', null, flags), flags.json); return; }
   if (command === 'tags' && sub === 'search') { print(await api('tags/search', 'GET', null, flags), flags.json); return; }
   if (command === 'push' && sub === 'subscribe') { print(await api('push-subscriptions', 'POST', flags.data ? JSON.parse(flags.data) : flags, flags), flags.json); return; }
   if (command === 'push' && sub === 'unsubscribe') {
@@ -366,7 +367,7 @@ export async function run(argv) {
   if (command === 'todos' && sub === 'reorder') path = 'todos/reorder';
   if (command === 'organizations' && sub === 'member-role') { method = 'PATCH'; path = `organizations/${id}/members/${rest[0]}/role`; }
   if (command === 'organizations' && sub === 'member-remove') { method = 'DELETE'; path = `organizations/${id}/members/${rest[0]}`; }
-  if (['delete', 'archive', 'restore', 'leave', 'rebuild', 'test-email', 'member-remove'].includes(sub)
+  if (['delete', 'archive', 'archive-completed', 'restore', 'leave', 'rebuild', 'test-email', 'member-remove'].includes(sub)
     && !await confirmAction(flags, `Confirm ${sub} ${command}${id ? ` ${id}` : ''}?`)) return;
   let body;
   if (['create', 'update'].includes(sub) || !actions[sub]) {
