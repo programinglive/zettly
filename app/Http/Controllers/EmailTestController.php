@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\TestEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -29,7 +30,7 @@ class EmailTestController extends Controller
         ]);
     }
 
-    public function send(Request $request): RedirectResponse
+    public function send(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'recipient' => ['required', 'email', 'max:255'],
@@ -45,6 +46,10 @@ class EmailTestController extends Controller
                     $request->user()?->name
                 )
             );
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Test email dispatched successfully.']);
+            }
 
             return redirect()
                 ->route('test.email')
@@ -62,6 +67,10 @@ class EmailTestController extends Controller
 
             if ($details->isNotEmpty()) {
                 $message .= ' ('.$details.')';
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 502);
             }
 
             return redirect()

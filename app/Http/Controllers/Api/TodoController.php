@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Todo;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,14 @@ class TodoController extends Controller
             : Todo::TYPE_TODO;
 
         $query = Todo::where('user_id', Auth::id());
+
+        if ($request->query('trashed') === 'only') {
+            $query->onlyTrashed();
+        }
+
+        if ($request->has('archived')) {
+            $query->where('archived', $request->boolean('archived'));
+        }
 
         if ($type === Todo::TYPE_NOTE) {
             $query->notes();
@@ -62,7 +71,7 @@ class TodoController extends Controller
             $query->byImportance($request->importance);
         }
 
-        $todos = $query->latest()->get();
+        $todos = $query->with(['checklistItems', 'tags', 'relatedTodos:id,title'])->latest()->get();
 
         return response()->json([
             'success' => true,
@@ -90,6 +99,10 @@ class TodoController extends Controller
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
             'due_date' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'integer|exists:tags,id',
+            'related_todo_ids' => 'nullable|array',
+            'related_todo_ids.*' => 'integer|exists:todos,id',
             'checklist_items' => 'nullable|array',
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
@@ -103,6 +116,9 @@ class TodoController extends Controller
 
         $checklistItems = $validated['checklist_items'] ?? [];
         unset($validated['checklist_items']);
+        $tagIds = $validated['tag_ids'] ?? [];
+        $relatedTodoIds = $validated['related_todo_ids'] ?? [];
+        unset($validated['tag_ids'], $validated['related_todo_ids']);
 
         $validated['user_id'] = Auth::id();
 
@@ -120,8 +136,19 @@ class TodoController extends Controller
 
         $todo = null;
 
-        DB::transaction(function () use (&$todo, $validated, $checklistItems) {
+        DB::transaction(function () use (&$todo, $validated, $checklistItems, $tagIds, $relatedTodoIds) {
             $todo = Todo::create($validated);
+
+            if ($tagIds) {
+                $ownedTagIds = Tag::whereIn('id', $tagIds)->where('user_id', Auth::id())->pluck('id')->all();
+                abort_if(count($ownedTagIds) !== count(array_unique($tagIds)), 403, 'One or more tags are inaccessible.');
+                $todo->tags()->sync($ownedTagIds);
+            }
+            if ($relatedTodoIds) {
+                $ownedTodoIds = Todo::whereIn('id', $relatedTodoIds)->where('user_id', Auth::id())->pluck('id')->all();
+                abort_if(count($ownedTodoIds) !== count(array_unique($relatedTodoIds)), 403, 'One or more related todos are inaccessible.');
+                $todo->relatedTodos()->sync($ownedTodoIds);
+            }
 
             if (! empty($checklistItems)) {
                 foreach ($checklistItems as $index => $itemData) {
@@ -156,7 +183,7 @@ class TodoController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $todo->load('user'),
+            'data' => $todo->load(['user', 'checklistItems', 'tags', 'relatedTodos:id,title']),
         ]);
     }
 
@@ -181,12 +208,16 @@ class TodoController extends Controller
 
         $validator = Validator::make($request->all(), [
             'type' => 'nullable|in:'.Todo::TYPE_TODO.','.Todo::TYPE_NOTE,
-            'title' => 'required|string|max:255',
+            'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:not_urgent,urgent',
             'importance' => 'nullable|in:not_important,important',
             'is_completed' => 'nullable|boolean',
             'due_date' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'integer|exists:tags,id',
+            'related_todo_ids' => 'nullable|array',
+            'related_todo_ids.*' => 'integer|exists:todos,id',
             'checklist_items' => 'nullable|array',
             'checklist_items.*.id' => 'nullable|exists:todo_checklist_items,id',
             'checklist_items.*.title' => 'required|string|max:255',
@@ -242,9 +273,23 @@ class TodoController extends Controller
 
         $checklistItems = $validated['checklist_items'] ?? null;
         unset($validated['checklist_items']);
+        $tagIds = $validated['tag_ids'] ?? null;
+        $relatedTodoIds = $validated['related_todo_ids'] ?? null;
+        unset($validated['tag_ids'], $validated['related_todo_ids']);
 
-        DB::transaction(function () use ($todo, $validated, $checklistItems) {
+        DB::transaction(function () use ($todo, $validated, $checklistItems, $tagIds, $relatedTodoIds) {
             $todo->update($validated);
+
+            if ($tagIds !== null) {
+                $ownedTagIds = Tag::whereIn('id', $tagIds)->where('user_id', Auth::id())->pluck('id')->all();
+                abort_if(count($ownedTagIds) !== count(array_unique($tagIds)), 403, 'One or more tags are inaccessible.');
+                $todo->tags()->sync($ownedTagIds);
+            }
+            if ($relatedTodoIds !== null) {
+                $ownedTodoIds = Todo::whereIn('id', $relatedTodoIds)->where('user_id', Auth::id())->pluck('id')->all();
+                abort_if(count($ownedTodoIds) !== count(array_unique($relatedTodoIds)), 403, 'One or more related todos are inaccessible.');
+                $todo->relatedTodos()->sync($ownedTodoIds);
+            }
 
             if ($checklistItems !== null) {
                 $incomingItems = collect($checklistItems);
@@ -278,7 +323,7 @@ class TodoController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Todo updated successfully!',
-            'data' => $todo->fresh('checklistItems'),
+            'data' => $todo->fresh(['checklistItems', 'tags', 'relatedTodos:id,title']),
         ]);
     }
 
