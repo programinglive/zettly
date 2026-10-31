@@ -104,6 +104,24 @@ function print(value, json) {
   for (const row of rows) console.log(columns.map((column, index) => String(row[column] ?? '').replaceAll('\n', ' ').slice(0, widths[index]).padEnd(widths[index])).join('  '));
 }
 
+function printTodoBoard(todos, json) {
+  const columns = { q1: [], q2: [], q3: [], q4: [], completed: [] };
+  for (const todo of todos) {
+    const key = todo.is_completed
+      ? 'completed'
+      : todo.importance === 'important'
+        ? (todo.priority === 'urgent' ? 'q1' : 'q2')
+        : (todo.priority === 'urgent' ? 'q3' : 'q4');
+    columns[key].push(todo);
+  }
+  if (json) { print(columns, true); return; }
+  const labels = { q1: 'Q1 · Important + urgent', q2: 'Q2 · Important + not urgent', q3: 'Q3 · Not important + urgent', q4: 'Q4 · Not important + not urgent', completed: 'Completed' };
+  for (const [key, items] of Object.entries(columns)) {
+    console.log(`\n${labels[key]} (${items.length})`);
+    for (const todo of items) console.log(`  #${todo.id} ${todo.title}`);
+  }
+}
+
 async function api(path, method, body, flags, authenticated = true) {
   const cfg = await config(); const secret = authenticated ? await token() : '';
   if (authenticated && !secret) throw new Error('Not authenticated. Run `zettly auth login` or set ZETTLY_API_TOKEN.');
@@ -187,7 +205,7 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  dashboard [--tags <ids>]             Show dashboard summary\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
+  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  dashboard [--tags <ids>]             Show dashboard summary\n  todos board [--tags <ids>]           Show Eisenhower board columns\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
 }
 
 export async function run(argv) {
@@ -281,6 +299,10 @@ export async function run(argv) {
   }
   if (command === 'whoami') { print(await api('user', 'GET', null, flags), flags.json); return; }
   if (command === 'dashboard') { print(await api('dashboard', 'GET', null, flags), flags.json); return; }
+  if (command === 'todos' && sub === 'board') {
+    const data = await api('dashboard', 'GET', null, flags);
+    printTodoBoard(data.todos ?? [], flags.json); return;
+  }
   if (command === 'system' && sub === 'status') { print(await api('system/status', 'GET', null, flags), flags.json); return; }
   if (command === 'attachments' && sub === 'upload') { await uploadAttachment(id, flags.file, flags); return; }
   if (command === 'attachments' && sub === 'download') {
