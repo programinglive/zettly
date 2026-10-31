@@ -188,8 +188,9 @@ GOOGLE_CLOUD_STORAGE_URL=https://storage.googleapis.com/your-bucket-name
 ```
 
 ### Google Cloud Storage Setup
-- **Service Account**: Create a service account with `Storage Object Admin` access and download its JSON key.
-- **Disk Selection**: Update `.env` to set `TODO_ATTACHMENTS_DISK=gcs` and provide the bucket credentials above.
+- **Preferred on Google Cloud**: Attach a dedicated service account to the application VM and grant it `roles/storage.objectAdmin` on only the attachment bucket. Leave `GOOGLE_CLOUD_STORAGE_KEY_FILE` and `GOOGLE_CLOUD_STORAGE_KEY_JSON` unset so the Google client uses Application Default Credentials. Do not download or commit service-account keys.
+- **Local development or non-Google hosts**: Set `GOOGLE_CLOUD_STORAGE_KEY_FILE` to a private service-account JSON file outside the repository, or use a securely injected `GOOGLE_CLOUD_STORAGE_KEY_JSON`. Never add either credential to source control.
+- **Disk Selection**: Set `.env` to `TODO_ATTACHMENTS_DISK=gcs` and configure the project and bucket above.
 - **Public Access**: Ensure the bucket grants appropriate read access when using public visibility.
 - **Uniform Bucket-Level Access (UBLA)**: If UBLA is enabled on your bucket, leave object-level ACLs to GCS. The application avoids setting per-object ACLs automatically, so no additional configuration is needed.
 - **Key File Placement**: If `GOOGLE_CLOUD_STORAGE_KEY_FILE` points to a relative path, the app will also look for the JSON under `storage/app/{filename}` as a convenience. Place the key there when developing locally.
