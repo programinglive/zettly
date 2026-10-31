@@ -83,9 +83,11 @@ async function api(path, method, body, flags) {
     }
   }
   const response = await fetch(url, { method, headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  if (response.redirected) throw new Error(`API redirected to ${new URL(response.url).pathname}; this endpoint did not return a CLI response.`);
   const text = await response.text(); let data;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
   if (!response.ok) { const err = new Error(data?.message || `${response.status} ${response.statusText}`); err.exitCode = response.status === 401 ? 2 : 1; throw err; }
+  if (text && !response.headers.get('content-type')?.includes('application/json')) throw new Error('API returned a non-JSON response; the action was not reported as successful.');
   return data;
 }
 
@@ -96,8 +98,10 @@ async function uploadAttachment(todoId, filePath, flags) {
   const bytes = await readFile(filePath); const form = new FormData();
   form.append('file', new Blob([bytes]), basename(filePath));
   const response = await fetch(new URL(`/api/v1/todos/${todoId}/attachments`, cfg.host), { method: 'POST', headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json' }, body: form });
+  if (response.redirected) throw new Error(`Upload was redirected to ${new URL(response.url).pathname}.`);
   const data = await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.message || `${response.status} ${response.statusText}`);
+  if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Upload endpoint returned a non-JSON response.');
   print(data, flags.json);
 }
 
@@ -162,6 +166,7 @@ export async function run(argv) {
     if (!flags.file) throw new Error('Use --file <output-path>');
     const cfg = await config(); const secret = await token(); if (!secret) throw new Error('Not authenticated.');
     const response = await fetch(new URL(`/api/v1/attachments/${id}/download`, cfg.host), { headers: { Authorization: `Bearer ${secret}` } });
+    if (response.redirected) throw new Error(`Download was redirected to ${new URL(response.url).pathname}.`);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     await writeFile(flags.file, Buffer.from(await response.arrayBuffer())); print(`Downloaded ${flags.file}`, flags.json); return;
   }

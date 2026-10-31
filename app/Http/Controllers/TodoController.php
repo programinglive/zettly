@@ -1178,6 +1178,10 @@ class TodoController extends Controller
             'reason' => $validated['reason'],
         ]);
 
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Todo archived successfully.', 'todo' => $todo->fresh()]);
+        }
+
         return redirect()->back()->with('success', 'Todo archived successfully!');
     }
 
@@ -1186,6 +1190,10 @@ class TodoController extends Controller
         $this->authorizeTodo($todo);
 
         if (! $todo->archived) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Todo is not archived.', 'todo' => $todo]);
+            }
+
             return redirect()->back()->with('info', 'Todo is not archived.');
         }
 
@@ -1205,6 +1213,10 @@ class TodoController extends Controller
             'to_state' => $todo->is_completed ? 'completed' : 'pending',
             'reason' => $validated['reason'],
         ]);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Todo restored successfully.', 'todo' => $todo->fresh()]);
+        }
 
         return redirect()->back()->with('success', 'Todo restored successfully!');
     }
