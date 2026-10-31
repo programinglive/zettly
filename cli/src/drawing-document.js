@@ -78,7 +78,11 @@ export function addShape(value, shape) {
   }
   const { drawing, snapshot, document } = getDrawingDocument(value);
   if (document.store[shape.id]) throw new Error(`Shape already exists: ${shape.id}.`);
-  if (!document.store[shape.parentId]) throw new Error(`Shape parent not found: ${shape.parentId}.`);
+  const parent = document.store[shape.parentId];
+  if (!parent) throw new Error(`Shape parent not found: ${shape.parentId}.`);
+  if (!['page', 'shape'].includes(parent.typeName)) {
+    throw new Error(`Shape parent must be a TLDraw page or shape: ${shape.parentId}.`);
+  }
   return withStore(drawing, snapshot, document, { ...document.store, [shape.id]: shape });
 }
 
@@ -88,6 +92,9 @@ export function deleteShape(value, shapeId) {
   if (!key) throw new Error(`Shape not found: ${shapeId}.`);
   const children = Object.values(document.store).filter((record) => record?.parentId === key);
   if (children.length) throw new Error(`Shape has ${children.length} child record(s); delete or move them first.`);
+  const bindings = Object.values(document.store).filter((record) => record?.typeName === 'binding'
+    && (record.fromId === key || record.toId === key));
+  if (bindings.length) throw new Error(`Shape has ${bindings.length} binding record(s); remove or retarget them first.`);
   const store = { ...document.store };
   delete store[key];
   return withStore(drawing, snapshot, document, store);

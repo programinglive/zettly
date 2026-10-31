@@ -49,10 +49,21 @@ test('adds a full TLDraw shape record without replacing existing records', () =>
 test('rejects duplicate or malformed shapes', () => {
   assert.throws(() => addShape(document(), shape('one')), /already exists/);
   assert.throws(() => addShape(document(), { id: 'shape:bad' }), /valid TLDraw shape/);
+  assert.throws(() => addShape({ document: { document: { name: 'Sketch', store: {
+    'document:document': { id: 'document:document', typeName: 'document' },
+  } } } }, { ...shape('bad-parent'), parentId: 'document:document' }), /page or shape/);
 });
 
 test('deletes a shape while preserving the rest of the drawing', () => {
   const result = deleteShape(document(), 'shape:one');
   assert.equal(result.document.document.store['shape:one'], undefined);
   assert.ok(result.document.document.store['page:page1']);
+});
+
+test('refuses to delete a shape while TLDraw bindings reference it', () => {
+  const drawing = document();
+  drawing.document.document.store['binding:one'] = {
+    id: 'binding:one', typeName: 'binding', fromId: 'shape:one', toId: 'shape:other',
+  };
+  assert.throws(() => deleteShape(drawing, 'shape:one'), /binding record/);
 });
