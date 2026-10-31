@@ -9,6 +9,7 @@ use App\Models\Habit;
 use App\Models\HabitStreak;
 use App\Models\Organization;
 use App\Models\OrganizationMember;
+use App\Models\Todo;
 use App\Models\TodoAttachment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,49 @@ use Illuminate\Validation\Rules\Password;
 
 class CliApiController extends Controller
 {
+    public function dashboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $rawTags = $request->query('tags', []);
+        $selectedTagIds = collect(is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags))
+            ->filter(fn ($id) => is_numeric($id) && (int) $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $todosQuery = $user->todos()
+            ->notArchived()
+            ->tasks()
+            ->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])
+            ->orderBy('is_completed', 'asc')
+            ->orderByRaw("CASE WHEN priority = 'urgent' THEN 1 WHEN priority = 'not_urgent' THEN 2 ELSE 3 END")
+            ->orderByRaw("CASE WHEN importance = 'important' THEN 1 WHEN importance = 'not_important' THEN 2 ELSE 3 END");
+
+        if (Todo::hasKanbanOrderColumn()) {
+            $todosQuery->orderBy('kanban_order');
+        }
+        $todosQuery->orderBy('created_at', 'desc');
+
+        if ($selectedTagIds !== []) {
+            $todosQuery->whereHas('tags', fn ($query) => $query->whereIn('tags.id', $selectedTagIds));
+        }
+
+        $todos = $todosQuery->get();
+        $todos->each(fn (Todo $todo) => $todo->attachments->each(fn ($attachment) => $attachment->append(['url', 'thumbnail_url'])));
+
+        $availableTags = $user->tags()->orderBy('name')->get(['id', 'name', 'color']);
+        $notes = $user->todos()->notArchived()->notes()->with('tags')->latest()->limit(20)->get();
+
+        return response()->json([
+            'todos' => $todos,
+            'filters' => ['tags' => $selectedTagIds],
+            'availableTags' => $availableTags,
+            'notes' => $notes,
+            'preferences' => ['workspace_view' => $user->workspace_view],
+        ]);
+    }
+
     public function habits(Request $request): JsonResponse
     {
         $from = now()->subDays(30)->startOfDay();

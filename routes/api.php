@@ -73,6 +73,7 @@ Route::prefix('v1')->middleware('throttle:6,1')->group(function () {
 });
 
 Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group(function () {
+    Route::get('dashboard', [CliApiController::class, 'dashboard'])->name('api.v1.dashboard');
     Route::get('user', fn (Request $request) => $request->user()->only(['id', 'name', 'email', 'workspace_view']))->name('api.v1.user');
     Route::get('profile', [CliApiController::class, 'profile'])->name('api.v1.profile.show');
     Route::patch('profile', [CliApiController::class, 'updateProfile'])->name('api.v1.profile.update');

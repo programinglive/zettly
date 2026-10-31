@@ -280,6 +280,7 @@ export async function run(argv) {
     }
   }
   if (command === 'whoami') { print(await api('user', 'GET', null, flags), flags.json); return; }
+  if (command === 'dashboard') { print(await api('dashboard', 'GET', null, flags), flags.json); return; }
   if (command === 'system' && sub === 'status') { print(await api('system/status', 'GET', null, flags), flags.json); return; }
   if (command === 'attachments' && sub === 'upload') { await uploadAttachment(id, flags.file, flags); return; }
   if (command === 'attachments' && sub === 'download') {
