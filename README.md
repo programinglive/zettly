@@ -137,6 +137,17 @@ We strive to foster an inclusive, learner-friendly community.
 
 Pull requests are welcome! Please review the contributing guide and use the pull request template when opening a PR. For sensitive security matters, email the address above instead of posting a public issue.
 
+## Zettly CLI
+
+The standalone terminal client can manage Zettly through the versioned Sanctum API. It requires Node.js 18 or newer. From the repository root:
+
+```bash
+npm install --global ./cli
+zettly help
+```
+
+Create a personal access token in the Zettly profile page, run `zettly auth login`, then exchange it for a CLI-only token with `zettly auth issue-token`. See [CLI installation, authentication, and command examples](./cli/README.md). The CLI's `/api/v1` server routes must be deployed before using it against production.
+
 ### Editor Credits
 - Built with the [@programinglive/zettly-editor](https://github.com/programinglive/zettly-editor) package — explore the editor source and examples in that repository.
 

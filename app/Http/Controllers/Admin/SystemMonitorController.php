@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Drawing;
 use App\Models\Todo;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SystemMonitorController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): Response|JsonResponse
     {
         $perPage = (int) $request->query('per_page', 10);
         $perPage = min(50, max(5, $perPage));
@@ -69,7 +70,7 @@ class SystemMonitorController extends Controller
             )
             ->withQueryString();
 
-        return Inertia::render('Admin/SystemMonitor', [
+        $data = [
             'appVersion' => config('app.version', 'unknown'),
             'environment' => config('app.env', 'unknown'),
             'debug' => config('app.debug', false),
@@ -91,6 +92,12 @@ class SystemMonitorController extends Controller
                 'drawings_search' => $drawingsSearch,
                 'per_page' => $perPage,
             ],
-        ]);
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($data);
+        }
+
+        return Inertia::render('Admin/SystemMonitor', $data);
     }
 }
