@@ -9,17 +9,19 @@ Provide a standalone `zettly` command line client for the authenticated Zettly p
 - `cli/` is an independently installable Node.js ESM package (Node 18+, built-in `fetch`, no runtime dependencies).
 - CLI requests use the configured Zettly HTTPS origin and versioned `/api/v1` endpoints. It never connects to the database.
 - Laravel keeps the current `/api` endpoints compatible; `/api/v1` is the stable CLI surface.
-- Credentials are personal access tokens supplied interactively or from `ZETTLY_API_TOKEN`; on Windows the persisted token is encrypted with user-scoped DPAPI and never placed in the JSON config.
+- New users can register from CLI and receive a `zettly:cli`-only token; registration, password-reset requests and password resets use rate-limited public endpoints.
+- Existing users can bootstrap with a personal access token; on Windows persisted tokens use user-scoped DPAPI and are never placed in the JSON config. Password and signed email-verification inputs are hidden at interactive prompts.
 - Responses support readable tables/text and `--json`; failures use nonzero exit codes. Mutations with destructive impact require confirmation unless `--yes` is passed.
 
 ## Feature coverage
 
-Expose account/profile and token state, todos and notes (including priority, importance, due date, checklists, tags, links, board status, archive/trash/recovery), tags, focus sessions, habits and statistics, organizations/members/invitations, drawing document JSON import/export, attachments, graph export/rebuild, push subscription status/actions, and admin-only system status/email diagnostics. Terminal drawing editing and browser push permission grants remain browser responsibilities; CLI can manage/export documents and existing push subscriptions.
+Expose account registration/recovery/profile/token state and email verification, todos and notes (including priority, importance, due date, checklists, tags, links, board status, archive/trash/recovery), tags, focus sessions, habits and statistics, organizations/members/invitations, drawing document JSON import/export, attachments, graph export/rebuild, push subscription status/actions, and admin-only system status/email diagnostics. Terminal drawing editing and browser push permission grants remain browser responsibilities; CLI can manage/export documents and existing push subscriptions.
 
 ## Security and compatibility
 
-- All API operations require Sanctum authentication and preserve existing per-user and organization membership checks.
+- User-specific API operations require Sanctum authentication and preserve existing per-user and organization membership checks; public auth endpoints are rate-limited.
 - Sensitive/admin operations require server-side role authorization; do not expose admin actions through a generic pass-through endpoint.
+- Password reset responses do not disclose whether an account exists. Email verification requires the signed URL plus the owner's CLI token and configured host match.
 - No password login, token output by default, or credential logging.
 - Existing web routes and `/api` consumers remain unaffected.
 - Unsupported server operations must return a clear API error rather than silently succeeding.

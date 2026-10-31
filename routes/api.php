@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\TodoController;
+use App\Http\Controllers\Api\CliAuthController;
 use App\Http\Controllers\Api\CliApiController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\FocusController;
@@ -63,11 +64,19 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Stable API surface used by the standalone CLI. Keep /api endpoints backwards compatible.
+// Public auth endpoints are throttled; user-specific CLI routes require a scoped token.
+Route::prefix('v1')->middleware('throttle:6,1')->group(function () {
+    Route::post('auth/register', [CliAuthController::class, 'register'])->name('api.v1.auth.register');
+    Route::post('auth/forgot-password', [CliAuthController::class, 'sendPasswordResetLink'])->name('api.v1.auth.forgot-password');
+    Route::post('auth/reset-password', [CliAuthController::class, 'resetPassword'])->name('api.v1.auth.reset-password');
+});
+
 Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group(function () {
     Route::get('user', fn (Request $request) => $request->user()->only(['id', 'name', 'email', 'workspace_view']))->name('api.v1.user');
     Route::get('profile', [CliApiController::class, 'profile'])->name('api.v1.profile.show');
     Route::patch('profile', [CliApiController::class, 'updateProfile'])->name('api.v1.profile.update');
     Route::put('profile/password', [CliApiController::class, 'changePassword'])->name('api.v1.profile.password');
+    Route::post('auth/verification-notification', [CliApiController::class, 'resendVerification'])->middleware('throttle:6,1')->name('api.v1.auth.verification-notification');
     Route::delete('profile', [CliApiController::class, 'deleteProfile'])->name('api.v1.profile.destroy');
     Route::post('auth/token', [CliApiController::class, 'issueCliToken'])->name('api.v1.auth.token');
     Route::delete('profile/tokens/{token}', [CliApiController::class, 'deleteToken'])->name('api.v1.profile.tokens.destroy');

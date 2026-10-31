@@ -15,7 +15,7 @@ node cli/bin/zettly.js todos create --data '{"title":"Prepare release","priority
 node cli/bin/zettly.js todos list --json
 ```
 
-`auth login` accepts a personal access token created in Zettly's profile settings. Use `auth issue-token --name zettly-cli` afterward to exchange it for a CLI-only Sanctum ability; the replacement token is stored without being printed. On Windows it is encrypted with the current user's DPAPI key. On other systems, provide `ZETTLY_API_TOKEN` through the operating system's secret store. The token is never written to the plain JSON host config. The prompt hides typed input; automation should supply the token via environment.
+`auth register` creates an account and stores a CLI-only Sanctum token on Windows. Existing accounts can use `auth login` with a personal access token created in Zettly's profile settings, then run `auth issue-token --name zettly-cli` to exchange it for a CLI-only token. Tokens are never printed and Windows storage uses the current user's DPAPI key. On other systems, provide `ZETTLY_API_TOKEN` through the operating system's secret store. Tokens are never written to the plain JSON host config.
 
 The default host is `https://zettly.programinglive.com`. `config set-host` changes it. Commands accept `--json`; create/update accept `--data` with JSON or `--file` with a JSON file. Delete and other destructive actions ask for confirmation; `--yes` enables scripts.
 
@@ -26,6 +26,13 @@ The default host is `https://zettly.programinglive.com`. `config set-host` chang
 zettly auth login
 zettly auth issue-token --name zettly-cli
 zettly whoami
+
+# New account and password recovery
+zettly auth register --name "Your name" --email you@example.com
+zettly auth forgot-password --email you@example.com
+zettly auth reset-password --email you@example.com
+zettly auth send-verification
+zettly auth verify-email  # paste the signed URL from the verification email
 
 # Tasks, notes, archive, checklist, tags and links
 zettly todos list --filter pending
@@ -72,6 +79,6 @@ For destructive non-interactive use, pass `--yes`. Account deletion still prompt
 
 ## Command areas
 
-`todos`, `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, and `system` are the product command areas. `/api/v1` supports todo/note CRUD, completed/archived/deleted views, archive/restore, priority/Eisenhower placement, links, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/delete and token list/revoke; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Registration/password recovery, browser notification permission grants, and visual canvas editing remain browser workflows.
+`todos`, `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, and `system` are the product command areas. `/api/v1` supports todo/note CRUD, completed/archived/deleted views, archive/restore, priority/Eisenhower placement, links, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/password change/delete and token list/revoke; account registration/password recovery; verification email resend/confirm; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Browser notification permission grants and visual canvas editing remain browser workflows.
 
 Drawings are managed as TLDraw document JSON. The CLI does not provide a visual canvas. Browser permission prompts for push notifications also remain browser-only.

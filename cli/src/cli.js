@@ -73,16 +73,16 @@ function print(value, json) {
   for (const row of rows) console.log(columns.map((column, index) => String(row[column] ?? '').replaceAll('\n', ' ').slice(0, widths[index]).padEnd(widths[index])).join('  '));
 }
 
-async function api(path, method, body, flags) {
-  const cfg = await config(); const secret = await token();
-  if (!secret) throw new Error('Not authenticated. Run `zettly auth login` or set ZETTLY_API_TOKEN.');
+async function api(path, method, body, flags, authenticated = true) {
+  const cfg = await config(); const secret = authenticated ? await token() : '';
+  if (authenticated && !secret) throw new Error('Not authenticated. Run `zettly auth login` or set ZETTLY_API_TOKEN.');
   const url = new URL(`/api/v1/${path.replace(/^\//, '')}`, cfg.host);
   if (method === 'GET') {
     for (const [key, value] of Object.entries(flags)) {
       if (!['json', 'yes', 'no-interaction', 'file', 'data', 'token'].includes(key)) url.searchParams.set(key.replaceAll('-', '_'), value === true ? '1' : value);
     }
   }
-  const response = await fetch(url, { method, headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const response = await fetch(url, { method, headers: { ...(secret ? { Authorization: `Bearer ${secret}` } : {}), Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   if (response.redirected) throw new Error(`API redirected to ${new URL(response.url).pathname}; this endpoint did not return a CLI response.`);
   const text = await response.text(); let data;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
@@ -102,6 +102,22 @@ async function uploadAttachment(todoId, filePath, flags) {
   const data = await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.message || `${response.status} ${response.statusText}`);
   if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Upload endpoint returned a non-JSON response.');
+  print(data, flags.json);
+}
+
+async function verifyEmailUrl(signedUrl, flags) {
+  const cfg = await config(); const secret = await token();
+  if (!secret) throw new Error('Not authenticated. Run `zettly auth login` or set ZETTLY_API_TOKEN.');
+  const url = new URL(signedUrl);
+  if (url.origin !== cfg.host || !/^\/verify-email\/\d+\//.test(url.pathname)) {
+    throw new Error('Use a signed Zettly verification URL for the configured host.');
+  }
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json' } });
+  if (response.redirected) throw new Error(`Verification redirected to ${new URL(response.url).pathname}.`);
+  const text = await response.text(); let data;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!response.ok) throw new Error(data?.message || `${response.status} ${response.statusText}`);
+  if (text && !response.headers.get('content-type')?.includes('application/json')) throw new Error('Verification returned a non-JSON response.');
   print(data, flags.json);
 }
 
@@ -140,7 +156,7 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth login|issue-token|logout|status  Manage CLI credentials\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nCreate/update payloads use --file JSON or --data JSON.\nSet ZETTLY_API_TOKEN for automation. Destructive actions prompt unless --yes.`);
+  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nCreate/update payloads use --file JSON or --data JSON.\nSet ZETTLY_API_TOKEN for automation. Destructive actions prompt unless --yes.`);
 }
 
 export async function run(argv) {
@@ -151,6 +167,41 @@ export async function run(argv) {
     const host = new URL(id).origin; await mkdir(dirname(homeConfig), { recursive: true }); await writeFile(homeConfig, JSON.stringify({ ...(await config()), host }, null, 2)); print(`Host set to ${host}`, flags.json); return;
   }
   if (command === 'auth') {
+    if (sub === 'register') {
+      if (platform() !== 'win32') throw new Error('CLI registration currently requires Windows DPAPI token storage; use web registration on this system.');
+      let body;
+      if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
+      else {
+        if (!process.stdin.isTTY || !process.stdin.setRawMode) throw new Error('Registration requires an interactive terminal or a private JSON file via --file.');
+        body = { name: flags.name || await ask('Name: '), email: flags.email || await ask('Email: '), password: await askSecret('Password: '), password_confirmation: await askSecret('Confirm password: ') };
+      }
+      const result = await api('auth/register', 'POST', body, flags, false);
+      await saveToken(result.token);
+      print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
+    }
+    if (sub === 'forgot-password') {
+      const email = flags.email || id || await ask('Account email: ');
+      print(await api('auth/forgot-password', 'POST', { email }, flags, false), flags.json); return;
+    }
+    if (sub === 'reset-password') {
+      let body;
+      if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
+      else {
+        if (!process.stdin.isTTY || !process.stdin.setRawMode) throw new Error('Password reset requires an interactive terminal or a private JSON file via --file.');
+        body = { email: flags.email || await ask('Account email: '), token: flags.token || await askSecret('Reset token: '), password: await askSecret('New password: '), password_confirmation: await askSecret('Confirm new password: ') };
+      }
+      print(await api('auth/reset-password', 'POST', body, flags, false), flags.json); return;
+    }
+    if (sub === 'send-verification') { print(await api('auth/verification-notification', 'POST', {}, flags), flags.json); return; }
+    if (sub === 'verify-email') {
+      let signedUrl;
+      if (flags.file) signedUrl = JSON.parse(await readFile(flags.file, 'utf8')).url;
+      else {
+        if (!process.stdin.isTTY || !process.stdin.setRawMode) throw new Error('Email verification requires an interactive terminal or a private JSON file via --file.');
+        signedUrl = await askSecret('Paste the signed Zettly verification URL: ');
+      }
+      await verifyEmailUrl(signedUrl, flags); return;
+    }
     if (sub === 'login') { const value = process.env.ZETTLY_API_TOKEN || await askSecret('Personal access token: '); if (!value) throw new Error('Token is required'); await saveToken(value.trim()); print('Token stored securely.', flags.json); return; }
     if (sub === 'logout') { if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); } print('Stored token removed.', flags.json); return; }
     if (sub === 'status') { print({ authenticated: Boolean(await token()), host: (await config()).host }, flags.json); return; }

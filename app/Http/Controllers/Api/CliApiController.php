@@ -165,6 +165,16 @@ class CliApiController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function resendVerification(Request $request): JsonResponse
+    {
+        if (Auth::user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.']);
+        }
+
+        Auth::user()->sendEmailVerificationNotification();
+        return response()->json(['message' => 'Verification link sent.']);
+    }
+
     public function deleteProfile(Request $request): JsonResponse
     {
         $password = $request->validate(['password' => 'required|string'])['password'];
