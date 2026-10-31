@@ -15,6 +15,30 @@ use Illuminate\Validation\Rules;
 
 class CliAuthController extends Controller
 {
+    public function login(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => 'required|email|max:255',
+            'password' => 'required|string',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        $user = User::where('email', Str::lower($data['email']))->first();
+        $validPassword = Hash::check($data['password'], $user?->password ?? Hash::make(Str::random(32)));
+
+        if (! $user || ! $validPassword) {
+            return response()->json(['message' => 'The provided credentials are incorrect.'], 401);
+        }
+
+        $token = $user->createToken($data['name'] ?? 'zettly-cli', ['zettly:cli']);
+
+        return response()->json([
+            'user' => $user->only(['id', 'name', 'email']),
+            'abilities' => ['zettly:cli'],
+            'token' => $token->plainTextToken,
+        ]);
+    }
+
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([

@@ -15,17 +15,19 @@ node cli/bin/zettly.js todos create --data '{"title":"Prepare release","priority
 node cli/bin/zettly.js todos list --json
 ```
 
-`auth register` creates an account and stores a CLI-only Sanctum token on Windows. Existing accounts can use `auth login` with a personal access token created in Zettly's profile settings, then run `auth issue-token --name zettly-cli` to exchange it for a CLI-only token. Tokens are never printed and Windows storage uses the current user's DPAPI key. On other systems, provide `ZETTLY_API_TOKEN` through the operating system's secret store. Tokens are never written to the plain JSON host config.
+`auth register` creates an account and stores a CLI-only Sanctum token on Windows. Existing accounts can use `auth login` for hidden email/password login. Alternatively, set `ZETTLY_API_TOKEN` or pass a PAT with `auth login --token`; exchange a broad PAT for a CLI-only token with `auth issue-token --name zettly-cli`. Tokens are never printed and Windows storage uses the current user's DPAPI key. On other systems, provide `ZETTLY_API_TOKEN` through the operating system's secret store. Tokens are never written to the plain JSON host config.
 
 The default host is `https://zettly.programinglive.com`. `config set-host` changes it. Commands accept `--json`; create/update accept `--data` with JSON or `--file` with a JSON file. Delete and other destructive actions ask for confirmation; `--yes` enables scripts.
 
 ## Command examples
 
 ```sh
-# First-time bootstrap: create a PAT in Profile > API Tokens in the web app
+# Existing account: email/password login creates a CLI-only token
 zettly auth login
-zettly auth issue-token --name zettly-cli
 zettly whoami
+
+# Or exchange an existing PAT created in Profile > API Tokens
+zettly auth issue-token --name zettly-cli
 
 # New account and password recovery
 zettly auth register --name "Your name" --email you@example.com

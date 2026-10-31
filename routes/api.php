@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // Stable API surface used by the standalone CLI. Keep /api endpoints backwards compatible.
 // Public auth endpoints are throttled; user-specific CLI routes require a scoped token.
 Route::prefix('v1')->middleware('throttle:6,1')->group(function () {
+    Route::post('auth/login', [CliAuthController::class, 'login'])->name('api.v1.auth.login');
     Route::post('auth/register', [CliAuthController::class, 'register'])->name('api.v1.auth.register');
     Route::post('auth/forgot-password', [CliAuthController::class, 'sendPasswordResetLink'])->name('api.v1.auth.forgot-password');
     Route::post('auth/reset-password', [CliAuthController::class, 'resetPassword'])->name('api.v1.auth.reset-password');

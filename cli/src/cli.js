@@ -13,9 +13,21 @@ const groups = {
   system: ['system'],
 };
 
+function hostOrigin(value) {
+  const url = new URL(value);
+  const localHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+  if (url.username || url.password) throw new Error('The Zettly host URL must not contain credentials.');
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && localHosts.has(url.hostname))) {
+    throw new Error('Use HTTPS for remote Zettly hosts; HTTP is allowed only for localhost.');
+  }
+  return url.origin;
+}
+
 async function config() {
-  try { return JSON.parse(await readFile(homeConfig, 'utf8')); }
-  catch { return { host: 'https://zettly.programinglive.com' }; }
+  let saved;
+  try { saved = JSON.parse(await readFile(homeConfig, 'utf8')); }
+  catch { saved = {}; }
+  return { ...saved, host: hostOrigin(saved.host || 'https://zettly.programinglive.com') };
 }
 
 function powershell(script, input = '') {
@@ -164,7 +176,7 @@ export async function run(argv) {
   if (!command || command === 'help' || flags.help) return help();
   if (command === 'config' && sub === 'set-host') {
     if (!id) throw new Error('Usage: zettly config set-host <url>');
-    const host = new URL(id).origin; await mkdir(dirname(homeConfig), { recursive: true }); await writeFile(homeConfig, JSON.stringify({ ...(await config()), host }, null, 2)); print(`Host set to ${host}`, flags.json); return;
+    const host = hostOrigin(id); await mkdir(dirname(homeConfig), { recursive: true }); await writeFile(homeConfig, JSON.stringify({ ...(await config()), host }, null, 2)); print(`Host set to ${host}`, flags.json); return;
   }
   if (command === 'auth') {
     if (sub === 'register') {
@@ -202,7 +214,20 @@ export async function run(argv) {
       }
       await verifyEmailUrl(signedUrl, flags); return;
     }
-    if (sub === 'login') { const value = process.env.ZETTLY_API_TOKEN || await askSecret('Personal access token: '); if (!value) throw new Error('Token is required'); await saveToken(value.trim()); print('Token stored securely.', flags.json); return; }
+    if (sub === 'login') {
+      if (process.env.ZETTLY_API_TOKEN) { print('Using ZETTLY_API_TOKEN from the environment.', flags.json); return; }
+      if (flags.token) { await saveToken(String(flags.token).trim()); print('Token stored securely.', flags.json); return; }
+      if (platform() !== 'win32') throw new Error('Email login requires Windows DPAPI token storage; use ZETTLY_API_TOKEN or `auth login --token`.');
+      let body;
+      if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
+      else {
+        if (!process.stdin.isTTY || !process.stdin.setRawMode) throw new Error('Email login requires an interactive terminal or a private JSON file via --file.');
+        body = { email: flags.email || await ask('Email: '), password: await askSecret('Password: '), name: flags.name || 'zettly-cli' };
+      }
+      const result = await api('auth/login', 'POST', body, flags, false);
+      await saveToken(result.token);
+      print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
+    }
     if (sub === 'logout') { if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); } print('Stored token removed.', flags.json); return; }
     if (sub === 'status') { print({ authenticated: Boolean(await token()), host: (await config()).host }, flags.json); return; }
     if (sub === 'issue-token') {
