@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'super-admin' => EnsureSuperAdmin::class,
+            'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         ]);
 
         // Exclude broadcast authentication from CSRF protection

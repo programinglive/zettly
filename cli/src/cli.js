@@ -32,7 +32,14 @@ async function config() {
 
 function powershell(script, input = '') {
   return new Promise((resolve, reject) => {
-    const child = spawn('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true });
+    const windowsPowerShellModules = [
+      join(process.env.WINDIR || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'Modules'),
+      join(process.env.ProgramFiles || 'C:\\Program Files', 'WindowsPowerShell', 'Modules'),
+    ].join(';');
+    const child = spawn('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script], {
+      windowsHide: true,
+      env: { ...process.env, PSModulePath: windowsPowerShellModules },
+    });
     let stdout = ''; let stderr = '';
     child.stdout.setEncoding('utf8').on('data', (part) => { stdout += part; });
     child.stderr.setEncoding('utf8').on('data', (part) => { stderr += part; });
