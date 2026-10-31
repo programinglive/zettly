@@ -97,12 +97,16 @@ class CliApiController extends Controller
     {
         $items = TodoAttachment::whereHas('todo', fn ($query) => $query->where('user_id', Auth::id()))
             ->with('todo:id,title')->latest()->get();
+        $items->each(fn (TodoAttachment $attachment) => $attachment->setAppends(['formatted_file_size']));
+
         return response()->json(['data' => $items]);
     }
 
     public function showAttachment(TodoAttachment $attachment): JsonResponse
     {
         abort_unless($attachment->todo()->where('user_id', Auth::id())->exists(), 403);
+        $attachment->setAppends(['formatted_file_size']);
+
         return response()->json(['data' => $attachment->load('todo:id,title')]);
     }
 
