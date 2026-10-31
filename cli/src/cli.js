@@ -42,12 +42,30 @@ function powershell(script, input = '') {
   });
 }
 
-async function token() {
-  if (process.env.ZETTLY_API_TOKEN) return process.env.ZETTLY_API_TOKEN;
+function tokenSource(cfg) {
+  const source = process.env.ZETTLY_TOKEN_SOURCE || cfg.tokenSource || 'auto';
+  if (!['auto', 'env', 'stored'].includes(source)) throw new Error('ZETTLY_TOKEN_SOURCE must be auto, env, or stored.');
+  return source;
+}
+
+async function storedToken() {
   if (platform() !== 'win32') return '';
   try {
     return await powershell(`$s=Get-Content -Raw -LiteralPath '${vaultPath.replaceAll("'", "''")}' | ConvertTo-SecureString; $p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s); try {[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)} finally {[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}`);
   } catch { return ''; }
+}
+
+async function token() {
+  const source = tokenSource(await config());
+  if (source === 'env') return process.env.ZETTLY_API_TOKEN || '';
+  if (source === 'stored') return await storedToken();
+  return process.env.ZETTLY_API_TOKEN || await storedToken();
+}
+
+async function setTokenSource(source) {
+  const cfg = await config();
+  await mkdir(dirname(homeConfig), { recursive: true });
+  await writeFile(homeConfig, JSON.stringify({ ...cfg, tokenSource: source }, null, 2));
 }
 
 async function saveToken(value) {
@@ -55,6 +73,7 @@ async function saveToken(value) {
   const safePath = vaultPath.replaceAll("'", "''");
   await mkdir(dirname(vaultPath), { recursive: true });
   await powershell(`$t=[Console]::In.ReadToEnd(); $s=ConvertTo-SecureString $t -AsPlainText -Force; $e=ConvertFrom-SecureString $s; [IO.File]::WriteAllText('${safePath}',$e)`, value);
+  await setTokenSource('stored');
 }
 
 function parse(argv) {
@@ -168,7 +187,7 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nCreate/update payloads use --file JSON or --data JSON.\nSet ZETTLY_API_TOKEN for automation. Destructive actions prompt unless --yes.`);
+  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
 }
 
 export async function run(argv) {
@@ -180,6 +199,7 @@ export async function run(argv) {
   }
   if (command === 'auth') {
     if (sub === 'register') {
+      if (process.env.ZETTLY_TOKEN_SOURCE === 'env') throw new Error('Unset ZETTLY_TOKEN_SOURCE=env so the new account token can become active.');
       if (platform() !== 'win32') throw new Error('CLI registration currently requires Windows DPAPI token storage; use web registration on this system.');
       let body;
       if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
@@ -215,8 +235,17 @@ export async function run(argv) {
       await verifyEmailUrl(signedUrl, flags); return;
     }
     if (sub === 'login') {
-      if (process.env.ZETTLY_API_TOKEN) { print('Using ZETTLY_API_TOKEN from the environment.', flags.json); return; }
-      if (flags.token) { await saveToken(String(flags.token).trim()); print('Token stored securely.', flags.json); return; }
+      if (process.env.ZETTLY_TOKEN_SOURCE === 'env' && !process.env.ZETTLY_API_TOKEN) throw new Error('ZETTLY_TOKEN_SOURCE=env requires ZETTLY_API_TOKEN.');
+      if (flags.token) {
+        if (process.env.ZETTLY_TOKEN_SOURCE === 'env') throw new Error('Unset ZETTLY_TOKEN_SOURCE=env or set it to stored to save this PAT securely.');
+        await saveToken(String(flags.token).trim()); print('Token stored securely.', flags.json); return;
+      }
+      const passwordLoginRequested = Boolean(flags.email || flags.file || process.env.ZETTLY_TOKEN_SOURCE === 'stored');
+      if (process.env.ZETTLY_TOKEN_SOURCE === 'env' && passwordLoginRequested) throw new Error('ZETTLY_TOKEN_SOURCE=env selects the environment credential; unset it to use email/password login.');
+      if (process.env.ZETTLY_API_TOKEN && process.env.ZETTLY_TOKEN_SOURCE !== 'stored' && !passwordLoginRequested) {
+        await setTokenSource('env');
+        print('Using ZETTLY_API_TOKEN from the environment.', flags.json); return;
+      }
       if (platform() !== 'win32') throw new Error('Email login requires Windows DPAPI token storage; use ZETTLY_API_TOKEN or `auth login --token`.');
       let body;
       if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
@@ -228,11 +257,26 @@ export async function run(argv) {
       await saveToken(result.token);
       print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
     }
-    if (sub === 'logout') { if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); } print('Stored token removed.', flags.json); return; }
-    if (sub === 'status') { print({ authenticated: Boolean(await token()), host: (await config()).host }, flags.json); return; }
+    if (sub === 'logout') {
+      if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); }
+      const envRemainsActive = Boolean(process.env.ZETTLY_API_TOKEN) && process.env.ZETTLY_TOKEN_SOURCE !== 'stored';
+      await setTokenSource(envRemainsActive ? 'env' : 'auto');
+      print(envRemainsActive ? 'Stored token removed; environment token remains active.' : 'Stored token removed.', flags.json); return;
+    }
+    if (sub === 'status') {
+      const cfg = await config(); const preference = tokenSource(cfg);
+      const hasStored = Boolean(await storedToken()); const hasEnv = Boolean(process.env.ZETTLY_API_TOKEN);
+      const source = preference === 'auto'
+        ? (hasEnv ? 'env' : hasStored ? 'stored' : 'none')
+        : preference === 'env'
+          ? (hasEnv ? 'env' : 'none')
+          : hasStored ? 'stored' : 'none';
+      print({ authenticated: source !== 'none', host: cfg.host, token_source: source }, flags.json); return;
+    }
     if (sub === 'issue-token') {
       const result = await api('auth/token', 'POST', { name: flags.name || 'zettly-cli' }, flags);
-      await saveToken(result.token); print({ id: result.id, name: result.name, abilities: result.abilities, stored_securely: true }, flags.json); return;
+      await saveToken(result.token);
+      print({ id: result.id, name: result.name, abilities: result.abilities, stored_securely: true, active_source: process.env.ZETTLY_TOKEN_SOURCE === 'env' ? 'environment override' : 'stored scoped token' }, flags.json); return;
     }
   }
   if (command === 'whoami') { print(await api('user', 'GET', null, flags), flags.json); return; }
