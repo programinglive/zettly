@@ -3,6 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { homedir, platform } from 'node:os';
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
+import { addShape, deleteShape, listShapes, updateShape } from './drawing-document.js';
 
 const homeConfig = join(homedir(), '.zettly', 'config.json');
 const vaultPath = join(homedir(), '.zettly', 'token.dpapi');
@@ -212,7 +213,59 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  dashboard [--tags <ids>]             Show dashboard summary\n  todos board [--tags <ids>]           Show Eisenhower board columns\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
+  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  dashboard [--tags <ids>]             Show dashboard summary\n  todos board [--tags <ids>]           Show Eisenhower board columns\n  drawings shapes <id>                 List TLDraw shape records\n  drawings shape-add <id> --file <json> Add a TLDraw shape record\n  drawings shape-update <id> <shape> --file <json> Patch shape fields/props\n  drawings shape-delete <id> <shape>    Delete a shape record\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
+}
+
+async function readJsonInput(flags, description) {
+  if (flags.data) return JSON.parse(flags.data);
+  if (flags.file) return JSON.parse(await readFile(flags.file, 'utf8'));
+  throw new Error(`Provide ${description} with --file <path> or --data <json>.`);
+}
+
+async function drawingDocument(id, flags) {
+  const response = await api(`drawings/${id}`, 'GET', null, flags);
+  if (!response?.drawing) throw new Error(`Drawing ${id} was not returned by the API.`);
+  return response.drawing;
+}
+
+async function saveDrawingDocument(drawing, flags) {
+  return api(`drawings/${drawing.id}`, 'PATCH', { document: drawing.document }, flags);
+}
+
+async function drawingShapeCommand(sub, id, rest, flags) {
+  if (!id) throw new Error(`Usage: zettly drawings ${sub} <drawing-id> [shape-id]`);
+  const drawing = await drawingDocument(id, flags);
+
+  if (sub === 'shapes') {
+    print({ drawing_id: drawing.id, shapes: listShapes(drawing) }, flags.json);
+    return;
+  }
+
+  if (sub === 'shape-add') {
+    const shape = await readJsonInput(flags, 'a TLDraw shape record');
+    const updated = addShape(drawing, shape);
+    await saveDrawingDocument(updated, flags);
+    print({ success: true, drawing_id: drawing.id, shape_id: shape.id }, flags.json);
+    return;
+  }
+
+  const shapeId = rest[0];
+  if (!shapeId) throw new Error(`Usage: zettly drawings ${sub} <drawing-id> <shape-id>`);
+  if (sub === 'shape-update') {
+    const patch = await readJsonInput(flags, 'a shape patch');
+    const updated = updateShape(drawing, shapeId, patch);
+    await saveDrawingDocument(updated, flags);
+    print({ success: true, drawing_id: drawing.id, shape_id: shapeId }, flags.json);
+    return;
+  }
+  if (sub === 'shape-delete') {
+    if (!await confirmAction(flags, `Delete shape ${shapeId} from drawing ${id}?`)) return;
+    const updated = deleteShape(drawing, shapeId);
+    await saveDrawingDocument(updated, flags);
+    print({ success: true, drawing_id: drawing.id, shape_id: shapeId, deleted: true }, flags.json);
+    return;
+  }
+  throw new Error(`Unknown drawing operation: ${sub}.`);
 }
 
 export async function run(argv) {
@@ -309,6 +362,9 @@ export async function run(argv) {
   if (command === 'todos' && sub === 'board') {
     const data = await api('dashboard', 'GET', null, flags);
     printTodoBoard(data.todos ?? [], flags.json); return;
+  }
+  if (command === 'drawings' && ['shapes', 'shape-add', 'shape-update', 'shape-delete'].includes(sub)) {
+    await drawingShapeCommand(sub, id, rest, flags); return;
   }
   if (command === 'system' && sub === 'status') { print(await api('system/status', 'GET', null, flags), flags.json); return; }
   if (command === 'attachments' && sub === 'upload') { await uploadAttachment(id, flags.file, flags); return; }
