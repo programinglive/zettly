@@ -67,6 +67,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::get('user', fn (Request $request) => $request->user()->only(['id', 'name', 'email', 'workspace_view']))->name('api.v1.user');
     Route::get('profile', [CliApiController::class, 'profile'])->name('api.v1.profile.show');
     Route::patch('profile', [CliApiController::class, 'updateProfile'])->name('api.v1.profile.update');
+    Route::put('profile/password', [CliApiController::class, 'changePassword'])->name('api.v1.profile.password');
     Route::delete('profile', [CliApiController::class, 'deleteProfile'])->name('api.v1.profile.destroy');
     Route::post('auth/token', [CliApiController::class, 'issueCliToken'])->name('api.v1.auth.token');
     Route::delete('profile/tokens/{token}', [CliApiController::class, 'deleteToken'])->name('api.v1.profile.tokens.destroy');

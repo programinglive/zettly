@@ -200,6 +200,15 @@ export async function run(argv) {
     const body = flags.data ? JSON.parse(flags.data) : flags.file ? JSON.parse(await readFile(flags.file, 'utf8')) : Object.fromEntries(['recipient', 'subject', 'message'].filter((key) => flags[key] !== undefined).map((key) => [key, flags[key]]));
     print(await api('admin/email-test', 'POST', body, flags), flags.json); return;
   }
+  if (command === 'profile' && sub === 'password') {
+    let body;
+    if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
+    else {
+      if (!process.stdin.isTTY || !process.stdin.setRawMode) throw new Error('Password change requires an interactive terminal or a private JSON file via --file.');
+      body = { current_password: await askSecret('Current password: '), password: await askSecret('New password: '), password_confirmation: await askSecret('Confirm new password: ') };
+    }
+    print(await api('profile/password', 'PUT', body, flags), flags.json); return;
+  }
   if (command === 'profile' && sub === 'token-revoke') {
     if (!await confirmAction(flags, `Revoke API token ${id}?`)) return;
     print(await api(`profile/tokens/${id}`, 'DELETE', null, flags), flags.json); return;

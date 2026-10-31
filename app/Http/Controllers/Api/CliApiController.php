@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class CliApiController extends Controller
 {
@@ -150,6 +151,18 @@ class CliApiController extends Controller
         if (isset($data['email']) && $data['email'] !== $user->email) $user->email_verified_at = null;
         $user->fill($data)->save();
         return response()->json(['user' => $user->only(['id', 'name', 'email', 'workspace_view', 'created_at'])]);
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        Auth::user()->update(['password' => Hash::make($data['password'])]);
+
+        return response()->json(['success' => true]);
     }
 
     public function deleteProfile(Request $request): JsonResponse

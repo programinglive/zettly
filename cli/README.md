@@ -50,6 +50,9 @@ zettly organizations create --name "Product team"
 zettly organizations invite 3 --email teammate@example.com
 zettly organizations member-role 3 21 --role admin
 
+# Profile password change prompts without echo
+zettly profile password
+
 # Drawings and files
 zettly drawings list
 zettly drawings export 9 --file ./drawing.json
