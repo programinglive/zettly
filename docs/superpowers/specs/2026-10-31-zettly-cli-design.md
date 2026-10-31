@@ -16,7 +16,7 @@ Provide a standalone `zettly` command line client for the authenticated Zettly p
 
 ## Feature coverage
 
-Expose account registration/recovery/profile/token state and email verification, todos and notes (including priority, importance, due date, checklists, tags, links, board status, archive/trash/recovery), tags, focus sessions, habits and statistics, organizations/members/invitations, drawing document JSON import/export, attachments, graph export/rebuild, push subscription status/actions, and admin-only system status/email diagnostics. Terminal drawing editing and browser push permission grants remain browser responsibilities; CLI can manage/export documents and existing push subscriptions.
+Expose account registration/recovery/profile/token state and email verification, dashboard summaries (active todos, recent notes, available tags and workspace preference), todos and notes (including priority, importance, due date, checklists, tags, links, board status, archive/trash/recovery), tags, focus sessions, habits and statistics, organizations/members/invitations, drawing document JSON import/export, attachments, graph export/rebuild, push subscription status/actions, and admin-only system status/email diagnostics. Terminal drawing editing and browser push permission grants remain browser responsibilities; CLI can manage/export documents and existing push subscriptions.
 
 ## Security and compatibility
 
