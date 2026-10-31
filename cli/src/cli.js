@@ -79,7 +79,7 @@ async function api(path, method, body, flags) {
   const url = new URL(`/api/v1/${path.replace(/^\//, '')}`, cfg.host);
   if (method === 'GET') {
     for (const [key, value] of Object.entries(flags)) {
-      if (!['json', 'yes', 'no-interaction', 'file', 'data', 'token'].includes(key)) url.searchParams.set(key.replaceAll('_', '-'), value === true ? '1' : value);
+      if (!['json', 'yes', 'no-interaction', 'file', 'data', 'token'].includes(key)) url.searchParams.set(key.replaceAll('-', '_'), value === true ? '1' : value);
     }
   }
   const response = await fetch(url, { method, headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
@@ -245,6 +245,9 @@ export async function run(argv) {
     else if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
     else { body = {}; for (const [key, value] of Object.entries(flags)) if (!['json', 'yes', 'no-interaction', 'file'].includes(key)) body[key.replaceAll('-', '_')] = value === true ? true : value; }
     if (command === 'notes' && ['create', 'update'].includes(sub)) body.type = 'note';
+    if (command === 'todos' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
+    if (command === 'todos' && ['archive', 'restore'].includes(sub) && !body.reason) body.reason = 'Updated through Zettly CLI';
+    if (command === 'focus' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
   }
   if (id && !['list', 'create'].includes(sub)) path = path.replace(/undefined$/, id);
   print(await api(path, method, body, flags), flags.json);

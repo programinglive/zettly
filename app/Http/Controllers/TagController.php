@@ -9,6 +9,15 @@ use Inertia\Inertia;
 
 class TagController extends Controller
 {
+    public function show(Request $request, Tag $tag): JsonResponse
+    {
+        if ($tag->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json(['tag' => $tag->loadCount('todos')]);
+    }
+
     /**
      * Display a listing of the user's tags.
      */
@@ -121,15 +130,17 @@ class TagController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50',
-            'color' => 'nullable|string',
+            'name' => 'sometimes|required|string|max:50',
+            'color' => 'sometimes|nullable|string',
         ]);
 
         // Check if another tag with the same name exists (excluding current tag)
-        $existingTag = Tag::where('user_id', auth()->id())
-            ->where('name', trim($validated['name']))
-            ->where('id', '!=', $tag->id)
-            ->first();
+        $existingTag = isset($validated['name'])
+            ? Tag::where('user_id', auth()->id())
+                ->where('name', trim($validated['name']))
+                ->where('id', '!=', $tag->id)
+                ->first()
+            : null;
 
         if ($existingTag) {
             if ($request->wantsJson() || $request->is('api/*')) {
@@ -142,22 +153,16 @@ class TagController extends Controller
                 ->with('error', 'A tag with this name already exists!');
         }
 
-        // Keep existing color if none provided (for updates)
-        if (empty($validated['color'])) {
-            $validated['color'] = $tag->color; // Keep existing color
+        if (isset($validated['name'])) {
+            $validated['name'] = trim($validated['name']);
         }
 
-        // Ensure color has # prefix and is valid hex
-        if (! str_starts_with($validated['color'], '#')) {
-            $validated['color'] = '#'.$validated['color'];
+        if (array_key_exists('color', $validated)) {
+            if (empty($validated['color'])) $validated['color'] = $tag->color;
+            if (! str_starts_with($validated['color'], '#')) $validated['color'] = '#'.$validated['color'];
+            if (! preg_match('/^#[0-9A-Fa-f]{3,6}$/', $validated['color'])) $validated['color'] = '#3B82F6';
         }
 
-        // Simple validation - just check if it looks like a hex color
-        if (! preg_match('/^#[0-9A-Fa-f]{3,6}$/', $validated['color'])) {
-            $validated['color'] = '#3B82F6'; // Default blue
-        }
-
-        $validated['name'] = trim($validated['name']);
         $tag->update($validated);
 
         if ($request->wantsJson() || $request->is('api/*')) {

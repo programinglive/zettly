@@ -74,7 +74,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
         'index' => 'api.v1.todos.index', 'store' => 'api.v1.todos.store', 'show' => 'api.v1.todos.show',
         'update' => 'api.v1.todos.update', 'destroy' => 'api.v1.todos.destroy',
     ]);
-    Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('api.v1.todos.toggle');
+    Route::patch('todos/{todo}/toggle', [App\Http\Controllers\TodoController::class, 'toggle'])->name('api.v1.todos.toggle');
     Route::post('todos/{todo}/archive', [App\Http\Controllers\TodoController::class, 'archive'])->name('api.v1.todos.archive');
     Route::post('todos/{todo}/restore', [App\Http\Controllers\TodoController::class, 'restore'])->name('api.v1.todos.restore');
     Route::post('todos/{todo}/restore-deleted', [App\Http\Controllers\TodoController::class, 'restoreDeleted'])->name('api.v1.todos.restore-deleted');
@@ -93,16 +93,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('tags/{id}/restore', [TagController::class, 'restore'])->name('api.v1.tags.restore');
     Route::get('focus/current', [FocusController::class, 'current'])->name('api.v1.focus.current');
     Route::get('focus/{focus}', [CliApiController::class, 'showFocus'])->name('api.v1.focus.show');
-    Route::apiResource('focus', FocusController::class)->only(['index', 'store', 'update', 'destroy'])->names([
-        'index' => 'api.v1.focus.index', 'store' => 'api.v1.focus.store', 'update' => 'api.v1.focus.update', 'destroy' => 'api.v1.focus.destroy',
-    ]);
+    Route::get('focus', [FocusController::class, 'index'])->name('api.v1.focus.index');
+    Route::post('focus', [FocusController::class, 'store'])->name('api.v1.focus.store');
+    Route::match(['put', 'patch'], 'focus/{focus}', [FocusController::class, 'update'])->name('api.v1.focus.update');
+    Route::delete('focus/{focus}', [FocusController::class, 'destroy'])->name('api.v1.focus.destroy');
     Route::post('focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.v1.focus.complete');
     Route::get('habits', [CliApiController::class, 'habits'])->name('api.v1.habits.index');
     Route::get('habits/{habit}', [CliApiController::class, 'showHabit'])->name('api.v1.habits.show');
     Route::post('habits', [CliApiController::class, 'createHabit'])->name('api.v1.habits.store');
     Route::patch('habits/{habit}', [CliApiController::class, 'updateHabit'])->name('api.v1.habits.update');
     Route::delete('habits/{habit}', [CliApiController::class, 'deleteHabit'])->name('api.v1.habits.destroy');
-    Route::post('habits/{habit}/toggle', [CliApiController::class, 'toggleHabit'])->name('api.v1.habits.toggle');
+    Route::post('habits/{habit}/toggle', [App\Http\Controllers\HabitController::class, 'toggle'])->name('api.v1.habits.toggle');
     Route::get('habits/{habit}/stats', [CliApiController::class, 'habitStats'])->name('api.v1.habits.stats');
     Route::get('drawings', [CliApiController::class, 'drawings'])->name('api.v1.drawings.index');
     Route::post('drawings', [DrawingController::class, 'store'])->name('api.v1.drawings.store');

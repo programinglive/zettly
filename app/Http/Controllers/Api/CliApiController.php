@@ -13,6 +13,7 @@ use App\Models\TodoAttachment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -21,9 +22,16 @@ class CliApiController extends Controller
 {
     public function habits(Request $request): JsonResponse
     {
+        $from = now()->subDays(30)->startOfDay();
+        $through = now()->addDays(7)->endOfDay();
         $habits = Habit::accessibleBy(Auth::id(), $request->integer('organization_id') ?: null)
-            ->with(['entries' => fn ($query) => $query->whereDate('date', today()), 'streak'])
+            ->with(['entries' => fn ($query) => $query->whereBetween('date', [$from, $through]), 'streak'])
             ->latest()->get();
+        $habits->each(function (Habit $habit) {
+            $habit->today_completed = $habit->isCompletedToday();
+            $habit->today_count = $habit->getTodayCount();
+            $habit->today_target_met = $habit->isTodayTargetMet();
+        });
 
         return response()->json(['data' => $habits]);
     }
@@ -79,7 +87,9 @@ class CliApiController extends Controller
             'color' => 'sometimes|required|string|max:7', 'icon' => 'sometimes|required|string|max:50',
             'target_frequency' => 'sometimes|required|integer|min:1|max:100',
             'frequency_period' => 'sometimes|required|in:daily,weekly,monthly', 'is_active' => 'sometimes|boolean',
+            'organization_id' => 'sometimes|nullable|integer|exists:organizations,id',
         ]);
+        if (! empty($data['organization_id']) && ! Auth::user()->organizations()->whereKey($data['organization_id'])->exists()) abort(403);
         $habit->update($data);
         return response()->json(['data' => $habit->fresh()]);
     }
@@ -91,27 +101,19 @@ class CliApiController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function toggleHabit(Request $request, Habit $habit): JsonResponse
-    {
-        $this->authorizeHabit($habit);
-        $count = $request->integer('count', 1);
-        $entry = $habit->entries()->whereDate('date', today())->first();
-        if ($count < 1) $entry?->delete();
-        elseif ($entry) $entry->update(['count' => $count, 'notes' => $request->input('notes')]);
-        else $habit->entries()->create(['date' => today(), 'count' => $count, 'notes' => $request->input('notes')]);
-
-        return response()->json(['completed' => $habit->isCompletedToday(), 'count' => $habit->getTodayCount(), 'target_met' => $habit->isTodayTargetMet()]);
-    }
-
     public function habitStats(Habit $habit): JsonResponse
     {
         $this->authorizeHabit($habit);
-        $entries = $habit->entriesBetween(request('start_date', today()->subDays(30)), request('end_date', today()))->get();
-        $days = today()->parse(request('start_date', today()->subDays(30)))->diffInDays(today()->parse(request('end_date', today()))) + 1;
+        $start = Carbon::parse(request('start_date', today()->subDays(30)))->startOfDay();
+        $end = Carbon::parse(request('end_date', today()))->startOfDay();
+        $entries = $habit->entriesBetween($start, $end)->get();
+        $days = $start->diffInDays($end) + 1;
+        $completedDays = $entries->filter(fn ($entry) => $entry->count >= $habit->target_frequency)->count();
 
         return response()->json([
             'total_completions' => $entries->sum('count'),
-            'completed_days' => $entries->filter(fn ($entry) => $entry->count >= $habit->target_frequency)->count(),
+            'completion_rate' => $days > 0 ? round(($completedDays / $days) * 100, 1) : 0,
+            'completed_days' => $completedDays,
             'total_days' => $days,
             'current_streak' => $habit->streak()->value('current_streak') ?? 0,
             'longest_streak' => $habit->streak()->value('longest_streak') ?? 0,

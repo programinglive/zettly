@@ -32,7 +32,7 @@ zettly todos list --filter pending
 zettly todos archived --json
 zettly todos deleted --json
 zettly todos create --title "Ship CLI" --priority urgent --importance important --due-date 2026-11-15
-zettly todos complete 42
+zettly todos complete 42 --reason "Finished in CLI"
 zettly todos priority 42 --priority urgent --importance important
 zettly todos checklist-toggle 42 7
 zettly todos link 42 --related_todo_id 57

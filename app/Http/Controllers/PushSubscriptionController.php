@@ -14,7 +14,7 @@ class PushSubscriptionController extends Controller
     /**
      * Store or update a push subscription.
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse|Response
     {
         $validated = $request->validate([
             'endpoint' => 'required|string|url',
@@ -36,13 +36,17 @@ class PushSubscriptionController extends Controller
             ]
         );
 
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Subscription saved.'], 201);
+        }
+
         return response('Subscription saved', 201);
     }
 
     /**
      * Remove a push subscription.
      */
-    public function destroy(Request $request): Response
+    public function destroy(Request $request): JsonResponse|Response
     {
         $validated = $request->validate([
             'endpoint' => 'required|string|url',
@@ -53,6 +57,10 @@ class PushSubscriptionController extends Controller
         PushSubscription::where('user_id', $user->id)
             ->where('endpoint', $validated['endpoint'])
             ->delete();
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Subscription removed.']);
+        }
 
         return response('Subscription removed', 200);
     }

@@ -263,11 +263,15 @@ class HabitController extends Controller
         $yesterdayEntry = $habit->entries()->forDate($yesterday)->first();
 
         if ($todayEntry && $todayEntry->count >= $habit->target_frequency) {
-            if ($yesterdayEntry && $yesterdayEntry->count >= $habit->target_frequency) {
-                // Continue streak
+            $lastCompletion = $streak->last_completion_date
+                ? Carbon::parse($streak->last_completion_date)->startOfDay()
+                : null;
+
+            if ($lastCompletion?->isSameDay($today)) {
+                // Repeated toggles/edits for today's completed entry must be idempotent.
+            } elseif ($lastCompletion?->isSameDay($yesterday) && $yesterdayEntry && $yesterdayEntry->count >= $habit->target_frequency) {
                 $streak->current_streak++;
             } else {
-                // Start new streak
                 $streak->current_streak = 1;
             }
 
@@ -276,7 +280,7 @@ class HabitController extends Controller
             }
 
             $streak->last_completion_date = $today;
-        } elseif (!$todayEntry && $yesterdayEntry && $yesterdayEntry->count >= $habit->target_frequency) {
+        } elseif (! $todayEntry && $yesterdayEntry && $yesterdayEntry->count >= $habit->target_frequency) {
             // Streak broken
             if ($streak->current_streak > $streak->longest_streak) {
                 $streak->longest_streak = $streak->current_streak;
