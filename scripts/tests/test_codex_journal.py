@@ -101,3 +101,48 @@ def test_redaction_still_applies_before_posting(tmp_path, monkeypatch):
     cleaned = module.clean("token: supersecretvalue", 300)
 
     assert "supersecretvalue" not in cleaned
+
+
+def test_stop_event_builds_session_and_outcome_payloads(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-stop-1",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "completed the fix; all tests pass",
+    })
+
+    paths = [p for p, _ in posted]
+    assert "/api/v1/agent/sessions" in paths
+    assert any("/events" in p for p in paths)
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "completed"
+    assert session["title"] == "Development"
+    assert "all tests pass" in session["outcome"]
+    # Regression: the positional-arg signature must not blow up (was a TypeError before the fix).
+    assert "session_id" in session
+
+
+def test_stop_event_without_a_matching_keyword_stays_in_progress(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-stop-2",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "still working on the refactor",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "in_progress"
+    assert session.get("outcome") is None

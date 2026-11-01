@@ -90,7 +90,7 @@ def ingest(e):
     if kind=="UserPromptSubmit":
         title=clean(next((x for x in prompt.split(". ") if x.strip()),"Codex work"),180) or "Codex work"
         ident="ACT-"+now.astimezone(WIB).strftime("%Y%m%d").upper()+"-"+hashlib.sha256(sid.encode()).hexdigest()[:8].upper()
-        sess=session_payload(ident,sid,project,title,category(title),"in_progress",at,at,machine)
+        sess=session_payload(ident,sid,project,title=title,cat=category(title),status="in_progress",start=at,last=at,machine=machine)
         if not post("/api/v1/agent/sessions",sess):
             spool({"path":"/api/v1/agent/sessions","body":sess})
         ev=event_payload(key,"prompt",at,"submitted")
@@ -113,7 +113,7 @@ def ingest(e):
         files=changed(cwd)
         outcome=answer[-500:] if status=="completed" else None
         ident="ACT-"+now.astimezone(WIB).strftime("%Y%m%d").upper()+"-"+hashlib.sha256(sid.encode()).hexdigest()[:8].upper()
-        sess=session_payload(ident,sid,project,"Development",status,at,at,machine,files=files,errors=None,outcome=outcome)
+        sess=session_payload(ident,sid,project,title="Development",cat="Development",status=status,start=at,last=at,machine=machine,files=files,outcome=outcome)
         if not post("/api/v1/agent/sessions",sess):
             spool({"path":"/api/v1/agent/sessions","body":sess})
         ev=event_payload(key,"outcome",at,status)
