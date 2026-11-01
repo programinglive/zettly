@@ -152,7 +152,12 @@ def ingest(e):
         files=changed(cwd)
         outcome=answer[-500:] if status=="completed" else None
         ident="ACT-"+now.astimezone(WIB).strftime("%Y%m%d").upper()+"-"+hashlib.sha256(sid.encode()).hexdigest()[:8].upper()
+        # A completed session needs its completed_at, otherwise every report
+        # counts 0 tasks completed: the generator requires the timestamp, not
+        # just the status.
         sess=session_payload(ident,sid,project,title="Development",cat="Development",status=status,start=at,last=at,machine=machine,files=files,outcome=outcome)
+        if status=="completed":
+            sess["completed_at"]=at
         if not post("/api/v1/agent/sessions",sess):
             spool({"path":"/api/v1/agent/sessions","body":sess})
         ev=event_payload(key,"outcome",at,status)

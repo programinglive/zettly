@@ -214,3 +214,46 @@ def test_machine_name_prefers_explicit_env(tmp_path, monkeypatch):
     monkeypatch.setenv("COMPUTERNAME", "IGNORED")
 
     assert module.machine_name() == "mmch"
+
+
+def test_stop_completed_sets_completed_at(tmp_path, monkeypatch):
+    """Reports count a completed task only when completed_at is present.
+
+    Before this, status=completed was recorded without the timestamp, so every
+    daily report said "Tasks completed: 0" despite finished work.
+    """
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-completed-1",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "completed the fix; all tests pass",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "completed"
+    assert session.get("completed_at"), "completed sessions must carry completed_at"
+
+
+def test_stop_in_progress_does_not_set_completed_at(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-progress-1",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "still working on the refactor",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "in_progress"
+    assert "completed_at" not in session or session["completed_at"] is None

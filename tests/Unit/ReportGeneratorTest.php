@@ -178,4 +178,25 @@ class ReportGeneratorTest extends TestCase
         $this->assertSame('2025-01-01', $start->toDateString());
         $this->assertSame('2025-12-31', $end->toDateString());
     }
+    public function test_completed_session_without_completed_at_still_counts(): void
+    {
+        // Historical rows written before the hook sent completed_at are still
+        // finished work; reporting "Tasks completed: 0" for them is wrong.
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-02 00:00:00');
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id,
+            'project' => 'zettly',
+            'title' => 'finished but untimestamped',
+            'status' => 'completed',
+            'completed_at' => null,
+            'started_at' => $this->utc($day->copy()->addHours(9)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(10)),
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('- Tasks completed: 1', $report->content);
+    }
 }

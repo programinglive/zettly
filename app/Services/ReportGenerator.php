@@ -93,6 +93,18 @@ class ReportGenerator
                 && $session->completed_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
             ->count();
 
+        // Sessions recorded as completed before the hook started sending
+        // completed_at have no timestamp. Counting them as zero made finished
+        // work invisible; fall back to the session's own activity window.
+        $completedWithoutTimestamp = $sessions
+            ->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                && ! $session->completed_at
+                && $session->last_activity_at
+                && $session->last_activity_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+            ->count();
+
+        $completed += $completedWithoutTimestamp;
+
         $pending = $sessions
             ->filter(fn (AgentSession $session) => in_array(
                 $session->status,
