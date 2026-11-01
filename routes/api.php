@@ -145,6 +145,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('graph/rebuild', [App\Http\Controllers\Api\GraphApiController::class, 'rebuild'])->middleware('super-admin')->name('api.v1.graph.rebuild');
     Route::middleware('super-admin')->get('admin/system-monitor', App\Http\Controllers\Admin\SystemMonitorController::class)->name('api.v1.admin.system-monitor');
     Route::post('admin/email-test', [App\Http\Controllers\EmailTestController::class, 'send'])->middleware('super-admin')->name('api.v1.admin.email-test');
+    Route::post('agent/sessions', [App\Http\Controllers\Api\AgentController::class, 'store'])->name('api.v1.agent.sessions.store');
+    Route::post('agent/sessions/{session_id}/events', [App\Http\Controllers\Api\AgentController::class, 'storeEvent'])->name('api.v1.agent.sessions.events.store');
+    Route::get('agent/sessions', [App\Http\Controllers\Api\AgentController::class, 'index'])->name('api.v1.agent.sessions.index');
 });
 
 // Push routes with session auth (for web clients)
