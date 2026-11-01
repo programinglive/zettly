@@ -18,19 +18,18 @@ Dokumen ini mencatat **bagaimana** `daily-activity-journal` dikonversi menjadi Z
 | Data tersebar di `programinglive/daily-activity-journal` + `mahatmamahardhikach/…` | Satu database di Zettly; semua device mengirim ke sana |
 
 **Repo lama `daily-activity-journal` tidak lagi menjadi sumber data kerja.**
-Ia hanya di-pull untuk panduan `CODEX_KENARI_GEMINI_SETUP.md` dan untuk migrasi data historis
-sekali pakai (melalui `journal:import-legacy`, sudah selesai).
+Ia hanya di-pull untuk migrasi data historis sekali pakai (melalui `journal:import-legacy`, sudah selesai).
 
 ---
 
 ## 2. Setup per device (checklist)
 
-Untuk setiap komputer/laptop yang menjalankan Codex dan ingin mencatat ke Zettly:
+Untuk setiap komputer/laptop yang menjalankan Codex dan ingin mencatat ke Zettly.
 
 ### a. Zettly instance + token
 
 Zettly harus bisa dijangkau. Token CLI dibuat **sekali** (di device yang sudah ada
-akun + Sanctum), lalu bisa dipindahkan ke device lain lewat clipboard/paste.
+akun + Sanctum), lalu bisa dipindahkan ke device lain via clipboard/paste.
 
 ```bash
 # 1. Masuk ke Zettly di browser device utama, salin token CLI dari profile screen,
@@ -64,22 +63,29 @@ echo 'export ZETTLY_API_BASE="https://zettly.example.com"' >> ~/.zshrc
 echo 'export ZETTLY_CLI_TOKEN="pt-XXXX"'                    >> ~/.zshrc
 ```
 
-### c. Hook Codex
+### c. Installer hook Codex
 
-File hook tunggal kini ada di repo Zettly: `scripts/codex_journal.py`.
-Setelah migrasi, **gunakan salinan dari repo Zettly**, bukan dari repo lama.
+Repo Zettly menyertakan installer cross-platform untuk semua 4 event
+(`UserPromptSubmit`, `SessionStart`, `Stop`, `PostToolUse`) yang memanggil
+`scripts/codex_journal.py` dengan Python yang tersedia di PATH device.
 
-- **Path hook (di device):** `scripts/codex_journal.py` dari repo Zettly
-- **Diaktifkan Codex** lewat konfigurasi Codex (`codex` TUI → settings → hooks →
-  "PostToolUse / Stop / UserPromptSubmit" → panggil `python3 codex_journal.py hook`).
-- Format stdin = JSON hook payload Codex (field `hook_event_name`, `session_id`,
-  `turn_id`, `cwd`, dst.)
-- Jika network turun, setiap payload masuk `outbox.jsonl` lokal di
-  `%LOCALAPPDATA%\DailyActivityJournal\outbox.jsonl` (Windows) atau
-  `~/.local/share/DailyActivityJournal/outbox.jsonl` (Linux). Replay otomatis
-  di run hook berikutnya.
+| OS | Script | Cara jalankan |
+|---|---|---|
+| Windows | `scripts/install_codex_journal.ps1` | `powershell -ExecutionPolicy Bypass -File scripts\install_codex_journal.ps1` |
+| macOS / Linux | `scripts/install_codex_journal.sh` | `bash scripts/install_codex_journal.sh` |
 
-### d. Scheduler (hanya di device utama, atau di server deploy)
+Kedua installer:
+- Menulis/menggabungkan entry ke `~/.codex/hooks.json` (format Codex hooks)
+- Async, timeout 3 detik (biar hook tidak memblokir TUI Codex)
+- Tidak mengubah `config.toml`
+- Idempoten: aman di-run ulang
+
+**Syarat di device:**
+- Repo Zettly ter-clone di device (path-nya yang dibaca installer)
+- Python (Windows: `C:\Program Files\Python311\python.exe` atau lewat PATH)
+- Codex CLI sudah ter-install & ter-login
+
+### d. Scheduler (hanya di server deploy Zettly)
 
 Zettly punya dua command terjadwal (Laravel scheduler):
 
@@ -151,22 +157,24 @@ Repo lama **boleh dihapus dari GitHub** hanya setelah **semua** kondisi ini terp
 - [x] Zettly + journal hook di-push ke `main` & ter-merge
 - [x] `journal:import-legacy` sudah di-run sekali untuk semua sumber historis
 - [x] `codex_journal.py` + test + panduan setup Codex dipindah ke repo Zettly
+- [x] Hook + installer tersedia di Zettly (`scripts/codex_journal.py`,
+      `scripts/install_codex_journal.ps1`, `scripts/install_codex_journal.sh`)
 - [ ] **Owner mengkonfirmasi** bahwa tidak ada device lain yang masih menulis ke
       `events.sqlite3` lokal (cek: `%LOCALAPPDATA%\DailyActivityJournal\` masih
       menerima write atau sudah read-only)
 - [ ] Tidak ada `outbox.jsonl` tersisa berisi payload yang belum ter-flush
       (cek di tiap device: `type "%LOCALAPPDATA%\DailyActivityJournal\outbox.jsonl"`
       harus kosong / tidak ada)
-- [ ] Semua device sudah memakai hook Zettly (path `scripts/codex_journal.py` dari
-      repo Zettly), bukan hook SQLite lama di repo `daily-activity-journal`
+- [ ] Semua device sudah re-point hook-nya ke repo Zettly (jalan
+      `scripts/install_codex_journal.ps1` atau `.sh` di tiap device)
 
-Checklist 1–2 sudah hijau saat ini. **Tunggu konfirmasi owner + kosongnya outbox
-di semua device** sebelum hapus repo `programinglive/daily-activity-journal`
-dan `mahatmamahardhikach/daily-activity-journal`.
+Checklist 1–5 sudah hijau saat ini. **Tunggu konfirmasi owner + kosongnya outbox
+di semua device + re-point hook selesai di semua device** sebelum hapus repo
+`programinglive/daily-activity-journal` dan `mahatmamahardhikach/daily-activity-journal`.
 
-> Catatan: panduan `CODEX_KENARI_GEMINI_SETUP.md` tetap hidup di Zettly
-> (`docs/`) jika diperlukan lintas device. Repo lama tidak harus dijaga
-> untuk alasan itu.
+> Catatan: panduan `CODEX_KENARI_GEMINI_SETUP.md` sudah tersimpan di Zettly
+> (`docs/CODEX_KENARI_GEMINI_SETUP.md`). Repo lama tidak harus dijaga untuk
+> alasan itu.
 
 ---
 
