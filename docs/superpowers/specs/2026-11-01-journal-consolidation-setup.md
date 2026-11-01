@@ -66,11 +66,10 @@ echo 'export ZETTLY_CLI_TOKEN="pt-XXXX"'                    >> ~/.zshrc
 
 ### c. Hook Codex
 
-File hook tinggal satu, masih di repo `daily-activity-journal` (`scripts/codex_journal.py`).
-Rekomendasi: pindahkan file ini ke repo Zettly (`scripts/codex_journal.py`) sebelum
-repo lama dihapus, supaya satu sumber per device tidak bergantung dua repo.
+File hook tunggal kini ada di repo Zettly: `scripts/codex_journal.py`.
+Setelah migrasi, **gunakan salinan dari repo Zettly**, bukan dari repo lama.
 
-- **Path hook (di device):** `scripts/codex_journal.py` (repo asal, atau salinan local)
+- **Path hook (di device):** `scripts/codex_journal.py` dari repo Zettly
 - **Diaktifkan Codex** lewat konfigurasi Codex (`codex` TUI → settings → hooks →
   "PostToolUse / Stop / UserPromptSubmit" → panggil `python3 codex_journal.py hook`).
 - Format stdin = JSON hook payload Codex (field `hook_event_name`, `session_id`,
@@ -151,13 +150,15 @@ Repo lama **boleh dihapus dari GitHub** hanya setelah **semua** kondisi ini terp
 - [x] 11 task konsolidasi selesai & di-review (critical/important fix sudah masuk)
 - [x] Zettly + journal hook di-push ke `main` & ter-merge
 - [x] `journal:import-legacy` sudah di-run sekali untuk semua sumber historis
+- [x] `codex_journal.py` + test + panduan setup Codex dipindah ke repo Zettly
 - [ ] **Owner mengkonfirmasi** bahwa tidak ada device lain yang masih menulis ke
       `events.sqlite3` lokal (cek: `%LOCALAPPDATA%\DailyActivityJournal\` masih
       menerima write atau sudah read-only)
 - [ ] Tidak ada `outbox.jsonl` tersisa berisi payload yang belum ter-flush
       (cek di tiap device: `type "%LOCALAPPDATA%\DailyActivityJournal\outbox.jsonl"`
       harus kosong / tidak ada)
-- [ ] Semua device sudah memakai hook Zettly, bukan hook SQLite lama
+- [ ] Semua device sudah memakai hook Zettly (path `scripts/codex_journal.py` dari
+      repo Zettly), bukan hook SQLite lama di repo `daily-activity-journal`
 
 Checklist 1–2 sudah hijau saat ini. **Tunggu konfirmasi owner + kosongnya outbox
 di semua device** sebelum hapus repo `programinglive/daily-activity-journal`
