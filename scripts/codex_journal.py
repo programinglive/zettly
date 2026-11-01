@@ -5,6 +5,7 @@ from pathlib import Path
 WIB=timezone(timedelta(hours=7),"WIB")
 STATE=Path(os.environ.get("LOCALAPPDATA",Path.home()))/"DailyActivityJournal"
 OUTBOX=STATE/"outbox.jsonl"
+CONFIG=STATE/"config.env"
 SECRET=re.compile(r"(?i)https://discord(?:app)?\.com/api/webhooks/\S+|bearer\s+\S+|(?:api[_-]?key|token|password|secret|webhook)\s*[:=]\s*\S+")
 DONE=re.compile(r"(?i)\b(completed|implemented|fixed|resolved|delivered|finished|verified successfully|all tests pass|berhasil diselesaikan)\b")
 NOT_DONE=re.compile(r"(?i)\b(not completed|not done|incomplete|still in progress|tests? (failed|failing)|belum selesai)\b")
@@ -19,10 +20,30 @@ def event_key(sid,kind,turn,source,identity,at):
     minute=at[:16] if isinstance(at,str) else at.isoformat()[:16]
     return hashlib.sha256(f"{sid}|{kind}|{turn}|{source}|{identity}|{minute}".encode()).hexdigest()
 
+def _config_value(key):
+    """Env wins; otherwise read the per-user config file.
+
+    Env alone is a trap: a hook spawned by an app that started before the User
+    env var was set (or by a different harness entirely) silently loses the
+    base URL and every event degrades to an outbox that is never flushed.
+    """
+    value=os.environ.get(key,"")
+    if value:return value.strip()
+    try:
+        text=CONFIG.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    for line in text.splitlines():
+        line=line.strip()
+        if not line or line.startswith("#") or "=" not in line:continue
+        name,_,rest=line.partition("=")
+        if name.strip()==key:return rest.strip()
+    return ""
+
 def post(path,body):
     """POST JSON to the Zettly API. Returns True on success, False on any failure (never raises)."""
-    base=os.environ.get("ZETTLY_API_BASE","").rstrip("/")
-    token=os.environ.get("ZETTLY_CLI_TOKEN","")
+    base=_config_value("ZETTLY_API_BASE").rstrip("/")
+    token=_config_value("ZETTLY_CLI_TOKEN")
     if not base or not token:return False
     try:
         url=f"{base}{path}"

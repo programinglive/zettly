@@ -28,9 +28,27 @@ class ReportApiTest extends TestCase
         $this->assertSame('daily:2026-11-01:2026-11-01', Report::firstOrFail()->report_key);
     }
 
-    public function test_it_enqueues_delivery_jobs(): void
+    public function test_generate_dispatches_a_delivery_job_when_a_channel_exists(): void
     {
+        // Regression: generate() used to create the delivery row and report
+        // "enqueued: 1" without ever dispatching the job, so nothing was sent
+        // until someone separately called /reports/deliver.
         Queue::fake();
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['zettly:cli']);
+        UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
+
+        $this->postJson('/api/v1/reports/generate', [
+            'period_kind' => 'daily',
+            'date' => '2026-11-01',
+        ])->assertOk()->assertJsonPath('enqueued', 1);
+
+        $this->assertSame(1, \App\Models\ReportDelivery::count());
+        Queue::assertPushed(\App\Jobs\DeliverReport::class);
+    }
+
+    public function test_it_enqueues_delivery_jobs(): void
+    {        Queue::fake();
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['zettly:cli']);
         $report = Report::factory()->create(['user_id' => $user->id]);

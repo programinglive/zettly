@@ -38,7 +38,7 @@ class ReportController
         $date = CarbonImmutable::parse($payload['date'] ?? today('Asia/Jakarta'), 'Asia/Jakarta')->startOfDay();
 
         $report = $generator->generate(Auth::user(), $kind, $date, $date);
-        $created = $delivery->enqueue(Auth::user(), $report);
+        $created = $this->deliverReport($report, $delivery)->enqueued;
 
         return response()->json([
             'success' => true,

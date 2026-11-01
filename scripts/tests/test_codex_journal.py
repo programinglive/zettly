@@ -146,3 +146,52 @@ def test_stop_event_without_a_matching_keyword_stays_in_progress(tmp_path, monke
     session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
     assert session["status"] == "in_progress"
     assert session.get("outcome") is None
+
+
+def test_config_file_is_used_when_env_is_missing(tmp_path, monkeypatch):
+    """A hook spawned by an app that never saw the User env vars must still sync.
+
+    Regression: env-only lookup meant ZETTLY_API_BASE was "" and every event was
+    silently spooled forever instead of reaching the API.
+    """
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    module.CONFIG.write_text(
+        "ZETTLY_API_BASE=https://zettly.test\nZETTLY_CLI_TOKEN=tok-file\n",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("ZETTLY_API_BASE", raising=False)
+    monkeypatch.delenv("ZETTLY_CLI_TOKEN", raising=False)
+    captured = {}
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self, *args):
+            return b"{}"
+
+    def fake_urlopen(request, timeout=0):
+        captured["url"] = request.full_url
+        captured["headers"] = dict(request.header_items())
+        return FakeResponse()
+
+    monkeypatch.setattr(module.urllib.request, "urlopen", fake_urlopen)
+
+    assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
+    assert captured["url"] == "https://zettly.test/api/v1/agent/sessions"
+    assert captured["headers"]["Authorization"] == "Bearer tok-file"
+
+
+def test_env_still_wins_over_the_config_file(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    module.CONFIG.write_text("ZETTLY_API_BASE=https://from-file.test\n", encoding="utf-8")
+
+    assert module._config_value("ZETTLY_API_BASE") == "https://zettly.test"
+
