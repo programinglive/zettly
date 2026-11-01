@@ -66,9 +66,11 @@ echo 'export ZETTLY_CLI_TOKEN="pt-XXXX"'                    >> ~/.zshrc
 
 ### c. Hook Codex
 
-File hook tinggal satu, sudah di Zettly repo (bukan di `daily-activity-journal`):
+File hook tinggal satu, masih di repo `daily-activity-journal` (`scripts/codex_journal.py`).
+Rekomendasi: pindahkan file ini ke repo Zettly (`scripts/codex_journal.py`) sebelum
+repo lama dihapus, supaya satu sumber per device tidak bergantung dua repo.
 
-- **Path hook (di device):** `scripts/codex_journal.py`
+- **Path hook (di device):** `scripts/codex_journal.py` (repo asal, atau salinan local)
 - **Diaktifkan Codex** lewat konfigurasi Codex (`codex` TUI → settings → hooks →
   "PostToolUse / Stop / UserPromptSubmit" → panggil `python3 codex_journal.py hook`).
 - Format stdin = JSON hook payload Codex (field `hook_event_name`, `session_id`,
