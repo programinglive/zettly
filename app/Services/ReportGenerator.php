@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\AgentSession;
+use App\Models\JournalEntry;
 use App\Models\Report;
+use App\Models\Todo;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -62,8 +64,23 @@ class ReportGenerator
 
     /**
      * Render a report body for a period, reproducing the section order of the Python version.
+     *
+     * Sessions are the primary signal. Journal entries and todos are the
+     * historical record: the legacy import wrote 19 dated entries and 36 todos
+     * but produced no agent sessions, so a session-only report rendered those
+     * days as empty. They are summarised here rather than dropped.
+     *
+     * @param  Collection  $journalEntries  JournalEntry rows whose entry_date falls in the period
+     * @param  Collection  $todos  Todos completed in the period, or still open
      */
-    public function render(string $periodKind, CarbonImmutable $start, CarbonImmutable $end, Collection $sessions): string
+    public function render(
+        string $periodKind,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+        Collection $sessions,
+        Collection $journalEntries = new Collection,
+        Collection $todos = new Collection
+    ): string
     {
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
         $wibEnd = $end->setTimezone('Asia/Jakarta')->startOfDay();
@@ -86,6 +103,11 @@ class ReportGenerator
 
         $seconds = (int) $sessions->sum(fn (AgentSession $session) => (int) $session->duration_seconds);
 
+        // A legacy day has journal activity instead of sessions; count it as work
+        // so the headline numbers are not misleadingly zero.
+        $journalDays = $journalEntries->count();
+        $todosCompleted = $todos->filter(fn (Todo $todo) => (bool) $todo->is_completed)->count();
+
         $machines = $sessions
             ->map(fn (AgentSession $session) => $session->machine ?: 'unknown')
             ->filter()
@@ -106,13 +128,18 @@ class ReportGenerator
             '',
             sprintf('- Machines: %s', $machines->isNotEmpty() ? $machines->implode(', ') : 'Unavailable'),
             sprintf('- Projects: %d', $projects->count()),
-            sprintf('- Tasks completed: %d', $completed),
+            sprintf('- Tasks completed: %d', $completed + $todosCompleted),
             sprintf('- Tasks in progress or blocked: %d', $pending),
             sprintf('- Observed active-turn time: %d minutes (not total working time)', intdiv($seconds, 60)),
-            '',
-            '## Work by project',
-            '',
         ];
+
+        if ($journalEntries->isNotEmpty()) {
+            $lines[] = sprintf('- Journal entries recorded: %d', $journalDays);
+        }
+
+        $lines[] = '';
+        $lines[] = '## Work by project';
+        $lines[] = '';
 
         foreach ($projects as $project) {
             $lines[] = sprintf('### %s', $project);
@@ -157,9 +184,45 @@ class ReportGenerator
                 $session->project,
                 $session->title,
                 $session->status
-            ));
+            ))
+            ->values()
+            ->all();
 
-        $lines = array_merge($lines, $outstanding->isNotEmpty() ? $outstanding->all() : ['- None recorded.']);
+        // Open todos are outstanding work too, and for a legacy day they are the
+        // only outstanding items that exist.
+        foreach ($todos as $todo) {
+            if ((bool) $todo->is_completed) {
+                continue;
+            }
+
+            $outstanding[] = sprintf(
+                '- %s%s',
+                AgentSessionIngestor::redact((string) $todo->title, 140),
+                $todo->priority === Todo::PRIORITY_URGENT ? ' (urgent)' : ''
+            );
+        }
+
+        $lines = array_merge($lines, $outstanding !== [] ? $outstanding : ['- None recorded.']);
+
+        if ($journalEntries->isNotEmpty()) {
+            $lines[] = '';
+            $lines[] = '## Journal entries';
+            $lines[] = '';
+
+            foreach ($journalEntries->take(10) as $entry) {
+                $body = trim(preg_replace('/\s+/', ' ', (string) $entry->content));
+                $lines[] = sprintf(
+                    '- **%s** (%s): %s',
+                    $entry->entry_date?->toDateString() ?? 'undated',
+                    $entry->kind,
+                    AgentSessionIngestor::redact($body, 200)
+                );
+            }
+
+            if ($journalEntries->count() > 10) {
+                $lines[] = sprintf('- … and %d more entries in this period.', $journalEntries->count() - 10);
+            }
+        }
 
         $lines[] = '';
         $lines[] = '## Next actions';
@@ -201,7 +264,28 @@ class ReportGenerator
             ->orderBy('title')
             ->get();
 
-        $content = $this->render($periodKind, $start, $end, $sessions);
+        // Historical record. entry_date is a plain date, so it compares directly
+        // against the WIB calendar days the report is labelled with.
+        $journalEntries = JournalEntry::where('user_id', $user->id)
+            ->whereDate('entry_date', '>=', $wibStart->toDateString())
+            ->whereDate('entry_date', '<=', $wibEnd->toDateString())
+            ->orderBy('entry_date')
+            ->get();
+
+        // Todos completed inside the period, plus everything still open (a
+        // legacy import has no completion date for work that never finished).
+        $todos = Todo::where('user_id', $user->id)
+            ->where(function ($query) use ($wibStart, $wibEnd) {
+                $query->where(function ($completed) use ($wibStart, $wibEnd) {
+                    $completed->where('is_completed', true)
+                        ->whereBetween('completed_at', [$wibStart->format('Y-m-d H:i:s'), $wibEnd->format('Y-m-d H:i:s')]);
+                })->orWhere('is_completed', false);
+            })
+            ->orderByDesc('is_completed')
+            ->limit(200)
+            ->get();
+
+        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos);
 
         return Report::updateOrCreate(
             [
@@ -227,12 +311,19 @@ class ReportGenerator
     {
         $now = $now ? CarbonImmutable::instance($now) : CarbonImmutable::now();
 
-        $earliest = AgentSession::where('user_id', $user->id)->min('started_at');
-        if (! $earliest) {
+        // Start from the earliest record of *any* activity, not just agent
+        // sessions: an imported legacy day has journal entries and todos but no
+        // sessions, and returning early left those periods unreported.
+        $candidates = array_filter([
+            AgentSession::where('user_id', $user->id)->min('started_at'),
+            JournalEntry::where('user_id', $user->id)->min('entry_date'),
+        ]);
+
+        if ($candidates === []) {
             return collect();
         }
 
-        $first = CarbonImmutable::parse($earliest)->setTimezone('Asia/Jakarta')->startOfDay();
+        $first = CarbonImmutable::parse(min($candidates))->setTimezone('Asia/Jakarta')->startOfDay();
         $reports = collect();
 
         foreach (self::duePeriods($first, $now) as [$kind, $start, $end]) {
