@@ -11,22 +11,61 @@ use Illuminate\Support\Facades\Http;
 class ReportDeliveryService
 {
     /**
-     * Condense a full report into its headline lines only, redacted.
+     * Condense a full report into a Discord-sized message, redacted.
+     *
+     * Keeps the headline block, the per-project sections and the journal
+     * summary, because those are what make a historical day readable. Section
+     * headings and the bullet under them travel together; a section is dropped
+     * whole rather than leaving an empty heading behind.
      */
     public static function summary(string $content, int $limit = 1800): string
     {
-        $headlineLines = array_values(array_filter(
-            preg_split('/\n/', $content),
-            fn (string $line) =>
-                str_starts_with($line, '# ') ||
-                str_starts_with($line, '- Machines:') ||
-                str_starts_with($line, '- Projects:') ||
-                str_starts_with($line, '- Tasks ') ||
-                str_starts_with($line, '- Observed active-turn time:') ||
-                str_starts_with($line, '### ')
-        ));
+        $kept = [];
+        $inDropSection = false;
 
-        return AgentSessionIngestor::redact(implode("\n", $headlineLines), $limit);
+        foreach (preg_split('/\n/', $content) as $line) {
+            $isSection = str_starts_with($line, '## ');
+            $isHeadline = str_starts_with($line, '# ')
+                || str_starts_with($line, '- Machines:')
+                || str_starts_with($line, '- Projects:')
+                || str_starts_with($line, '- Tasks ')
+                || str_starts_with($line, '- Observed active-turn time:')
+                || str_starts_with($line, '- Journal entries recorded:')
+                || str_starts_with($line, '### ');
+
+            if ($isSection) {
+                $heading = trim($line);
+
+                // Sections that add nothing to a chat message.
+                $inDropSection = in_array($heading, [
+                    '## Next actions',
+                    '## Historical comparison',
+                ], true);
+
+                // Heading-only removal: the project and session lines under it
+                // are the substance of the report, so keep them and skip the
+                // heading.
+                if ($heading === '## Work by project') {
+                    continue;
+                }
+
+                if (! $inDropSection) {
+                    $kept[] = $line;
+                }
+
+                continue;
+            }
+
+            if ($inDropSection) {
+                continue;
+            }
+
+            if ($isHeadline || str_starts_with($line, '- ') || str_starts_with($line, '  - ')) {
+                $kept[] = $line;
+            }
+        }
+
+        return AgentSessionIngestor::redact(implode("\n", $kept), $limit);
     }
 
     /**

@@ -18,7 +18,80 @@ class ReportDeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_summary_keeps_only_the_headline_lines_and_truncates(): void
+    public function test_summary_keeps_headlines_sessions_and_journal_but_drops_boilerplate(): void
+    {
+        $content = implode("\n", [
+            '# Daily Activity Summary: 2026-11-01 - 2026-11-01',
+            '',
+            '- Machines: MMCH',
+            '- Projects: 1',
+            '- Tasks completed: 2',
+            '- Tasks in progress or blocked: 0',
+            '- Observed active-turn time: 30 minutes (not total working time)',
+            '- Journal entries recorded: 1',
+            '',
+            '## Work by project',
+            '',
+            '### zettly',
+            '',
+            '- **ship it** — completed (Bug Fixing)',
+            '  - Modified files: app/Foo.php',
+            '',
+            '## Outstanding work',
+            '',
+            '- zettly: another task (in_progress)',
+            '',
+            '## Journal entries',
+            '',
+            '- **2026-11-01** (activity): Rebuilt the backup pipeline.',
+            '',
+            '## Next actions',
+            '',
+            '- Continue from activity/ACTIVE.md.',
+            '',
+            '## Historical comparison',
+            '',
+            '- Unavailable until automated records exist for both periods.',
+            '',
+        ]);
+
+        $summary = ReportDeliveryService::summary($content);
+
+        // Kept: the content a reader needs in chat.
+        $this->assertStringContainsString('# Daily Activity Summary', $summary);
+        $this->assertStringContainsString('### zettly', $summary);
+        $this->assertStringContainsString('**ship it**', $summary);
+        $this->assertStringContainsString('another task', $summary);
+        $this->assertStringContainsString('Rebuilt the backup pipeline.', $summary);
+        $this->assertStringContainsString('Journal entries recorded: 1', $summary);
+        // Dropped: boilerplate that adds nothing to a chat message.
+        $this->assertStringNotContainsString('## Next actions', $summary);
+        $this->assertStringNotContainsString('## Historical comparison', $summary);
+        $this->assertStringNotContainsString('Continue from activity/ACTIVE.md', $summary);
+    }
+
+    public function test_summary_fits_discords_2000_character_limit(): void
+    {
+        $blog = str_repeat('lorem ipsum dolor sit amet ', 400); // ~10 KB
+        $content = "# Daily Activity Summary: 2026-10-20 - 2026-10-20\n\n- Projects: 0\n\n## Journal entries\n\n- **2026-10-20** (activity): {$blog}\n";
+
+        $summary = ReportDeliveryService::summary($content);
+
+        // 1800 leaves headroom under Discord's hard 2000 limit.
+        $this->assertLessThanOrEqual(1800, mb_strlen($summary));
+    }
+
+    public function test_summary_drops_a_section_whole_instead_of_leaving_its_heading(): void
+    {
+        $content = "# Head\n\n## Next actions\n\n- something\n- else\n";
+
+        $summary = ReportDeliveryService::summary($content);
+
+        $this->assertStringNotContainsString('## Next actions', $summary);
+        $this->assertStringNotContainsString('something', $summary);
+    }
+
+    public function test_summary_keeps_the_headline_lines_and_truncates(): void
     {
         $content = implode("\n", [
             '# Daily Activity Summary: 2026-11-01 - 2026-11-01',
@@ -38,7 +111,10 @@ class ReportDeliveryTest extends TestCase
 
         $this->assertStringContainsString('# Daily Activity Summary', $summary);
         $this->assertStringContainsString('### zettly', $summary);
-        $this->assertStringNotContainsString('Modified files', $summary);
+        // Session detail now travels with the session line (it is useful in chat),
+        // but the whole thing still has to fit Discord's limit.
+        $this->assertStringContainsString('**ship it**', $summary);
+        $this->assertLessThanOrEqual(1800, mb_strlen($summary));
     }
 
     public function test_enqueue_creates_one_delivery_per_enabled_channel(): void
