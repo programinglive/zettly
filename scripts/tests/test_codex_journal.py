@@ -195,3 +195,22 @@ def test_env_still_wins_over_the_config_file(tmp_path, monkeypatch):
 
     assert module._config_value("ZETTLY_API_BASE") == "https://zettly.test"
 
+
+
+def test_machine_name_falls_back_to_hostname_when_computername_is_absent(tmp_path, monkeypatch):
+    """macOS/Linux have no COMPUTERNAME, so every session was recorded as "unknown"."""
+    module = load(tmp_path, monkeypatch)
+    monkeypatch.delenv("JOURNAL_MACHINE_ID", raising=False)
+    monkeypatch.delenv("COMPUTERNAME", raising=False)
+    monkeypatch.delenv("HOSTNAME", raising=False)
+    monkeypatch.setattr(module.socket, "gethostname", lambda: "mahatmas-MacBook-Pro.local")
+
+    assert module.machine_name() == "mahatmas-MacBook-Pro.local"
+
+
+def test_machine_name_prefers_explicit_env(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    monkeypatch.setenv("JOURNAL_MACHINE_ID", "mmch")
+    monkeypatch.setenv("COMPUTERNAME", "IGNORED")
+
+    assert module.machine_name() == "mmch"

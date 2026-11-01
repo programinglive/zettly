@@ -22,10 +22,36 @@ if (-not (Test-Path -LiteralPath $script)) {
 New-Item -ItemType Directory -Path $codexHome -Force | Out-Null
 
 # Load or initialise the hooks document.
+#
+# PowerShell 5.1 (the default on Windows Server and Windows 10/11) has no
+# `ConvertFrom-Json -AsHashtable`, so the whole installer used to fail with
+# "A parameter cannot be found that matches parameter name 'AsHashtable'".
+# ConvertFrom-Json works everywhere but yields PSCustomObjects; convert them to
+# hashtables so the rest of the script can keep using index access.
+function ConvertTo-HashtableDeep {
+    param($Node)
+
+    if ($null -eq $Node) { return $null }
+    if ($Node -is [System.Management.Automation.PSCustomObject]) {
+        $hash = @{}
+        foreach ($prop in $Node.PSObject.Properties) {
+            $hash[$prop.Name] = ConvertTo-HashtableDeep $prop.Value
+        }
+        return $hash
+    }
+    if ($Node -is [System.Collections.IEnumerable] -and $Node -isnot [string]) {
+        return ,@($Node | ForEach-Object { ConvertTo-HashtableDeep $_ })
+    }
+    return $Node
+}
+
 $config = @{ hooks = @{} }
 if (Test-Path -LiteralPath $hooksFile) {
-    $config = Get-Content -LiteralPath $hooksFile -Raw | ConvertFrom-Json -AsHashtable
-    if (-not $config.ContainsKey('hooks')) { $config.hooks = @{} }
+    $raw = Get-Content -LiteralPath $hooksFile -Raw
+    if ($raw -and $raw.Trim()) {
+        $config = ConvertTo-HashtableDeep (ConvertFrom-Json $raw)
+        if (-not $config.ContainsKey('hooks')) { $config.hooks = @{} }
+    }
 }
 
 $command = '"{0}" "{1}" hook' -f $pythonPath, $script

@@ -1,4 +1,4 @@
-import argparse,hashlib,json,os,re,subprocess,sys,urllib.request
+import argparse,hashlib,json,os,re,socket,subprocess,sys,urllib.request
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 
@@ -97,6 +97,24 @@ def event_payload(key,kind,occurred_at,detail=None):
     if detail is not None:body["detail"]=detail
     return body
 
+def machine_name():
+    """Best-effort device identity.
+
+    COMPUTERNAME only exists on Windows; on macOS/Linux every session was
+    recorded as "unknown", which made per-machine reports useless.
+    """
+    for name in ("JOURNAL_MACHINE_ID", "COMPUTERNAME", "HOSTNAME"):
+        value=os.environ.get(name,"")
+        if value:return clean(value,80)
+    try:
+        return clean(os.uname().nodename,80)
+    except (AttributeError,OSError):
+        pass
+    try:
+        return clean(socket.gethostname() or "unknown",80)
+    except OSError:
+        return "unknown"
+
 def ingest(e):
     now=datetime.now(timezone.utc);at=now.isoformat();kind=str(e.get("hook_event_name",""))
     sid=str(e.get("session_id","")).strip()
@@ -104,7 +122,7 @@ def ingest(e):
     source=str(e.get("source",""));turn=str(e.get("turn_id",""));identity=str(e.get("tool_call_id") or e.get("tool_use_id") or "")
     key=event_key(sid,kind,turn,source,identity,at)
     cwd=str(e.get("cwd",""));project=clean(Path(cwd).name or "Workspace",80)
-    machine=clean(os.environ.get("JOURNAL_MACHINE_ID") or os.environ.get("COMPUTERNAME") or "unknown",80)
+    machine=machine_name()
     if project.lower() in {"admin","users","home"}:project="Personal workspace"
     prompt=clean(e.get("prompt",""),3000);answer=clean(e.get("last_assistant_message",""),3000)
 
