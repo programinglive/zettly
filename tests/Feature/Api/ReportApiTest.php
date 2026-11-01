@@ -42,6 +42,23 @@ class ReportApiTest extends TestCase
         Queue::assertPushed(\App\Jobs\DeliverReport::class);
     }
 
+    public function test_targeted_deliver_only_enqueues_that_report(): void
+    {
+        Queue::fake();
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['zettly:cli']);
+        $target = Report::factory()->create(['user_id' => $user->id]);
+        $other = Report::factory()->create(['user_id' => $user->id, 'report_key' => 'daily:2026-11-02:2026-11-02']);
+        UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
+
+        $this->postJson('/api/v1/reports/deliver', ['report_key' => $target->report_key])
+            ->assertOk()->assertJsonPath('enqueued', 1);
+
+        $this->assertSame(1, \App\Models\ReportDelivery::count());
+        $this->assertSame($target->id, \App\Models\ReportDelivery::first()->report_id);
+        $this->assertNull(\App\Models\ReportDelivery::where('report_id', $other->id)->first());
+    }
+
     public function test_channel_listing_never_leaks_the_webhook_url(): void
     {
         $user = User::factory()->create();

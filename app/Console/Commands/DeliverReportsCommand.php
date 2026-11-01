@@ -39,6 +39,8 @@ class DeliverReportsCommand extends Command
         }
 
         $this->info("Queued delivery for {$deliveries->count()} pending report(s).");
+        // STATUS_FAILED rows are deliberately excluded from the sweep; they
+        // surface in listings and never re-enter the queue.
 
         return self::SUCCESS;
     }

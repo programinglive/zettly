@@ -52,7 +52,7 @@ class ReportController
      */
     public function deliver(Request $request, ReportDeliveryService $delivery): JsonResponse
     {
-        $reportKey = $request->query('report_key');
+        $reportKey = $request->input('report_key');
 
         if ($reportKey) {
             $report = Report::where('user_id', Auth::id())->where('report_key', $reportKey)->firstOrFail();

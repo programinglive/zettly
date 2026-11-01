@@ -181,15 +181,16 @@ class ReportGenerator
     {
         $reportKey = sprintf('%s:%s:%s', $periodKind, $start->toDateString(), $end->toDateString());
 
-        // Compare in WIB so the boundary lines up with the report period.
-        $wibStart = $start->setTimezone('Asia/Jakarta');
-        $wibEnd = $end->setTimezone('Asia/Jakarta');
+        // Boundaries are expressed in WIB (the zone sessions are recorded in),
+        // not in the application timezone, so the window matches stored data.
+        $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
+        $wibEnd = $end->setTimezone('Asia/Jakarta')->endOfDay();
 
         $sessions = AgentSession::where('user_id', $user->id)
-            ->where('started_at', '<=', $wibEnd->copy()->endOfDay()->toDateTimeString())
+            ->where('started_at', '<=', $wibEnd)
             ->where(function ($query) use ($wibStart) {
-                $query->where('last_activity_at', '>=', $wibStart->copy()->startOfDay()->toDateTimeString())
-                    ->orWhere('started_at', '>=', $wibStart->copy()->startOfDay()->toDateTimeString());
+                $query->where('last_activity_at', '>=', $wibStart)
+                    ->orWhere('started_at', '>=', $wibStart);
             })
             ->orderBy('project')
             ->orderBy('title')

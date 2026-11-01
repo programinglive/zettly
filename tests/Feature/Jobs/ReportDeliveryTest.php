@@ -129,6 +129,31 @@ class ReportDeliveryTest extends TestCase
         $this->assertNotNull($delivery->last_error);
     }
 
+    public function test_deliver_job_marks_delivery_failed_after_the_retry_cap_is_exhausted(): void
+    {
+        Http::fake(['discord.com/*' => Http::response('nope', 500)]);
+
+        $user = User::factory()->create();
+        $report = Report::factory()->create(['user_id' => $user->id]);
+        UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
+        $delivery = ReportDelivery::factory()->create([
+            'user_id' => $user->id, 'report_id' => $report->id, 'channel' => 'discord',
+            'attempts' => 2,
+        ]);
+
+        $job = new DeliverReport($delivery->id);
+
+        try {
+            $job->handle(app(ReportDeliveryService::class), 3);
+        } catch (\Throwable) {
+            // expected: the final attempt still raises so the queue records it
+        }
+
+        $delivery->refresh();
+        $this->assertSame(ReportDelivery::STATUS_FAILED, $delivery->status);
+        $this->assertSame(3, $delivery->attempts);
+    }
+
     public function test_dispatch_job_generates_reports_for_a_user(): void
     {
         $user = User::factory()->create();

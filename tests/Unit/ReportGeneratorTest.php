@@ -111,4 +111,36 @@ class ReportGeneratorTest extends TestCase
         $this->assertNotContains('monthly', $kinds);
         $this->assertNotContains('yearly', $kinds);
     }
+
+    public function test_due_periods_emit_monthly_when_the_month_has_rolled_over(): void
+    {
+        // 2026-11-30 is the last day of November. Crossing into December means
+        // the monthly period for November is due.
+        $periods = ReportGenerator::duePeriods(
+            $this->wib('2026-11-28 00:00:00'),
+            $this->wib('2026-12-01 12:00:00')
+        );
+
+        $monthly = array_filter($periods, fn (array $p) => $p[0] === 'monthly');
+        $this->assertCount(1, $monthly);
+        [$kind, $start, $end] = array_values($monthly)[0];
+        $this->assertSame('2026-11-01', $start->toDateString());
+        $this->assertSame('2026-11-30', $end->toDateString());
+    }
+
+    public function test_due_periods_emit_yearly_on_new_year_rollover(): void
+    {
+        // Crossing from December 31 into January 1 makes the yearly report for
+        // the prior year due.
+        $periods = ReportGenerator::duePeriods(
+            $this->wib('2025-12-29 00:00:00'),
+            $this->wib('2026-01-01 12:00:00')
+        );
+
+        $yearly = array_filter($periods, fn (array $p) => $p[0] === 'yearly');
+        $this->assertCount(1, $yearly);
+        [, $start, $end] = array_values($yearly)[0];
+        $this->assertSame('2025-01-01', $start->toDateString());
+        $this->assertSame('2025-12-31', $end->toDateString());
+    }
 }

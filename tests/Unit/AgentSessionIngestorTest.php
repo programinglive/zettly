@@ -113,4 +113,43 @@ class AgentSessionIngestorTest extends TestCase
         $this->assertNull($second);
         $this->assertSame(1, AgentEvent::count());
     }
+
+    public function test_upsert_session_preserves_fields_not_sent_on_a_later_update(): void
+    {
+        $user = User::factory()->create();
+        $ingestor = app(AgentSessionIngestor::class);
+
+        $ingestor->upsertSession($user, [
+            'session_id' => 'sess-4',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:30:00+07:00',
+            'duration_seconds' => 1800,
+            'files_changed' => ['app/Foo.php'],
+            'errors' => ['first failure'],
+            'outcome' => 'printed ok',
+            'machine' => 'MMCH',
+        ]);
+
+        // A Stop-style update that sends nothing about files/errors/outcome:
+        // the accumulated values must survive, not be nulled out.
+        $ingestor->upsertSession($user, [
+            'session_id' => 'sess-4',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'completed',
+            'last_activity_at' => '2026-11-01T11:00:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        $fresh = AgentSession::where('user_id', $user->id)->where('session_id', 'sess-4')->firstOrFail();
+
+        $this->assertSame('completed', $fresh->status);
+        $this->assertSame(1800, $fresh->duration_seconds);
+        $this->assertSame(['app/Foo.php'], $fresh->files_changed);
+        $this->assertSame(['first failure'], $fresh->errors);
+        $this->assertSame('printed ok', $fresh->outcome);
+    }
 }

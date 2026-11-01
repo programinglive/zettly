@@ -115,6 +115,43 @@ class AgentApiTest extends TestCase
         ])->assertNotFound();
     }
 
+    public function test_a_stop_update_without_optional_fields_preserves_the_accumulated_values(): void
+    {
+        $this->actingAsCliUser();
+
+        $this->postJson('/api/v1/agent/sessions', [
+            'session_id' => 'sess-5',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:30:00+07:00',
+            'duration_seconds' => 1800,
+            'files_changed' => ['app/Foo.php'],
+            'errors' => ['first failure'],
+            'outcome' => 'printed ok',
+            'machine' => 'MMCH',
+        ])->assertCreated();
+
+        // The Stop handler sends no files/errors/outcome; they must survive.
+        $this->postJson('/api/v1/agent/sessions', [
+            'session_id' => 'sess-5',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'completed',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T11:00:00+07:00',
+            'machine' => 'MMCH',
+        ])->assertOk();
+
+        $session = AgentSession::where('session_id', 'sess-5')->firstOrFail();
+        $this->assertSame('completed', $session->status);
+        $this->assertSame(1800, $session->duration_seconds);
+        $this->assertSame(['app/Foo.php'], $session->files_changed);
+        $this->assertSame(['first failure'], $session->errors);
+        $this->assertSame('printed ok', $session->outcome);
+    }
+
     public function test_it_requires_the_cli_ability(): void
     {
         Sanctum::actingAs(User::factory()->create(), ['other:ability']);

@@ -20,7 +20,7 @@ class DeliverReport implements ShouldQueue
     {
     }
 
-    public function handle(ReportDeliveryService $service): void
+    public function handle(ReportDeliveryService $service, int $attempt = 1): void
     {
         $delivery = ReportDelivery::find($this->deliveryId);
 
@@ -31,10 +31,18 @@ class DeliverReport implements ShouldQueue
         try {
             $service->send($delivery);
         } catch (\Throwable $e) {
-            Log::warning('Report delivery failed, will retry.', [
+            // Final attempt: flip to failed so the scheduled sweep stops re-dispatching.
+            if ($attempt >= $this->tries) {
+                $delivery->update(['status' => ReportDelivery::STATUS_FAILED]);
+            }
+
+            Log::warning('Report delivery failed.', [
                 'delivery_id' => $delivery->id,
+                'attempt' => $attempt,
+                'will_retry' => $attempt < $this->tries,
                 'error' => $e->getMessage(),
             ]);
+
             throw $e;
         }
     }

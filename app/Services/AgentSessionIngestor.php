@@ -58,6 +58,10 @@ class AgentSessionIngestor
 
     /**
      * Create or update a session, keyed by (user_id, session_id).
+     *
+     * Only fields the caller actually supplied are written; omitted optional
+     * fields (files_changed, errors, outcome, completed_at, duration_seconds)
+     * are preserved from the existing row.
      */
     public function upsertSession(User $user, array $attributes, ?CarbonInterface $now = null): AgentSession
     {
@@ -70,15 +74,28 @@ class AgentSessionIngestor
             'status' => $attributes['status'] ?? AgentSession::STATUS_IN_PROGRESS,
             'started_at' => $attributes['started_at'] ?? ($now ?? now()),
             'last_activity_at' => $attributes['last_activity_at'] ?? ($now ?? now()),
-            'completed_at' => $attributes['completed_at'] ?? null,
-            'duration_seconds' => (int) ($attributes['duration_seconds'] ?? 0),
-            'files_changed' => $this->redactList($attributes['files_changed'] ?? null, 160),
-            'errors' => $this->redactList($attributes['errors'] ?? null, 300),
-            'outcome' => isset($attributes['outcome'])
-                ? self::redact((string) $attributes['outcome'], 500)
-                : null,
             'machine' => self::redact((string) ($attributes['machine'] ?? 'unknown'), 80),
         ];
+
+        // Optional fields: only included when the caller explicitly sent them,
+        // so a subsequent upsert that omits them does not wipe the stored value.
+        if (array_key_exists('duration_seconds', $attributes)) {
+            $values['duration_seconds'] = (int) $attributes['duration_seconds'];
+        }
+        if (array_key_exists('completed_at', $attributes)) {
+            $values['completed_at'] = $attributes['completed_at'];
+        }
+        if (array_key_exists('files_changed', $attributes)) {
+            $values['files_changed'] = $this->redactList($attributes['files_changed'], 160);
+        }
+        if (array_key_exists('errors', $attributes)) {
+            $values['errors'] = $this->redactList($attributes['errors'], 300);
+        }
+        if (array_key_exists('outcome', $attributes)) {
+            $values['outcome'] = $attributes['outcome'] === null
+                ? null
+                : self::redact((string) $attributes['outcome'], 500);
+        }
 
         return AgentSession::updateOrCreate(
             [
