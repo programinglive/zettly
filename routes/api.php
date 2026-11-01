@@ -148,6 +148,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('agent/sessions', [App\Http\Controllers\Api\AgentController::class, 'store'])->name('api.v1.agent.sessions.store');
     Route::post('agent/sessions/{session_id}/events', [App\Http\Controllers\Api\AgentController::class, 'storeEvent'])->name('api.v1.agent.sessions.events.store');
     Route::get('agent/sessions', [App\Http\Controllers\Api\AgentController::class, 'index'])->name('api.v1.agent.sessions.index');
+    Route::post('journal/entries', [App\Http\Controllers\Api\JournalController::class, 'store'])->name('api.v1.journal.entries.store');
+    Route::get('journal/entries', [App\Http\Controllers\Api\JournalController::class, 'index'])->name('api.v1.journal.entries.index');
 });
 
 // Push routes with session auth (for web clients)
