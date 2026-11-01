@@ -335,4 +335,31 @@ class ReportGenerator
 
         return $reports;
     }
+
+    /**
+     * The periods that belong to "now" only: today's daily, plus a weekly /
+     * monthly / yearly roll-up when today is its boundary day.
+     *
+     * This is what the nightly schedule must use. generateDue() is the explicit
+     * backfill path — calling it on a timer turns an import into a burst of
+     * Discord messages.
+     */
+    public function generateCurrent(User $user, ?CarbonInterface $now = null): Collection
+    {
+        $now = $now ? CarbonImmutable::instance($now) : CarbonImmutable::now();
+        $day = self::cutoff($now)->setTimezone('Asia/Jakarta')->startOfDay();
+
+        $current = array_values(array_filter(
+            self::duePeriods($day, $now),
+            fn (array $period) => $period[2]->setTimezone('Asia/Jakarta')->startOfDay()->equalTo($day)
+        ));
+
+        $reports = collect();
+
+        foreach ($current as [$kind, $start, $end]) {
+            $reports->push($this->generate($user, $kind, $start, $end));
+        }
+
+        return $reports;
+    }
 }

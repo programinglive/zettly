@@ -15,7 +15,9 @@ class GenerateReportsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'journal:generate-reports {--user= : Only generate for a specific user id}';
+    protected $signature = 'journal:generate-reports
+        {--user= : Only generate for a specific user id}
+        {--backfill : Also emit every past period (use once, after an import)}';
 
     /**
      * The console command description.
@@ -30,6 +32,7 @@ class GenerateReportsCommand extends Command
     public function handle(): int
     {
         $userId = $this->option('user');
+        $backfill = (bool) $this->option('backfill');
 
         $query = User::query()->with('reportChannels');
 
@@ -40,14 +43,14 @@ class GenerateReportsCommand extends Command
         }
 
         $count = 0;
-        $query->chunkById(100, function ($users) use (&$count) {
+        $query->chunkById(100, function ($users) use (&$count, $backfill) {
             foreach ($users as $user) {
-                DispatchReportGeneration::dispatch($user->id);
+                DispatchReportGeneration::dispatch($user->id, $backfill);
                 $count++;
             }
         });
 
-        $this->info("Queued report generation for {$count} user(s).");
+        $this->info("Queued report generation for {$count} user(s)".($backfill ? ' (backfill: all past periods)' : ' (current period only)').'.');
 
         return self::SUCCESS;
     }
