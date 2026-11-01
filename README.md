@@ -84,6 +84,30 @@ php artisan config:clear
 
 The API endpoints and authentication examples are documented in [docs/reference/API_DOCUMENTATION.md](./docs/reference/API_DOCUMENTATION.md).
 
+### Journal reports
+
+The application ships two scheduled console commands for journal report generation and delivery:
+
+- `journal:generate-reports` — enqueues report-generation jobs for every user with at least one enabled report channel.
+- `journal:deliver-reports` — enqueues delivery jobs for pending `report_deliveries` rows.
+
+These are scheduled from `routes/console.php`:
+
+- Daily at 23:55 WIB (`Asia/Jakarta`) for report generation.
+- Every 15 minutes for delivery.
+
+For the scheduler to actually fire, the host must run `php artisan schedule:run` every minute (standard Laravel cron entry):
+
+```
+* * * * * cd /path-to-zettly && php artisan schedule:run >> /dev/null 2>&1
+```
+
+And a queue worker must be running for the delivery jobs to execute under the `database` queue driver:
+
+```
+php artisan queue:work --tries=3
+```
+
 ## Features
 
 ### Core Functionality
