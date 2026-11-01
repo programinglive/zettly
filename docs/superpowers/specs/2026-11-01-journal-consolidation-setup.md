@@ -40,30 +40,61 @@ curl -X POST https://zettly.example.com/api/v1/auth/token \
 # Response berisi { "token": "pt-XXXX" }
 ```
 
-### b. Environment variables Codex
+### b. Config file hook (WAJIB — env var saja tidak cukup)
 
-Di shell/config tiap device, set dua var, **jangan commit ke repo mana pun**:
+Tulis `config.env` di state dir hook, **jangan commit ke repo mana pun**.
+
+Alasan ini wajib: env var hanya terbaca oleh proses yang di-spawn
+**setelah** var itu di-set. Aplikasi yang sudah berjalan (atau dijalankan
+oleh launcher lain) tidak pernah melihatnya, dan hook-nya akan diam-diam
+menumpuk event ke outbox yang tidak pernah dikirim. Ini benar-benar terjadi
+pada ketiga device saat konsolidasi: hook dianggap "terpasang", padahal nol
+event sampai ke API.
+
+Lokasi file (harus sama dengan yang dibaca hook —
+`LOCALAPPDATA/DailyActivityJournal`, fallback `$HOME/DailyActivityJournal`):
+
+| OS | Path |
+|---|---|
+| Windows | `%LOCALAPPDATA%\DailyActivityJournal\config.env` |
+| macOS / Linux | `~/DailyActivityJournal/config.env` (bukan `~/.local/share/...`) |
+
+Isi:
+
+```
+ZETTLY_API_BASE=https://zettly.programinglive.com
+ZETTLY_CLI_TOKEN=pt-XXXX
+```
+
+Env var tetap **menang** kalau ada (berguna untuk override sementara), tapi
+jangan dijadikan satu-satunya sumber.
+
+Cek cepat bahwa hook setuju dengan lokasi yang kamu tulis:
 
 ```bash
-export ZETTLY_API_BASE="https://zettly.example.com"   # tanpa trailing /
-export ZETTLY_CLI_TOKEN="pt-XXXX"                     # token Sanctum zettly:cli
+python3 -c "import os; from pathlib import Path; print(Path(os.environ.get('LOCALAPPDATA', Path.home()))/'DailyActivityJournal')"
 ```
 
-Windows PowerShell (persist via User env):
+### c. Installer hook
 
-```powershell
-[Environment]::SetEnvironmentVariable("ZETTLY_API_BASE","https://zettly.example.com","User")
-[Environment]::SetEnvironmentVariable("ZETTLY_CLI_TOKEN","pt-XXXX","User")
-```
+| OS | Script | Cara jalankan |
+|---|---|---|
+| Windows | `scripts/install_codex_journal.ps1` | `powershell -ExecutionPolicy Bypass -File scripts\install_codex_journal.ps1` |
+| macOS / Linux | `scripts/install_codex_journal.sh` | `bash scripts/install_codex_journal.sh` |
 
-Mac/Linux (persist via `~/.zshrc` / `~/.bashrc`):
+Untuk OpenCode (harness agen yang dipakai di device ini), hook Codex **tidak**
+cukup — OpenCode butuh plugin sendiri:
 
-```bash
-echo 'export ZETTLY_API_BASE="https://zettly.example.com"' >> ~/.zshrc
-echo 'export ZETTLY_CLI_TOKEN="pt-XXXX"'                    >> ~/.zshrc
-```
+| OS | Script |
+|---|---|
+| Windows | `scripts\install_opencode_journal.ps1` |
+| macOS / Linux | `scripts/install_opencode_journal.sh` |
 
-### c. Installer hook Codex
+Atau pakai `scripts/provision_unix.sh <repo-dest> <token>` yang melakukan
+semuanya (repo, config.env dengan path yang benar + cek MATCH, plugin) dalam
+satu langkah.
+
+### d. Installer hook Codex
 
 Repo Zettly menyertakan installer cross-platform untuk semua 4 event
 (`UserPromptSubmit`, `SessionStart`, `Stop`, `PostToolUse`) yang memanggil
@@ -85,7 +116,7 @@ Kedua installer:
 - Python (Windows: `C:\Program Files\Python311\python.exe` atau lewat PATH)
 - Codex CLI sudah ter-install & ter-login
 
-### d. Scheduler (hanya di server deploy Zettly)
+### e. Scheduler (hanya di server deploy Zettly)
 
 Zettly punya dua command terjadwal (Laravel scheduler):
 
@@ -99,8 +130,18 @@ Atau di OS cron:
 ```
 
 Yang di-schedule:
-- `journal:generate-reports` — generate semua report yang jatuh tempo
+- `journal:generate-reports` — periode **saat ini** saja (daily hari ini, plus
+  weekly/monthly/yearly kalau hari ini batasnya)
 - `journal:deliver-reports`  — dispatch delivery jobs untuk report pending
+
+**Jangan** pasang `--backfill` di scheduler. Flag itu membuat *semua* periode
+sejak catatan pertama, yang setelah impor berarti puluhan report — dan puluhan
+pesan Discord — dalam satu menit. Pakai hanya sekali secara manual setelah
+impor:
+
+```bash
+php artisan journal:generate-reports --backfill
+```
 
 Channel delivery (Discord/Telegram) dikonfigurasi **via API Zettly**, bukan via env
 di device:
@@ -109,7 +150,7 @@ POST /api/v1/report-channels  { channel, webhook_url, chat_id? }
 GET  /api/v1/report-channels
 ```
 
-### e. Migrasi data lama (sudah selesai, jangan ulang kecuali ada sumber baru)
+### f. Migrasi data lama (sudah selesai, jangan ulang kecuali ada sumber baru)
 
 Command:
 ```bash
@@ -159,18 +200,27 @@ Repo lama **boleh dihapus dari GitHub** hanya setelah **semua** kondisi ini terp
 - [x] `codex_journal.py` + test + panduan setup Codex dipindah ke repo Zettly
 - [x] Hook + installer tersedia di Zettly (`scripts/codex_journal.py`,
       `scripts/install_codex_journal.ps1`, `scripts/install_codex_journal.sh`)
-- [ ] **Owner mengkonfirmasi** bahwa tidak ada device lain yang masih menulis ke
-      `events.sqlite3` lokal (cek: `%LOCALAPPDATA%\DailyActivityJournal\` masih
-      menerima write atau sudah read-only)
-- [ ] Tidak ada `outbox.jsonl` tersisa berisi payload yang belum ter-flush
-      (cek di tiap device: `type "%LOCALAPPDATA%\DailyActivityJournal\outbox.jsonl"`
-      harus kosong / tidak ada)
-- [ ] Semua device sudah re-point hook-nya ke repo Zettly (jalan
-      `scripts/install_codex_journal.ps1` atau `.sh` di tiap device)
+- [x] **Owner mengkonfirmasi** bahwa tidak ada device lain yang masih menulis ke
+      `events.sqlite3` lokal
+- [x] Tidak ada `outbox.jsonl` tersisa berisi payload yang belum ter-flush —
+      diperiksa di ketiga device: MMCH 0 baris, mac 0 baris, helloworld 0 baris
+- [x] Semua device sudah re-point hook-nya ke repo Zettly dan terbukti menulis
+      ke API: `MMCH`, `mahatmas-MacBook-Pro.local`, `HELLOWORLD` semuanya muncul
+      di `agent_sessions` tanpa env var (lewat `config.env`)
 
-Checklist 1–5 sudah hijau saat ini. **Tunggu konfirmasi owner + kosongnya outbox
-di semua device + re-point hook selesai di semua device** sebelum hapus repo
-`programinglive/daily-activity-journal` dan `mahatmamahardhikach/daily-activity-journal`.
+Status 2026-11-02: semua item hijau.
+
+- `mahatmamahardhikach/daily-activity-journal` → sudah tidak ada (404)
+- `programinglive/daily-activity-journal` → **diarsipkan** (read-only), bukan
+  dihapus. Penghapusan ditolak `403 "Must have admin rights to Repository"`
+  walau token punya scope `repo` dan PATCH berhasil; sesi browser sudah logout
+  sehingga jalur UI juga tertutup. Arsip bersifat reversibel.
+- Histori lengkap (7 ref, termasuk `feat/pocketbase-activity-journal`) disimpan
+  di `_archive-daily-activity-journal.bundle` pada mesin MMCH dan lolos
+  `git bundle verify`.
+- Ketiga clone lokal sudah di-repoint ke `programinglive/zettly` dengan catatan
+  `MOVED-TO-ZETTLY.md`.
+
 
 > Catatan: panduan `CODEX_KENARI_GEMINI_SETUP.md` sudah tersimpan di Zettly
 > (`docs/CODEX_KENARI_GEMINI_SETUP.md`). Repo lama tidak harus dijaga untuk
