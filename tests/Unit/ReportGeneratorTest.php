@@ -19,6 +19,16 @@ class ReportGeneratorTest extends TestCase
         return CarbonImmutable::parse($value, 'Asia/Jakarta');
     }
 
+    /**
+     * Timestamps are stored in UTC (the columns are `timestamp without time
+     * zone` and the app timezone is UTC), so fixtures must be written the same
+     * way production writes them.
+     */
+    private function utc(CarbonImmutable $at): CarbonImmutable
+    {
+        return $at->setTimezone('UTC');
+    }
+
     public function test_cutoff_rolls_back_before_2355_wib(): void
     {
         $this->assertSame('2026-11-01', ReportGenerator::cutoff($this->wib('2026-11-01 12:00:00'))->toDateString());
@@ -33,8 +43,9 @@ class ReportGeneratorTest extends TestCase
         AgentSession::factory()->create([
             'user_id' => $user->id,
             'title' => 'late night fix',
-            'started_at' => $start->copy()->addHours(23)->addMinutes(50), // 23:50 WIB
-            'last_activity_at' => $start->copy()->addDays(1)->addMinutes(10), // 00:10 WIB next day
+            // 23:50 WIB and 00:10 WIB the next day, stored as UTC like production.
+            'started_at' => $this->utc($start->copy()->addHours(23)->addMinutes(50)),
+            'last_activity_at' => $this->utc($start->copy()->addDays(1)->addMinutes(10)),
         ]);
 
         $report = app(ReportGenerator::class)->generate(
@@ -66,9 +77,9 @@ class ReportGeneratorTest extends TestCase
         $day = $this->wib('2026-11-01 00:00:00');
         AgentSession::factory()->create([
             'user_id' => $user->id, 'project' => 'zettly', 'title' => 'ship it',
-            'status' => 'completed', 'completed_at' => $day->copy()->addHours(9),
-            'started_at' => $day->copy()->addHours(8),
-            'last_activity_at' => $day->copy()->addHours(9),
+            'status' => 'completed', 'completed_at' => $this->utc($day->copy()->addHours(9)),
+            'started_at' => $this->utc($day->copy()->addHours(8)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(9)),
             'duration_seconds' => 3600, 'machine' => 'MMCH',
             'files_changed' => ['app/Foo.php'], 'errors' => [],
         ]);
@@ -82,6 +93,30 @@ class ReportGeneratorTest extends TestCase
         $this->assertStringContainsString('**ship it** — completed', $report->content);
         $this->assertStringContainsString('Modified files: app/Foo.php', $report->content);
         $this->assertStringContainsString('60 minutes', $report->content);
+    }
+
+    public function test_generate_includes_a_session_recorded_early_in_the_wib_day(): void
+    {
+        // Regression: the window was bound as a WIB wall clock against columns
+        // that hold UTC. A session at 02:34 WIB (19:34 UTC the *previous* day)
+        // then fell outside the [00:00, 23:59] window and the report was empty.
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-02 00:00:00');
+        $startedAt = $day->copy()->addHours(2)->addMinutes(34); // 02:34 WIB = 19:34 UTC Nov 1
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id,
+            'project' => 'zettly',
+            'title' => 'late night work',
+            'status' => 'in_progress',
+            'started_at' => $this->utc($startedAt),
+            'last_activity_at' => $this->utc($startedAt),
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('late night work', $report->content);
+        $this->assertStringContainsString('- Projects: 1', $report->content);
     }
 
     public function test_generate_is_idempotent_per_report_key(): void

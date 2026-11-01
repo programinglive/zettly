@@ -181,16 +181,21 @@ class ReportGenerator
     {
         $reportKey = sprintf('%s:%s:%s', $periodKind, $start->toDateString(), $end->toDateString());
 
-        // Boundaries are expressed in WIB (the zone sessions are recorded in),
-        // not in the application timezone, so the window matches stored data.
+        // Boundaries are expressed in WIB (the zone reports are labelled in), then
+        // converted to UTC before binding. The timestamp columns are
+        // `timestamp without time zone` holding UTC, so binding the WIB wall
+        // clock cost 7 hours of offset and pushed early-morning sessions out of
+        // the window entirely (a 08:34 WIB session matched nothing).
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
         $wibEnd = $end->setTimezone('Asia/Jakarta')->endOfDay();
+        $utcStart = $wibStart->setTimezone('UTC')->format('Y-m-d H:i:s');
+        $utcEnd = $wibEnd->setTimezone('UTC')->format('Y-m-d H:i:s');
 
         $sessions = AgentSession::where('user_id', $user->id)
-            ->where('started_at', '<=', $wibEnd)
-            ->where(function ($query) use ($wibStart) {
-                $query->where('last_activity_at', '>=', $wibStart)
-                    ->orWhere('started_at', '>=', $wibStart);
+            ->where('started_at', '<=', $utcEnd)
+            ->where(function ($query) use ($utcStart) {
+                $query->where('last_activity_at', '>=', $utcStart)
+                    ->orWhere('started_at', '>=', $utcStart);
             })
             ->orderBy('project')
             ->orderBy('title')
