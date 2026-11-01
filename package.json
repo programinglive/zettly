@@ -49,10 +49,10 @@
         "@radix-ui/react-slot": "^1.2.3",
         "@sentry/react": "^10.22.0",
         "@sentry/tracing": "^7.120.4",
-        "@tiptap/core": "^3.16.0",
-        "@tiptap/extension-code-block": "^3.7.2",
-        "@tiptap/react": "^3.7.2",
-        "@tiptap/starter-kit": "^3.7.2",
+        "@tiptap/core": "^3.32.2",
+        "@tiptap/extension-code-block": "^3.32.2",
+        "@tiptap/react": "^3.32.2",
+        "@tiptap/starter-kit": "^3.32.2",
         "@tldraw/sync": "^4.1.1",
         "@types/react-beautiful-dnd": "^13.1.8",
         "@vitejs/plugin-react": "^5.0.4",
@@ -80,51 +80,51 @@
         "vite-plugin-pwa": "^1.1.0"
     },
     "standard-version": {
-        "releaseCommitMessageFormat": "chore(release): {{currentTag}} \ud83d\ude80",
+        "releaseCommitMessageFormat": "chore(release): {{currentTag}} 🚀",
         "types": [
             {
                 "type": "feat",
-                "section": "\u2728 Features"
+                "section": "✨ Features"
             },
             {
                 "type": "fix",
-                "section": "\ud83d\udc1b Bug Fixes"
+                "section": "🐛 Bug Fixes"
             },
             {
                 "type": "perf",
-                "section": "\u26a1 Performance"
+                "section": "⚡ Performance"
             },
             {
                 "type": "refactor",
-                "section": "\u267b\ufe0f Refactors"
+                "section": "♻️ Refactors"
             },
             {
                 "type": "docs",
-                "section": "\ud83d\udcdd Documentation"
+                "section": "📝 Documentation"
             },
             {
                 "type": "style",
-                "section": "\ud83d\udc84 Styles"
+                "section": "💄 Styles"
             },
             {
                 "type": "test",
-                "section": "\u2705 Tests"
+                "section": "✅ Tests"
             },
             {
                 "type": "build",
-                "section": "\ud83c\udfd7\ufe0f Build System"
+                "section": "🏗️ Build System"
             },
             {
                 "type": "ci",
-                "section": "\ud83d\udc77 Continuous Integration"
+                "section": "👷 Continuous Integration"
             },
             {
                 "type": "chore",
-                "section": "\ud83e\uddf9 Chores"
+                "section": "🧹 Chores"
             },
             {
                 "type": "revert",
-                "section": "\u23ea Reverts"
+                "section": "⏪ Reverts"
             }
         ]
     }
