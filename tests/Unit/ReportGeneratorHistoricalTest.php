@@ -111,6 +111,26 @@ class ReportGeneratorHistoricalTest extends TestCase
         $this->assertStringContainsString('legacy day one', $daily->firstWhere('report_key', 'daily:2026-10-19:2026-10-19')->content);
     }
 
+    public function test_open_todos_are_capped_and_labelled_as_backlog(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-10-20 00:00:00');
+
+        for ($i = 1; $i <= 14; $i++) {
+            Todo::create([
+                'user_id' => $user->id, 'type' => Todo::TYPE_TODO, 'title' => 'open item '.$i,
+                'is_completed' => false, 'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            ]);
+        }
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('open item 10', $report->content);
+        $this->assertStringNotContainsString('open item 11', $report->content);
+        $this->assertStringContainsString('and 4 more open todos', $report->content);
+    }
+
     public function test_report_marks_secrets_before_rendering_journal_bodies(): void
     {
         $user = User::factory()->create();

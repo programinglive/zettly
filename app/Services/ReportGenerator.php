@@ -188,13 +188,12 @@ class ReportGenerator
             ->values()
             ->all();
 
-        // Open todos are outstanding work too, and for a legacy day they are the
-        // only outstanding items that exist.
-        foreach ($todos as $todo) {
-            if ((bool) $todo->is_completed) {
-                continue;
-            }
+        // Open todos are outstanding work too. Capped, and labelled as current:
+        // a full backlog repeated under every past day would misrepresent what
+        // was actually open on that date.
+        $openTodos = $todos->reject(fn (Todo $todo) => (bool) $todo->is_completed)->values();
 
+        foreach ($openTodos->take(10) as $todo) {
             $outstanding[] = sprintf(
                 '- %s%s',
                 AgentSessionIngestor::redact((string) $todo->title, 140),
@@ -203,6 +202,10 @@ class ReportGenerator
         }
 
         $lines = array_merge($lines, $outstanding !== [] ? $outstanding : ['- None recorded.']);
+
+        if ($openTodos->count() > 10) {
+            $lines[] = sprintf('- … and %d more open todos (current backlog).', $openTodos->count() - 10);
+        }
 
         if ($journalEntries->isNotEmpty()) {
             $lines[] = '';
