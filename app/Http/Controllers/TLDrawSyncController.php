@@ -6,6 +6,7 @@ use App\Events\TLDrawUpdated;
 use App\Events\UserJoinedDrawing;
 use App\Events\UserLeftDrawing;
 use App\Models\Drawing;
+use App\Support\TLDrawToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +54,9 @@ class TLDrawSyncController extends Controller
             'exp' => now()->addMinutes(60)->timestamp, // Token expires in 1 hour
         ];
 
-        $signedToken = hash_hmac('sha256', json_encode($token), config('app.key'));
+        // The payload used to be discarded, leaving a digest the handler could not
+        // check; it now travels with the token and is verified there.
+        $signedToken = TLDrawToken::sign($token);
 
         return response()->json([
             'token' => $signedToken,

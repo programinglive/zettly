@@ -3,6 +3,7 @@
 namespace App\WebSocket;
 
 use App\Models\Drawing;
+use App\Support\TLDrawToken;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Ratchet\ConnectionInterface;
@@ -100,26 +101,20 @@ class TLDrawSyncHandler implements MessageComponentInterface
 
     protected function handleAuthenticate(ConnectionInterface $conn, array $data)
     {
-        // Verify token (simplified - in production, use proper JWT)
-        if (! isset($data['token'])) {
-            $conn->send(json_encode(['type' => 'auth-error', 'message' => 'Token required']));
+        // Verify the HMAC and the payload's own room/user claims. The handler used
+        // to base64_decode the token and trust $tokenData['userId'] outright, so any
+        // client could authenticate as any user by crafting that blob.
+        $payload = TLDrawToken::verify($data['token'] ?? null);
 
-            return;
-        }
-
-        // For now, we'll trust the token and extract user info
-        // In production, verify the HMAC signature
-        $tokenData = json_decode(base64_decode($data['token']), true);
-
-        if (! $tokenData || ! isset($tokenData['userId'])) {
+        if ($payload === null) {
             $conn->send(json_encode(['type' => 'auth-error', 'message' => 'Invalid token']));
 
             return;
         }
 
-        $conn->userId = $tokenData['userId'];
-        $conn->userName = $tokenData['userName'] ?? 'User';
-        $conn->userColor = $tokenData['userColor'] ?? '#FF6B6B';
+        $conn->userId = $payload['userId'];
+        $conn->userName = $payload['userName'] ?? 'User';
+        $conn->userColor = $payload['userColor'] ?? '#FF6B6B';
 
         $conn->send(json_encode([
             'type' => 'authenticated',
