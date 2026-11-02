@@ -169,7 +169,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // No default meant `null`, which Symfony treats as not-secure: the session
+    // cookie was sent over plain HTTP whenever such a request reached the host.
+    // Default to secure in production, keep local HTTP development working.
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV', 'production') === 'production'),
 
     /*
     |--------------------------------------------------------------------------
