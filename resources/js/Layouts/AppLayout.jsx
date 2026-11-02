@@ -13,7 +13,8 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     Monitor,
-    Hash
+    Hash,
+    BookOpen
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
@@ -65,6 +66,12 @@ export default function AppLayout({
             href: '/notes',
             label: 'My Notes',
             icon: FileText,
+            group: 'main',
+        },
+        {
+            href: '/journal',
+            label: 'Journal',
+            icon: BookOpen,
             group: 'main',
         },
         {

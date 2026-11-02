@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\AgentSession;
+use App\Models\JournalEntry;
 use App\Models\Report;
+use App\Models\Todo;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -61,9 +63,46 @@ class ReportGenerator
     }
 
     /**
-     * Render a report body for a period, reproducing the section order of the Python version.
+     * The start and end dates that a period kind covers, given one date inside it.
+     *
+     * Daily covers that day; weekly covers the Monday..Sunday week containing it;
+     * monthly and yearly cover their full calendar period. The API needs this:
+     * passing a single date as both bounds silently collapsed every kind to one
+     * day.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
      */
-    public function render(string $periodKind, CarbonImmutable $start, CarbonImmutable $end, Collection $sessions): string
+    public static function periodFor(string $kind, CarbonImmutable $date): array
+    {
+        $day = $date->setTimezone('Asia/Jakarta')->startOfDay();
+
+        return match ($kind) {
+            Report::KIND_WEEKLY => [$day->startOfWeek(CarbonImmutable::MONDAY), $day->endOfWeek(CarbonImmutable::SUNDAY)->startOfDay()],
+            Report::KIND_MONTHLY => [$day->startOfMonth(), $day->endOfMonth()->startOfDay()],
+            Report::KIND_YEARLY => [$day->startOfYear(), $day->endOfYear()->startOfDay()],
+            default => [$day, $day],
+        };
+    }
+
+    /**
+     * Render a report body for a period, reproducing the section order of the Python version.
+     *
+     * Sessions are the primary signal. Journal entries and todos are the
+     * historical record: the legacy import wrote 19 dated entries and 36 todos
+     * but produced no agent sessions, so a session-only report rendered those
+     * days as empty. They are summarised here rather than dropped.
+     *
+     * @param  Collection  $journalEntries  JournalEntry rows whose entry_date falls in the period
+     * @param  Collection  $todos  Todos completed in the period, or still open
+     */
+    public function render(
+        string $periodKind,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+        Collection $sessions,
+        Collection $journalEntries = new Collection,
+        Collection $todos = new Collection
+    ): string
     {
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
         $wibEnd = $end->setTimezone('Asia/Jakarta')->startOfDay();
@@ -76,6 +115,18 @@ class ReportGenerator
                 && $session->completed_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
             ->count();
 
+        // Sessions recorded as completed before the hook started sending
+        // completed_at have no timestamp. Counting them as zero made finished
+        // work invisible; fall back to the session's own activity window.
+        $completedWithoutTimestamp = $sessions
+            ->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                && ! $session->completed_at
+                && $session->last_activity_at
+                && $session->last_activity_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+            ->count();
+
+        $completed += $completedWithoutTimestamp;
+
         $pending = $sessions
             ->filter(fn (AgentSession $session) => in_array(
                 $session->status,
@@ -85,6 +136,11 @@ class ReportGenerator
             ->count();
 
         $seconds = (int) $sessions->sum(fn (AgentSession $session) => (int) $session->duration_seconds);
+
+        // A legacy day has journal activity instead of sessions; count it as work
+        // so the headline numbers are not misleadingly zero.
+        $journalDays = $journalEntries->count();
+        $todosCompleted = $todos->filter(fn (Todo $todo) => (bool) $todo->is_completed)->count();
 
         $machines = $sessions
             ->map(fn (AgentSession $session) => $session->machine ?: 'unknown')
@@ -106,13 +162,18 @@ class ReportGenerator
             '',
             sprintf('- Machines: %s', $machines->isNotEmpty() ? $machines->implode(', ') : 'Unavailable'),
             sprintf('- Projects: %d', $projects->count()),
-            sprintf('- Tasks completed: %d', $completed),
+            sprintf('- Tasks completed: %d', $completed + $todosCompleted),
             sprintf('- Tasks in progress or blocked: %d', $pending),
             sprintf('- Observed active-turn time: %d minutes (not total working time)', intdiv($seconds, 60)),
-            '',
-            '## Work by project',
-            '',
         ];
+
+        if ($journalEntries->isNotEmpty()) {
+            $lines[] = sprintf('- Journal entries recorded: %d', $journalDays);
+        }
+
+        $lines[] = '';
+        $lines[] = '## Work by project';
+        $lines[] = '';
 
         foreach ($projects as $project) {
             $lines[] = sprintf('### %s', $project);
@@ -157,9 +218,48 @@ class ReportGenerator
                 $session->project,
                 $session->title,
                 $session->status
-            ));
+            ))
+            ->values()
+            ->all();
 
-        $lines = array_merge($lines, $outstanding->isNotEmpty() ? $outstanding->all() : ['- None recorded.']);
+        // Open todos are outstanding work too. Capped, and labelled as current:
+        // a full backlog repeated under every past day would misrepresent what
+        // was actually open on that date.
+        $openTodos = $todos->reject(fn (Todo $todo) => (bool) $todo->is_completed)->values();
+
+        foreach ($openTodos->take(10) as $todo) {
+            $outstanding[] = sprintf(
+                '- %s%s',
+                AgentSessionIngestor::redact((string) $todo->title, 140),
+                $todo->priority === Todo::PRIORITY_URGENT ? ' (urgent)' : ''
+            );
+        }
+
+        $lines = array_merge($lines, $outstanding !== [] ? $outstanding : ['- None recorded.']);
+
+        if ($openTodos->count() > 10) {
+            $lines[] = sprintf('- … and %d more open todos (current backlog).', $openTodos->count() - 10);
+        }
+
+        if ($journalEntries->isNotEmpty()) {
+            $lines[] = '';
+            $lines[] = '## Journal entries';
+            $lines[] = '';
+
+            foreach ($journalEntries->take(10) as $entry) {
+                $body = trim(preg_replace('/\s+/', ' ', (string) $entry->content));
+                $lines[] = sprintf(
+                    '- **%s** (%s): %s',
+                    $entry->entry_date?->toDateString() ?? 'undated',
+                    $entry->kind,
+                    AgentSessionIngestor::redact($body, 200)
+                );
+            }
+
+            if ($journalEntries->count() > 10) {
+                $lines[] = sprintf('- … and %d more entries in this period.', $journalEntries->count() - 10);
+            }
+        }
 
         $lines[] = '';
         $lines[] = '## Next actions';
@@ -181,22 +281,48 @@ class ReportGenerator
     {
         $reportKey = sprintf('%s:%s:%s', $periodKind, $start->toDateString(), $end->toDateString());
 
-        // Boundaries are expressed in WIB (the zone sessions are recorded in),
-        // not in the application timezone, so the window matches stored data.
+        // Boundaries are expressed in WIB (the zone reports are labelled in), then
+        // converted to UTC before binding. The timestamp columns are
+        // `timestamp without time zone` holding UTC, so binding the WIB wall
+        // clock cost 7 hours of offset and pushed early-morning sessions out of
+        // the window entirely (a 08:34 WIB session matched nothing).
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
         $wibEnd = $end->setTimezone('Asia/Jakarta')->endOfDay();
+        $utcStart = $wibStart->setTimezone('UTC')->format('Y-m-d H:i:s');
+        $utcEnd = $wibEnd->setTimezone('UTC')->format('Y-m-d H:i:s');
 
         $sessions = AgentSession::where('user_id', $user->id)
-            ->where('started_at', '<=', $wibEnd)
-            ->where(function ($query) use ($wibStart) {
-                $query->where('last_activity_at', '>=', $wibStart)
-                    ->orWhere('started_at', '>=', $wibStart);
+            ->where('started_at', '<=', $utcEnd)
+            ->where(function ($query) use ($utcStart) {
+                $query->where('last_activity_at', '>=', $utcStart)
+                    ->orWhere('started_at', '>=', $utcStart);
             })
             ->orderBy('project')
             ->orderBy('title')
             ->get();
 
-        $content = $this->render($periodKind, $start, $end, $sessions);
+        // Historical record. entry_date is a plain date, so it compares directly
+        // against the WIB calendar days the report is labelled with.
+        $journalEntries = JournalEntry::where('user_id', $user->id)
+            ->whereDate('entry_date', '>=', $wibStart->toDateString())
+            ->whereDate('entry_date', '<=', $wibEnd->toDateString())
+            ->orderBy('entry_date')
+            ->get();
+
+        // Todos completed inside the period, plus everything still open (a
+        // legacy import has no completion date for work that never finished).
+        $todos = Todo::where('user_id', $user->id)
+            ->where(function ($query) use ($wibStart, $wibEnd) {
+                $query->where(function ($completed) use ($wibStart, $wibEnd) {
+                    $completed->where('is_completed', true)
+                        ->whereBetween('completed_at', [$wibStart->format('Y-m-d H:i:s'), $wibEnd->format('Y-m-d H:i:s')]);
+                })->orWhere('is_completed', false);
+            })
+            ->orderByDesc('is_completed')
+            ->limit(200)
+            ->get();
+
+        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos);
 
         return Report::updateOrCreate(
             [
@@ -222,15 +348,49 @@ class ReportGenerator
     {
         $now = $now ? CarbonImmutable::instance($now) : CarbonImmutable::now();
 
-        $earliest = AgentSession::where('user_id', $user->id)->min('started_at');
-        if (! $earliest) {
+        // Start from the earliest record of *any* activity, not just agent
+        // sessions: an imported legacy day has journal entries and todos but no
+        // sessions, and returning early left those periods unreported.
+        $candidates = array_filter([
+            AgentSession::where('user_id', $user->id)->min('started_at'),
+            JournalEntry::where('user_id', $user->id)->min('entry_date'),
+        ]);
+
+        if ($candidates === []) {
             return collect();
         }
 
-        $first = CarbonImmutable::parse($earliest)->setTimezone('Asia/Jakarta')->startOfDay();
+        $first = CarbonImmutable::parse(min($candidates))->setTimezone('Asia/Jakarta')->startOfDay();
         $reports = collect();
 
         foreach (self::duePeriods($first, $now) as [$kind, $start, $end]) {
+            $reports->push($this->generate($user, $kind, $start, $end));
+        }
+
+        return $reports;
+    }
+
+    /**
+     * The periods that belong to "now" only: today's daily, plus a weekly /
+     * monthly / yearly roll-up when today is its boundary day.
+     *
+     * This is what the nightly schedule must use. generateDue() is the explicit
+     * backfill path — calling it on a timer turns an import into a burst of
+     * Discord messages.
+     */
+    public function generateCurrent(User $user, ?CarbonInterface $now = null): Collection
+    {
+        $now = $now ? CarbonImmutable::instance($now) : CarbonImmutable::now();
+        $day = self::cutoff($now)->setTimezone('Asia/Jakarta')->startOfDay();
+
+        $current = array_values(array_filter(
+            self::duePeriods($day, $now),
+            fn (array $period) => $period[2]->setTimezone('Asia/Jakarta')->startOfDay()->equalTo($day)
+        ));
+
+        $reports = collect();
+
+        foreach ($current as [$kind, $start, $end]) {
             $reports->push($this->generate($user, $kind, $start, $end));
         }
 

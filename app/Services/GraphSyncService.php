@@ -2,42 +2,25 @@
 
 namespace App\Services;
 
+use App\Jobs\SyncGraphEvent;
 use App\Models\Todo;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class GraphSyncService
 {
-    private string $graphServiceUrl;
-
-    public function __construct()
-    {
-        $this->graphServiceUrl = config('services.graph.url', 'http://localhost:3001');
-    }
-
     /**
      * Sync a todo node to the graph service
      */
     public function syncTodoToGraph(Todo $todo, string $eventType = 'node:update'): void
     {
-        try {
-            $nodeData = [
-                'id' => (string) $todo->id,
-                'title' => $todo->title,
-                'status' => $this->getTodoStatus($todo),
-                'priority' => $todo->priority,
-                'importance' => $todo->importance,
-                'type' => $todo->type,
-                'updatedAt' => $todo->updated_at->toIso8601String(),
-            ];
-
-            $this->sendSyncEvent($eventType, $nodeData);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync todo to graph service', [
-                'todo_id' => $todo->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->sendSyncEvent($eventType, [
+            'id' => (string) $todo->id,
+            'title' => $todo->title,
+            'status' => $this->getTodoStatus($todo),
+            'priority' => $todo->priority,
+            'importance' => $todo->importance,
+            'type' => $todo->type,
+            'updatedAt' => $todo->updated_at?->toIso8601String(),
+        ]);
     }
 
     /**
@@ -45,20 +28,10 @@ class GraphSyncService
      */
     public function syncLinkToGraph(int $todoId, int $relatedTodoId): void
     {
-        try {
-            $edgeData = [
-                'source' => (string) $todoId,
-                'target' => (string) $relatedTodoId,
-            ];
-
-            $this->sendSyncEvent('edge:add', $edgeData);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync link to graph service', [
-                'todo_id' => $todoId,
-                'related_todo_id' => $relatedTodoId,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->sendSyncEvent('edge:add', [
+            'source' => (string) $todoId,
+            'target' => (string) $relatedTodoId,
+        ]);
     }
 
     /**
@@ -66,14 +39,7 @@ class GraphSyncService
      */
     public function deleteTodoFromGraph(int $todoId): void
     {
-        try {
-            $this->sendSyncEvent('node:remove', ['id' => (string) $todoId]);
-        } catch (\Exception $e) {
-            Log::error('Failed to delete todo from graph service', [
-                'todo_id' => $todoId,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->sendSyncEvent('node:remove', ['id' => (string) $todoId]);
     }
 
     /**
@@ -81,36 +47,23 @@ class GraphSyncService
      */
     public function deleteLinkFromGraph(int $todoId, int $relatedTodoId): void
     {
-        try {
-            $edgeData = [
-                'source' => (string) $todoId,
-                'target' => (string) $relatedTodoId,
-            ];
-
-            $this->sendSyncEvent('edge:remove', $edgeData);
-        } catch (\Exception $e) {
-            Log::error('Failed to delete link from graph service', [
-                'todo_id' => $todoId,
-                'related_todo_id' => $relatedTodoId,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->sendSyncEvent('edge:remove', [
+            'source' => (string) $todoId,
+            'target' => (string) $relatedTodoId,
+        ]);
     }
 
     /**
-     * Send a sync event to the graph service
+     * Send a sync event to the graph service.
+     *
+     * Queued rather than posted inline: the observer runs inside the request, and
+     * a 2 s HTTP timeout there meant every todo write - and twice on link/unlink -
+     * waited on a service that is decorative. Retries and failure logging now live
+     * in SyncGraphEvent.
      */
     private function sendSyncEvent(string $type, array $data): void
     {
-        $response = Http::timeout(2)
-            ->post("{$this->graphServiceUrl}/sync", [
-                'type' => $type,
-                'data' => $data,
-            ]);
-
-        if (! $response->successful()) {
-            throw new \Exception("Graph service returned status {$response->status()}");
-        }
+        SyncGraphEvent::dispatch($type, $data);
     }
 
     /**

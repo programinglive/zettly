@@ -481,12 +481,10 @@ export default function KanbanBoard({
             todo_ids: nextColumnLists[targetColumn].map((todo) => todo.id),
         };
 
-        console.log('Sending reorder request:', { payload, originalTodos, newTodos });
-
         // Use axios instead of fetch to automatically handle CSRF token via cookie
         axios.post('/todos/reorder', payload)
-            .then(response => {
-                console.log('Reorder successful:', response.data);
+            .then(() => {
+                // no-op: the list is already in the new order
             })
             .catch(error => {
                 console.error('Reorder failed:', error);

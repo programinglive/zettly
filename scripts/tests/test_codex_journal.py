@@ -33,13 +33,13 @@ def test_post_sends_token_header_and_json_body(tmp_path, monkeypatch):
         def read(self, *args):
             return b"{}"
 
-    def fake_urlopen(request, timeout=0):
+    def fake_open(request):
         captured["url"] = request.full_url
         captured["headers"] = dict(request.header_items())
         captured["body"] = json.loads(request.data.decode("utf-8"))
         return FakeResponse()
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(module, "_open", fake_open)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
     assert captured["url"] == "https://zettly.test/api/v1/agent/sessions"
@@ -53,9 +53,57 @@ def test_post_returns_false_and_does_not_raise_on_failure(tmp_path, monkeypatch)
     def boom(*args, **kwargs):
         raise OSError("network down")
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", boom)
+    monkeypatch.setattr(module, "_open", boom)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is False
+
+
+def test_post_asks_for_json_so_a_revoked_token_is_a_401_not_a_login_page(tmp_path, monkeypatch):
+    """Without Accept, the API answers an auth failure with 302 -> /login.
+
+    urllib followed that redirect as a GET, saw 200, and post() reported success,
+    so the event was dropped instead of spooled. Real reproduction against the
+    deployed instance: status=200, content-type=text/html, final URL /login.
+    """
+    module = load(tmp_path, monkeypatch)
+    captured = {}
+
+    class FakeResponse:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def fake_open(request):
+        captured["headers"] = dict(request.header_items())
+        return FakeResponse()
+
+    monkeypatch.setattr(module, "_open", fake_open)
+
+    assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
+    assert captured["headers"]["Accept"] == "application/json"
+
+
+def test_post_treats_a_redirect_as_failure_instead_of_success(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    import urllib.error
+
+    def redirecting_open(request):
+        raise urllib.error.HTTPError(request.full_url, 302, "Found", {}, None)
+
+    monkeypatch.setattr(module, "_open", redirecting_open)
+
+    assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is False
+
+
+def test_the_opener_refuses_to_follow_redirects(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+
+    handler = module._NoRedirect()
+    assert handler.redirect_request(None, None, 302, "Found", {}, "https://zettly.test/login") is None
 
 
 def test_spool_then_flush_replays_and_empties_the_outbox(tmp_path, monkeypatch):
@@ -176,12 +224,12 @@ def test_config_file_is_used_when_env_is_missing(tmp_path, monkeypatch):
         def read(self, *args):
             return b"{}"
 
-    def fake_urlopen(request, timeout=0):
+    def fake_open(request):
         captured["url"] = request.full_url
         captured["headers"] = dict(request.header_items())
         return FakeResponse()
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(module, "_open", fake_open)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
     assert captured["url"] == "https://zettly.test/api/v1/agent/sessions"
@@ -195,3 +243,99 @@ def test_env_still_wins_over_the_config_file(tmp_path, monkeypatch):
 
     assert module._config_value("ZETTLY_API_BASE") == "https://zettly.test"
 
+
+
+def test_machine_name_falls_back_to_hostname_when_computername_is_absent(tmp_path, monkeypatch):
+    """macOS/Linux have no COMPUTERNAME, so every session was recorded as "unknown"."""
+    module = load(tmp_path, monkeypatch)
+    monkeypatch.delenv("JOURNAL_MACHINE_ID", raising=False)
+    monkeypatch.delenv("COMPUTERNAME", raising=False)
+    monkeypatch.delenv("HOSTNAME", raising=False)
+    monkeypatch.setattr(module.socket, "gethostname", lambda: "mahatmas-MacBook-Pro.local")
+
+    assert module.machine_name() == "mahatmas-MacBook-Pro.local"
+
+
+def test_machine_name_prefers_explicit_env(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    monkeypatch.setenv("JOURNAL_MACHINE_ID", "mmch")
+    monkeypatch.setenv("COMPUTERNAME", "IGNORED")
+
+    assert module.machine_name() == "mmch"
+
+
+def test_stop_completed_sets_completed_at(tmp_path, monkeypatch):
+    """Reports count a completed task only when completed_at is present.
+
+    Before this, status=completed was recorded without the timestamp, so every
+    daily report said "Tasks completed: 0" despite finished work.
+    """
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-completed-1",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "completed the fix; all tests pass",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "completed"
+    assert session.get("completed_at"), "completed sessions must carry completed_at"
+
+
+def test_stop_in_progress_does_not_set_completed_at(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+    monkeypatch.setattr(module, "changed", lambda cwd: [])
+
+    module.ingest({
+        "hook_event_name": "Stop",
+        "session_id": "sess-progress-1",
+        "turn_id": "1",
+        "cwd": "D:/works/mine/code/zettly",
+        "last_assistant_message": "still working on the refactor",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert session["status"] == "in_progress"
+    assert "completed_at" not in session or session["completed_at"] is None
+
+
+def test_spool_writes_a_status_line_so_a_stuck_outbox_is_visible(tmp_path, monkeypatch):
+    """A silently growing outbox is how three devices looked healthy while
+    delivering nothing. Spooling must leave a trace."""
+    module = load(tmp_path, monkeypatch)
+
+    module.spool({"path": "/api/v1/agent/sessions", "body": {"session_id": "s1"}})
+
+    status = module.STATE / "outbox-status.log"
+    assert status.exists()
+    text = status.read_text(encoding="utf-8")
+    assert "spooled" in text and "/api/v1/agent/sessions" in text
+
+
+def test_backlog_warning_fires_only_at_the_threshold(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    alert = module.STATE / "outbox-alert.log"
+
+    module.report_backlog(module.BACKLOG_WARN - 1)
+    assert not alert.exists(), "must stay quiet below the threshold"
+
+    module.report_backlog(module.BACKLOG_WARN)
+    assert alert.exists()
+    assert "backlog" in alert.read_text(encoding="utf-8")
+
+
+def test_outbox_size_counts_only_non_empty_lines(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    module.OUTBOX.write_text('{"a":1}\n\n{"b":2}\n', encoding="utf-8")
+
+    assert module.outbox_size() == 2

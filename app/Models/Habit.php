@@ -83,6 +83,30 @@ class Habit extends Model
     }
 
     /**
+     * Today's completion state in a single pass.
+     *
+     * isCompletedToday(), getTodayCount() and isTodayTargetMet() each build their
+     * own todayEntry() query, so a habit list paid 3-4 queries per habit even
+     * though `entries` had already been eager loaded.
+     *
+     * @return array{completed: bool, count: int}
+     */
+    public function todaySummary(): array
+    {
+        if ($this->relationLoaded('entries')) {
+            $today = $this->entries->first(
+                fn ($entry) => $entry->date && $entry->date->isSameDay(Carbon::today())
+            );
+
+            return ['completed' => $today !== null, 'count' => (int) ($today->count ?? 0)];
+        }
+
+        $entry = $this->todayEntry()->first();
+
+        return ['completed' => $entry !== null, 'count' => (int) ($entry->count ?? 0)];
+    }
+
+    /**
      * Check if habit is completed for today.
      */
     public function isCompletedToday(): bool

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Head } from '@inertiajs/react';
 import SigmaGraph from '@/Components/Graph/SigmaGraph';
@@ -20,23 +20,23 @@ export default function GraphIndex({ graphServiceUrl, wsUrl }: GraphIndexProps) 
     const { isConnected, events, clearEvents } = useGraphWebSocket(wsUrl);
 
     // Fetch initial graph data
-    useEffect(() => {
-        const fetchGraph = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get(`${graphServiceUrl}/graph`);
-                setGraphData(response.data);
-                setError(null);
-            } catch (err) {
-                console.error('Failed to fetch graph data:', err);
-                setError('Failed to load graph data. Make sure the graph service is running.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchGraph();
+    const fetchGraph = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${graphServiceUrl}/graph`);
+            setGraphData(response.data);
+            setError(null);
+        } catch (err) {
+            console.error('Failed to fetch graph data:', err);
+            setError('Could not load the graph right now.');
+        } finally {
+            setLoading(false);
+        }
     }, [graphServiceUrl]);
+
+    useEffect(() => {
+        fetchGraph();
+    }, [fetchGraph]);
 
     return (
         <AppLayout title="Todo Graph">
@@ -83,9 +83,13 @@ export default function GraphIndex({ graphServiceUrl, wsUrl }: GraphIndexProps) 
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                             <div className="text-center max-w-md">
                                 <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Run <code className="bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">cd graph-service && npm run dev</code> to start the graph service.
-                                </p>
+                                <button
+                                    type="button"
+                                    onClick={fetchGraph}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+                                >
+                                    Try again
+                                </button>
                             </div>
                         </div>
                     )}

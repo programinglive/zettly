@@ -493,6 +493,13 @@ class TodoController extends Controller
      */
     public function update(Request $request, Todo $todo)
     {
+        // Every sibling action (show, edit, destroy, toggle, archive...) enforces
+        // this; update() was the one that did not, so any signed-in user could
+        // overwrite any todo by id.
+        if ($todo->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         if ($request->has('due_date')) {
             $request->merge([
                 'due_date' => $request->input('due_date') === '' ? null : $request->input('due_date'),

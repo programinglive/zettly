@@ -27,17 +27,28 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'workspace_view',
-        'role',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
+     *
+     * The 2FA seed and recovery codes are deliberately hidden: the whole User
+     * model is shared with every Inertia page (HandleInertiaRequests) and returned
+     * by GET /api/user, so leaving them visible put the second factor in the
+     * browser payload. Nothing broke while 2FA was unused - the columns were null
+     * - but the moment a user enabled it their TOTP seed would have shipped to the
+     * page, which is enough to mint valid codes.
+     *
+     * `role` is not fillable either: it is the super-admin flag, and the only
+     * writer is User::assignRole(), which uses forceFill.
      *
      * @var list<string>
      */
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**

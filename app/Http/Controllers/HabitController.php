@@ -32,11 +32,12 @@ class HabitController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Load today's completion status
+        // Load today's completion status in one pass (see Habit::todaySummary()).
         $habits->each(function ($habit) {
-            $habit->today_completed = $habit->isCompletedToday();
-            $habit->today_count = $habit->getTodayCount();
-            $habit->today_target_met = $habit->isTodayTargetMet();
+            $summary = $habit->todaySummary();
+            $habit->today_completed = $summary['completed'];
+            $habit->today_count = $summary['count'];
+            $habit->today_target_met = $summary['count'] >= $habit->target_frequency;
         });
 
         return inertia('Habits/Index', [
@@ -70,6 +71,8 @@ class HabitController extends Controller
             'frequency_period' => 'required|in:daily,weekly,monthly',
             'organization_id' => 'nullable|exists:organizations,id',
         ]);
+
+        $this->authorizeOrganizationId($validated['organization_id'] ?? null);
 
         $habit = Habit::create([
             'user_id' => Auth::id(),
@@ -144,6 +147,8 @@ class HabitController extends Controller
             'is_active' => 'boolean',
             'organization_id' => 'nullable|exists:organizations,id',
         ]);
+
+        $this->authorizeOrganizationId($validated['organization_id'] ?? null);
 
         $habit->update($validated);
 
@@ -289,6 +294,24 @@ class HabitController extends Controller
         }
 
         $streak->save();
+    }
+
+    /**
+     * Refuse a habit in an organization the user does not belong to.
+     *
+     * `exists:organizations,id` only proves the organization exists. Since
+     * authorizeHabit() lets any member of a habit's organization read it, a habit
+     * pointing at a foreign organization would be injected into that tenant.
+     */
+    private function authorizeOrganizationId(?int $organizationId): void
+    {
+        if (! $organizationId) {
+            return;
+        }
+
+        if (! Auth::user()->organizations()->whereKey($organizationId)->exists()) {
+            abort(403);
+        }
     }
 
     /**

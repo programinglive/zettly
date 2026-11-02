@@ -10,6 +10,7 @@ use App\Models\OrganizationMember;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class HabitTest extends TestCase
@@ -266,6 +267,102 @@ class HabitTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Habits/Index')
                 ->has('habits', 0));
+    }
+
+    public function test_user_cannot_create_a_habit_inside_a_foreign_organization(): void
+    {
+        // `exists:organizations,id` only proves the org exists; any member of that
+        // org can then read the habit, so this was a way to inject content into a
+        // tenant the user does not belong to.
+        $user = $this->signIn();
+        $owner = User::factory()->create();
+        $foreign = $this->createOrganization($owner);
+
+        $this->post('/habits', [
+            'title' => 'Injected',
+            'color' => '#111827',
+            'icon' => 'star',
+            'target_frequency' => 1,
+            'frequency_period' => 'daily',
+            'organization_id' => $foreign->id,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseMissing('habits', ['title' => 'Injected']);
+    }
+
+    public function test_user_cannot_move_their_habit_into_a_foreign_organization(): void
+    {
+        $user = $this->signIn();
+        $owner = User::factory()->create();
+        $foreign = $this->createOrganization($owner);
+        $habit = Habit::factory()->create(['user_id' => $user->id, 'organization_id' => null]);
+
+        $this->put("/habits/{$habit->id}", [
+            'title' => $habit->title,
+            'color' => '#111827',
+            'icon' => 'star',
+            'target_frequency' => 1,
+            'frequency_period' => 'daily',
+            'organization_id' => $foreign->id,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('habits', ['id' => $habit->id, 'organization_id' => null]);
+    }
+
+    public function test_the_habit_list_does_not_run_per_habit_queries(): void
+    {
+        // index() eager-loaded `entries`, then called isCompletedToday(),
+        // getTodayCount() and isTodayTargetMet() per habit; each of those builds a
+        // new todayEntry() query, and getTodayCount() ran twice. Adding habits
+        // therefore added 3-4 queries per habit.
+        $user = $this->signIn();
+        $this->firstHabitWithTodayEntry($user);
+
+        $withOne = $this->queriesWhileListingHabits();
+
+        for ($i = 0; $i < 4; $i++) {
+            $this->firstHabitWithTodayEntry($user);
+        }
+
+        $withFive = $this->queriesWhileListingHabits();
+
+        $this->assertSame(
+            $withOne,
+            $withFive,
+            "Listing 5 habits took {$withFive} queries vs {$withOne} for 1 habit; the extra "
+            .($withFive - $withOne).' suggests a per-habit query.'
+        );
+    }
+
+    private function firstHabitWithTodayEntry(User $user): Habit
+    {
+        $habit = Habit::factory()->create([
+            'user_id' => $user->id,
+            'organization_id' => null,
+            'is_active' => true,
+            'target_frequency' => 2,
+        ]);
+
+        HabitEntry::create([
+            'habit_id' => $habit->id,
+            'date' => Carbon::today(),
+            'count' => 1,
+        ]);
+
+        return $habit;
+    }
+
+    private function queriesWhileListingHabits(): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->get('/habits')->assertStatus(200);
+
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
     }
 
     private function createOrganization(User $owner, array $members = []): Organization

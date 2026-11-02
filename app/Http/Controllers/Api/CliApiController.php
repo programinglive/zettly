@@ -73,9 +73,10 @@ class CliApiController extends Controller
             ->with(['entries' => fn ($query) => $query->whereBetween('date', [$from, $through]), 'streak'])
             ->latest()->get();
         $habits->each(function (Habit $habit) {
-            $habit->today_completed = $habit->isCompletedToday();
-            $habit->today_count = $habit->getTodayCount();
-            $habit->today_target_met = $habit->isTodayTargetMet();
+            $summary = $habit->todaySummary();
+            $habit->today_completed = $summary['completed'];
+            $habit->today_count = $summary['count'];
+            $habit->today_target_met = $summary['count'] >= $habit->target_frequency;
         });
 
         return response()->json(['data' => $habits]);

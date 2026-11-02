@@ -37,7 +37,13 @@ class ReportController
         $kind = $payload['period_kind'] ?? Report::KIND_DAILY;
         $date = CarbonImmutable::parse($payload['date'] ?? today('Asia/Jakarta'), 'Asia/Jakarta')->startOfDay();
 
-        $report = $generator->generate(Auth::user(), $kind, $date, $date);
+        // The period must match the requested kind. Passing $date as both start
+        // and end collapsed a weekly or monthly request into a single day, so the
+        // API produced "weekly:2026-11-02:2026-11-02" and only ever counted one
+        // day of work.
+        [$start, $end] = ReportGenerator::periodFor($kind, $date);
+
+        $report = $generator->generate(Auth::user(), $kind, $start, $end);
         $created = $this->deliverReport($report, $delivery)->enqueued;
 
         return response()->json([

@@ -1,4 +1,4 @@
-import argparse,hashlib,json,os,re,subprocess,sys,urllib.request
+import argparse,hashlib,json,os,re,socket,subprocess,sys,urllib.request
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 
@@ -47,17 +47,57 @@ def post(path,body):
     if not base or not token:return False
     try:
         url=f"{base}{path}"
-        req=urllib.request.Request(url,data=json.dumps(body,ensure_ascii=False).encode("utf-8"),headers={"Content-Type":"application/json","Authorization":f"Bearer {token}"},method="POST")
-        with urllib.request.urlopen(req,timeout=8) as response:
+        req=urllib.request.Request(url,data=json.dumps(body,ensure_ascii=False).encode("utf-8"),headers={
+            "Content-Type":"application/json",
+            "Accept":"application/json",
+            "Authorization":f"Bearer {token}",
+        },method="POST")
+        with _open(req) as response:
             return 200<=response.status<300
     except Exception:
         return False
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow a 3xx from the API.
+
+    urllib follows redirects by default, and on a 302 it retries the request as
+    GET. An unauthenticated API call answered 302 -> /login, so a revoked or
+    expired token produced a 200 HTML login page and post() reported success:
+    the event was dropped instead of being spooled. Asking for JSON makes auth
+    failures 401, and refusing redirects keeps any other 3xx from masquerading
+    as delivery.
+    """
+
+    def redirect_request(self,req,fp,code,msg,headers,newurl):
+        return None
+
+_OPENER=urllib.request.build_opener(_NoRedirect)
+
+def _open(req):
+    return _OPENER.open(req,timeout=8)
+
 def spool(payload):
-    """Append one JSON line to the offline outbox."""
+    """Append one JSON line to the offline outbox.
+
+    Also records why the event could not be sent and leaves a durable marker, so
+    a growing outbox is visible instead of silent. Before this, an event could
+    sit in the outbox indefinitely with nothing to notice it.
+    """
     STATE.mkdir(parents=True,exist_ok=True)
     with OUTBOX.open("a",encoding="utf-8") as f:
         f.write(json.dumps(payload,ensure_ascii=False)+"\n")
+    try:
+        with (STATE/"outbox-status.log").open("a",encoding="utf-8") as f:
+            f.write(f"{datetime.now(timezone.utc).isoformat()} spooled path={payload.get('path','')} pending={outbox_size()+1}\n")
+    except OSError:
+        pass
+
+def outbox_size():
+    """Number of pending payloads, or 0 when the outbox is absent."""
+    try:
+        return sum(1 for line in OUTBOX.read_text(encoding="utf-8").splitlines() if line.strip())
+    except OSError:
+        return 0
 
 def flush_spool():
     """Replay every spooled payload. Drops a line only after a successful post."""
@@ -78,6 +118,24 @@ def flush_spool():
             f.write("\n".join(kept)+"\n")
     else:
         OUTBOX.write_text("", encoding="utf-8")
+    report_backlog(len(kept))
+
+BACKLOG_WARN = 50
+
+def report_backlog(pending):
+    """Make a stuck outbox visible instead of silently growing.
+
+    A backlog means events are not reaching Zettly. One line per run is cheap;
+    staying silent is what let three devices look healthy while delivering
+    nothing.
+    """
+    try:
+        if pending >= BACKLOG_WARN:
+            with (STATE/"outbox-alert.log").open("a",encoding="utf-8") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} WARNING outbox backlog pending={pending} at {OUTBOX}\n")
+            print(f"zettly: {pending} events pending in {OUTBOX}", file=sys.stderr)
+    except OSError:
+        pass
 
 def changed(cwd):
     try:r=subprocess.run(["git","-C",cwd,"status","--porcelain","--untracked-files=normal"],capture_output=True,text=True,timeout=2)
@@ -97,6 +155,24 @@ def event_payload(key,kind,occurred_at,detail=None):
     if detail is not None:body["detail"]=detail
     return body
 
+def machine_name():
+    """Best-effort device identity.
+
+    COMPUTERNAME only exists on Windows; on macOS/Linux every session was
+    recorded as "unknown", which made per-machine reports useless.
+    """
+    for name in ("JOURNAL_MACHINE_ID", "COMPUTERNAME", "HOSTNAME"):
+        value=os.environ.get(name,"")
+        if value:return clean(value,80)
+    try:
+        return clean(os.uname().nodename,80)
+    except (AttributeError,OSError):
+        pass
+    try:
+        return clean(socket.gethostname() or "unknown",80)
+    except OSError:
+        return "unknown"
+
 def ingest(e):
     now=datetime.now(timezone.utc);at=now.isoformat();kind=str(e.get("hook_event_name",""))
     sid=str(e.get("session_id","")).strip()
@@ -104,7 +180,7 @@ def ingest(e):
     source=str(e.get("source",""));turn=str(e.get("turn_id",""));identity=str(e.get("tool_call_id") or e.get("tool_use_id") or "")
     key=event_key(sid,kind,turn,source,identity,at)
     cwd=str(e.get("cwd",""));project=clean(Path(cwd).name or "Workspace",80)
-    machine=clean(os.environ.get("JOURNAL_MACHINE_ID") or os.environ.get("COMPUTERNAME") or "unknown",80)
+    machine=machine_name()
     if project.lower() in {"admin","users","home"}:project="Personal workspace"
     prompt=clean(e.get("prompt",""),3000);answer=clean(e.get("last_assistant_message",""),3000)
 
@@ -134,7 +210,12 @@ def ingest(e):
         files=changed(cwd)
         outcome=answer[-500:] if status=="completed" else None
         ident="ACT-"+now.astimezone(WIB).strftime("%Y%m%d").upper()+"-"+hashlib.sha256(sid.encode()).hexdigest()[:8].upper()
+        # A completed session needs its completed_at, otherwise every report
+        # counts 0 tasks completed: the generator requires the timestamp, not
+        # just the status.
         sess=session_payload(ident,sid,project,title="Development",cat="Development",status=status,start=at,last=at,machine=machine,files=files,outcome=outcome)
+        if status=="completed":
+            sess["completed_at"]=at
         if not post("/api/v1/agent/sessions",sess):
             spool({"path":"/api/v1/agent/sessions","body":sess})
         ev=event_payload(key,"outcome",at,status)

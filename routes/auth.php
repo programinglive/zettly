@@ -54,6 +54,13 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
+    // The Log Out button posts (CSRF-protected, and that name stays on POST), but
+    // /logout is a URL people type, bookmark, or follow from a stale link. It used
+    // to answer those with Symfony's raw "Method Not Allowed" page while keeping
+    // the session alive. Sign them out instead: that is what they asked for.
+    Route::get('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout.get');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
