@@ -33,13 +33,13 @@ def test_post_sends_token_header_and_json_body(tmp_path, monkeypatch):
         def read(self, *args):
             return b"{}"
 
-    def fake_urlopen(request, timeout=0):
+    def fake_open(request):
         captured["url"] = request.full_url
         captured["headers"] = dict(request.header_items())
         captured["body"] = json.loads(request.data.decode("utf-8"))
         return FakeResponse()
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(module, "_open", fake_open)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
     assert captured["url"] == "https://zettly.test/api/v1/agent/sessions"
@@ -53,9 +53,57 @@ def test_post_returns_false_and_does_not_raise_on_failure(tmp_path, monkeypatch)
     def boom(*args, **kwargs):
         raise OSError("network down")
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", boom)
+    monkeypatch.setattr(module, "_open", boom)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is False
+
+
+def test_post_asks_for_json_so_a_revoked_token_is_a_401_not_a_login_page(tmp_path, monkeypatch):
+    """Without Accept, the API answers an auth failure with 302 -> /login.
+
+    urllib followed that redirect as a GET, saw 200, and post() reported success,
+    so the event was dropped instead of spooled. Real reproduction against the
+    deployed instance: status=200, content-type=text/html, final URL /login.
+    """
+    module = load(tmp_path, monkeypatch)
+    captured = {}
+
+    class FakeResponse:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def fake_open(request):
+        captured["headers"] = dict(request.header_items())
+        return FakeResponse()
+
+    monkeypatch.setattr(module, "_open", fake_open)
+
+    assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
+    assert captured["headers"]["Accept"] == "application/json"
+
+
+def test_post_treats_a_redirect_as_failure_instead_of_success(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    import urllib.error
+
+    def redirecting_open(request):
+        raise urllib.error.HTTPError(request.full_url, 302, "Found", {}, None)
+
+    monkeypatch.setattr(module, "_open", redirecting_open)
+
+    assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is False
+
+
+def test_the_opener_refuses_to_follow_redirects(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+
+    handler = module._NoRedirect()
+    assert handler.redirect_request(None, None, 302, "Found", {}, "https://zettly.test/login") is None
 
 
 def test_spool_then_flush_replays_and_empties_the_outbox(tmp_path, monkeypatch):
@@ -176,12 +224,12 @@ def test_config_file_is_used_when_env_is_missing(tmp_path, monkeypatch):
         def read(self, *args):
             return b"{}"
 
-    def fake_urlopen(request, timeout=0):
+    def fake_open(request):
         captured["url"] = request.full_url
         captured["headers"] = dict(request.header_items())
         return FakeResponse()
 
-    monkeypatch.setattr(module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(module, "_open", fake_open)
 
     assert module.post("/api/v1/agent/sessions", {"session_id": "s1"}) is True
     assert captured["url"] == "https://zettly.test/api/v1/agent/sessions"

@@ -47,11 +47,34 @@ def post(path,body):
     if not base or not token:return False
     try:
         url=f"{base}{path}"
-        req=urllib.request.Request(url,data=json.dumps(body,ensure_ascii=False).encode("utf-8"),headers={"Content-Type":"application/json","Authorization":f"Bearer {token}"},method="POST")
-        with urllib.request.urlopen(req,timeout=8) as response:
+        req=urllib.request.Request(url,data=json.dumps(body,ensure_ascii=False).encode("utf-8"),headers={
+            "Content-Type":"application/json",
+            "Accept":"application/json",
+            "Authorization":f"Bearer {token}",
+        },method="POST")
+        with _open(req) as response:
             return 200<=response.status<300
     except Exception:
         return False
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow a 3xx from the API.
+
+    urllib follows redirects by default, and on a 302 it retries the request as
+    GET. An unauthenticated API call answered 302 -> /login, so a revoked or
+    expired token produced a 200 HTML login page and post() reported success:
+    the event was dropped instead of being spooled. Asking for JSON makes auth
+    failures 401, and refusing redirects keeps any other 3xx from masquerading
+    as delivery.
+    """
+
+    def redirect_request(self,req,fp,code,msg,headers,newurl):
+        return None
+
+_OPENER=urllib.request.build_opener(_NoRedirect)
+
+def _open(req):
+    return _OPENER.open(req,timeout=8)
 
 def spool(payload):
     """Append one JSON line to the offline outbox.
