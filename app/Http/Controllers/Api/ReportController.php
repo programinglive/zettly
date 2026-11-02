@@ -67,24 +67,22 @@ class ReportController
             return response()->json(['success' => true, 'enqueued' => $enqueued]);
         }
 
-        $enqueued = 0;
-        foreach (Report::where('user_id', Auth::id())->get() as $report) {
-            $enqueued += $this->deliverReport($report, $delivery)->enqueued;
-        }
+        $enqueued = $delivery->enqueueForReports(Auth::user(), Report::where('user_id', Auth::id())->get());
 
-        return response()->json(['success' => true, 'enqueued' => $enqueued]);
+        // One job per delivery row: the previous loop dispatched a single job per
+        // report, so any channel beyond the first waited for the 15-minute sweep.
+        $enqueued->each(fn (ReportDelivery $row) => DeliverReport::dispatch($row->id));
+
+        return response()->json(['success' => true, 'enqueued' => $enqueued->count()]);
     }
 
     private function deliverReport(Report $report, ReportDeliveryService $delivery): \stdClass
     {
-        $created = $delivery->enqueue(Auth::user(), $report);
+        $created = $delivery->enqueueForReports(Auth::user(), collect([$report]));
 
-        if ($created > 0) {
-            $deliveryRow = ReportDelivery::where('report_id', $report->id)->firstOrFail();
-            DeliverReport::dispatch($deliveryRow->id);
-        }
+        $created->each(fn (ReportDelivery $row) => DeliverReport::dispatch($row->id));
 
-        return (object) ['enqueued' => $created];
+        return (object) ['enqueued' => $created->count()];
     }
 
     /**

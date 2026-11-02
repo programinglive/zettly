@@ -6,6 +6,7 @@ use App\Models\Report;
 use App\Models\ReportDelivery;
 use App\Models\User;
 use App\Models\UserReportChannel;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class ReportDeliveryService
@@ -73,20 +74,53 @@ class ReportDeliveryService
      */
     public function enqueue(User $user, Report $report): int
     {
-        $created = 0;
+        return $this->enqueueForReports($user, collect([$report]))->count();
+    }
 
-        foreach ($user->reportChannels()->enabled()->get() as $channel) {
-            $exists = ReportDelivery::where('report_id', $report->id)
-                ->where('channel', $channel->channel)
-                ->exists();
+    /**
+     * Create the missing delivery rows for many reports in one pass.
+     *
+     * Enqueuing report by report meant a fresh reportChannels() query for every
+     * report, an exists() per channel, and a lookup for the created row: measured
+     * at 9 queries for 2 reports and 85 for 22 - O(reports x channels).
+     *
+     * Loading the channels once and the existing (report, channel) pairs once
+     * collapses that to a constant number of queries regardless of history length.
+     *
+     * @param  Collection<int, Report>  $reports
+     * @return Collection<int, ReportDelivery> rows actually created
+     */
+    public function enqueueForReports(User $user, Collection $reports): Collection
+    {
+        if ($reports->isEmpty()) {
+            return collect();
+        }
 
-            if (! $exists) {
-                ReportDelivery::create([
+        $channels = $user->reportChannels()->enabled()->get();
+
+        if ($channels->isEmpty()) {
+            return collect();
+        }
+
+        $existing = ReportDelivery::whereIn('report_id', $reports->pluck('id'))
+            ->get(['report_id', 'channel'])
+            ->mapWithKeys(fn (ReportDelivery $delivery) => [
+                $delivery->report_id.'|'.$delivery->channel => true,
+            ]);
+
+        $created = collect();
+
+        foreach ($reports as $report) {
+            foreach ($channels as $channel) {
+                if ($existing->has($report->id.'|'.$channel->channel)) {
+                    continue;
+                }
+
+                $created->push(ReportDelivery::create([
                     'user_id' => $user->id,
                     'report_id' => $report->id,
                     'channel' => $channel->channel,
-                ]);
-                $created++;
+                ]));
             }
         }
 
