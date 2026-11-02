@@ -27,6 +27,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // API Routes (Protected by Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
+    // Literal segments must be declared before the resource wildcard, otherwise
+    // /api/todos/priorities matches todos/{todo} and 404s on route-model binding.
+    Route::get('todos/priorities', [TodoController::class, 'priorities'])->name('api.todos.priorities');
+
     // Todo API Routes
     Route::apiResource('todos', TodoController::class)->names([
         'index' => 'api.todos.index',
@@ -36,9 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
         'destroy' => 'api.todos.destroy',
     ]);
     Route::patch('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('api.todos.toggle');
-    Route::get('todos/priorities', [TodoController::class, 'priorities'])->name('api.todos.priorities');
 
     // Tag API Routes
+    // Same ordering rule: /api/tags/search was reaching tags/{tag} and 404ing.
+    Route::get('tags/search', [TagController::class, 'search'])->name('api.tags.search');
+
     Route::apiResource('tags', TagController::class)->except(['create', 'edit'])->names([
         'index' => 'api.tags.index',
         'store' => 'api.tags.store',
@@ -47,7 +53,6 @@ Route::middleware('auth:sanctum')->group(function () {
         'destroy' => 'api.tags.destroy',
     ]);
     Route::post('tags/{id}/restore', [TagController::class, 'restore'])->name('api.tags.restore');
-    Route::get('tags/search', [TagController::class, 'search'])->name('api.tags.search');
 
     // Push Subscription Routes
     Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('api.push-subscriptions.store');
