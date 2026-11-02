@@ -129,4 +129,34 @@ class ReportApiTest extends TestCase
             'webhook_url' => 'http://insecure.example.com/hook',
         ])->assertStatus(422);
     }
+    public function test_generating_a_weekly_report_uses_the_whole_week(): void
+    {
+        // Regression: the endpoint used the given date as both start and end, so
+        // a weekly request produced a one-day report.
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $response = $this->postJson('/api/v1/reports/generate', [
+            'period_kind' => 'weekly',
+            'date' => '2026-11-04',
+        ]);
+
+        $response->assertOk();
+        // 2026-11-04 is a Wednesday -> Mon 2026-11-02 .. Sun 2026-11-08
+        $response->assertJsonPath('data.report_key', 'weekly:2026-11-02:2026-11-08');
+    }
+
+    public function test_generating_a_monthly_report_uses_the_whole_month(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $response = $this->postJson('/api/v1/reports/generate', [
+            'period_kind' => 'monthly',
+            'date' => '2026-11-04',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.report_key', 'monthly:2026-11-01:2026-11-30');
+    }
 }

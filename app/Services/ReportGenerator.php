@@ -63,6 +63,28 @@ class ReportGenerator
     }
 
     /**
+     * The start and end dates that a period kind covers, given one date inside it.
+     *
+     * Daily covers that day; weekly covers the Monday..Sunday week containing it;
+     * monthly and yearly cover their full calendar period. The API needs this:
+     * passing a single date as both bounds silently collapsed every kind to one
+     * day.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    public static function periodFor(string $kind, CarbonImmutable $date): array
+    {
+        $day = $date->setTimezone('Asia/Jakarta')->startOfDay();
+
+        return match ($kind) {
+            Report::KIND_WEEKLY => [$day->startOfWeek(CarbonImmutable::MONDAY), $day->endOfWeek(CarbonImmutable::SUNDAY)->startOfDay()],
+            Report::KIND_MONTHLY => [$day->startOfMonth(), $day->endOfMonth()->startOfDay()],
+            Report::KIND_YEARLY => [$day->startOfYear(), $day->endOfYear()->startOfDay()],
+            default => [$day, $day],
+        };
+    }
+
+    /**
      * Render a report body for a period, reproducing the section order of the Python version.
      *
      * Sessions are the primary signal. Journal entries and todos are the

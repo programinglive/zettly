@@ -122,4 +122,35 @@ class ReportPeriodsTest extends TestCase
 
         $this->assertContains('monthly', $kinds);
     }
+    public function test_period_for_expands_each_kind_to_its_real_span(): void
+    {
+        // The API passed a single date as both start and end, so a "weekly"
+        // request produced weekly:2026-11-02:2026-11-02 and counted one day.
+        $d = $this->wib('2026-11-02 00:00:00'); // a Monday
+
+        [$s, $e] = ReportGenerator::periodFor('daily', $d);
+        $this->assertSame('2026-11-02', $s->toDateString());
+        $this->assertSame('2026-11-02', $e->toDateString());
+
+        [$s, $e] = ReportGenerator::periodFor('weekly', $d);
+        $this->assertSame('2026-11-02', $s->toDateString());
+        $this->assertSame('2026-11-08', $e->toDateString());
+
+        [$s, $e] = ReportGenerator::periodFor('monthly', $d);
+        $this->assertSame('2026-11-01', $s->toDateString());
+        $this->assertSame('2026-11-30', $e->toDateString());
+
+        [$s, $e] = ReportGenerator::periodFor('yearly', $d);
+        $this->assertSame('2026-01-01', $s->toDateString());
+        $this->assertSame('2026-12-31', $e->toDateString());
+    }
+
+    public function test_a_weekly_request_mid_week_covers_the_whole_week(): void
+    {
+        // Wednesday 2026-11-04 must map to Mon 2026-11-02 .. Sun 2026-11-08.
+        [$s, $e] = ReportGenerator::periodFor('weekly', $this->wib('2026-11-04 15:00:00'));
+
+        $this->assertSame('2026-11-02', $s->toDateString());
+        $this->assertSame('2026-11-08', $e->toDateString());
+    }
 }
