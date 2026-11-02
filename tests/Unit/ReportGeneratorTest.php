@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\AgentSession;
 use App\Models\Report;
+use App\Models\Todo;
 use App\Models\User;
 use App\Services\ReportGenerator;
 use Carbon\CarbonImmutable;
@@ -198,5 +199,71 @@ class ReportGeneratorTest extends TestCase
         $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
 
         $this->assertStringContainsString('- Tasks completed: 1', $report->content);
+    }
+
+    public function test_an_undated_completion_is_surfaced_instead_of_vanishing(): void
+    {
+        // ACTIVE.md records a status but no dates, so the import leaves
+        // completed_at null on purpose. The generator's query then matched neither
+        // "completed in this period" nor "still open", so those tasks disappeared
+        // from every report while the dashboard counted them.
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-02 00:00:00');
+
+        Todo::factory()->for($user)->asTask()->create([
+            'is_completed' => true,
+            'completed_at' => null,
+        ]);
+        Todo::factory()->for($user)->asTask()->create([
+            'is_completed' => true,
+            'completed_at' => null,
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        // Not attributed to the period...
+        $this->assertStringContainsString('- Tasks completed: 0', $report->content);
+        // ...but not silently dropped either.
+        $this->assertStringContainsString(
+            'Undated completions: 2',
+            $report->content,
+            'Tasks marked done without a completion date must be reported, not hidden.'
+        );
+    }
+
+    public function test_an_undated_completion_is_never_dated_by_its_creation_time(): void
+    {
+        // Every imported todo was created inside the same second by the importer,
+        // so falling back to created_at would claim 26 tasks were finished on the
+        // import day. The test pins the honest behaviour: no attribution.
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-02 00:00:00');
+
+        Todo::factory()->for($user)->asTask()->create([
+            'is_completed' => true,
+            'completed_at' => null,
+            'created_at' => $this->utc($day->copy()->addHours(10)),
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('- Tasks completed: 0', $report->content);
+        $this->assertStringContainsString('Undated completions: 1', $report->content);
+    }
+
+    public function test_a_period_without_undated_completions_says_nothing_about_them(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-02 00:00:00');
+
+        Todo::factory()->for($user)->asTask()->create([
+            'is_completed' => true,
+            'completed_at' => $this->utc($day->copy()->addHours(9)),
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('- Tasks completed: 1', $report->content);
+        $this->assertStringNotContainsString('Undated completions', $report->content);
     }
 }

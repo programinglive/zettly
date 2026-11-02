@@ -94,6 +94,7 @@ class ReportGenerator
      *
      * @param  Collection  $journalEntries  JournalEntry rows whose entry_date falls in the period
      * @param  Collection  $todos  Todos completed in the period, or still open
+     * @param  int  $undatedCompletions  Tasks marked done with no completion date
      */
     public function render(
         string $periodKind,
@@ -101,7 +102,8 @@ class ReportGenerator
         CarbonImmutable $end,
         Collection $sessions,
         Collection $journalEntries = new Collection,
-        Collection $todos = new Collection
+        Collection $todos = new Collection,
+        int $undatedCompletions = 0
     ): string
     {
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
@@ -169,6 +171,18 @@ class ReportGenerator
 
         if ($journalEntries->isNotEmpty()) {
             $lines[] = sprintf('- Journal entries recorded: %d', $journalDays);
+        }
+
+        // The legacy import only knows a status, never a date, so these tasks have
+        // no completion date and cannot belong to any period. They used to be
+        // dropped by the query entirely - neither "completed in this period" nor
+        // "still open" - so the report and the dashboard disagreed. Say so instead
+        // of guessing a date: created_at on those rows is the import timestamp.
+        if ($undatedCompletions > 0) {
+            $lines[] = sprintf(
+                '- Undated completions: %d (marked done without a recorded date; counted in no period)',
+                $undatedCompletions
+            );
         }
 
         $lines[] = '';
@@ -322,7 +336,17 @@ class ReportGenerator
             ->limit(200)
             ->get();
 
-        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos);
+        // Marked done but with no completion date, so they belong to no period. The
+        // import wrote null on purpose (ACTIVE.md carries a status, not dates), and
+        // created_at on those rows is the import timestamp - attributing them would
+        // invent a date. Counted so the report can say they exist.
+        $undatedCompletions = Todo::where('user_id', $user->id)
+            ->where('is_completed', true)
+            ->whereNull('completed_at')
+            ->where('archived', false)
+            ->count();
+
+        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos, $undatedCompletions);
 
         return Report::updateOrCreate(
             [

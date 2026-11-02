@@ -341,8 +341,8 @@ class ImportLegacyJournalCommand extends Command
                 // ACTIVE.md carries no completion date, only a status. Stamping
                 // "now" made the import day look like the day 26 tasks were
                 // finished, and every report covering it claimed them. Leave it
-                // null: the generator treats undated completions as historical
-                // and does not attribute them to a period.
+                // null: the generator attributes no date to these and reports the
+                // count separately as "Undated completions".
                 'completed_at' => null,
                 'priority' => $isUrgent ? Todo::PRIORITY_URGENT : Todo::PRIORITY_NOT_URGENT,
                 'importance' => $isBlocked ? Todo::IMPORTANCE_IMPORTANT : Todo::IMPORTANCE_NOT_IMPORTANT,
