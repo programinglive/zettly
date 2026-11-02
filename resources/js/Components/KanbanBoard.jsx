@@ -483,8 +483,10 @@ export default function KanbanBoard({
 
         // Use axios instead of fetch to automatically handle CSRF token via cookie
         axios.post('/todos/reorder', payload)
-            .then(() => {
-                // no-op: the list is already in the new order
+            .then(response => {
+                // Optimistic update already applied: the board keeps the new order
+                // and deliberately does not refetch from page.props.
+                void response;
             })
             .catch(error => {
                 console.error('Reorder failed:', error);
