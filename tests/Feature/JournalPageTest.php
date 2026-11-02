@@ -75,4 +75,30 @@ class JournalPageTest extends TestCase
                 ->where('entries.data.0.kind', 'decision')
             );
     }
+
+    public function test_the_header_range_is_sent_as_dates_not_wrapped_objects(): void
+    {
+        // The dates came from optional(min(...)) / optional(max(...)). optional()
+        // returns an Optional object for any non-null value, so the page rendered
+        // "[object Object] → [object Object]" next to the entry count.
+        $user = User::factory()->create();
+
+        JournalEntry::create([
+            'user_id' => $user->id, 'entry_date' => '2026-09-01',
+            'kind' => JournalEntry::KIND_ACTIVITY, 'content' => 'first day',
+        ]);
+        JournalEntry::create([
+            'user_id' => $user->id, 'entry_date' => '2026-10-15',
+            'kind' => JournalEntry::KIND_ACTIVITY, 'content' => 'last day',
+        ]);
+
+        $this->actingAs($user)
+            ->get('/journal')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('stats.total', 2)
+                ->where('stats.first', fn ($value) => is_string($value) && str_starts_with($value, '2026-09-01'))
+                ->where('stats.last', fn ($value) => is_string($value) && str_starts_with($value, '2026-10-15'))
+            );
+    }
 }

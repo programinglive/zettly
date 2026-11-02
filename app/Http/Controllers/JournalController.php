@@ -47,6 +47,11 @@ class JournalController extends Controller
 
         $entries = $query->paginate(20)->withQueryString();
 
+        // min()/max() return a date string or null. They were wrapped in optional(),
+        // which turns any non-null value into an Optional object, so the page printed
+        // "[object Object] → [object Object]" next to the entry count.
+        $statsQuery = JournalEntry::where('user_id', Auth::id());
+
         return Inertia::render('Journal/Index', [
             'entries' => $entries,
             'filters' => [
@@ -64,9 +69,9 @@ class JournalController extends Controller
                 JournalEntry::KIND_HANDOFF,
             ],
             'stats' => [
-                'total' => JournalEntry::where('user_id', Auth::id())->count(),
-                'first' => optional(JournalEntry::where('user_id', Auth::id())->min('entry_date')),
-                'last' => optional(JournalEntry::where('user_id', Auth::id())->max('entry_date')),
+                'total' => (clone $statsQuery)->count(),
+                'first' => (clone $statsQuery)->min('entry_date'),
+                'last' => (clone $statsQuery)->max('entry_date'),
             ],
             'tags' => Tag::forUser(Auth::id())->get(),
         ]);
