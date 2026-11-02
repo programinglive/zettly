@@ -52,7 +52,10 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/restore', [TodoController::class, 'restore'])->name('todos.restore');
     Route::post('todos/{todo}/restore-deleted', [TodoController::class, 'restoreDeleted'])->name('todos.restore-deleted');
 
-    Route::get('/system-status', SystemStatusController::class)->name('system.status');
+    // Environment/version details are operator information, not user information.
+    Route::get('/system-status', SystemStatusController::class)
+        ->middleware('super-admin')
+        ->name('system.status');
 
     Route::get('notes', [TodoController::class, 'notes'])->name('notes.index');
     Route::get('journal', [App\Http\Controllers\JournalController::class, 'index'])->name('journal.index');
