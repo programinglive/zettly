@@ -19,37 +19,18 @@ class DashboardController extends Controller
             ->values()
             ->all();
 
-        $todosQuery = $user->todos()
-            ->notArchived()
-            ->tasks()
-            ->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])
-            ->orderBy('is_completed', 'asc')
-            ->orderByRaw("CASE 
-            WHEN priority = 'urgent' THEN 1 
-            WHEN priority = 'not_urgent' THEN 2 
-            ELSE 3 END")
-            ->orderByRaw("CASE 
-            WHEN importance = 'important' THEN 1 
-            WHEN importance = 'not_important' THEN 2 
-            ELSE 3 END");
-
-        if (Todo::hasKanbanOrderColumn()) {
-            $todosQuery->orderBy('kanban_order');
-        }
-
-        $todosQuery->orderBy('created_at', 'desc');
+        // The page component destructures `todos` and never reads it: the todo list
+        // lives on /todos and /todos/board. Sending it meant loading every
+        // non-archived task with tags, both link directions and attachments, then
+        // serializing all of it - about 570 bytes per todo that no screen rendered.
+        // Keep the counts, which are what a dashboard actually needs.
+        $tasksQuery = $user->todos()->notArchived()->tasks();
 
         if (! empty($selectedTagIds)) {
-            $todosQuery->whereHas('tags', function ($query) use ($selectedTagIds) {
+            $tasksQuery->whereHas('tags', function ($query) use ($selectedTagIds) {
                 $query->whereIn('tags.id', $selectedTagIds);
             });
         }
-
-        $todos = $todosQuery->get();
-
-        $todos->each(function (Todo $todo) {
-            $todo->attachments->each(fn ($attachment) => $attachment->append(['url', 'thumbnail_url']));
-        });
 
         $availableTags = $user->tags()
             ->orderBy('name')
@@ -64,7 +45,10 @@ class DashboardController extends Controller
             ->get();
 
         return Inertia::render('Dashboard', [
-            'todos' => $todos,
+            'tasks' => [
+                'open' => (clone $tasksQuery)->where('is_completed', false)->count(),
+                'completed' => (clone $tasksQuery)->where('is_completed', true)->count(),
+            ],
             'filters' => [
                 'tags' => $selectedTagIds,
             ],

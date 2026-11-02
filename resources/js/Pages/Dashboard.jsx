@@ -7,10 +7,10 @@ import FocusGreeting from '../Components/FocusGreeting';
 import ReorderDebug from '../Components/ReorderDebug';
 
 export default function Dashboard({
-    todos = [],
     filters = { tags: [] },
     availableTags = [],
     notes = [],
+    tasks = { open: 0, completed: 0 },
     preferences = {},
 }) {
     const { props: pageProps } = usePage();
@@ -33,11 +33,14 @@ export default function Dashboard({
             return undefined;
         }
 
-        // Allow debug mode for super admins or if explicitly enabled via localStorage
-        const debugEnabled = window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
+        // Debug mode is for super admins only. This used to read
+        // `!isSuperAdmin && !debugEnabled`, so anyone could turn the panel on by
+        // setting localStorage['zettly-debug-mode'] = 'true'.
+        const debugEnabled = isSuperAdmin
+            && window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
 
-        if (!isSuperAdmin && !debugEnabled) {
-            window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
+        if (!isSuperAdmin) {
+            window.localStorage.removeItem(DEBUG_STORAGE_KEY);
             setHasDebugFlag(false);
             return undefined;
         }
@@ -45,11 +48,9 @@ export default function Dashboard({
         const handleDebugChange = (event) => {
             const enabled = Boolean(event.detail?.enabled);
             setHasDebugFlag(enabled);
-            console.log('🔍 Debug mode changed:', enabled);
         };
 
         setHasDebugFlag(debugEnabled);
-        console.log('🔍 Debug mode initialized:', debugEnabled, 'Super Admin:', isSuperAdmin);
 
         window.addEventListener('zettly:debug-mode-changed', handleDebugChange);
 
@@ -76,6 +77,22 @@ export default function Dashboard({
                         <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
                             Stay focused and track your progress through the day.
                         </p>
+                    </div>
+
+                    {/* Open/completed counts: computed server-side, so the page no longer ships the todo list */}
+                    <div className="mb-10 flex flex-wrap items-center gap-3">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                            {tasks.open} open
+                        </span>
+                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                            {tasks.completed} completed
+                        </span>
+                        <Link
+                            href="/todos"
+                            className="text-xs font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                        >
+                            View all todos
+                        </Link>
                     </div>
 
                     {/* Focus Greeting */}
@@ -113,7 +130,7 @@ export default function Dashboard({
                             </div>
                         )}
 
-                        <FocusGreeting />
+                        <FocusGreeting tasks={tasks} />
                     </div>
                 </div>
             </div>
