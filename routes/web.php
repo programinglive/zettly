@@ -11,7 +11,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
-use App\Http\Controllers\UploadTestController;
 use App\Http\Controllers\HabitController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -109,8 +108,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/tokens', [ProfileController::class, 'createToken'])->name('tokens.create');
     Route::delete('/tokens/{token}', [ProfileController::class, 'deleteToken'])->name('tokens.delete');
 
-    Route::get('/upload', [UploadTestController::class, 'show'])->name('upload.show');
-    Route::post('/upload', [UploadTestController::class, 'store'])->name('upload.store');
+    // Diagnostic upload page removed: it was reachable by any signed-in user,
+    // stored arbitrary files (client-controlled extension) on the public disk,
+    // and nothing in the UI linked to it.
 
 
     // Push notification routes
