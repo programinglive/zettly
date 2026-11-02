@@ -45,7 +45,7 @@ class JournalPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('entries.data', 1)
-                ->where('entries.data.0.content', 'my own work')
+                ->where('entries.data.0.preview', 'my own work')
             );
     }
 
@@ -74,6 +74,60 @@ class JournalPageTest extends TestCase
                 ->has('entries.data', 1)
                 ->where('entries.data.0.kind', 'decision')
             );
+    }
+
+    public function test_the_timeline_sends_a_preview_not_the_whole_entry(): void
+    {
+        // Entries average 64 KB and reach 225 KB. Sending them whole made the page
+        // a 1.35 MB response, and the template truncated them to 320 characters
+        // anyway - so the rest of every entry was unreachable.
+        $user = User::factory()->create();
+        $long = str_repeat('x', 5000).'TAIL-MARKER';
+
+        JournalEntry::create([
+            'user_id' => $user->id, 'entry_date' => '2026-10-20',
+            'kind' => JournalEntry::KIND_ACTIVITY, 'content' => $long,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/journal')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('entries.data.0.length', strlen($long))
+                ->where('entries.data.0.preview', fn ($value) => is_string($value)
+                    && mb_strlen($value) <= 420
+                    && ! str_contains($value, 'TAIL-MARKER'))
+            );
+    }
+
+    public function test_an_entry_can_be_opened_in_full_by_its_owner(): void
+    {
+        $user = User::factory()->create();
+        $content = str_repeat('body ', 1000).'TAIL-MARKER';
+        $entry = JournalEntry::create([
+            'user_id' => $user->id, 'entry_date' => '2026-10-20',
+            'kind' => JournalEntry::KIND_ACTIVITY, 'content' => $content,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson("/journal/{$entry->id}")
+            ->assertOk()
+            ->assertJsonPath('id', $entry->id)
+            ->assertJsonPath('content', $content);
+    }
+
+    public function test_one_user_cannot_open_another_users_entry(): void
+    {
+        $me = User::factory()->create();
+        $other = User::factory()->create();
+        $entry = JournalEntry::create([
+            'user_id' => $other->id, 'entry_date' => '2026-10-20',
+            'kind' => JournalEntry::KIND_ACTIVITY, 'content' => 'private',
+        ]);
+
+        $this->actingAs($me)
+            ->getJson("/journal/{$entry->id}")
+            ->assertForbidden();
     }
 
     public function test_the_header_range_is_sent_as_dates_not_wrapped_objects(): void

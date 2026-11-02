@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import DashboardLayout from '../../Layouts/DashboardLayout';
 import { BookOpen, Calendar, Filter, Search, Tag as TagIcon } from 'lucide-react';
 import { Button } from '../../Components/ui/button';
+import axios from 'axios';
 
 /**
  * Journal timeline.
@@ -27,14 +28,33 @@ const formatDate = (value) => {
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const preview = (text, limit = 320) => {
-    const clean = String(text || '').replace(/\s+/g, ' ').trim();
-    return clean.length > limit ? `${clean.slice(0, limit).trim()}…` : clean;
-};
-
 export default function JournalIndex({ entries, filters = {}, kinds = [], stats = {}, tags = [] }) {
     const rows = entries?.data ?? [];
     const isPaginated = !!entries?.data;
+    const [openEntry, setOpenEntry] = useState(null);
+    const [fullEntry, setFullEntry] = useState({ loading: false, error: null, content: null });
+
+    // Entries average 64 KB, so the timeline only receives previews; the full
+    // text is fetched for the one entry the user opened.
+    useEffect(() => {
+        if (openEntry === null) {
+            setFullEntry({ loading: false, error: null, content: null });
+            return;
+        }
+        let cancelled = false;
+        setFullEntry({ loading: true, error: null, content: null });
+        axios
+            .get(`/journal/${openEntry}`, { headers: { Accept: 'application/json' } })
+            .then((response) => {
+                if (!cancelled) setFullEntry({ loading: false, error: null, content: response.data.content });
+            })
+            .catch(() => {
+                if (!cancelled) setFullEntry({ loading: false, error: 'Could not load this entry.', content: null });
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [openEntry]);
 
     const apply = (patch) => {
         const next = { ...filters, ...patch };
@@ -134,8 +154,34 @@ export default function JournalIndex({ entries, filters = {}, kinds = [], stats 
                                     )}
                                 </div>
                                 <p className="text-sm leading-relaxed text-gray-800 dark:text-slate-200 whitespace-pre-line">
-                                    {preview(entry.content)}
+                                    {entry.preview}
                                 </p>
+                                {entry.length > (entry.preview?.length ?? 0) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenEntry(openEntry === entry.id ? null : entry.id)}
+                                        className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                    >
+                                        {openEntry === entry.id
+                                            ? 'Hide full entry'
+                                            : `Show full entry (${entry.length.toLocaleString()} characters)`}
+                                    </button>
+                                )}
+                                {openEntry === entry.id && (
+                                    <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+                                        {fullEntry.loading && (
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">Loading…</p>
+                                        )}
+                                        {fullEntry.error && (
+                                            <p className="text-xs text-red-600 dark:text-red-400">{fullEntry.error}</p>
+                                        )}
+                                        {!fullEntry.loading && !fullEntry.error && (
+                                            <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-gray-800 dark:text-slate-200">
+                                                {fullEntry.content}
+                                            </pre>
+                                        )}
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ol>
