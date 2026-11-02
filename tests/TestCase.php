@@ -4,10 +4,12 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\SkipsViteWhenUnbuilt;
 
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
+    use SkipsViteWhenUnbuilt;
 
     protected function setUp(): void
     {
