@@ -32,11 +32,12 @@ class HabitController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Load today's completion status
+        // Load today's completion status in one pass (see Habit::todaySummary()).
         $habits->each(function ($habit) {
-            $habit->today_completed = $habit->isCompletedToday();
-            $habit->today_count = $habit->getTodayCount();
-            $habit->today_target_met = $habit->isTodayTargetMet();
+            $summary = $habit->todaySummary();
+            $habit->today_completed = $summary['completed'];
+            $habit->today_count = $summary['count'];
+            $habit->today_target_met = $summary['count'] >= $habit->target_frequency;
         });
 
         return inertia('Habits/Index', [
