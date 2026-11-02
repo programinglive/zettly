@@ -257,3 +257,37 @@ def test_stop_in_progress_does_not_set_completed_at(tmp_path, monkeypatch):
     session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
     assert session["status"] == "in_progress"
     assert "completed_at" not in session or session["completed_at"] is None
+
+
+def test_spool_writes_a_status_line_so_a_stuck_outbox_is_visible(tmp_path, monkeypatch):
+    """A silently growing outbox is how three devices looked healthy while
+    delivering nothing. Spooling must leave a trace."""
+    module = load(tmp_path, monkeypatch)
+
+    module.spool({"path": "/api/v1/agent/sessions", "body": {"session_id": "s1"}})
+
+    status = module.STATE / "outbox-status.log"
+    assert status.exists()
+    text = status.read_text(encoding="utf-8")
+    assert "spooled" in text and "/api/v1/agent/sessions" in text
+
+
+def test_backlog_warning_fires_only_at_the_threshold(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    alert = module.STATE / "outbox-alert.log"
+
+    module.report_backlog(module.BACKLOG_WARN - 1)
+    assert not alert.exists(), "must stay quiet below the threshold"
+
+    module.report_backlog(module.BACKLOG_WARN)
+    assert alert.exists()
+    assert "backlog" in alert.read_text(encoding="utf-8")
+
+
+def test_outbox_size_counts_only_non_empty_lines(tmp_path, monkeypatch):
+    module = load(tmp_path, monkeypatch)
+    module.STATE.mkdir(parents=True, exist_ok=True)
+    module.OUTBOX.write_text('{"a":1}\n\n{"b":2}\n', encoding="utf-8")
+
+    assert module.outbox_size() == 2

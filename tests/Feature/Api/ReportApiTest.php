@@ -65,8 +65,13 @@ class ReportApiTest extends TestCase
         Queue::fake();
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['zettly:cli']);
-        $target = Report::factory()->create(['user_id' => $user->id]);
-        $other = Report::factory()->create(['user_id' => $user->id, 'report_key' => 'daily:2026-11-02:2026-11-02']);
+        // Both keys must be explicit: the factory's default key is derived from
+        // today's date, which collides with a hard-coded key on that date.
+        $target = Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-10-01:2026-10-01',
+        ]);
+        $other = Report::factory()->create(['user_id' => $user->id, 'report_key' => 'daily:2026-10-02:2026-10-02']);
         UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
 
         $this->postJson('/api/v1/reports/deliver', ['report_key' => $target->report_key])

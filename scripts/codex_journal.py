@@ -54,10 +54,27 @@ def post(path,body):
         return False
 
 def spool(payload):
-    """Append one JSON line to the offline outbox."""
+    """Append one JSON line to the offline outbox.
+
+    Also records why the event could not be sent and leaves a durable marker, so
+    a growing outbox is visible instead of silent. Before this, an event could
+    sit in the outbox indefinitely with nothing to notice it.
+    """
     STATE.mkdir(parents=True,exist_ok=True)
     with OUTBOX.open("a",encoding="utf-8") as f:
         f.write(json.dumps(payload,ensure_ascii=False)+"\n")
+    try:
+        with (STATE/"outbox-status.log").open("a",encoding="utf-8") as f:
+            f.write(f"{datetime.now(timezone.utc).isoformat()} spooled path={payload.get('path','')} pending={outbox_size()+1}\n")
+    except OSError:
+        pass
+
+def outbox_size():
+    """Number of pending payloads, or 0 when the outbox is absent."""
+    try:
+        return sum(1 for line in OUTBOX.read_text(encoding="utf-8").splitlines() if line.strip())
+    except OSError:
+        return 0
 
 def flush_spool():
     """Replay every spooled payload. Drops a line only after a successful post."""
@@ -78,6 +95,24 @@ def flush_spool():
             f.write("\n".join(kept)+"\n")
     else:
         OUTBOX.write_text("", encoding="utf-8")
+    report_backlog(len(kept))
+
+BACKLOG_WARN = 50
+
+def report_backlog(pending):
+    """Make a stuck outbox visible instead of silently growing.
+
+    A backlog means events are not reaching Zettly. One line per run is cheap;
+    staying silent is what let three devices look healthy while delivering
+    nothing.
+    """
+    try:
+        if pending >= BACKLOG_WARN:
+            with (STATE/"outbox-alert.log").open("a",encoding="utf-8") as f:
+                f.write(f"{datetime.now(timezone.utc).isoformat()} WARNING outbox backlog pending={pending} at {OUTBOX}\n")
+            print(f"zettly: {pending} events pending in {OUTBOX}", file=sys.stderr)
+    except OSError:
+        pass
 
 def changed(cwd):
     try:r=subprocess.run(["git","-C",cwd,"status","--porcelain","--untracked-files=normal"],capture_output=True,text=True,timeout=2)

@@ -145,4 +145,27 @@ class ReportGeneratorHistoricalTest extends TestCase
 
         $this->assertStringNotContainsString('supersecretvalue123', $report->content);
     }
+    public function test_undated_completed_todos_are_not_attributed_to_a_period(): void
+    {
+        // ACTIVE.md has no completion dates. Stamping the import time made the
+        // import day look like "26 tasks completed", which is a false claim in
+        // every report covering that day.
+        $user = User::factory()->create();
+        $importDay = $this->wib('2026-11-01 00:00:00');
+
+        foreach (range(1, 5) as $i) {
+            Todo::create([
+                'user_id' => $user->id, 'type' => Todo::TYPE_TODO,
+                'title' => 'legacy done '.$i,
+                'is_completed' => true,
+                'completed_at' => null,
+                'priority' => Todo::PRIORITY_NOT_URGENT,
+                'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            ]);
+        }
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $importDay, $importDay);
+
+        $this->assertStringContainsString('- Tasks completed: 0', $report->content);
+    }
 }
