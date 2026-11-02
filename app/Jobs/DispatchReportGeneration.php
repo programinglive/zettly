@@ -12,8 +12,11 @@ class DispatchReportGeneration implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public int $userId, public bool $backfill = false)
-    {
+    public function __construct(
+        public int $userId,
+        public bool $backfill = false,
+        public bool $deliver = true,
+    ) {
     }
 
     public function handle(ReportGenerator $generator, ReportDeliveryService $delivery): void
@@ -30,6 +33,12 @@ class DispatchReportGeneration implements ShouldQueue
         $reports = $this->backfill
             ? $generator->generateDue($user)
             : $generator->generateCurrent($user);
+
+        // Backfilling history must not push weeks of reports into a chat channel.
+        // Deliveries are opt-in, so a backfill only writes the report rows.
+        if (! $this->deliver) {
+            return;
+        }
 
         foreach ($reports as $report) {
             $delivery->enqueue($user, $report);
