@@ -34,10 +34,13 @@ export default function Board({
             return undefined;
         }
 
-        const debugEnabled = window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
+        // Super-admin only: the previous `!isSuperAdmin && !debugEnabled` check let
+        // any user enable the panel through localStorage.
+        const debugEnabled = isSuperAdmin
+            && window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
 
-        if (!isSuperAdmin && !debugEnabled) {
-            window.localStorage.setItem(DEBUG_STORAGE_KEY, 'false');
+        if (!isSuperAdmin) {
+            window.localStorage.removeItem(DEBUG_STORAGE_KEY);
             setHasDebugFlag(false);
             return undefined;
         }

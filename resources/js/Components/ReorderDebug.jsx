@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle, XCircle, Activity } from 'lucide-react';
 
 export default function ReorderDebug() {
@@ -6,6 +6,7 @@ export default function ReorderDebug() {
     const [isMonitoring, setIsMonitoring] = useState(true);
     const [dragEvents, setDragEvents] = useState(0);
     const [reorderRequests, setReorderRequests] = useState(0);
+    const originalPostRef = useRef(null);
 
     useEffect(() => {
         console.log('🔍 ReorderDebug component mounted');
@@ -34,7 +35,7 @@ export default function ReorderDebug() {
 
         // Intercept router.post
         if (window.router) {
-            const originalPost = window.router.post;
+            originalPostRef.current = window.router.post;
             window.router.post = function(url, data, options) {
                 if (url === '/todos/reorder') {
                     setReorderRequests(prev => prev + 1);
@@ -64,7 +65,7 @@ export default function ReorderDebug() {
                         };
                     }
                 }
-                return originalPost.call(this, url, data, options);
+                return originalPostRef.current.call(this, url, data, options);
             };
             console.log('✓ Router.post intercepted');
         }
@@ -77,6 +78,13 @@ export default function ReorderDebug() {
             document.removeEventListener('dragstart', handleDragStart);
             document.removeEventListener('dragend', handleDragEnd);
             document.removeEventListener('pointerdown', handlePointerDown);
+
+            // Put the router method back. Without this the patch outlives the
+            // component and every later page keeps the wrapped version.
+            if (window.router && originalPostRef.current) {
+                window.router.post = originalPostRef.current;
+                originalPostRef.current = null;
+            }
         };
     }, []);
 
