@@ -188,6 +188,10 @@ class OrganizationController extends Controller
     {
         $this->authorizeAdmin($organization, $request->user());
 
+        // {member} binds by id alone, so without this an admin of any organization
+        // could delete a member row belonging to someone else's organization.
+        abort_unless($member->organization_id === $organization->id, 404);
+
         // Prevent removing the last admin
         if ($member->role === 'admin' && $organization->members()->where('role', 'admin')->count() === 1) {
             return back()->with('error', 'Cannot remove the last admin from the organization.');
@@ -205,9 +209,20 @@ class OrganizationController extends Controller
     {
         $this->authorizeAdmin($organization, $request->user());
 
+        // Same gap as removeMember: without this an admin of one organization could
+        // promote or demote members of any other organization.
+        abort_unless($member->organization_id === $organization->id, 404);
+
         $validated = $request->validate([
             'role' => 'required|in:admin,member',
         ]);
+
+        // Demoting the only admin would leave the organization unmanageable. The
+        // CLI counterpart refuses this too (409); the web route did not.
+        if ($member->role === 'admin' && $validated['role'] !== 'admin'
+            && $organization->members()->where('role', 'admin')->count() === 1) {
+            return back()->with('error', 'Cannot demote the last admin of the organization.');
+        }
 
         $member->update(['role' => $validated['role']]);
 

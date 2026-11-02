@@ -71,6 +71,8 @@ class HabitController extends Controller
             'organization_id' => 'nullable|exists:organizations,id',
         ]);
 
+        $this->authorizeOrganizationId($validated['organization_id'] ?? null);
+
         $habit = Habit::create([
             'user_id' => Auth::id(),
             'organization_id' => $validated['organization_id'] ?? null,
@@ -144,6 +146,8 @@ class HabitController extends Controller
             'is_active' => 'boolean',
             'organization_id' => 'nullable|exists:organizations,id',
         ]);
+
+        $this->authorizeOrganizationId($validated['organization_id'] ?? null);
 
         $habit->update($validated);
 
@@ -289,6 +293,24 @@ class HabitController extends Controller
         }
 
         $streak->save();
+    }
+
+    /**
+     * Refuse a habit in an organization the user does not belong to.
+     *
+     * `exists:organizations,id` only proves the organization exists. Since
+     * authorizeHabit() lets any member of a habit's organization read it, a habit
+     * pointing at a foreign organization would be injected into that tenant.
+     */
+    private function authorizeOrganizationId(?int $organizationId): void
+    {
+        if (! $organizationId) {
+            return;
+        }
+
+        if (! Auth::user()->organizations()->whereKey($organizationId)->exists()) {
+            abort(403);
+        }
     }
 
     /**

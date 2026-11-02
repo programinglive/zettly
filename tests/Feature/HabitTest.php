@@ -268,6 +268,46 @@ class HabitTest extends TestCase
                 ->has('habits', 0));
     }
 
+    public function test_user_cannot_create_a_habit_inside_a_foreign_organization(): void
+    {
+        // `exists:organizations,id` only proves the org exists; any member of that
+        // org can then read the habit, so this was a way to inject content into a
+        // tenant the user does not belong to.
+        $user = $this->signIn();
+        $owner = User::factory()->create();
+        $foreign = $this->createOrganization($owner);
+
+        $this->post('/habits', [
+            'title' => 'Injected',
+            'color' => '#111827',
+            'icon' => 'star',
+            'target_frequency' => 1,
+            'frequency_period' => 'daily',
+            'organization_id' => $foreign->id,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseMissing('habits', ['title' => 'Injected']);
+    }
+
+    public function test_user_cannot_move_their_habit_into_a_foreign_organization(): void
+    {
+        $user = $this->signIn();
+        $owner = User::factory()->create();
+        $foreign = $this->createOrganization($owner);
+        $habit = Habit::factory()->create(['user_id' => $user->id, 'organization_id' => null]);
+
+        $this->put("/habits/{$habit->id}", [
+            'title' => $habit->title,
+            'color' => '#111827',
+            'icon' => 'star',
+            'target_frequency' => 1,
+            'frequency_period' => 'daily',
+            'organization_id' => $foreign->id,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('habits', ['id' => $habit->id, 'organization_id' => null]);
+    }
+
     private function createOrganization(User $owner, array $members = []): Organization
     {
         $organization = Organization::factory()->create([

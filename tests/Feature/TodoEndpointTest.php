@@ -113,6 +113,30 @@ class TodoEndpointTest extends TestCase
         ]);
     }
 
+    public function test_a_user_cannot_update_another_users_todo(): void
+    {
+        // update() was the only todo action without the ownership check that
+        // show/edit/destroy/toggle all have, so any signed-in user could
+        // overwrite anyone else's todo by id.
+        $owner = User::factory()->create();
+        $attacker = User::factory()->create();
+        $todo = Todo::factory()->create(['user_id' => $owner->id, 'title' => 'Owner title']);
+
+        $response = $this->actingAs($attacker)
+            ->withSession(['_token' => 'test-token'])
+            ->put("/todos/{$todo->id}", [
+                '_token' => 'test-token',
+                'title' => 'Hijacked',
+                'description' => 'written by someone else',
+            ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'title' => 'Owner title',
+        ]);
+    }
+
     public function test_todos_delete_endpoint_works(): void
     {
         /** @var User $user */

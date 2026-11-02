@@ -255,6 +255,60 @@ class OrganizationTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    public function admin_of_one_organization_cannot_remove_a_member_of_another()
+    {
+        // {member} was resolved by primary key with no check that it belongs to
+        // {organization}, so any org admin could delete a member row of a foreign
+        // organization - and the last-admin guard counted the wrong organization.
+        $ownOrg = Organization::factory()->for($this->user, 'creator')->create();
+        OrganizationMember::create([
+            'organization_id' => $ownOrg->id,
+            'user_id' => $this->user->id,
+            'role' => 'admin',
+        ]);
+
+        $victimOrg = Organization::factory()->for($this->otherUser, 'creator')->create();
+        $victimMember = OrganizationMember::create([
+            'organization_id' => $victimOrg->id,
+            'user_id' => $this->otherUser->id,
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($this->user)
+            ->delete(route('organizations.remove-member', [$ownOrg, $victimMember]))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('organization_members', ['id' => $victimMember->id]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function admin_of_one_organization_cannot_change_a_role_in_another()
+    {
+        $ownOrg = Organization::factory()->for($this->user, 'creator')->create();
+        OrganizationMember::create([
+            'organization_id' => $ownOrg->id,
+            'user_id' => $this->user->id,
+            'role' => 'admin',
+        ]);
+
+        $victimOrg = Organization::factory()->for($this->otherUser, 'creator')->create();
+        $victimMember = OrganizationMember::create([
+            'organization_id' => $victimOrg->id,
+            'user_id' => $this->otherUser->id,
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($this->user)
+            ->patch(route('organizations.update-member-role', [$ownOrg, $victimMember]), ['role' => 'member'])
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('organization_members', [
+            'id' => $victimMember->id,
+            'role' => 'admin',
+        ]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_leave_organization()
     {
         $organization = Organization::factory()
