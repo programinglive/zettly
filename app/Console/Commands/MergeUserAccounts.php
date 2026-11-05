@@ -99,9 +99,13 @@ class MergeUserAccounts extends Command
         if (! $path || ! is_dir($path) || ! is_writable($path) || str_starts_with($path, base_path())) {
             throw new RuntimeException('A private writable backup directory outside the application is required.');
         }
-        $connection = config('database.connections.'.config('database.default'));
+        $connection = DB::connection()->getConfig();
         if (($connection['driver'] ?? null) !== 'pgsql') {
             throw new RuntimeException('Automatic backup currently supports PostgreSQL only.');
+        }
+        $databaseName = DB::selectOne('select current_database() as name')->name;
+        if (! is_string($connection['database'] ?? null) || $connection['database'] !== $databaseName) {
+            throw new RuntimeException('Resolved connection and live database name differ.');
         }
         $backup = tempnam($path, 'zettly-merge-');
         if (! $backup) throw new RuntimeException('Cannot create backup file.');
