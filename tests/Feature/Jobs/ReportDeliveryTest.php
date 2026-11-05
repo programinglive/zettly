@@ -194,9 +194,14 @@ class ReportDeliveryTest extends TestCase
 
         app(ReportDeliveryService::class)->send($delivery);
 
-        Http::assertSent(fn ($request) => str_contains($request['content'], '- Machines: MMCH'));
-        Http::assertSent(fn ($request) => $request['allowed_mentions'] === ['parse' => []]
-            && str_contains($request['content'], route('reports.show', $report)));
+        Http::assertSent(function ($request) use ($report) {
+            $embed = $request['embeds'][0] ?? [];
+            $fieldValues = implode(' ', array_column($embed['fields'] ?? [], 'value'));
+
+            return str_contains($fieldValues, 'MMCH')
+                && $request['allowed_mentions'] === ['parse' => []]
+                && $embed['url'] === route('reports.show', $report);
+        });
         $this->assertSame('delivered', $delivery->fresh()->status);
         $this->assertNotNull($delivery->fresh()->delivered_at);
     }
@@ -217,7 +222,7 @@ class ReportDeliveryTest extends TestCase
 
         app(ReportDeliveryService::class)->send($delivery);
 
-        Http::assertNotSent(fn ($request) => str_contains($request['content'], 'abc123secret'));
+        Http::assertNotSent(fn ($request) => str_contains(json_encode($request->data()), 'abc123secret'));
     }
 
     public function test_send_records_a_failure_and_retries(): void
@@ -296,5 +301,28 @@ class ReportDeliveryTest extends TestCase
         (new DeliverReport($delivery->id))->handle(app(ReportDeliveryService::class));
 
         $this->assertSame('delivered', $delivery->fresh()->status);
+    }
+
+    public function test_discord_payload_uses_clean_rich_embed_with_metrics_and_report_url(): void
+    {
+        $content = implode("\n", [
+            '# Daily Activity Summary: 2026-11-04 - 2026-11-04',
+            '- Machines: MMCH',
+            '- Tasks completed: 2',
+            '- Tasks in progress or blocked: 1',
+            '## Outstanding work',
+            '- Fix printing bug (urgent)',
+        ]);
+        $payload = ReportDeliveryService::chatPayload(UserReportChannel::CHANNEL_DISCORD, $content, 'https://zettly.test/reports/1');
+
+        $this->assertArrayHasKey('embeds', $payload);
+        $this->assertNotEmpty($payload['embeds']);
+        $embed = $payload['embeds'][0];
+        $this->assertSame('https://zettly.test/reports/1', $embed['url']);
+        $this->assertStringContainsString('Daily Activity Summary', $embed['title']);
+        $this->assertArrayHasKey('fields', $embed);
+        $fieldNames = array_column($embed['fields'], 'name');
+        $this->assertContains('📈 Overview', $fieldNames);
+        $this->assertContains('⚠️ Needs Attention', $fieldNames);
     }
 }

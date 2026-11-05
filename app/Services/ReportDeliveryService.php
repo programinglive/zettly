@@ -165,7 +165,7 @@ class ReportDeliveryService
         $summary = self::summary($content, max(0, 1800 - NotificationText::units($details) - 2))."\n\n".$details;
 
         return match ($channel) {
-            UserReportChannel::CHANNEL_DISCORD => ['content' => $summary, 'allowed_mentions' => ['parse' => []], 'flags' => 4],
+            UserReportChannel::CHANNEL_DISCORD => self::discordPayload($content, $detailsUrl),
             UserReportChannel::CHANNEL_TELEGRAM => [
                 'chat_id' => $chatId,
                 'text' => $summary,
@@ -173,5 +173,121 @@ class ReportDeliveryService
             ],
             default => throw new \InvalidArgumentException('Unsupported delivery channel: '.$channel),
         };
+    }
+
+    /**
+     * Build a clean, structured Discord Rich Embed payload.
+     */
+    public static function discordPayload(string $content, string $detailsUrl): array
+    {
+        $title = 'Activity Summary';
+        $period = null;
+        $metrics = [];
+        $actions = [];
+        $section = '';
+
+        foreach (preg_split('/\R/u', $content) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            if (str_starts_with($line, '# ')) {
+                $rawTitle = NotificationText::line(substr($line, 2), 140);
+                if (str_contains($rawTitle, ':')) {
+                    [$t, $p] = explode(':', $rawTitle, 2);
+                    $title = trim($t);
+                    $period = trim($p);
+                } else {
+                    $title = $rawTitle;
+                }
+                continue;
+            }
+
+            if (preg_match('/^#{2,3} /', $line)) {
+                $section = trim($line);
+                continue;
+            }
+
+            if ($section === '' && preg_match('/^- (Machines|Projects|Tasks completed|Tasks in progress or blocked|Observed active-turn time|Journal entries recorded|Undated completions): (.*)$/', $line, $m)) {
+                $label = $m[1];
+                $val = NotificationText::line($m[2], 120);
+                $metrics[] = "• **{$label}:** {$val}";
+            }
+
+            if ($section === '## Outstanding work' && str_starts_with($line, '- ') && $line !== '- None recorded.') {
+                $actions[] = NotificationText::line($line, 150);
+            }
+        }
+
+        $fields = [];
+
+        if (! empty($metrics)) {
+            $fields[] = [
+                'name' => '📈 Overview',
+                'value' => implode("\n", $metrics),
+                'inline' => false,
+            ];
+        }
+
+        $hasBlocked = false;
+        $hasUrgent = false;
+
+        if (! empty($actions)) {
+            $sorted = collect($actions)->sortBy(function ($item) use (&$hasBlocked, &$hasUrgent) {
+                if (str_contains($item, '(blocked)')) {
+                    $hasBlocked = true;
+                    return 0;
+                }
+                if (str_contains($item, '(urgent)')) {
+                    $hasUrgent = true;
+                    return 1;
+                }
+                return 2;
+            })->values();
+
+            $actionLines = [];
+            foreach ($sorted->take(4) as $act) {
+                $cleanAct = preg_replace('/^\s*-\s*/', '', $act);
+                $actionLines[] = "• {$cleanAct}";
+            }
+
+            if ($sorted->count() > 4) {
+                $remaining = $sorted->count() - 4;
+                $actionLines[] = "*+ {$remaining} more in full report.*";
+            }
+
+            $fields[] = [
+                'name' => '⚠️ Needs Attention',
+                'value' => implode("\n", $actionLines),
+                'inline' => false,
+            ];
+        }
+
+        $color = 5793266; // Discord Blurple (0x5865F2)
+        if ($hasBlocked) {
+            $color = 15550277; // Red (0xED4245)
+        } elseif ($hasUrgent) {
+            $color = 16705372; // Gold/Yellow (0xFEE75C)
+        }
+
+        $description = $period ? "**Period:** {$period}\n[🔗 View Full Report]({$detailsUrl})" : "[🔗 View Full Report]({$detailsUrl})";
+
+        $embed = [
+            'title' => '📊 ' . $title,
+            'url' => $detailsUrl,
+            'description' => $description,
+            'color' => $color,
+            'fields' => $fields,
+            'footer' => [
+                'text' => 'Zettly Activity Reports',
+            ],
+            'timestamp' => now()->toIso8601String(),
+        ];
+
+        return [
+            'embeds' => [$embed],
+            'allowed_mentions' => ['parse' => []],
+        ];
     }
 }
