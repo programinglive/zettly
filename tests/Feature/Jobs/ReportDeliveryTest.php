@@ -303,6 +303,9 @@ class ReportDeliveryTest extends TestCase
         $this->assertSame('delivered', $delivery->fresh()->status);
     }
 
+    /**
+     * Verify Discord payload uses standard Rich Embed format with overview metrics.
+     */
     public function test_discord_payload_uses_clean_rich_embed_with_metrics_and_report_url(): void
     {
         $content = implode("\n", [
