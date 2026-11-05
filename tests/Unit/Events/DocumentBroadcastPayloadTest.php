@@ -56,7 +56,7 @@ class DocumentBroadcastPayloadTest extends TestCase
     public function test_drawing_updated_flags_document_when_total_payload_exceeds_limit(): void
     {
         $user = User::factory()->create();
-        $document = ['content' => str_repeat('B', 6900)];
+        $document = ['content' => str_repeat('B', 3900)];
         $drawing = Drawing::factory()->for($user)->create([
             'document' => $document,
             'title' => str_repeat('Wide Title ', 600),
@@ -112,10 +112,10 @@ class DocumentBroadcastPayloadTest extends TestCase
 
         $drawing = Drawing::factory()->create();
         $user = User::factory()->create(['name' => str_repeat('Collaborator ', 600)]);
-        $document = ['content' => str_repeat('C', 7400)];
+        $document = ['content' => str_repeat('C', 3900)];
 
         $documentBytes = $this->encodedSize($document);
-        $this->assertLessThanOrEqual(7500, $documentBytes, 'Document should be below the direct document threshold.');
+        $this->assertLessThanOrEqual(4000, $documentBytes, 'Document should be below the direct document threshold.');
 
         $wouldOverflowPayload = [
             'drawingId' => $drawing->id,
@@ -129,7 +129,7 @@ class DocumentBroadcastPayloadTest extends TestCase
             'error' => null,
         ];
 
-        $this->assertGreaterThan(9500, $this->encodedSize($wouldOverflowPayload));
+        $this->assertGreaterThan(6500, $this->encodedSize($wouldOverflowPayload));
 
         $event = new TLDrawUpdated($drawing, $user, $document);
         $payload = $event->broadcastWith();

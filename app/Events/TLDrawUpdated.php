@@ -14,9 +14,9 @@ class TLDrawUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private const MAX_DOCUMENT_BYTES = 7500;
+    private const MAX_DOCUMENT_BYTES = 4000;
 
-    private const MAX_EVENT_BYTES = 9500;
+    private const MAX_EVENT_BYTES = 6500;
 
     public Drawing $drawing;
 

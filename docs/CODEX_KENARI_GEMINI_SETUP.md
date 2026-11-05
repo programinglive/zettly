@@ -2,7 +2,7 @@
 
 Panduan ini menjelaskan setup Codex CLI agar model Gemini langsung dari Google dan model dari kenari.id muncul di `/model`. Perintah sehari-hari cukup `codex`; peluncur lokal menangani mode tanpa shared daemon secara otomatis.
 
-Catatan canonical disimpan di jurnal bersama `mahatmamahardhikach/daily-activity-journal`. Setelah sinkronisasi repo di komputer tujuan, baca file ini dan ambil kode [gateway.cjs](../scripts/codex-custom-models/gateway.cjs) serta [launch.cjs khusus Windows](../scripts/codex-custom-models/launch.cjs). Salin kode ke direktori Codex user pada perangkat tujuan sesuai panduan; menjalankannya langsung dari folder repo mengubah lokasi katalog yang dihasilkan. Tidak ada API key atau file credential dalam kedua kode tersebut.
+Panduan ini dan kode yang dirujuk disimpan di repo Zettly. Setelah sinkronisasi repo di komputer tujuan, baca file ini dan ambil kode [gateway.cjs](../scripts/codex-custom-models/gateway.cjs) serta [launch.cjs khusus Windows](../scripts/codex-custom-models/launch.cjs). Salin kode ke direktori Codex user pada perangkat tujuan sesuai panduan; menjalankannya langsung dari folder repo mengubah lokasi katalog yang dihasilkan. Tidak ada API key atau file credential dalam kedua kode tersebut.
 
 Baseline: Codex CLI 0.164.0 dan Node.js 24.20.0, diperiksa pada 25 Oktober 2026. Setup dan pengujian langsung dilakukan di Windows. Langkah Linux/macOS adalah adaptasi dari kode yang sama dan perlu diuji pada perangkat tujuan. Gunakan versi baseline saat mereproduksi masalah; periksa lagi kompatibilitas jika memakai versi berbeda.
 

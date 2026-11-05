@@ -16,9 +16,9 @@ class DrawingUpdated implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public const MAX_DOCUMENT_BYTES = 7000;
+    public const MAX_DOCUMENT_BYTES = 4000;
 
-    public const MAX_EVENT_BYTES = 9500;
+    public const MAX_EVENT_BYTES = 6500;
 
     public int $drawingId = 0;
 
