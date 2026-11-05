@@ -263,6 +263,20 @@ To inspect TipTap lifecycle and toolbar state during development, the app integr
 
 ## Environment configuration
 
+### Account consolidation
+
+The `zettly:merge-users` command transfers account-owned records to a retained account while preserving Todo, focus, journal, report, and agent record IDs. It retires the source account with Laravel soft deletion, revokes its API tokens and browser sessions, and sets the retained account password from standard input. The command prints a dry-run inventory by default.
+
+Before applying a merge, create and verify a private database backup. Check for account-specific unique-key collisions and review any active focus on both accounts. The command refuses a tag-name collision or multiple active source foci. A single active source focus is completed in the same database transaction; the target account's active focus remains in place. If any update fails, the transaction rolls back.
+
+```bash
+php artisan zettly:merge-users SOURCE_ID TARGET_ID
+# Supply the target password on stdin through a private credential helper.
+credential-helper | php artisan zettly:merge-users SOURCE_ID TARGET_ID --apply --backup=/private/verified-backup.sql --password-stdin
+```
+
+Run readback checks for moved record counts and source login denial after applying. Never pass passwords on the command line or store database backups in the repository.
+
 Start from `.env.example` and configure only the services you use. Keep credentials in `.env` or the deployment secret store, never in the repository.
 
 ## Release workflow
