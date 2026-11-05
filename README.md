@@ -317,6 +317,8 @@ Start from `.env.example` and configure only the services you use. Keep credenti
 
 For detailed API documentation, developer guides, and more information, visit the `/developer` page in the application.
 
+For bounded activity digests, private report links, and the safe CLI preview command, see [notification formatting](./docs/notification-formatting.md).
+
 ## License
 
 This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

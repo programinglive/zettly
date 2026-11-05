@@ -44,6 +44,7 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('reports/{report}', \App\Http\Controllers\ReportDetailsController::class)->name('reports.show');
     // Special routes that need to come before resource routes
     Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');
     Route::get('todos/completed', [TodoController::class, 'completed'])->name('todos.completed');
