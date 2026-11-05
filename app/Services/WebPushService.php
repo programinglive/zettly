@@ -32,8 +32,8 @@ class WebPushService
 
         $webPush = $this->buildClient();
         $payload = json_encode([
-            'title' => $notification['title'] ?? config('app.name', 'Zettly'),
-            'body' => $notification['body'] ?? '',
+            'title' => NotificationText::line($notification['title'] ?? config('app.name', 'Zettly'), 120),
+            'body' => NotificationText::line($notification['body'] ?? '', 255),
             'url' => $notification['url'] ?? '/',
             'icon' => $notification['icon'] ?? url('/android-chrome-192x192.png'),
             'tag' => $notification['tag'] ?? 'zettly',

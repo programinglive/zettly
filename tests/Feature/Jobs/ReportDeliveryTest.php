@@ -18,7 +18,15 @@ class ReportDeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_summary_keeps_headlines_sessions_and_journal_but_drops_boilerplate(): void
+    public function test_nested_journal_headings_never_become_notification_titles(): void
+    {
+        $summary = ReportDeliveryService::summary("# Daily Activity Summary\n- Projects: 1\n## Journal entries\n# Private historical heading\n- Old journal body\n");
+        $this->assertStringNotContainsString('Private historical heading', $summary);
+        $this->assertStringNotContainsString('Old journal body', $summary);
+        $this->assertSame(1, substr_count($summary, 'Daily Activity Summary'));
+    }
+
+    public function test_summary_preserves_lines_and_counts_without_dumping_history(): void
     {
         $content = implode("\n", [
             '# Daily Activity Summary: 2026-11-01 - 2026-11-01',
@@ -57,12 +65,12 @@ class ReportDeliveryTest extends TestCase
 
         $summary = ReportDeliveryService::summary($content);
 
-        // Kept: the content a reader needs in chat.
-        $this->assertStringContainsString('# Daily Activity Summary', $summary);
-        $this->assertStringContainsString('### zettly', $summary);
-        $this->assertStringContainsString('**ship it**', $summary);
+        $this->assertStringStartsWith('Daily Activity Summary', $summary);
+        $this->assertStringContainsString("\n", $summary);
+        $this->assertDoesNotMatchRegularExpression('/^#+ /m', $summary);
+        $this->assertStringNotContainsString('ship it', $summary);
         $this->assertStringContainsString('another task', $summary);
-        $this->assertStringContainsString('Rebuilt the backup pipeline.', $summary);
+        $this->assertStringNotContainsString('Rebuilt the backup pipeline.', $summary);
         $this->assertStringContainsString('Journal entries recorded: 1', $summary);
         // Dropped: boilerplate that adds nothing to a chat message.
         $this->assertStringNotContainsString('## Next actions', $summary);
@@ -109,11 +117,9 @@ class ReportDeliveryTest extends TestCase
 
         $summary = ReportDeliveryService::summary($content);
 
-        $this->assertStringContainsString('# Daily Activity Summary', $summary);
-        $this->assertStringContainsString('### zettly', $summary);
-        // Session detail now travels with the session line (it is useful in chat),
-        // but the whole thing still has to fit Discord's limit.
-        $this->assertStringContainsString('**ship it**', $summary);
+        $this->assertStringContainsString('Daily Activity Summary', $summary);
+        $this->assertStringNotContainsString('### zettly', $summary);
+        $this->assertStringNotContainsString('Modified files', $summary);
         $this->assertLessThanOrEqual(1800, mb_strlen($summary));
     }
 
@@ -128,6 +134,36 @@ class ReportDeliveryTest extends TestCase
 
         $this->assertSame(1, $created);
         $this->assertSame(1, ReportDelivery::count());
+    }
+
+    public function test_summary_caps_actions_and_prioritizes_blocked_work(): void
+    {
+        $content = "# Summary\n- Tasks completed: 2\n## Outstanding work\n";
+        foreach (range(1, 15) as $number) {
+            $content .= "- Task {$number} (in_progress)\n";
+        }
+        $content .= "- Fix **critical** blocker @everyone (blocked)\n## Journal entries\n- Private journal body\n";
+        $summary = ReportDeliveryService::summary($content);
+        $this->assertStringContainsString('critical', $summary);
+        $this->assertStringNotContainsString('Task 4 ', $summary);
+        $this->assertStringNotContainsString('Private journal body', $summary);
+        $this->assertStringContainsString('13 more', $summary);
+    }
+
+    public function test_telegram_delivery_uses_plain_text_and_a_details_link(): void
+    {
+        Http::fake(['*' => Http::response(['ok' => true])]);
+        $user = User::factory()->create();
+        $report = Report::factory()->create(['user_id' => $user->id]);
+        UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'telegram']);
+        $delivery = ReportDelivery::factory()->create([
+            'user_id' => $user->id, 'report_id' => $report->id, 'channel' => 'telegram',
+        ]);
+        app(ReportDeliveryService::class)->send($delivery);
+        Http::assertSent(fn ($request) => ! isset($request['parse_mode'])
+            && $request['link_preview_options'] === ['is_disabled' => true]
+            && str_contains($request['text'], route('reports.show', $report))
+            && str_contains($request['text'], "\n"));
     }
 
     public function test_enqueue_is_idempotent(): void
@@ -159,6 +195,8 @@ class ReportDeliveryTest extends TestCase
         app(ReportDeliveryService::class)->send($delivery);
 
         Http::assertSent(fn ($request) => str_contains($request['content'], '- Machines: MMCH'));
+        Http::assertSent(fn ($request) => $request['allowed_mentions'] === ['parse' => []]
+            && str_contains($request['content'], route('reports.show', $report)));
         $this->assertSame('delivered', $delivery->fresh()->status);
         $this->assertNotNull($delivery->fresh()->delivered_at);
     }

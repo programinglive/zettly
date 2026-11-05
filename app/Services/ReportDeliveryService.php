@@ -12,61 +12,51 @@ use Illuminate\Support\Facades\Http;
 class ReportDeliveryService
 {
     /**
-     * Condense a full report into a Discord-sized message, redacted.
-     *
-     * Keeps the headline block, the per-project sections and the journal
-     * summary, because those are what make a historical day readable. Section
-     * headings and the bullet under them travel together; a section is dropped
-     * whole rather than leaving an empty heading behind.
+     * Build a bounded chat digest; full journal and session details stay in the report.
      */
     public static function summary(string $content, int $limit = 1800): string
     {
-        $kept = [];
-        $inDropSection = false;
-
-        foreach (preg_split('/\n/', $content) as $line) {
-            $isSection = str_starts_with($line, '## ');
-            $isHeadline = str_starts_with($line, '# ')
-                || str_starts_with($line, '- Machines:')
-                || str_starts_with($line, '- Projects:')
-                || str_starts_with($line, '- Tasks ')
-                || str_starts_with($line, '- Observed active-turn time:')
-                || str_starts_with($line, '- Journal entries recorded:')
-                || str_starts_with($line, '### ');
-
-            if ($isSection) {
-                $heading = trim($line);
-
-                // Sections that add nothing to a chat message.
-                $inDropSection = in_array($heading, [
-                    '## Next actions',
-                    '## Historical comparison',
-                ], true);
-
-                // Heading-only removal: the project and session lines under it
-                // are the substance of the report, so keep them and skip the
-                // heading.
-                if ($heading === '## Work by project') {
-                    continue;
-                }
-
-                if (! $inDropSection) {
-                    $kept[] = $line;
+        $lines = [];
+        $actions = [];
+        $section = '';
+        $hasTitle = false;
+        foreach (preg_split('/\R/u', $content) as $line) {
+            if (str_starts_with($line, '# ')) {
+                if (! $hasTitle && $section === '') {
+                    $lines[] = NotificationText::line(substr($line, 2), 140);
+                    $hasTitle = true;
                 }
 
                 continue;
             }
+            if (preg_match('/^#{2,3} /', $line)) {
+                $section = trim($line);
 
-            if ($inDropSection) {
                 continue;
             }
-
-            if ($isHeadline || str_starts_with($line, '- ') || str_starts_with($line, '  - ')) {
-                $kept[] = $line;
+            if ($section === '' && preg_match('/^- (Machines|Projects|Tasks completed|Tasks in progress or blocked|Observed active-turn time|Journal entries recorded): /', $line)) {
+                $lines[] = NotificationText::line($line, 160);
+            }
+            if ($section === '## Outstanding work' && str_starts_with($line, '- ')
+                && $line !== '- None recorded.') {
+                $actions[] = $line;
             }
         }
 
-        return AgentSessionIngestor::redact(implode("\n", $kept), $limit);
+        if ($actions !== []) {
+            // Stable sorting keeps the original order within each urgency group.
+            $actions = collect($actions)->sortBy(fn ($line) => str_contains($line, '(blocked)') ? 0 : (str_contains($line, '(urgent)') ? 1 : 2))->values();
+            $lines[] = '';
+            $lines[] = __('Needs attention');
+            foreach ($actions->take(3) as $action) {
+                $lines[] = NotificationText::line($action, 150);
+            }
+            if ($actions->count() > 3) {
+                $lines[] = __('+ :count more in the full report.', ['count' => $actions->count() - 3]);
+            }
+        }
+
+        return NotificationText::truncate(implode("\n", $lines), max(0, $limit));
     }
 
     /**
@@ -145,16 +135,7 @@ class ReportDeliveryService
         }
 
         $report = $delivery->report;
-        $summary = self::summary($report->content);
-
-        $payload = match ($delivery->channel) {
-            UserReportChannel::CHANNEL_DISCORD => ['content' => $summary],
-            UserReportChannel::CHANNEL_TELEGRAM => [
-                'chat_id' => $channel->chat_id,
-                'text' => $summary,
-            ],
-            default => throw new \RuntimeException('Unsupported delivery channel: '.$delivery->channel),
-        };
+        $payload = self::chatPayload($delivery->channel, $report->content, route('reports.show', $report), $channel->chat_id);
 
         $response = Http::post($channel->webhook_url, $payload);
 
@@ -164,6 +145,7 @@ class ReportDeliveryService
                 'attempts' => $delivery->attempts + 1,
                 'delivered_at' => now(),
             ]);
+
             return;
         }
 
@@ -174,5 +156,22 @@ class ReportDeliveryService
         ]);
 
         throw new \RuntimeException('Delivery to '.$delivery->channel.' failed with HTTP '.($response->status() ?? '?'));
+    }
+
+    /** Render without sending so the CLI and tests use the delivery formatter. */
+    public static function chatPayload(string $channel, string $content, string $detailsUrl, ?string $chatId = null): array
+    {
+        $details = __('View full report').': '.$detailsUrl;
+        $summary = self::summary($content, max(0, 1800 - NotificationText::units($details) - 2))."\n\n".$details;
+
+        return match ($channel) {
+            UserReportChannel::CHANNEL_DISCORD => ['content' => $summary, 'allowed_mentions' => ['parse' => []], 'flags' => 4],
+            UserReportChannel::CHANNEL_TELEGRAM => [
+                'chat_id' => $chatId,
+                'text' => $summary,
+                'link_preview_options' => ['is_disabled' => true],
+            ],
+            default => throw new \InvalidArgumentException('Unsupported delivery channel: '.$channel),
+        };
     }
 }
