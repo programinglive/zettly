@@ -115,7 +115,7 @@ php artisan queue:work --tries=3
 - ✅ **Focus workspace** — Keep the current daily focus and important notifications visible.
 - ✅ **Eisenhower and Kanban boards** — Plan by urgency/importance or manage work in sortable drag-and-drop columns.
 - ✅ **Tags and relationships** — Organize tasks with tags and link related todos.
-- ✅ **Notes and rich text** — Capture notes separately from actionable tasks and write formatted descriptions with the Zettly Editor.
+- ✅ **Notes and rich text** — Capture notes separately from actionable tasks and write formatted descriptions with full Markdown support (headings, bold, lists, code blocks, and line breaks) cleanly rendered in the Zettly web UI.
 - ✅ **Attachments and checklists** — Add files and structured checklist items to tasks.
 - ✅ **Habit tracker** — Set recurring goals, record completions, and review streaks.
 - ✅ **Organizations** — Create shared workspaces, invite members, and organize workspace data.

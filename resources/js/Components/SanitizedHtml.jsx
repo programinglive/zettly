@@ -1,10 +1,12 @@
 import { useMemo, useRef, useEffect } from 'react';
 import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import json from 'highlight.js/lib/languages/json';
 import php from 'highlight.js/lib/languages/php';
+import bash from 'highlight.js/lib/languages/bash';
 
 // Register languages once
 if (!hljs.getLanguage('javascript')) {
@@ -19,6 +21,14 @@ if (!hljs.getLanguage('json')) {
 if (!hljs.getLanguage('php')) {
     hljs.registerLanguage('php', php);
 }
+if (!hljs.getLanguage('bash')) {
+    hljs.registerLanguage('bash', bash);
+}
+
+marked.setOptions({
+    gfm: true,
+    breaks: true,
+});
 
 export default function SanitizedHtml({ html, className = '' }) {
     const sanitized = useMemo(() => {
@@ -26,7 +36,15 @@ export default function SanitizedHtml({ html, className = '' }) {
             return '';
         }
 
-        let cleaned = DOMPurify.sanitize(html);
+        const raw = typeof html === 'string' ? html : String(html);
+        let parsed;
+        try {
+            parsed = marked.parse(raw);
+        } catch {
+            parsed = raw;
+        }
+
+        let cleaned = DOMPurify.sanitize(parsed);
 
         if (!cleaned) {
             return '';
