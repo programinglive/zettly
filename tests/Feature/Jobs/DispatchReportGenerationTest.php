@@ -50,6 +50,8 @@ class DispatchReportGenerationTest extends TestCase
 
     public function test_the_scheduled_run_still_covers_recent_periods(): void
     {
+        $this->travelTo(now('Asia/Jakarta')->setTime(12, 0, 0));
+
         $user = User::factory()->create();
         UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
 
