@@ -23,9 +23,7 @@ class SyncGraphEvent implements ShouldQueue
 
     public array $backoff = [5, 30, 120];
 
-    public function __construct(public string $type, public array $data)
-    {
-    }
+    public function __construct(public string $type, public array $data) {}
 
     public function handle(): void
     {
