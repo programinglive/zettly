@@ -5,13 +5,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\FocusController;
+use App\Http\Controllers\HabitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
-use App\Http\Controllers\HabitController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::get('draw/create', [DrawingController::class, 'create'])->name('draw.create');
     Route::post('draw', [DrawingController::class, 'store'])->name('draw.store');
     Route::get('draw/{drawing}', [DrawingController::class, 'show'])->where('drawing', '\d+')->name('draw.show');
+    Route::get('drawings/{drawing}', [DrawingController::class, 'show'])->where('drawing', '\d+')->name('drawings.show');
     Route::patch('draw/{drawing}', [DrawingController::class, 'update'])->where('drawing', '\d+')->name('draw.update');
     Route::delete('draw/{drawing}', [DrawingController::class, 'destroy'])->where('drawing', '\d+')->name('draw.destroy');
 
@@ -115,7 +116,6 @@ Route::middleware('auth')->group(function () {
     // Diagnostic upload page removed: it was reachable by any signed-in user,
     // stored arbitrary files (client-controlled extension) on the public disk,
     // and nothing in the UI linked to it.
-
 
     // Push notification routes
     Route::post('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');

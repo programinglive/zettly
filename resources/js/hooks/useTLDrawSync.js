@@ -30,11 +30,20 @@ export function useTLDrawSync(drawingId) {
             channelRef.current = channel;
 
             // Listen for sync events
-            channel.listen('TLDrawUpdate', (e) => {
+            channel.listen('TLDrawUpdate', async (e) => {
                 console.log('[TLDraw Sync] Received update:', e);
+                let doc = e.document;
+                if (!doc && (e.document_too_large || e.error === 'payload_exceeds_limit')) {
+                    try {
+                        const res = await axios.get(`/drawings/${drawingId}`);
+                        doc = res.data?.drawing?.document ?? res.data?.document;
+                    } catch (err) {
+                        console.error('[TLDraw Sync] Failed to refetch large document:', err);
+                    }
+                }
                 // Handle incoming updates
-                if (e.onSyncUpdate) {
-                    e.onSyncUpdate(e.document);
+                if (e.onSyncUpdate && doc) {
+                    e.onSyncUpdate(doc);
                 }
             });
 
