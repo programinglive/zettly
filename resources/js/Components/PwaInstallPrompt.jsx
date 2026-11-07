@@ -55,10 +55,29 @@ export default function PwaInstallPrompt() {
             setVisible(true);
         };
 
+        const appInstalledHandler = () => {
+            console.debug('[PWA] appinstalled event fired');
+            window.localStorage.setItem(STORAGE_KEY, '1');
+            setVisible(false);
+            setDeferredPrompt(null);
+            setPromptMode(null);
+        };
+
         window.addEventListener('beforeinstallprompt', handler);
+        window.addEventListener('appinstalled', appInstalledHandler);
+
+        if (typeof navigator !== 'undefined' && 'getInstalledRelatedApps' in navigator) {
+            navigator.getInstalledRelatedApps().then((apps) => {
+                if (apps && apps.length > 0) {
+                    window.localStorage.setItem(STORAGE_KEY, '1');
+                    setVisible(false);
+                }
+            }).catch(() => {});
+        }
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handler);
+            window.removeEventListener('appinstalled', appInstalledHandler);
         };
     }, []);
 
@@ -80,7 +99,7 @@ export default function PwaInstallPrompt() {
         try {
             const { outcome } = await deferredPrompt.userChoice;
 
-            if (outcome === 'accepted') {
+            if (outcome === 'accepted' || outcome === 'dismissed') {
                 window.localStorage.setItem(STORAGE_KEY, '1');
             }
         } catch (error) {

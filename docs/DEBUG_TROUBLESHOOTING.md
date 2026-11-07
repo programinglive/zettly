@@ -152,6 +152,26 @@ console.log('Router available:', !!window.router);
 console.log('Router.post available:', typeof window.router?.post);
 ```
 
+## PWA Installation & Banner Troubleshooting
+
+### Check PWA State
+```javascript
+// Check if install banner is dismissed
+console.log('PWA dismissed:', localStorage.getItem('zettly-pwa-install-dismissed'));
+
+// Check service worker registration
+navigator.serviceWorker.getRegistrations().then(r => console.log('SW count:', r.length));
+
+// Reset install banner dismissal (to re-test banner display)
+localStorage.removeItem('zettly-pwa-install-dismissed');
+location.reload();
+```
+
+### Banner Lifecycle & Dismissal Rules
+- **Standalone Mode**: If launched as installed PWA (`display-mode: standalone`), the install prompt is never rendered.
+- **appinstalled Event**: When installation completes (either via browser omnibox or prompt dialog), `zettly-pwa-install-dismissed` is marked as `'1'`.
+- **Dismissal Persistence**: Once dismissed via "Maybe later" or upon completing the install prompt, the banner remains hidden across reloads and browser sessions.
+
 ## Still Not Working?
 
 1. **Check browser console** for any JavaScript errors
