@@ -2,6 +2,126 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.5](https://github.com/programinglive/todo/compare/v0.12.3...v0.12.5) (2026-11-07)
+
+
+### 🧹 Chores
+
+* cleanup after release ([a8afd3a](https://github.com/programinglive/todo/commit/a8afd3a43315fdf9b3df0ec07633f5cbc3b954c6))
+* cleanup after release ([a4042cb](https://github.com/programinglive/todo/commit/a4042cbdc14d7e2cdb350088c89c73b691bd6d07))
+* **deps:** bump paragonie/sodium_compat from 2.4.0 to 2.5.0 ([2c68918](https://github.com/programinglive/todo/commit/2c6891857959600d621c59ac1ff5a25da39926a3))
+* **deps:** bump qs from 6.14.0 to 6.14.1 in /graph-service ([c60b408](https://github.com/programinglive/todo/commit/c60b4083dcbd2598061b08b8eca61a97d21487ec))
+* ignore __pycache__ in Zettly repo ([a73e604](https://github.com/programinglive/todo/commit/a73e604007c9641deef5c08fcfc15d9581362511))
+* **kanban:** stop logging the whole board on every drag ([a983097](https://github.com/programinglive/todo/commit/a9830973ea8fb8fa9c37f67023ce3d831cf7b88b))
+* **release:** 0.12.4 🚀 ([e7d7b9d](https://github.com/programinglive/todo/commit/e7d7b9d89364b27631873762d77f576992405824))
+* remove committed __pycache__, add Python bytecode to .gitignore ([7849938](https://github.com/programinglive/todo/commit/78499389c8912cf700e10c4e85dde0865d7acd6f))
+* **security:** keep real credentials out of .env files in the public repo ([e406117](https://github.com/programinglive/todo/commit/e40611728cd4c00852dda40e3ed12ef07dab6711))
+* **testing:** remove unused GEMINI_API_KEY from .env.testing ([5343dd1](https://github.com/programinglive/todo/commit/5343dd13eeebd3e25353a9a0ddfa639cca60920c))
+
+
+### ⚡ Performance
+
+* **dashboard:** stop shipping the todo list to a page that never read it ([6afb12a](https://github.com/programinglive/todo/commit/6afb12ade8932238ca69a0774e0a1952f61d8a25))
+* **db:** index user_id on the eight tables that filter by it ([87a9c50](https://github.com/programinglive/todo/commit/87a9c5078576bdc784e9517c89ce46e7fb189ef1))
+* **graph:** sync graph events through the queue ([debbab1](https://github.com/programinglive/todo/commit/debbab1d48057a330a4c3398fbb75a3ba7e39d0d))
+* **habits:** stop querying once per habit when listing habits ([f53e3ce](https://github.com/programinglive/todo/commit/f53e3cedd4ad78f33d3bc25f41703b9f665307b7))
+* **reports:** enqueue deliveries in one pass instead of one report at a time ([bbf0f87](https://github.com/programinglive/todo/commit/bbf0f874319857ae4bfb03b3bb35540a4e6b3344))
+
+
+### ✅ Tests
+
+* run the suite without a built frontend ([01fd7c5](https://github.com/programinglive/todo/commit/01fd7c58fee9c3bc44cb9ba60554fe832867cdf5))
+* **tldraw:** add integration test covering the shared token class ([0dfdd51](https://github.com/programinglive/todo/commit/0dfdd5178754e788f7d92d33081fab039a325d85))
+
+
+### 📝 Documentation
+
+* clarify hook file location before journal repo removal ([0891a3b](https://github.com/programinglive/todo/commit/0891a3b6fbf74823729f23325674ba8a5a364e4f))
+* close out Zettly CLI rollout ([#11](https://github.com/programinglive/todo/issues/11)) ([f59ea7c](https://github.com/programinglive/todo/commit/f59ea7c1344262f0719d40b57f3756ca68ac9b39))
+* **deploy:** expose the atomic build as npm run build:atomic ([9513f07](https://github.com/programinglive/todo/commit/9513f07ae1657901d0fbcb776ac6d1b181166d75))
+* **env:** contoh konfigurasi Reverb, buang Gemini dan Algolia ([c3abb81](https://github.com/programinglive/todo/commit/c3abb81b1274d7f39ccbcf195d1a8587bd19ec8e))
+* **env:** warn that APP_DEBUG must be off in production ([c8f0422](https://github.com/programinglive/todo/commit/c8f0422913193397762b0c1f1b2232bf9b39aeeb))
+* **graph:** explain how the service runs, and why it re-seeds ([b8937dc](https://github.com/programinglive/todo/commit/b8937dc9e15dc9a1a2d4bd5c9d53a7de9fb477d2))
+* journal consolidation setup and deprecation checklist ([d1e926a](https://github.com/programinglive/todo/commit/d1e926a58b5399c4d58a4a06fe6437937c9909d2))
+* **journal:** stop telling people env vars are enough, and mark the repo checklist done ([164a6d0](https://github.com/programinglive/todo/commit/164a6d0ca042b89fbf4dbb6c68bef6e826aaa2d4))
+* **notifications:** document and verify discord rich embed formatting ([db52a98](https://github.com/programinglive/todo/commit/db52a9809ab23e804d9e4a9d1f02cfab4e7abe8b))
+* refresh README for current Zettly app ([b2f611d](https://github.com/programinglive/todo/commit/b2f611d59fa838111cd451980751a6d81d345dbe))
+
+
+### ✨ Features
+
+* **accounts:** add guarded owner merge command ([5c9c5e7](https://github.com/programinglive/todo/commit/5c9c5e73efafc29829107674b7455be85eaab9bf))
+* add focus api endpoints and insomnia collection ([38bbace](https://github.com/programinglive/todo/commit/38bbace003f84f18e9d1dca71641af369c8798b4))
+* **cli:** add TLDraw shape operations ([#9](https://github.com/programinglive/todo/issues/9)) ([433605c](https://github.com/programinglive/todo/commit/433605c5b919f651eb7bcd7883f16d6227753af7))
+* **cli:** add Zettly command-line client ([#7](https://github.com/programinglive/todo/issues/7)) ([66e4e5b](https://github.com/programinglive/todo/commit/66e4e5bbe1bfa5beee294ec04c0bb9037cabaa40))
+* **errors:** give 403/404/405/419/500/503 a real page ([4c7d181](https://github.com/programinglive/todo/commit/4c7d181f18fdfe3afa5cc63c536cffe8e0d469a5))
+* **hook:** add cross-platform Codex hook installer + setup doc ([e393346](https://github.com/programinglive/todo/commit/e393346c7651798a0fef1e9a80052bdfb4b4087e))
+* **hook:** move codex_journal.py + tests + Codex setup guide into Zettly ([f7e81d4](https://github.com/programinglive/todo/commit/f7e81d4042e40c3e5ca5f13677df4a3680cb7924))
+* **journal:** add agent session ingest service with redaction and categorisation ([024a3df](https://github.com/programinglive/todo/commit/024a3dfa6a9cb75c6e8d35250e0ef793ee8a35e7))
+* **journal:** add agent session, journal entry, and report tables ([98541e6](https://github.com/programinglive/todo/commit/98541e6fa8ae9eaf50e0a94c29228c876cc1688e))
+* **journal:** add journal entry API ([2ff6561](https://github.com/programinglive/todo/commit/2ff65610a96093366dfe9dcb2e1d3f1bce8ff907))
+* **journal:** add journal models, relations, and factories ([f975ece](https://github.com/programinglive/todo/commit/f975ecef2cd65f476ce05edc1ee388d64f7a2af1))
+* **journal:** add report delivery service and queued jobs ([c304d3c](https://github.com/programinglive/todo/commit/c304d3cb30164143766b68f2a647dfeb89c0be66))
+* **journal:** add report generation and channel management API ([0dc3904](https://github.com/programinglive/todo/commit/0dc390446b5967eac5e8c48773ccbe10b3f7d005))
+* **journal:** add server-side report generator with WIB period boundaries ([a1df770](https://github.com/programinglive/todo/commit/a1df77057b7e870193e0b51ed81cfd5da3e8872a))
+* **journal:** add the missing /journal page ([0d84974](https://github.com/programinglive/todo/commit/0d8497459a82e88498631da67b4ba66a4c673225))
+* **journal:** add the OpenCode plugin and stop recommending env-only setup ([803bd16](https://github.com/programinglive/todo/commit/803bd16f687e0d46ae36311ca532c676a86b1732))
+* **journal:** expose agent session ingest API ([93c9e75](https://github.com/programinglive/todo/commit/93c9e7509b09887b2a198bc9a9b5211896c37bcd))
+* **journal:** import legacy SQLite and Markdown journal data ([3bfafd6](https://github.com/programinglive/todo/commit/3bfafd64dbabd4fd5d38d7d288d6f36c0b7eebb8))
+* **journal:** schedule daily report generation and delivery ([03c0ab5](https://github.com/programinglive/todo/commit/03c0ab5664903fd90590334c30614878c02d0ecb))
+* **notifications:** format discord reports with clean structured rich embeds ([3d6ebe4](https://github.com/programinglive/todo/commit/3d6ebe402b395b45eb856b19872ed2fef56fd992))
+* **ops:** add queue-worker watchdog loop script ([9f3611a](https://github.com/programinglive/todo/commit/9f3611a195eb0165789a3d1df818b1f313666357))
+* **reports:** include journal entries and todos so imported history is not blank ([b8fc1ac](https://github.com/programinglive/todo/commit/b8fc1ace6cf3fd647029c4914627243704d1f1b1))
+* **ui:** render markdown and preserve formatting in sanitized html ([26faeba](https://github.com/programinglive/todo/commit/26faeba92e447dbc3dc734617d528b128cda82bc))
+* **zettly:** ganti Pusher dengan Reverb, hapus Algolia dan Gemini ([fd84dc7](https://github.com/programinglive/todo/commit/fd84dc79acb48b1e6848726c6b1f2e40acce29d0))
+
+
+### 🐛 Bug Fixes
+
+* **accounts:** back up the resolved database connection ([508995f](https://github.com/programinglive/todo/commit/508995faf55a44770e50c6b15e45012bf534e1b5))
+* **accounts:** verify fresh backup and transferred ownership ([7c7e11f](https://github.com/programinglive/todo/commit/7c7e11f16715e6a2b23af3a0acd6a91577854801))
+* **api:** stop the resource wildcard from swallowing literal routes ([6f6352b](https://github.com/programinglive/todo/commit/6f6352b69236b68678474b5fa53078a6a826e9ed))
+* **auth:** make GET /logout sign the user out instead of returning 405 ([378bf24](https://github.com/programinglive/todo/commit/378bf243692c6a86a1ca441c7af7909cff0a2e10))
+* **authz:** close three cross-user write holes ([0574982](https://github.com/programinglive/todo/commit/05749829859aa61b823b9296b074c5dbd98e0a55))
+* **build:** resolve rollup win32 module and tiptap version mismatch ([c2e5af3](https://github.com/programinglive/todo/commit/c2e5af38f04053307850dbad7eb4bbcf57b6309e))
+* **cli:** keep attachment metadata independent of storage ([#10](https://github.com/programinglive/todo/issues/10)) ([e621800](https://github.com/programinglive/todo/commit/e621800449a728cbb00b6a15c2e6dacdcc229c4d))
+* **cli:** register Sanctum abilities middleware ([#8](https://github.com/programinglive/todo/issues/8)) ([99dbed5](https://github.com/programinglive/todo/commit/99dbed5ba21f787b0b5aa28ff230fc18422d08c1))
+* **debug:** require super admin for the debug panel, and restore router.post ([f34ea06](https://github.com/programinglive/todo/commit/f34ea06ac2bafdc4a8f13b97617c5ba974600748))
+* **deploy:** build assets beside the live directory, then swap ([ffbba5c](https://github.com/programinglive/todo/commit/ffbba5ce78ee27055d9e8ff7568a8aa94fc6251a))
+* **deps:** patch security advisories in composer and npm lockfiles ([75a9b55](https://github.com/programinglive/todo/commit/75a9b5540bd64ffc765a6ea5bbe3a98ec29716c2))
+* **deps:** unpin the Windows-only rollup binary ([5e62f62](https://github.com/programinglive/todo/commit/5e62f6289e35878bbc1961123461ebd288fc1277))
+* **errors:** show an error page instead of JSON when the database is down ([8708e0d](https://github.com/programinglive/todo/commit/8708e0d8df0ca0581f65cf208d6896ba18bf30a0))
+* **graph:** actually run the graph service ([a0b63a6](https://github.com/programinglive/todo/commit/a0b63a6a985d715c269c9be88f58a9b3f842ffc8))
+* **hook:** correct session_payload arg order + add Stop regression tests ([6e52150](https://github.com/programinglive/todo/commit/6e521502579fc4cec6cf3ea4c8d64b40d68dafc7))
+* implement kanban board setting in dashboard ([2bd2f83](https://github.com/programinglive/todo/commit/2bd2f8368d3782257f929bc7ac0ab681df158386))
+* **journal-hook:** stop losing events when the API token is rejected ([71151d1](https://github.com/programinglive/todo/commit/71151d13e5c7471a5e47de1a0cacc531343f0771))
+* **journal:** address code-review findings on the consolidation branch ([f6add34](https://github.com/programinglive/todo/commit/f6add34d8792ca7d2d5525ea3ff2abc9a9e2896b))
+* **journal:** record the machine name on macOS and Linux, and fix the PS 5.1 installer ([b7226c9](https://github.com/programinglive/todo/commit/b7226c9a454dcdacfbd8988e6611ae3c15eb5b55))
+* **journal:** stop dropping the body of every entry ([baedba1](https://github.com/programinglive/todo/commit/baedba1e3e23edaeca0f3799d33b3ca42f5bfb30))
+* **journal:** stop printing "[object Object]" in the entry count ([9bc7e7a](https://github.com/programinglive/todo/commit/9bc7e7a8b7e24eb291412ef087f580aeba7f0e48))
+* **kanban:** keep the success handler the reorder test requires ([6cffbdf](https://github.com/programinglive/todo/commit/6cffbdffb355b9f015e79a8dc5d235082c6852d2))
+* **notifications:** deliver readable bounded digests with private report links ([162345c](https://github.com/programinglive/todo/commit/162345c8155a40568f5cae174e313f9318ddb263))
+* **queue:** catch graph service connection exceptions and format test suite ([c940a12](https://github.com/programinglive/todo/commit/c940a121522dcb0a7b1eaed1f3aa544dbe182de4))
+* **queue:** handle graph service connection exceptions gracefully in SyncGraphEvent ([d3755c2](https://github.com/programinglive/todo/commit/d3755c250f7b0993a3c1bee17f964c0df53be458))
+* remove completed column from kanban board ([bc771ff](https://github.com/programinglive/todo/commit/bc771ffd5210b662ea94a8aba43ffc4a1c82c0c0))
+* remove todo board header from dashboard ([6620d43](https://github.com/programinglive/todo/commit/6620d43b2b29bb38f10f2770e56f99f9567a0cc3))
+* **reports:** bind report windows in UTC so late-night WIB sessions are included ([f1b86d3](https://github.com/programinglive/todo/commit/f1b86d377efd9708a460ffcc8b5156ff5861bb6a))
+* **reports:** cap the outstanding backlog and label it as current ([764d1e6](https://github.com/programinglive/todo/commit/764d1e62d852d12c297b0b4847ccd4543d6d2b4c))
+* **reports:** count completed work even when completed_at is missing ([575b463](https://github.com/programinglive/todo/commit/575b4635d699792210c62572a763c29e33855561))
+* **reports:** dispatch delivery job on generate; add config-file fallback to the journal hook ([d6aed76](https://github.com/programinglive/todo/commit/d6aed76eaa78511d8186e4148bb84b320d8e2355))
+* **reports:** make a history backfill safe by default ([44956c7](https://github.com/programinglive/todo/commit/44956c77acd472fd53343ff7b8dd1f53f8fbabc2))
+* **reports:** make weekly and monthly requests cover their real period ([6f818ec](https://github.com/programinglive/todo/commit/6f818ecde27758a5e9a3d0cf2daacc77eb323bc9))
+* **reports:** say how many completions have no date instead of hiding them ([c7f1852](https://github.com/programinglive/todo/commit/c7f1852572b746252d4bfbc04339825cd93e71d3))
+* **reports:** stop attributing decades-old todos to the import day; make a stuck outbox visible ([6e3aa4f](https://github.com/programinglive/todo/commit/6e3aa4f67d341a768b9d88a5fb0fc589547b6e77))
+* **reports:** stop the Discord summary from dropping the journal and projects ([1982433](https://github.com/programinglive/todo/commit/1982433de621ba63f42f48002725522efac879b8))
+* **reports:** stop the nightly job from backfilling every past period ([3f9fb03](https://github.com/programinglive/todo/commit/3f9fb03cda24dd7020a77f799b5243f59362a689))
+* **security:** hapus rute dan controller debug Pusher tanpa auth ([e332bf9](https://github.com/programinglive/todo/commit/e332bf9060f756c1cd0ba840df0f0c1dd395fd06))
+* **security:** remove the diagnostic upload page ([d7e5690](https://github.com/programinglive/todo/commit/d7e56905803fcda76ba399155f2fea16aea0d661))
+* **session:** make the session cookie Secure by default in production ([dc2576d](https://github.com/programinglive/todo/commit/dc2576d421fb16c60f9653079e0d57660ad77ccb))
+* **system-status:** keep environment details for super admins ([35870b8](https://github.com/programinglive/todo/commit/35870b8502eb0b253b404cd211a64e8e7ed04d67))
+* **tldraw:** make the WebSocket handshake token actually verifiable ([f5d02d0](https://github.com/programinglive/todo/commit/f5d02d0774024cdd7062cfdef7b962ed6e4197f4))
+* **user:** stop shipping the 2FA seed to the browser ([deb7cdb](https://github.com/programinglive/todo/commit/deb7cdb15cbc3bfdeae9cc5296db4d2652526b12))
+
 ### [0.12.4](https://github.com/programinglive/todo/compare/v0.12.3...v0.12.4) (2026-01-21)
 
 
