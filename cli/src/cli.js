@@ -276,54 +276,60 @@ async function api(path, method, body, flags, authenticated = true) {
 }
 
 export function resolveEndpoint(command, rawSub, id, rest = []) {
-  const sub = normalizeAction(rawSub);
+  let effectiveSub = rawSub;
+  let effectiveId = id;
+  if (/^\d+$/.test(effectiveSub) && (!effectiveId || effectiveId === effectiveSub)) {
+    effectiveId = effectiveSub;
+    effectiveSub = 'show';
+  }
+  const sub = normalizeAction(effectiveSub);
   let [base] = groups[command] || [command];
   const actions = {
     list: ['GET', base],
-    show: ['GET', `${base}/${id}`],
+    show: ['GET', `${base}/${effectiveId}`],
     create: ['POST', base],
-    update: ['PATCH', `${base}/${id}`],
-    delete: ['DELETE', `${base}/${id}`],
+    update: ['PATCH', `${base}/${effectiveId}`],
+    delete: ['DELETE', `${base}/${effectiveId}`],
   };
 
   if (command === 'todos') {
-    if (rawSub === 'complete' || rawSub === 'toggle') return { method: 'PATCH', path: `todos/${id}/toggle` };
-    if (rawSub === 'priority') return { method: 'POST', path: `todos/${id}/update-priority` };
-    if (rawSub === 'eisenhower') return { method: 'POST', path: `todos/${id}/update-eisenhower` };
-    if (rawSub === 'checklist-toggle') return { method: 'PATCH', path: `todos/${id}/checklist/${rest[0]}/toggle` };
-    if (rawSub === 'archive-completed') return { method: 'POST', path: 'todos/archive-completed' };
-    if (rawSub === 'reorder') return { method: 'POST', path: 'todos/reorder' };
-    if (rawSub === 'restore-deleted') return { method: 'POST', path: `todos/${id}/restore-deleted` };
-    if (rawSub === 'unlink') return { method: 'POST', path: `todos/${id}/unlink` };
-    if (rawSub === 'link') return { method: 'POST', path: `todos/${id}/link` };
-    if (rawSub === 'archive') return { method: 'POST', path: `todos/${id}/archive` };
-    if (rawSub === 'restore') return { method: 'POST', path: `todos/${id}/restore` };
+    if (effectiveSub === 'complete' || effectiveSub === 'toggle') return { method: 'PATCH', path: `todos/${effectiveId}/toggle` };
+    if (effectiveSub === 'priority') return { method: 'POST', path: `todos/${effectiveId}/update-priority` };
+    if (effectiveSub === 'eisenhower') return { method: 'POST', path: `todos/${effectiveId}/update-eisenhower` };
+    if (effectiveSub === 'checklist-toggle') return { method: 'PATCH', path: `todos/${effectiveId}/checklist/${rest[0]}/toggle` };
+    if (effectiveSub === 'archive-completed') return { method: 'POST', path: 'todos/archive-completed' };
+    if (effectiveSub === 'reorder') return { method: 'POST', path: 'todos/reorder' };
+    if (effectiveSub === 'restore-deleted') return { method: 'POST', path: `todos/${effectiveId}/restore-deleted` };
+    if (effectiveSub === 'unlink') return { method: 'POST', path: `todos/${effectiveId}/unlink` };
+    if (effectiveSub === 'link') return { method: 'POST', path: `todos/${effectiveId}/link` };
+    if (effectiveSub === 'archive') return { method: 'POST', path: `todos/${effectiveId}/archive` };
+    if (effectiveSub === 'restore') return { method: 'POST', path: `todos/${effectiveId}/restore` };
   }
 
   if (command === 'tags') {
-    if (rawSub === 'restore') return { method: 'POST', path: `tags/${id}/restore` };
-    if (rawSub === 'search') return { method: 'GET', path: 'tags/search' };
+    if (effectiveSub === 'restore') return { method: 'POST', path: `tags/${effectiveId}/restore` };
+    if (effectiveSub === 'search') return { method: 'GET', path: 'tags/search' };
   }
 
   if (command === 'agent') {
-    if (rawSub === 'sessions' || sub === 'list') return { method: 'GET', path: 'agent/sessions' };
-    if (rawSub === 'create-session' || sub === 'create') return { method: 'POST', path: 'agent/sessions' };
-    if (rawSub === 'record-event') return { method: 'POST', path: `agent/sessions/${id}/events` };
+    if (effectiveSub === 'sessions' || sub === 'list') return { method: 'GET', path: 'agent/sessions' };
+    if (effectiveSub === 'create-session' || sub === 'create') return { method: 'POST', path: 'agent/sessions' };
+    if (effectiveSub === 'record-event') return { method: 'POST', path: `agent/sessions/${effectiveId}/events` };
   }
 
   if (command === 'reports') {
-    if (rawSub === 'channels') return { method: 'GET', path: 'report-channels' };
-    if (rawSub === 'channel-add') return { method: 'POST', path: 'report-channels' };
-    if (rawSub === 'channel-delete') return { method: 'DELETE', path: `report-channels/${id}` };
-    if (rawSub === 'generate') return { method: 'POST', path: 'reports/generate' };
-    if (rawSub === 'deliver') return { method: 'POST', path: 'reports/deliver' };
+    if (effectiveSub === 'channels') return { method: 'GET', path: 'report-channels' };
+    if (effectiveSub === 'channel-add') return { method: 'POST', path: 'report-channels' };
+    if (effectiveSub === 'channel-delete') return { method: 'DELETE', path: `report-channels/${effectiveId}` };
+    if (effectiveSub === 'generate') return { method: 'POST', path: 'reports/generate' };
+    if (effectiveSub === 'deliver') return { method: 'POST', path: 'reports/deliver' };
   }
 
   if (command === 'organizations') {
-    if (rawSub === 'member-role') return { method: 'PATCH', path: `organizations/${id}/members/${rest[0]}/role` };
-    if (rawSub === 'member-remove') return { method: 'DELETE', path: `organizations/${id}/members/${rest[0]}` };
-    if (rawSub === 'leave') return { method: 'POST', path: `organizations/${id}/leave` };
-    if (rawSub === 'invite') return { method: 'POST', path: `organizations/${id}/invite` };
+    if (effectiveSub === 'member-role') return { method: 'PATCH', path: `organizations/${effectiveId}/members/${rest[0]}/role` };
+    if (effectiveSub === 'member-remove') return { method: 'DELETE', path: `organizations/${effectiveId}/members/${rest[0]}` };
+    if (effectiveSub === 'leave') return { method: 'POST', path: `organizations/${effectiveId}/leave` };
+    if (effectiveSub === 'invite') return { method: 'POST', path: `organizations/${effectiveId}/invite` };
   }
 
   if (actions[sub]) {
@@ -331,7 +337,7 @@ export function resolveEndpoint(command, rawSub, id, rest = []) {
     return { method, path };
   }
 
-  return { method: 'POST', path: `${base}/${id}/${rawSub}` };
+  return { method: 'POST', path: `${base}/${effectiveId}/${effectiveSub}` };
 }
 
 async function uploadAttachment(todoId, filePath, flags) {
@@ -483,8 +489,19 @@ async function drawingShapeCommand(sub, id, rest, flags) {
   throw new Error(`Unknown drawing operation: ${sub}.`);
 }
 
+export function resolveCommandAction(command, rawSub = 'list', id) {
+  let sub = rawSub;
+  let resolvedId = id;
+  if (/^\d+$/.test(sub) && resolvedId === undefined) {
+    resolvedId = sub;
+    sub = 'show';
+  }
+  return { sub, id: resolvedId, finalSub: normalizeAction(sub) };
+}
+
 export async function run(argv) {
-  const { positionals, flags } = parse(argv); const [command, rawSub = 'list', id, ...rest] = positionals;
+  const { positionals, flags } = parse(argv);
+  let [command, rawSub = 'list', id, ...rest] = positionals;
   if (!command || command === 'help' || flags.help) return help();
   if (command === 'config' && rawSub === 'set-host') {
     if (!id) throw new Error('Usage: zettly config set-host <url>');
@@ -649,11 +666,9 @@ export async function run(argv) {
   if (!groups[command]) throw new Error(`Unknown command: ${command}. Run zettly help.`);
   let [base] = groups[command];
 
-  let sub = rawSub;
-  if (/^\d+$/.test(sub) && id === undefined) {
-    id = sub;
-    sub = 'show';
-  }
+  const actionResolution = resolveCommandAction(command, rawSub, id);
+  let sub = actionResolution.sub;
+  id = actionResolution.id;
 
   if (command === 'focus' && (sub === 'start' || normalizeAction(sub) === 'start')) {
     sub = 'create';
@@ -707,7 +722,7 @@ export async function run(argv) {
     print(await api(base, 'POST', payload, flags), flags.json); return;
   }
 
-  const { method, path } = resolveEndpoint(command, rawSub, id, rest);
+  const { method, path } = resolveEndpoint(command, sub, id, rest);
 
   if (['delete', 'archive', 'archive-completed', 'restore', 'restore-deleted', 'unlink', 'leave', 'rebuild', 'test-email', 'member-remove', 'channel-delete'].includes(rawSub)
     && !await confirmAction(flags, `Confirm ${rawSub} ${command}${id ? ` ${id}` : ''}?`)) return;
