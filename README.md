@@ -139,6 +139,7 @@ Task and note relationships are asynchronously synced to the graph microservice 
 
 - **Graceful degradation** — If the graph microservice (`http://localhost:3001` or configured `GRAPH_SERVICE_URL`) is unreachable, the queue job catches `ConnectionException`, logs a warning with event details, and completes cleanly without throwing unhandled exceptions to Sentry or failing the queue worker.
 - **Configurable sync** — Graph synchronization can be explicitly controlled via `services.graph.enabled` and `services.graph.url`.
+- **Sentry exception suppression** — Eliminates noise from unreachable local microservices in migrated single-host topologies.
 
 > ℹ️ **Optional TLDraw License**: Set `VITE_TLDRAW_LICENSE_KEY` in `.env` if you have a commercial key. Leaving it blank falls back to the open core features.
 
