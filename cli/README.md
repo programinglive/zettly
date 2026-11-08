@@ -42,7 +42,7 @@ zettly auth verify-email  # paste the signed URL from the verification email
 
 # Tasks, notes, archive, checklist, tags and links
 zettly todos list --filter pending
-zettly todos 42 --json                     # direct id shorthand
+zettly todos 42 --json                     # direct id shorthand (works for todos, notes, journal)
 zettly todos get 42                        # get/read alias
 zettly todos edit 42 '{"title":"Updated"}' # edit alias + inline positional JSON
 zettly todos toggle 42 --reason "Done"     # toggle completion status

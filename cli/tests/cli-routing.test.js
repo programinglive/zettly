@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeAction, resolvePayload, parse } from '../src/cli.js';
+import { normalizeAction, resolvePayload, parse, resolveCommandAction } from '../src/cli.js';
 
 test('normalizeAction maps aliases to canonical CRUD actions', () => {
   assert.equal(normalizeAction('get'), 'show');
@@ -54,4 +54,16 @@ test('resolvePayload prioritizes --data over positional JSON', async () => {
   const rest = ['{"title":"Positional"}'];
   const payload = await resolvePayload(flags, rest);
   assert.deepEqual(payload, { title: 'From data flag' });
+});
+
+test('resolveCommandAction maps numeric positional shorthand to show with id', () => {
+  const resolved = resolveCommandAction('todos', '170', undefined);
+  assert.equal(resolved.sub, 'show');
+  assert.equal(resolved.id, '170');
+  assert.equal(resolved.finalSub, 'show');
+
+  const named = resolveCommandAction('todos', 'list', undefined);
+  assert.equal(named.sub, 'list');
+  assert.equal(named.id, undefined);
+  assert.equal(named.finalSub, 'list');
 });
