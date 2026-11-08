@@ -7,11 +7,23 @@ import { addShape, deleteShape, listShapes, updateShape } from './drawing-docume
 
 const homeConfig = join(homedir(), '.zettly', 'config.json');
 const vaultPath = join(homedir(), '.zettly', 'token.dpapi');
-const groups = {
-  todos: ['todos', 'todo'], notes: ['todos', 'note'], tags: ['tags'], focus: ['focus'],
-  habits: ['habits'], organizations: ['organizations'], drawings: ['drawings'],
-  attachments: ['attachments'], graph: ['graph'], push: ['push'], profile: ['profile'],
+
+export const groups = {
+  todos: ['todos', 'todo'],
+  notes: ['todos', 'note'],
+  tags: ['tags'],
+  focus: ['focus'],
+  habits: ['habits'],
+  organizations: ['organizations'],
+  drawings: ['drawings'],
+  attachments: ['attachments'],
+  graph: ['graph'],
+  push: ['push'],
+  profile: ['profile'],
   system: ['system'],
+  journal: ['journal/entries'],
+  agent: ['agent/sessions'],
+  reports: ['reports'],
 };
 
 function hostOrigin(value) {
@@ -118,48 +130,113 @@ export function normalizeAction(sub) {
   return aliases[sub] || sub;
 }
 
-export async function resolvePayload(flags, rest = [], candidateJson = null) {
-  if (flags.data) return JSON.parse(flags.data);
-  if (flags.file) return JSON.parse(await readFile(flags.file, 'utf8'));
+export async function resolvePayload(flags, rest = [], candidateJson = null, command = null) {
+  let body = {};
 
-  if (candidateJson && typeof candidateJson === 'string' && (candidateJson.trim().startsWith('{') || candidateJson.trim().startsWith('['))) {
+  if (flags.data) {
+    body = JSON.parse(flags.data);
+  } else if (flags.file) {
+    body = JSON.parse(await readFile(flags.file, 'utf8'));
+  } else if (candidateJson && typeof candidateJson === 'string' && (candidateJson.trim().startsWith('{') || candidateJson.trim().startsWith('['))) {
     try {
-      return JSON.parse(candidateJson);
-    } catch {
-      // ignore malformed candidate and fall back
-    }
-  }
-
-  const jsonArg = rest.find((arg) => typeof arg === 'string' && (arg.trim().startsWith('{') || arg.trim().startsWith('[')));
-  if (jsonArg) {
-    try {
-      return JSON.parse(jsonArg);
+      body = JSON.parse(candidateJson);
     } catch {
       // ignore
     }
-  }
-
-  const body = {};
-  for (const [key, value] of Object.entries(flags)) {
-    if (!['json', 'yes', 'no-interaction', 'file', 'data'].includes(key)) {
-      body[key.replaceAll('-', '_')] = value === true ? true : value;
+  } else {
+    const jsonArg = rest.find((arg) => typeof arg === 'string' && (arg.trim().startsWith('{') || arg.trim().startsWith('[')));
+    if (jsonArg) {
+      try {
+        body = JSON.parse(jsonArg);
+      } catch {
+        // ignore
+      }
+    } else {
+      for (const [key, value] of Object.entries(flags)) {
+        if (!['json', 'yes', 'no-interaction', 'file', 'data', 'content-file'].includes(key)) {
+          body[key.replaceAll('-', '_')] = value === true ? true : value;
+        }
+      }
     }
   }
+
+  if (flags['content-file']) {
+    const rawContent = await readFile(flags['content-file'], 'utf8');
+    if (command === 'journal') {
+      body.content = rawContent;
+    } else {
+      body.description = rawContent;
+    }
+  }
+
+  if (flags.content && command === 'journal' && !body.content) {
+    body.content = flags.content;
+  }
+
+  if (command === 'notes') {
+    body.type = 'note';
+  }
+
   return body;
 }
 
-function print(value, json) {
+export function formatRecordView(record, command) {
+  const item = record?.data || record?.entry || record?.todo || record;
+  if (!item || typeof item !== 'object') return String(record ?? '');
+
+  const idStr = item.id ? `#${item.id}` : '';
+  const titleStr = item.title || item.name || '';
+  const header = [idStr, titleStr].filter(Boolean).join(' ');
+
+  const meta = [];
+  if (item.created_at) meta.push(`Created: ${new Date(item.created_at).toLocaleString()}`);
+  if (item.priority) meta.push(`Priority: ${item.priority}`);
+  if (item.importance) meta.push(`Importance: ${item.importance}`);
+  if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+    const tagNames = item.tags.map((t) => (typeof t === 'object' ? t.name : t)).filter(Boolean);
+    if (tagNames.length > 0) meta.push(`Tags: ${tagNames.join(', ')}`);
+  }
+
+  const divider = '='.repeat(70);
+  const subDivider = '-'.repeat(70);
+  const textContent = item.description || item.content || item.summary || '';
+
+  const lines = [divider];
+  if (header) lines.push(header);
+  if (meta.length > 0) lines.push(meta.join(' | '));
+  lines.push(subDivider);
+  if (textContent) lines.push(textContent.trim());
+  lines.push(divider);
+
+  return lines.join('\n');
+}
+
+function print(value, json, command = null, sub = null) {
   if (json || typeof value !== 'object' || value === null) {
     console.log(json ? JSON.stringify(value, null, 2) : String(value ?? ''));
     return;
   }
+
+  if (sub === 'show' || sub === 'create' || sub === 'update') {
+    const single = value?.data || value?.entry || value?.todo || value;
+    if (single && typeof single === 'object' && !Array.isArray(single) && (single.description !== undefined || single.content !== undefined)) {
+      console.log(formatRecordView(value, command));
+      return;
+    }
+  }
+
   const rows = Array.isArray(value) ? value : (value.data && Array.isArray(value.data) ? value.data : null);
-  if (!rows?.length || typeof rows[0] !== 'object') { console.log(JSON.stringify(value, null, 2)); return; }
-  const columns = Object.keys(rows[0]).filter((key) => !['document', 'pivot'].includes(key)).slice(0, 8);
+  if (!rows?.length || typeof rows[0] !== 'object') {
+    console.log(JSON.stringify(value, null, 2));
+    return;
+  }
+  const columns = Object.keys(rows[0]).filter((key) => !['document', 'pivot', 'description', 'content'].includes(key)).slice(0, 8);
   const widths = columns.map((column) => Math.min(34, Math.max(column.length, ...rows.map((row) => String(row[column] ?? '').slice(0, 34).length))));
   console.log(columns.map((column, index) => column.padEnd(widths[index])).join('  '));
   console.log(columns.map((_, index) => '-'.repeat(widths[index])).join('  '));
-  for (const row of rows) console.log(columns.map((column, index) => String(row[column] ?? '').replaceAll('\n', ' ').slice(0, widths[index]).padEnd(widths[index])).join('  '));
+  for (const row of rows) {
+    console.log(columns.map((column, index) => String(row[column] ?? '').replaceAll('\n', ' ').slice(0, widths[index]).padEnd(widths[index])).join('  '));
+  }
 }
 
 function printTodoBoard(todos, json) {
@@ -186,7 +263,7 @@ async function api(path, method, body, flags, authenticated = true) {
   const url = new URL(`/api/v1/${path.replace(/^\//, '')}`, cfg.host);
   if (method === 'GET') {
     for (const [key, value] of Object.entries(flags)) {
-      if (!['json', 'yes', 'no-interaction', 'file', 'data', 'token'].includes(key)) url.searchParams.set(key.replaceAll('-', '_'), value === true ? '1' : value);
+      if (!['json', 'yes', 'no-interaction', 'file', 'data', 'token', 'content-file'].includes(key)) url.searchParams.set(key.replaceAll('-', '_'), value === true ? '1' : value);
     }
   }
   const response = await fetch(url, { method, headers: { ...(secret ? { Authorization: `Bearer ${secret}` } : {}), Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
@@ -196,6 +273,65 @@ async function api(path, method, body, flags, authenticated = true) {
   if (!response.ok) { const err = new Error(data?.message || `${response.status} ${response.statusText}`); err.exitCode = response.status === 401 ? 2 : 1; throw err; }
   if (text && !response.headers.get('content-type')?.includes('application/json')) throw new Error('API returned a non-JSON response; the action was not reported as successful.');
   return data;
+}
+
+export function resolveEndpoint(command, rawSub, id, rest = []) {
+  const sub = normalizeAction(rawSub);
+  let [base] = groups[command] || [command];
+  const actions = {
+    list: ['GET', base],
+    show: ['GET', `${base}/${id}`],
+    create: ['POST', base],
+    update: ['PATCH', `${base}/${id}`],
+    delete: ['DELETE', `${base}/${id}`],
+  };
+
+  if (command === 'todos') {
+    if (rawSub === 'complete' || rawSub === 'toggle') return { method: 'PATCH', path: `todos/${id}/toggle` };
+    if (rawSub === 'priority') return { method: 'POST', path: `todos/${id}/update-priority` };
+    if (rawSub === 'eisenhower') return { method: 'POST', path: `todos/${id}/update-eisenhower` };
+    if (rawSub === 'checklist-toggle') return { method: 'PATCH', path: `todos/${id}/checklist/${rest[0]}/toggle` };
+    if (rawSub === 'archive-completed') return { method: 'POST', path: 'todos/archive-completed' };
+    if (rawSub === 'reorder') return { method: 'POST', path: 'todos/reorder' };
+    if (rawSub === 'restore-deleted') return { method: 'POST', path: `todos/${id}/restore-deleted` };
+    if (rawSub === 'unlink') return { method: 'POST', path: `todos/${id}/unlink` };
+    if (rawSub === 'link') return { method: 'POST', path: `todos/${id}/link` };
+    if (rawSub === 'archive') return { method: 'POST', path: `todos/${id}/archive` };
+    if (rawSub === 'restore') return { method: 'POST', path: `todos/${id}/restore` };
+  }
+
+  if (command === 'tags') {
+    if (rawSub === 'restore') return { method: 'POST', path: `tags/${id}/restore` };
+    if (rawSub === 'search') return { method: 'GET', path: 'tags/search' };
+  }
+
+  if (command === 'agent') {
+    if (rawSub === 'sessions' || sub === 'list') return { method: 'GET', path: 'agent/sessions' };
+    if (rawSub === 'create-session' || sub === 'create') return { method: 'POST', path: 'agent/sessions' };
+    if (rawSub === 'record-event') return { method: 'POST', path: `agent/sessions/${id}/events` };
+  }
+
+  if (command === 'reports') {
+    if (rawSub === 'channels') return { method: 'GET', path: 'report-channels' };
+    if (rawSub === 'channel-add') return { method: 'POST', path: 'report-channels' };
+    if (rawSub === 'channel-delete') return { method: 'DELETE', path: `report-channels/${id}` };
+    if (rawSub === 'generate') return { method: 'POST', path: 'reports/generate' };
+    if (rawSub === 'deliver') return { method: 'POST', path: 'reports/deliver' };
+  }
+
+  if (command === 'organizations') {
+    if (rawSub === 'member-role') return { method: 'PATCH', path: `organizations/${id}/members/${rest[0]}/role` };
+    if (rawSub === 'member-remove') return { method: 'DELETE', path: `organizations/${id}/members/${rest[0]}` };
+    if (rawSub === 'leave') return { method: 'POST', path: `organizations/${id}/leave` };
+    if (rawSub === 'invite') return { method: 'POST', path: `organizations/${id}/invite` };
+  }
+
+  if (actions[sub]) {
+    const [method, path] = actions[sub];
+    return { method, path };
+  }
+
+  return { method: 'POST', path: `${base}/${id}/${rawSub}` };
 }
 
 async function uploadAttachment(todoId, filePath, flags) {
@@ -263,7 +399,7 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI
+  console.log(`Zettly CLI - Complete Terminal Client
 
 Usage: zettly <command> [resource] [id] [options]
 
@@ -275,40 +411,30 @@ Commands:
   whoami                              Show the authenticated profile
   dashboard [--tags <ids>]             Show dashboard summary
   todos board [--tags <ids>]           Show Eisenhower board columns
-  todos toggle|complete|reopen <id>    Toggle todo completion status
-  focus start <title>|finish|stop      Start or complete/stop active focus
+  todos link <id> --related_todo_id <id> Link related tasks/notes
+  todos unlink <id> --related_todo_id <id> Unlink related tasks/notes
+  todos restore-deleted <id>           Restore a soft-deleted task
   drawings shapes <id>                 List TLDraw shape records
   drawings shape-add <id> --file <json> Add a TLDraw shape record
   drawings shape-update <id> <shape> --file <json> Patch shape fields/props
   drawings shape-delete <id> <shape>    Delete a shape record
+  journal list|show|create             Personal and team activity logs
+  agent sessions|create-session|record-event AI Agent telemetry and sessions
+  reports list|generate|deliver|channels|channel-add|channel-delete Periodic reports
   <group> list|show|create|update|delete|action
                                       todos, notes, tags, focus, habits,
-                                      organizations, drawings, attachments, graph, push, profile, system
+                                      organizations, drawings, attachments, graph, push, profile, system,
+                                      journal, agent, reports
 
-Action Aliases:
-  show   get, read, detail, or direct numeric id (e.g. zettly todos 42)
-  list   ls, all
-  create add, new (accepts inline JSON payload)
-  update edit, patch, modify (accepts inline JSON payload)
-  delete del, rm, remove, destroy
-
-Options: --json, --yes, --file <path>, --data <json>, --key value
+Options: --json, --yes, --file <json>, --content-file <markdown/txt>, --key value
 Set ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.
-Create/update payloads accept inline JSON arguments, --data JSON, --file JSON, or --flags.`);
+Create/update payloads use --file JSON, --data JSON, or --content-file for raw markdown. Destructive actions prompt unless --yes.`);
 }
 
-async function readJsonInput(flags, description, rest = []) {
+async function readJsonInput(flags, description) {
   if (flags.data) return JSON.parse(flags.data);
   if (flags.file) return JSON.parse(await readFile(flags.file, 'utf8'));
-  const jsonArg = rest.find((arg) => typeof arg === 'string' && (arg.trim().startsWith('{') || arg.trim().startsWith('[')));
-  if (jsonArg) {
-    try {
-      return JSON.parse(jsonArg);
-    } catch {
-      // ignore
-    }
-  }
-  throw new Error(`Provide ${description} with inline JSON, --file <path>, or --data <json>.`);
+  throw new Error(`Provide ${description} with --file <path> or --data <json>.`);
 }
 
 async function drawingDocument(id, flags) {
@@ -358,15 +484,14 @@ async function drawingShapeCommand(sub, id, rest, flags) {
 }
 
 export async function run(argv) {
-  const { positionals, flags } = parse(argv);
-  let [command, sub = 'list', id, ...rest] = positionals;
+  const { positionals, flags } = parse(argv); const [command, rawSub = 'list', id, ...rest] = positionals;
   if (!command || command === 'help' || flags.help) return help();
-  if (command === 'config' && sub === 'set-host') {
+  if (command === 'config' && rawSub === 'set-host') {
     if (!id) throw new Error('Usage: zettly config set-host <url>');
     const host = hostOrigin(id); await mkdir(dirname(homeConfig), { recursive: true }); await writeFile(homeConfig, JSON.stringify({ ...(await config()), host }, null, 2)); print(`Host set to ${host}`, flags.json); return;
   }
   if (command === 'auth') {
-    if (sub === 'register') {
+    if (rawSub === 'register') {
       if (process.env.ZETTLY_TOKEN_SOURCE === 'env') throw new Error('Unset ZETTLY_TOKEN_SOURCE=env so the new account token can become active.');
       if (platform() !== 'win32') throw new Error('CLI registration currently requires Windows DPAPI token storage; use web registration on this system.');
       let body;
@@ -379,11 +504,11 @@ export async function run(argv) {
       await saveToken(result.token);
       print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
     }
-    if (sub === 'forgot-password') {
+    if (rawSub === 'forgot-password') {
       const email = flags.email || id || await ask('Account email: ');
       print(await api('auth/forgot-password', 'POST', { email }, flags, false), flags.json); return;
     }
-    if (sub === 'reset-password') {
+    if (rawSub === 'reset-password') {
       let body;
       if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
       else {
@@ -392,8 +517,8 @@ export async function run(argv) {
       }
       print(await api('auth/reset-password', 'POST', body, flags, false), flags.json); return;
     }
-    if (sub === 'send-verification') { print(await api('auth/verification-notification', 'POST', {}, flags), flags.json); return; }
-    if (sub === 'verify-email') {
+    if (rawSub === 'send-verification') { print(await api('auth/verification-notification', 'POST', {}, flags), flags.json); return; }
+    if (rawSub === 'verify-email') {
       let signedUrl;
       if (flags.file) signedUrl = JSON.parse(await readFile(flags.file, 'utf8')).url;
       else {
@@ -402,7 +527,7 @@ export async function run(argv) {
       }
       await verifyEmailUrl(signedUrl, flags); return;
     }
-    if (sub === 'login') {
+    if (rawSub === 'login') {
       if (process.env.ZETTLY_TOKEN_SOURCE === 'env' && !process.env.ZETTLY_API_TOKEN) throw new Error('ZETTLY_TOKEN_SOURCE=env requires ZETTLY_API_TOKEN.');
       if (flags.token) {
         if (process.env.ZETTLY_TOKEN_SOURCE === 'env') throw new Error('Unset ZETTLY_TOKEN_SOURCE=env or set it to stored to save this PAT securely.');
@@ -425,13 +550,13 @@ export async function run(argv) {
       await saveToken(result.token);
       print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
     }
-    if (sub === 'logout') {
+    if (rawSub === 'logout') {
       if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); }
       const envRemainsActive = Boolean(process.env.ZETTLY_API_TOKEN) && process.env.ZETTLY_TOKEN_SOURCE !== 'stored';
       await setTokenSource(envRemainsActive ? 'env' : 'auto');
       print(envRemainsActive ? 'Stored token removed; environment token remains active.' : 'Stored token removed.', flags.json); return;
     }
-    if (sub === 'status') {
+    if (rawSub === 'status') {
       const cfg = await config(); const preference = tokenSource(cfg);
       const hasStored = Boolean(await storedToken()); const hasEnv = Boolean(process.env.ZETTLY_API_TOKEN);
       const source = preference === 'auto'
@@ -441,7 +566,7 @@ export async function run(argv) {
           : hasStored ? 'stored' : 'none';
       print({ authenticated: source !== 'none', host: cfg.host, token_source: source }, flags.json); return;
     }
-    if (sub === 'issue-token') {
+    if (rawSub === 'issue-token') {
       const result = await api('auth/token', 'POST', { name: flags.name || 'zettly-cli' }, flags);
       await saveToken(result.token);
       print({ id: result.id, name: result.name, abilities: result.abilities, stored_securely: true, active_source: process.env.ZETTLY_TOKEN_SOURCE === 'env' ? 'environment override' : 'stored scoped token' }, flags.json); return;
@@ -449,16 +574,16 @@ export async function run(argv) {
   }
   if (command === 'whoami') { print(await api('user', 'GET', null, flags), flags.json); return; }
   if (command === 'dashboard') { print(await api('dashboard', 'GET', null, flags), flags.json); return; }
-  if (command === 'todos' && sub === 'board') {
+  if (command === 'todos' && rawSub === 'board') {
     const data = await api('dashboard', 'GET', null, flags);
     printTodoBoard(data.todos ?? [], flags.json); return;
   }
-  if (command === 'drawings' && ['shapes', 'shape-add', 'shape-update', 'shape-delete'].includes(sub)) {
-    await drawingShapeCommand(sub, id, rest, flags); return;
+  if (command === 'drawings' && ['shapes', 'shape-add', 'shape-update', 'shape-delete'].includes(rawSub)) {
+    await drawingShapeCommand(rawSub, id, rest, flags); return;
   }
-  if (command === 'system' && sub === 'status') { print(await api('system/status', 'GET', null, flags), flags.json); return; }
-  if (command === 'attachments' && sub === 'upload') { await uploadAttachment(id, flags.file, flags); return; }
-  if (command === 'attachments' && sub === 'download') {
+  if (command === 'system' && rawSub === 'status') { print(await api('system/status', 'GET', null, flags), flags.json); return; }
+  if (command === 'attachments' && rawSub === 'upload') { await uploadAttachment(id, flags.file, flags); return; }
+  if (command === 'attachments' && rawSub === 'download') {
     if (!flags.file) throw new Error('Use --file <output-path>');
     const cfg = await config(); const secret = await token(); if (!secret) throw new Error('Not authenticated.');
     const response = await fetch(new URL(`/api/v1/attachments/${id}/download`, cfg.host), { headers: { Authorization: `Bearer ${secret}` } });
@@ -466,38 +591,38 @@ export async function run(argv) {
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     await writeFile(flags.file, Buffer.from(await response.arrayBuffer())); print(`Downloaded ${flags.file}`, flags.json); return;
   }
-  if (command === 'push' && sub === 'test') { print(await api('push/test', 'POST', {}, flags), flags.json); return; }
-  if (command === 'focus' && sub === 'current') { print(await api('focus/current', 'GET', null, flags), flags.json); return; }
-  if (command === 'habits' && sub === 'stats') { print(await api(`habits/${id}/stats`, 'GET', null, flags), flags.json); return; }
-  if (command === 'todos' && ['archived', 'completed', 'deleted'].includes(sub)) {
-    if (sub === 'archived') flags.archived = true;
-    if (sub === 'completed') flags.filter = 'completed';
-    if (sub === 'deleted') flags.trashed = 'only';
+  if (command === 'push' && rawSub === 'test') { print(await api('push/test', 'POST', {}, flags), flags.json); return; }
+  if (command === 'focus' && rawSub === 'current') { print(await api('focus/current', 'GET', null, flags), flags.json); return; }
+  if (command === 'habits' && rawSub === 'stats') { print(await api(`habits/${id}/stats`, 'GET', null, flags), flags.json); return; }
+  if (command === 'todos' && ['archived', 'completed', 'deleted'].includes(rawSub)) {
+    if (rawSub === 'archived') flags.archived = true;
+    if (rawSub === 'completed') flags.filter = 'completed';
+    if (rawSub === 'deleted') flags.trashed = 'only';
     print(await api('todos', 'GET', null, flags), flags.json); return;
   }
-  if (command === 'todos' && sub === 'priorities') { print(await api('todos/priorities', 'GET', null, flags), flags.json); return; }
-  if (command === 'tags' && sub === 'search') { print(await api('tags/search', 'GET', null, flags), flags.json); return; }
-  if (command === 'push' && sub === 'subscribe') { print(await api('push-subscriptions', 'POST', flags.data ? JSON.parse(flags.data) : flags, flags), flags.json); return; }
-  if (command === 'push' && sub === 'unsubscribe') {
+  if (command === 'todos' && rawSub === 'priorities') { print(await api('todos/priorities', 'GET', null, flags), flags.json); return; }
+  if (command === 'tags' && rawSub === 'search') { print(await api('tags/search', 'GET', null, flags), flags.json); return; }
+  if (command === 'push' && rawSub === 'subscribe') { print(await api('push-subscriptions', 'POST', flags.data ? JSON.parse(flags.data) : flags, flags), flags.json); return; }
+  if (command === 'push' && rawSub === 'unsubscribe') {
     if (!await confirmAction(flags, 'Remove this push subscription?')) return;
     print(await api('push-subscriptions', 'DELETE', flags.data ? JSON.parse(flags.data) : { endpoint: flags.endpoint }, flags), flags.json); return;
   }
-  if (command === 'graph' && sub === 'export') {
+  if (command === 'graph' && rawSub === 'export') {
     const result = await api('graph/export', 'GET', null, flags);
     if (flags.file) { await writeFile(flags.file, JSON.stringify(result.data ?? result, null, 2)); print(`Exported ${flags.file}`, flags.json); }
     else print(result, flags.json); return;
   }
-  if (command === 'graph' && sub === 'rebuild') {
+  if (command === 'graph' && rawSub === 'rebuild') {
     if (!await confirmAction(flags, 'Rebuild the shared graph for all users?')) return;
     print(await api('graph/rebuild', 'POST', {}, flags), flags.json); return;
   }
-  if (command === 'push' && sub === 'status') { print(await api('push-subscriptions', 'GET', null, flags), flags.json); return; }
-  if (command === 'system' && sub === 'test-email') {
+  if (command === 'push' && rawSub === 'status') { print(await api('push-subscriptions', 'GET', null, flags), flags.json); return; }
+  if (command === 'system' && rawSub === 'test-email') {
     if (!await confirmAction(flags, `Send test email to ${flags.recipient || 'configured account'}?`)) return;
     const body = flags.data ? JSON.parse(flags.data) : flags.file ? JSON.parse(await readFile(flags.file, 'utf8')) : Object.fromEntries(['recipient', 'subject', 'message'].filter((key) => flags[key] !== undefined).map((key) => [key, flags[key]]));
     print(await api('admin/email-test', 'POST', body, flags), flags.json); return;
   }
-  if (command === 'profile' && sub === 'password') {
+  if (command === 'profile' && rawSub === 'password') {
     let body;
     if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
     else {
@@ -506,30 +631,30 @@ export async function run(argv) {
     }
     print(await api('profile/password', 'PUT', body, flags), flags.json); return;
   }
-  if (command === 'profile' && sub === 'token-revoke') {
+  if (command === 'profile' && rawSub === 'token-revoke') {
     if (!await confirmAction(flags, `Revoke API token ${id}?`)) return;
     print(await api(`profile/tokens/${id}`, 'DELETE', null, flags), flags.json); return;
   }
-  if (command === 'profile' && sub === 'tokens') { print(await api('profile', 'GET', null, flags), flags.json); return; }
-  if (command === 'profile' && sub === 'delete') {
+  if (command === 'profile' && rawSub === 'tokens') { print(await api('profile', 'GET', null, flags), flags.json); return; }
+  if (command === 'profile' && rawSub === 'delete') {
     if (!await confirmAction(flags, 'Permanently delete this Zettly account?')) return;
     const password = await askSecret('Current password: '); print(await api('profile', 'DELETE', { password }, flags), flags.json); return;
   }
-  if (command === 'profile' && sub === 'update') {
-    const body = flags.data ? JSON.parse(flags.data) : flags.file ? JSON.parse(await readFile(flags.file, 'utf8')) : Object.fromEntries(Object.entries(flags).filter(([key]) => !['json', 'yes', 'no-interaction', 'file'].includes(key)).map(([key, value]) => [key.replaceAll('-', '_'), value]));
+  if (command === 'profile' && rawSub === 'update') {
+    const body = flags.data ? JSON.parse(flags.data) : flags.file ? JSON.parse(await readFile(flags.file, 'utf8')) : Object.fromEntries(Object.entries(flags).filter(([key]) => !['json', 'yes', 'no-interaction', 'file', 'content-file'].includes(key)).map(([key, value]) => [key.replaceAll('-', '_'), value]));
     print(await api('profile', 'PATCH', body, flags), flags.json); return;
   }
-  if (command === 'system' && sub === 'monitor') { print(await api('admin/system-monitor', 'GET', null, flags), flags.json); return; }
+  if (command === 'system' && rawSub === 'monitor') { print(await api('admin/system-monitor', 'GET', null, flags), flags.json); return; }
+
   if (!groups[command]) throw new Error(`Unknown command: ${command}. Run zettly help.`);
   let [base] = groups[command];
 
-  // If sub was numeric, treat as show <id> e.g. `zettly todos 355`
+  let sub = rawSub;
   if (/^\d+$/.test(sub) && id === undefined) {
     id = sub;
     sub = 'show';
   }
 
-  // Focus shortcuts
   if (command === 'focus' && (sub === 'start' || normalizeAction(sub) === 'start')) {
     sub = 'create';
     if (id && !id.trim().startsWith('{')) {
@@ -541,12 +666,28 @@ export async function run(argv) {
     sub = 'complete';
   }
 
-  // Todo toggle shortcuts
   if (command === 'todos' && ['toggle', 'uncomplete', 'reopen'].includes(sub)) {
     sub = 'complete';
   }
 
   const finalSub = normalizeAction(sub);
+
+  if (command === 'journal' && finalSub === 'show') {
+    try {
+      const res = await api(`journal/entries/${id}`, 'GET', null, flags);
+      print(res, flags.json, command, finalSub);
+      return;
+    } catch (err) {
+      if (err.message && err.message.includes('could not be found')) {
+        const list = await api('journal/entries', 'GET', null, flags);
+        const item = (list?.data || []).find((e) => String(e.id) === String(id));
+        if (!item) throw new Error(`Journal entry ${id} not found.`);
+        print({ success: true, data: item }, flags.json, command, finalSub);
+        return;
+      }
+      throw err;
+    }
+  }
 
   let idCandidate = id;
   if (['create', 'import'].includes(finalSub) && id && id.trim().startsWith('{')) {
@@ -556,35 +697,30 @@ export async function run(argv) {
 
   if (command === 'notes') flags.type = 'note';
   if (command === 'profile') { print(await api('user', 'GET', null, flags), flags.json); return; }
+
   if (finalSub === 'export' && command === 'drawings') {
     const data = await api(`${base}/${id}`, 'GET', null, flags); const doc = data.drawing ?? data;
     const output = flags.file || `${doc.title || id}.json`; await writeFile(output, JSON.stringify(doc, null, 2)); print(`Exported ${output}`, flags.json); return;
   }
   if (finalSub === 'import' && command === 'drawings') {
-    const payload = await resolvePayload(flags, rest, idCandidate);
+    const payload = await resolvePayload(flags, rest, idCandidate, command);
     print(await api(base, 'POST', payload, flags), flags.json); return;
   }
-  const actions = { list: ['GET', base], show: ['GET', `${base}/${id}`], create: ['POST', base], update: ['PATCH', `${base}/${id}`], delete: ['DELETE', `${base}/${id}`] };
-  let [method, path] = actions[finalSub] || ['POST', `${base}/${id}/${sub}`];
-  if (command === 'todos' && sub === 'complete') { method = 'PATCH'; path = `todos/${id}/toggle`; }
-  if (command === 'todos' && sub === 'priority') path = `todos/${id}/update-priority`;
-  if (command === 'todos' && sub === 'eisenhower') path = `todos/${id}/update-eisenhower`;
-  if (command === 'todos' && sub === 'checklist-toggle') { method = 'PATCH'; path = `todos/${id}/checklist/${rest[0]}/toggle`; }
-  if (command === 'tags' && sub === 'restore') path = `tags/${id}/restore`;
-  if (command === 'todos' && sub === 'archive-completed') path = 'todos/archive-completed';
-  if (command === 'todos' && sub === 'reorder') path = 'todos/reorder';
-  if (command === 'organizations' && sub === 'member-role') { method = 'PATCH'; path = `organizations/${id}/members/${rest[0]}/role`; }
-  if (command === 'organizations' && sub === 'member-remove') { method = 'DELETE'; path = `organizations/${id}/members/${rest[0]}`; }
-  if (['delete', 'archive', 'archive-completed', 'restore', 'leave', 'rebuild', 'test-email', 'member-remove'].includes(finalSub)
-    && !await confirmAction(flags, `Confirm ${finalSub} ${command}${id ? ` ${id}` : ''}?`)) return;
+
+  const { method, path } = resolveEndpoint(command, rawSub, id, rest);
+
+  if (['delete', 'archive', 'archive-completed', 'restore', 'restore-deleted', 'unlink', 'leave', 'rebuild', 'test-email', 'member-remove', 'channel-delete'].includes(rawSub)
+    && !await confirmAction(flags, `Confirm ${rawSub} ${command}${id ? ` ${id}` : ''}?`)) return;
+
   let body;
-  if (['create', 'update'].includes(finalSub) || !actions[finalSub]) {
-    body = await resolvePayload(flags, rest, finalSub === 'create' ? idCandidate : null);
-    if (command === 'notes' && ['create', 'update'].includes(finalSub)) body.type = 'note';
-    if (command === 'todos' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
-    if (command === 'todos' && ['archive', 'restore'].includes(sub) && !body.reason) body.reason = 'Updated through Zettly CLI';
-    if (command === 'focus' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
+  if (['POST', 'PATCH', 'PUT'].includes(method)) {
+    body = await resolvePayload(flags, rest, finalSub === 'create' ? idCandidate : null, command);
+    if (command === 'notes') body.type = 'note';
+    if (command === 'todos' && rawSub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
+    if (command === 'todos' && ['archive', 'restore', 'restore-deleted'].includes(rawSub) && !body.reason) body.reason = 'Updated through Zettly CLI';
+    if (command === 'focus' && rawSub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
   }
-  if (id && !['list', 'create'].includes(finalSub)) path = path.replace(/undefined$/, id);
-  print(await api(path, method, body, flags), flags.json);
+
+  const finalPath = id && !['list', 'create'].includes(finalSub) ? path.replace(/undefined$/, id) : path;
+  print(await api(finalPath, method, body, flags), flags.json, command, finalSub);
 }

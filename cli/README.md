@@ -49,14 +49,36 @@ zettly todos toggle 42 --reason "Done"     # toggle completion status
 zettly todos archived --json
 zettly todos priorities --json
 zettly todos deleted --json
+zettly todos restore-deleted 42 --yes      # restore soft-deleted item
 zettly todos create '{"title":"Ship CLI","priority":"urgent"}' # inline JSON create
 zettly todos create --title "Ship CLI" --priority urgent --importance important --due-date 2026-11-15
 zettly todos complete 42 --reason "Finished in CLI"
 zettly todos priority 42 --priority urgent --importance important
 zettly todos checklist-toggle 42 7
 zettly todos link 42 --related_todo_id 57
-zettly notes create --title "Release notes" --description "Draft"
+zettly todos unlink 42 --related_todo_id 57
+zettly notes list --json
+zettly notes show 42                       # human-readable terminal markdown view
+zettly notes create --title "Release notes" --content-file ./CHANGELOG.md # raw text/markdown file
 zettly tags create --name release --color '#2563EB'
+
+# Activity journal and work outcomes
+zettly journal list --json
+zettly journal show 254                    # human-readable terminal view
+zettly journal create --entry_date 2026-11-08 --kind outcome --source cli --content-file ./outcome.md
+
+# AI Agent telemetry and sessions
+zettly agent sessions --json
+zettly agent create-session --session_id agent-run-1 --project zettly --title "Refactoring"
+zettly agent record-event agent-run-1 --event_name tool_call --tool_name run_command
+
+# Periodic reports and notification channels
+zettly reports list --json
+zettly reports generate --period daily --period_start 2026-11-08 --period_end 2026-11-08
+zettly reports deliver 42 --channel discord
+zettly reports channels --json
+zettly reports channel-add --name "Discord Webhook" --channel discord --config '{"webhook_url":"https://..."}'
+zettly reports channel-delete 5 --yes
 
 # Focus, habits and organizations
 zettly focus current --json
@@ -97,6 +119,6 @@ For destructive non-interactive use, pass `--yes`. Account deletion still prompt
 
 ## Command areas
 
-`dashboard`, `todos` (including a text Eisenhower board), `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, and `system` are the product command areas. `/api/v1` supports dashboard todos/notes/tags/preferences with optional tag filtering; todo/note CRUD, completed/archived/deleted views, priority listing and assignment, archive/restore, Eisenhower placement, links, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete and TLDraw shape list/add/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/password change/delete and token list/revoke; account registration/password recovery; verification email resend/confirm; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Browser notification permission grants remain browser workflows.
+`dashboard`, `todos` (including a text Eisenhower board), `notes`, `tags`, `focus`, `habits`, `organizations`, `drawings`, `attachments`, `graph`, `push`, `profile`, `system`, `journal`, `agent`, and `reports` are the product command areas. `/api/v1` supports dashboard todos/notes/tags/preferences with optional tag filtering; todo/note CRUD, completed/archived/deleted views, priority listing and assignment, archive/restore/restore-deleted, Eisenhower placement, links/unlinks, reorder, tags and checklist toggles; focus list/current/detail/create/update/complete/delete; habit list/detail/create/update/delete/toggle/stats; organization list/create/read/update/delete/invite/member role/remove/leave; drawing JSON list/import/export/read/update/delete and TLDraw shape list/add/update/delete; attachment list/detail/upload/download/delete; push subscription status/test/unsubscribe; profile read/update/password change/delete and token list/revoke; activity journal list/read/create with outcome logging; AI agent sessions and event telemetry; periodic reports generation, delivery, and notification channels; account registration/password recovery; verification email resend/confirm; graph export and super-admin rebuild; system status and super-admin monitor/email test. CLI tokens carry only the `zettly:cli` ability. Browser notification permission grants remain browser workflows. Single note and journal inspect commands (`notes show <id>`, `journal show <id>`) format markdown directly for the terminal.
 
 Drawings are managed as TLDraw document JSON. Shape operations accept complete TLDraw records for creation and JSON property patches for updates. Browser permission prompts for push notifications remain browser-only because the browser must obtain the user's consent.
