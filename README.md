@@ -126,7 +126,9 @@ php artisan queue:work --tries=3
 ### Web Push and PWA Installation
 
 Zettly provides Progressive Web App (PWA) capabilities with service worker caching and install prompts:
-- **Dismissal persistence** — If a user dismisses the install prompt or installs the application, the dismissal state is persisted in `localStorage` (`zettly_pwa_install_dismissed`) and checked against `window.matchMedia('(display-mode: standalone)')` to avoid persistent repetitive install banners.
+- **Dismissal persistence** — When a user installs the application or clicks "Maybe later", dismissal state is safely persisted in `localStorage` (`zettly-pwa-install-dismissed`). The banner also checks `window.matchMedia('(display-mode: standalone)')`, listens to native `window.addEventListener('appinstalled')`, and queries `navigator.getInstalledRelatedApps()` to eliminate repeat nagging.
+- **Offline service worker caching** — A network-first caching strategy in `sw.js` caches static app assets and navigation shells under `zettly-cache-v1` while strictly bypassing mutation endpoints and APIs (`/api/*`, `/sanctum/*`), allowing the app to open reliably when offline.
+- **Unified manifest routing** — All standard manifest endpoints (`/site.webmanifest`, `/manifest.webmanifest`, and `/manifest.json`) are served with matching standalone display mode, orientation, branding colors (`#3b82f6`), and maskable icon sets.
 - **Atomic asset builds** — Production frontend assets and service workers (`sw.js`) are built atomically via `scripts/build-assets.sh` into `public/build.next` before swapping to `public/build`, ensuring the Vite manifest and SW precache are always consistently available.
 
 ### Drawing Workspace

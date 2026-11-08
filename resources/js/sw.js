@@ -1,9 +1,84 @@
-self.addEventListener('install', () => {
+const CACHE_NAME = 'zettly-cache-v1';
+const STATIC_ASSETS = [
+    '/',
+    '/site.webmanifest',
+    '/favicon.ico',
+    '/favicon-16x16.png',
+    '/favicon-32x32.png',
+    '/android-chrome-192x192.png',
+    '/android-chrome-512x512.png',
+    '/apple-touch-icon.png',
+];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(STATIC_ASSETS).catch(() => {});
+        })
+    );
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', (event) => {
+    const request = event.request;
+
+    // Only handle GET requests
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    const url = new URL(request.url);
+
+    // Skip API, Sanctum, Pusher, WebSocket, or cross-origin requests
+    if (
+        url.pathname.startsWith('/api') ||
+        url.pathname.startsWith('/sanctum') ||
+        url.pathname.startsWith('/broadcasting') ||
+        url.origin !== self.location.origin
+    ) {
+        return;
+    }
+
+    // Network-first with cache fallback
+    event.respondWith(
+        fetch(request)
+            .then((response) => {
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseClone).catch(() => {});
+                    });
+                }
+                return response;
+            })
+            .catch(async () => {
+                const cached = await caches.match(request);
+                if (cached) {
+                    return cached;
+                }
+                if (request.mode === 'navigate') {
+                    const rootCached = await caches.match('/');
+                    if (rootCached) {
+                        return rootCached;
+                    }
+                }
+                throw new Error('Offline and not cached');
+            })
+    );
 });
 
 self.addEventListener('push', (event) => {

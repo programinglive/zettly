@@ -2,16 +2,37 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'zettly-pwa-install-dismissed';
 
+const isDismissed = () => {
+    try {
+        if (typeof window === 'undefined') return true;
+        return window.localStorage.getItem(STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+};
+
+const setDismissed = () => {
+    try {
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem(STORAGE_KEY, '1');
+        }
+    } catch {
+        // Ignore localStorage quota or access restriction errors
+    }
+};
+
 const shouldSkipPrompt = () => {
     if (typeof window === 'undefined') {
         return true;
     }
 
-    const matchesStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches;
-    const isStandalone = matchesStandalone || window.navigator.standalone;
-    const dismissed = window.localStorage.getItem(STORAGE_KEY) === '1';
-
-    return Boolean(isStandalone || dismissed);
+    try {
+        const matchesStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches;
+        const isStandalone = matchesStandalone || window.navigator.standalone === true || document.referrer.includes('android-app://');
+        return Boolean(isStandalone || isDismissed());
+    } catch {
+        return false;
+    }
 };
 
 const isIosDevice = () => {
@@ -41,7 +62,7 @@ export default function PwaInstallPrompt() {
             setVisible(true);
         }
 
-        if (isIosDevice()) {
+        if (isIosDevice() && !shouldSkipPrompt()) {
             console.debug('[PWA] iOS device detected');
             setPromptMode('ios');
             setVisible(true);
@@ -49,6 +70,9 @@ export default function PwaInstallPrompt() {
 
         const handler = (event) => {
             console.debug('[PWA] beforeinstallprompt event fired');
+            if (shouldSkipPrompt() && !forceShow) {
+                return;
+            }
             // Stash the event so it can be triggered later.
             setDeferredPrompt(event);
             setPromptMode('event');
@@ -57,7 +81,7 @@ export default function PwaInstallPrompt() {
 
         const appInstalledHandler = () => {
             console.debug('[PWA] appinstalled event fired');
-            window.localStorage.setItem(STORAGE_KEY, '1');
+            setDismissed();
             setVisible(false);
             setDeferredPrompt(null);
             setPromptMode(null);
@@ -69,8 +93,10 @@ export default function PwaInstallPrompt() {
         if (typeof navigator !== 'undefined' && 'getInstalledRelatedApps' in navigator) {
             navigator.getInstalledRelatedApps().then((apps) => {
                 if (apps && apps.length > 0) {
-                    window.localStorage.setItem(STORAGE_KEY, '1');
+                    setDismissed();
                     setVisible(false);
+                    setDeferredPrompt(null);
+                    setPromptMode(null);
                 }
             }).catch(() => {});
         }
@@ -83,8 +109,12 @@ export default function PwaInstallPrompt() {
 
     // Helper to check debug mode from app.jsx logic
     const isDebugMode = () => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('zettly-debug-mode') === 'true';
+        try {
+            if (typeof window !== 'undefined') {
+                return localStorage.getItem('zettly-debug-mode') === 'true';
+            }
+        } catch {
+            return false;
         }
         return false;
     };
@@ -99,19 +129,22 @@ export default function PwaInstallPrompt() {
         try {
             const { outcome } = await deferredPrompt.userChoice;
 
-            if (outcome === 'accepted' || outcome === 'dismissed') {
-                window.localStorage.setItem(STORAGE_KEY, '1');
+            if (outcome === 'accepted') {
+                setDismissed();
             }
         } catch (error) {
             console.error('PWA install prompt failed', error);
         } finally {
+            // Once user triggers install dialog, record dismissal so it does not nag again
+            setDismissed();
             setDeferredPrompt(null);
             setVisible(false);
+            setPromptMode(null);
         }
     }, [deferredPrompt]);
 
     const handleDismiss = useCallback(() => {
-        window.localStorage.setItem(STORAGE_KEY, '1');
+        setDismissed();
         setVisible(false);
         setDeferredPrompt(null);
         setPromptMode(null);

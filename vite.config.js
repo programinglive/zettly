@@ -33,10 +33,10 @@ export default defineConfig({
                 name: 'Zettly',
                 short_name: 'Zettly',
                 description: 'A modern todo and note-taking application',
-                theme_color: '#6366f1',
+                theme_color: '#3b82f6',
                 background_color: '#ffffff',
                 display: 'standalone',
-                orientation: 'portrait',
+                orientation: 'any',
                 scope: '/',
                 start_url: '/',
                 icons: [
