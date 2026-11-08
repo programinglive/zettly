@@ -84,7 +84,7 @@ async function saveToken(value) {
   await setTokenSource('stored');
 }
 
-function parse(argv) {
+export function parse(argv) {
   const positionals = []; const flags = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -96,6 +96,56 @@ function parse(argv) {
     } else positionals.push(arg);
   }
   return { positionals, flags };
+}
+
+export function normalizeAction(sub) {
+  const aliases = {
+    get: 'show',
+    read: 'show',
+    detail: 'show',
+    ls: 'list',
+    all: 'list',
+    add: 'create',
+    new: 'create',
+    edit: 'update',
+    patch: 'update',
+    modify: 'update',
+    rm: 'delete',
+    del: 'delete',
+    remove: 'delete',
+    destroy: 'delete',
+  };
+  return aliases[sub] || sub;
+}
+
+export async function resolvePayload(flags, rest = [], candidateJson = null) {
+  if (flags.data) return JSON.parse(flags.data);
+  if (flags.file) return JSON.parse(await readFile(flags.file, 'utf8'));
+
+  if (candidateJson && typeof candidateJson === 'string' && (candidateJson.trim().startsWith('{') || candidateJson.trim().startsWith('['))) {
+    try {
+      return JSON.parse(candidateJson);
+    } catch {
+      // ignore malformed candidate and fall back
+    }
+  }
+
+  const jsonArg = rest.find((arg) => typeof arg === 'string' && (arg.trim().startsWith('{') || arg.trim().startsWith('[')));
+  if (jsonArg) {
+    try {
+      return JSON.parse(jsonArg);
+    } catch {
+      // ignore
+    }
+  }
+
+  const body = {};
+  for (const [key, value] of Object.entries(flags)) {
+    if (!['json', 'yes', 'no-interaction', 'file', 'data'].includes(key)) {
+      body[key.replaceAll('-', '_')] = value === true ? true : value;
+    }
+  }
+  return body;
 }
 
 function print(value, json) {
@@ -213,13 +263,52 @@ async function confirmAction(flags, question) {
 }
 
 function help() {
-  console.log(`Zettly CLI\n\nUsage: zettly <command> [resource] [id] [options]\n\nCommands:\n  auth register|login|issue-token|logout|status\n  auth forgot-password|reset-password\n  auth send-verification|verify-email\n  config set-host <url>                Set Zettly server URL\n  whoami                              Show the authenticated profile\n  dashboard [--tags <ids>]             Show dashboard summary\n  todos board [--tags <ids>]           Show Eisenhower board columns\n  drawings shapes <id>                 List TLDraw shape records\n  drawings shape-add <id> --file <json> Add a TLDraw shape record\n  drawings shape-update <id> <shape> --file <json> Patch shape fields/props\n  drawings shape-delete <id> <shape>    Delete a shape record\n  <group> list|show|create|update|delete|action\n                                      todos, notes, tags, focus, habits,\n                                      organizations, drawings, attachments, graph, push, profile, system\n\nOptions: --json, --yes, --file <path>, --key value\nSet ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.\nCreate/update payloads use --file JSON or --data JSON. Destructive actions prompt unless --yes.`);
+  console.log(`Zettly CLI
+
+Usage: zettly <command> [resource] [id] [options]
+
+Commands:
+  auth register|login|issue-token|logout|status
+  auth forgot-password|reset-password
+  auth send-verification|verify-email
+  config set-host <url>                Set Zettly server URL
+  whoami                              Show the authenticated profile
+  dashboard [--tags <ids>]             Show dashboard summary
+  todos board [--tags <ids>]           Show Eisenhower board columns
+  todos toggle|complete|reopen <id>    Toggle todo completion status
+  focus start <title>|finish|stop      Start or complete/stop active focus
+  drawings shapes <id>                 List TLDraw shape records
+  drawings shape-add <id> --file <json> Add a TLDraw shape record
+  drawings shape-update <id> <shape> --file <json> Patch shape fields/props
+  drawings shape-delete <id> <shape>    Delete a shape record
+  <group> list|show|create|update|delete|action
+                                      todos, notes, tags, focus, habits,
+                                      organizations, drawings, attachments, graph, push, profile, system
+
+Action Aliases:
+  show   get, read, detail, or direct numeric id (e.g. zettly todos 42)
+  list   ls, all
+  create add, new (accepts inline JSON payload)
+  update edit, patch, modify (accepts inline JSON payload)
+  delete del, rm, remove, destroy
+
+Options: --json, --yes, --file <path>, --data <json>, --key value
+Set ZETTLY_API_TOKEN for automation; set ZETTLY_TOKEN_SOURCE=env to prioritize it over stored credentials.
+Create/update payloads accept inline JSON arguments, --data JSON, --file JSON, or --flags.`);
 }
 
-async function readJsonInput(flags, description) {
+async function readJsonInput(flags, description, rest = []) {
   if (flags.data) return JSON.parse(flags.data);
   if (flags.file) return JSON.parse(await readFile(flags.file, 'utf8'));
-  throw new Error(`Provide ${description} with --file <path> or --data <json>.`);
+  const jsonArg = rest.find((arg) => typeof arg === 'string' && (arg.trim().startsWith('{') || arg.trim().startsWith('[')));
+  if (jsonArg) {
+    try {
+      return JSON.parse(jsonArg);
+    } catch {
+      // ignore
+    }
+  }
+  throw new Error(`Provide ${description} with inline JSON, --file <path>, or --data <json>.`);
 }
 
 async function drawingDocument(id, flags) {
@@ -269,7 +358,8 @@ async function drawingShapeCommand(sub, id, rest, flags) {
 }
 
 export async function run(argv) {
-  const { positionals, flags } = parse(argv); const [command, sub = 'list', id, ...rest] = positionals;
+  const { positionals, flags } = parse(argv);
+  let [command, sub = 'list', id, ...rest] = positionals;
   if (!command || command === 'help' || flags.help) return help();
   if (command === 'config' && sub === 'set-host') {
     if (!id) throw new Error('Usage: zettly config set-host <url>');
@@ -432,18 +522,50 @@ export async function run(argv) {
   if (command === 'system' && sub === 'monitor') { print(await api('admin/system-monitor', 'GET', null, flags), flags.json); return; }
   if (!groups[command]) throw new Error(`Unknown command: ${command}. Run zettly help.`);
   let [base] = groups[command];
+
+  // If sub was numeric, treat as show <id> e.g. `zettly todos 355`
+  if (/^\d+$/.test(sub) && id === undefined) {
+    id = sub;
+    sub = 'show';
+  }
+
+  // Focus shortcuts
+  if (command === 'focus' && (sub === 'start' || normalizeAction(sub) === 'start')) {
+    sub = 'create';
+    if (id && !id.trim().startsWith('{')) {
+      flags.title = flags.title || id;
+      id = undefined;
+    }
+  }
+  if (command === 'focus' && (sub === 'finish' || sub === 'stop')) {
+    sub = 'complete';
+  }
+
+  // Todo toggle shortcuts
+  if (command === 'todos' && ['toggle', 'uncomplete', 'reopen'].includes(sub)) {
+    sub = 'complete';
+  }
+
+  const finalSub = normalizeAction(sub);
+
+  let idCandidate = id;
+  if (['create', 'import'].includes(finalSub) && id && id.trim().startsWith('{')) {
+    idCandidate = id;
+    id = undefined;
+  }
+
   if (command === 'notes') flags.type = 'note';
   if (command === 'profile') { print(await api('user', 'GET', null, flags), flags.json); return; }
-  if (sub === 'export' && command === 'drawings') {
+  if (finalSub === 'export' && command === 'drawings') {
     const data = await api(`${base}/${id}`, 'GET', null, flags); const doc = data.drawing ?? data;
     const output = flags.file || `${doc.title || id}.json`; await writeFile(output, JSON.stringify(doc, null, 2)); print(`Exported ${output}`, flags.json); return;
   }
-  if (sub === 'import' && command === 'drawings') {
-    if (!flags.file) throw new Error('Use --file <drawing.json>');
-    const payload = JSON.parse(await readFile(flags.file, 'utf8')); print(await api(base, 'POST', payload, flags), flags.json); return;
+  if (finalSub === 'import' && command === 'drawings') {
+    const payload = await resolvePayload(flags, rest, idCandidate);
+    print(await api(base, 'POST', payload, flags), flags.json); return;
   }
   const actions = { list: ['GET', base], show: ['GET', `${base}/${id}`], create: ['POST', base], update: ['PATCH', `${base}/${id}`], delete: ['DELETE', `${base}/${id}`] };
-  let [method, path] = actions[sub] || ['POST', `${base}/${id}/${sub}`];
+  let [method, path] = actions[finalSub] || ['POST', `${base}/${id}/${sub}`];
   if (command === 'todos' && sub === 'complete') { method = 'PATCH'; path = `todos/${id}/toggle`; }
   if (command === 'todos' && sub === 'priority') path = `todos/${id}/update-priority`;
   if (command === 'todos' && sub === 'eisenhower') path = `todos/${id}/update-eisenhower`;
@@ -453,18 +575,16 @@ export async function run(argv) {
   if (command === 'todos' && sub === 'reorder') path = 'todos/reorder';
   if (command === 'organizations' && sub === 'member-role') { method = 'PATCH'; path = `organizations/${id}/members/${rest[0]}/role`; }
   if (command === 'organizations' && sub === 'member-remove') { method = 'DELETE'; path = `organizations/${id}/members/${rest[0]}`; }
-  if (['delete', 'archive', 'archive-completed', 'restore', 'leave', 'rebuild', 'test-email', 'member-remove'].includes(sub)
-    && !await confirmAction(flags, `Confirm ${sub} ${command}${id ? ` ${id}` : ''}?`)) return;
+  if (['delete', 'archive', 'archive-completed', 'restore', 'leave', 'rebuild', 'test-email', 'member-remove'].includes(finalSub)
+    && !await confirmAction(flags, `Confirm ${finalSub} ${command}${id ? ` ${id}` : ''}?`)) return;
   let body;
-  if (['create', 'update'].includes(sub) || !actions[sub]) {
-    if (flags.data) body = JSON.parse(flags.data);
-    else if (flags.file) body = JSON.parse(await readFile(flags.file, 'utf8'));
-    else { body = {}; for (const [key, value] of Object.entries(flags)) if (!['json', 'yes', 'no-interaction', 'file'].includes(key)) body[key.replaceAll('-', '_')] = value === true ? true : value; }
-    if (command === 'notes' && ['create', 'update'].includes(sub)) body.type = 'note';
+  if (['create', 'update'].includes(finalSub) || !actions[finalSub]) {
+    body = await resolvePayload(flags, rest, finalSub === 'create' ? idCandidate : null);
+    if (command === 'notes' && ['create', 'update'].includes(finalSub)) body.type = 'note';
     if (command === 'todos' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
     if (command === 'todos' && ['archive', 'restore'].includes(sub) && !body.reason) body.reason = 'Updated through Zettly CLI';
     if (command === 'focus' && sub === 'complete' && !body.reason) body.reason = 'Completed through Zettly CLI';
   }
-  if (id && !['list', 'create'].includes(sub)) path = path.replace(/undefined$/, id);
+  if (id && !['list', 'create'].includes(finalSub)) path = path.replace(/undefined$/, id);
   print(await api(path, method, body, flags), flags.json);
 }
