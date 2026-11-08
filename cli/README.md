@@ -42,9 +42,14 @@ zettly auth verify-email  # paste the signed URL from the verification email
 
 # Tasks, notes, archive, checklist, tags and links
 zettly todos list --filter pending
+zettly todos 42 --json                     # direct id shorthand
+zettly todos get 42                        # get/read alias
+zettly todos edit 42 '{"title":"Updated"}' # edit alias + inline positional JSON
+zettly todos toggle 42 --reason "Done"     # toggle completion status
 zettly todos archived --json
 zettly todos priorities --json
 zettly todos deleted --json
+zettly todos create '{"title":"Ship CLI","priority":"urgent"}' # inline JSON create
 zettly todos create --title "Ship CLI" --priority urgent --importance important --due-date 2026-11-15
 zettly todos complete 42 --reason "Finished in CLI"
 zettly todos priority 42 --priority urgent --importance important
@@ -55,6 +60,8 @@ zettly tags create --name release --color '#2563EB'
 
 # Focus, habits and organizations
 zettly focus current --json
+zettly focus start "Write migration"       # start shortcut
+zettly focus finish 12 --reason "All done" # finish shortcut
 zettly focus create --title "Write migration"
 zettly focus complete 12
 zettly habits list --json
