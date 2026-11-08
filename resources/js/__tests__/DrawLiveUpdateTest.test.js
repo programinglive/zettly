@@ -73,3 +73,14 @@ test('Backend broadcasts drawing updates', () => {
         'Expected update action to broadcast DrawingUpdated with document change flag'
     );
 });
+
+test('Draw Index refetches drawing when document_too_large is broadcast', () => {
+    assert.ok(
+        drawIndexSource.includes('document_too_large'),
+        'Expected Draw Index to check for document_too_large'
+    );
+    assert.ok(
+        drawIndexSource.includes('/drawings/'),
+        'Expected Draw Index to refetch drawing endpoint when document is too large'
+    );
+});

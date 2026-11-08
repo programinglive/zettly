@@ -1274,7 +1274,17 @@ export default function DrawIndex({ drawings: initialDrawings = [] }) {
             }
 
             // Update the drawing if it's different from what we have
-            if (e.document && JSON.stringify(e.document) !== JSON.stringify(activeDrawing.document)) {
+            if (e.document_too_large || (!e.document && e.document_changed)) {
+                debugLog('[WebSocket] Document payload too large or omitted, refetching from server');
+                window.axios.get(`/drawings/${e.id}`).then(({ data }) => {
+                    const fetchedDrawing = data.drawing || data;
+                    if (fetchedDrawing && fetchedDrawing.document) {
+                        loadDrawingIntoEditor(fetchedDrawing);
+                    }
+                }).catch((error) => {
+                    debugError('[WebSocket] Failed to refetch drawing:', error);
+                });
+            } else if (e.document && JSON.stringify(e.document) !== JSON.stringify(activeDrawing.document)) {
                 debugLog('[WebSocket] Updating drawing with new data');
                 loadDrawingIntoEditor({
                     id: e.id,

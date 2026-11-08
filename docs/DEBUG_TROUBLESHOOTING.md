@@ -185,3 +185,19 @@ location.reload();
 - [ENABLE_DEBUG.md](./ENABLE_DEBUG.md) - How to enable debug mode
 - [REORDER_DEBUG.md](./docs/reference/REORDER_DEBUG.md) - Complete debug guide
 - [KANBAN_REORDERING.md](./docs/reference/KANBAN_REORDERING.md) - Reorder implementation
+
+## WebSocket & Pusher Broadcasting Limits (Sentry TODOAPP-3F)
+
+### Issue: Pusher HTTP 413 Payload Too Large
+Pusher has a strict 10,240 byte (10 KB) limit on event broadcast bodies. When broadcasting large TLDraw or Draw canvases, JSON escaping of quotes and Unicode expands the raw document payload size by 20–30%.
+
+### Solution:
+1. **Conservative Backend Thresholds**:
+   - `DrawingUpdated::MAX_DOCUMENT_BYTES` set to `4000` bytes.
+   - `DrawingUpdated::MAX_EVENT_BYTES` set to `6500` bytes.
+   - `TLDrawUpdated::MAX_DOCUMENT_BYTES` set to `4000` bytes.
+   - `TLDrawUpdated::MAX_EVENT_BYTES` set to `6500` bytes.
+   - When a document exceeds these bounds, `document` is stripped and broadcast with `document_too_large: true` and `error: 'payload_exceeds_limit'`.
+2. **Frontend Large-Document Refetch Fallback**:
+   - In `resources/js/Pages/Draw/Index.jsx` and `resources/js/hooks/useTLDrawSync.js`, when `document_too_large` or an omitted document is received, clients automatically refetch the full drawing via `GET /drawings/:id` to maintain real-time sync without exceeding Pusher's payload limits.
+
