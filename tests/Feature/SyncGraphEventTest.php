@@ -43,4 +43,42 @@ class SyncGraphEventTest extends TestCase
 
         (new SyncGraphEvent('node:update', ['id' => '7']))->handle();
     }
+
+    public function test_it_handles_connection_exception_gracefully_without_crashing_queue(): void
+    {
+        Http::fake(function () {
+            throw new \Illuminate\Http\Client\ConnectionException('cURL error 7: Failed to connect to localhost port 3001');
+        });
+
+        \Illuminate\Support\Facades\Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(function ($message, $context) {
+                return str_contains($message, 'Graph service is unreachable')
+                    && $context['type'] === 'node:add'
+                    && str_contains($context['error'], 'cURL error 7');
+            });
+
+        // Must not throw an unhandled exception
+        (new SyncGraphEvent('node:add', ['id' => '9', 'title' => 'Resilient task']))->handle();
+    }
+
+    public function test_it_skips_sync_when_graph_is_disabled(): void
+    {
+        config(['services.graph.enabled' => false]);
+        Http::fake();
+
+        (new SyncGraphEvent('node:add', ['id' => '10']))->handle();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_it_skips_sync_when_graph_url_is_empty(): void
+    {
+        config(['services.graph.url' => '']);
+        Http::fake();
+
+        (new SyncGraphEvent('node:add', ['id' => '11']))->handle();
+
+        Http::assertNothingSent();
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -30,10 +31,23 @@ class SyncGraphEvent implements ShouldQueue
     {
         $url = config('services.graph.url', 'http://localhost:3001');
 
-        $response = Http::timeout(2)->post("{$url}/sync", [
-            'type' => $this->type,
-            'data' => $this->data,
-        ]);
+        if (empty($url) || config('services.graph.enabled', true) === false) {
+            return;
+        }
+
+        try {
+            $response = Http::timeout(2)->post("{$url}/sync", [
+                'type' => $this->type,
+                'data' => $this->data,
+            ]);
+        } catch (ConnectionException $e) {
+            Log::warning("Graph service is unreachable at {$url}/sync; skipping sync event.", [
+                'type' => $this->type,
+                'error' => $e->getMessage(),
+            ]);
+
+            return;
+        }
 
         if (! $response->successful()) {
             throw new \RuntimeException("Graph service returned status {$response->status()}");

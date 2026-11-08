@@ -133,6 +133,13 @@ The `/draw` experience introduces a multi-document sketching surface powered by 
 - **Live updates** – changes are synchronized in real-time across multiple tabs/devices using WebSockets.
 - **Robust migration & seeding** – run `php artisan migrate` after updating to create the supporting schema; no seed data is required.
 
+### Knowledge Graph Synchronization Resilience
+
+Task and note relationships are asynchronously synced to the graph microservice via `App\Jobs\SyncGraphEvent`:
+
+- **Graceful degradation** — If the graph microservice (`http://localhost:3001` or configured `GRAPH_SERVICE_URL`) is unreachable, the queue job catches `ConnectionException`, logs a warning with event details, and completes cleanly without throwing unhandled exceptions to Sentry or failing the queue worker.
+- **Configurable sync** — Graph synchronization can be explicitly controlled via `services.graph.enabled` and `services.graph.url`.
+
 > ℹ️ **Optional TLDraw License**: Set `VITE_TLDRAW_LICENSE_KEY` in `.env` if you have a commercial key. Leaving it blank falls back to the open core features.
 
 #### Live Updates with Laravel Reverb
