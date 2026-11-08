@@ -110,3 +110,41 @@ test('formatRecordView formats single note/journal into readable terminal text',
   assert.ok(output.includes('# Section 1'));
   assert.ok(output.includes('Details here.'));
 });
+
+test('formatRecordView formats checklist items, completion status, related todos, and attachments', () => {
+  const record = {
+    id: 101,
+    title: 'Deploy microservice to cluster',
+    is_completed: false,
+    completed_at: null,
+    priority: 'urgent',
+    importance: 'important',
+    created_at: '2026-11-08T05:00:00Z',
+    description: 'Implementation details',
+    tags: [{ name: 'dev' }],
+    checklist_items: [
+      { id: 1, title: 'Write unit tests', is_completed: true },
+      { id: 2, title: 'Configure ingress TLS', is_completed: false }
+    ],
+    related_todos: [
+      { id: 85, title: 'Cluster setup' }
+    ],
+    attachments: [
+      { id: 3, original_name: 'architecture.png', size: 102400 }
+    ]
+  };
+
+  const output = formatRecordView(record, 'todos');
+  assert.ok(output.includes('#101 Deploy microservice to cluster'));
+  assert.ok(output.includes('Status: pending'));
+  assert.ok(output.includes('[x] #1 Write unit tests'));
+  assert.ok(output.includes('[ ] #2 Configure ingress TLS'));
+  assert.ok(output.includes('Related: #85 Cluster setup'));
+  assert.ok(output.includes('Attachments: architecture.png (100.0 KB)'));
+});
+
+test('resolveEndpoint resolves checklist-toggle and checklist-add for todos', () => {
+  const toggle = resolveEndpoint('todos', 'checklist-toggle', '101', ['5']);
+  assert.equal(toggle.method, 'PATCH');
+  assert.equal(toggle.path, 'todos/101/checklist/5/toggle');
+});

@@ -189,7 +189,9 @@ export function formatRecordView(record, command) {
   const header = [idStr, titleStr].filter(Boolean).join(' ');
 
   const meta = [];
+  if (item.is_completed !== undefined) meta.push(`Status: ${item.is_completed ? 'completed' : 'pending'}`);
   if (item.created_at) meta.push(`Created: ${new Date(item.created_at).toLocaleString()}`);
+  if (item.completed_at) meta.push(`Completed: ${new Date(item.completed_at).toLocaleString()}`);
   if (item.priority) meta.push(`Priority: ${item.priority}`);
   if (item.importance) meta.push(`Importance: ${item.importance}`);
   if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
@@ -206,6 +208,32 @@ export function formatRecordView(record, command) {
   if (meta.length > 0) lines.push(meta.join(' | '));
   lines.push(subDivider);
   if (textContent) lines.push(textContent.trim());
+
+  if (item.checklist_items && Array.isArray(item.checklist_items) && item.checklist_items.length > 0) {
+    lines.push('');
+    lines.push('Checklist:');
+    for (const ci of item.checklist_items) {
+      const mark = ci.is_completed ? '[x]' : '[ ]';
+      const ciId = ci.id ? `#${ci.id} ` : '';
+      lines.push(`  ${mark} ${ciId}${ci.title}`);
+    }
+  }
+
+  if (item.related_todos && Array.isArray(item.related_todos) && item.related_todos.length > 0) {
+    lines.push('');
+    const relStr = item.related_todos.map((r) => `#${r.id} ${r.title}`).join(', ');
+    lines.push(`Related: ${relStr}`);
+  }
+
+  if (item.attachments && Array.isArray(item.attachments) && item.attachments.length > 0) {
+    lines.push('');
+    const attList = item.attachments.map((a) => {
+      const sizeKb = a.size ? ` (${(a.size / 1024).toFixed(1)} KB)` : '';
+      return `${a.original_name || a.file_name || `attachment #${a.id}`}${sizeKb}`;
+    }).join(', ');
+    lines.push(`Attachments: ${attList}`);
+  }
+
   lines.push(divider);
 
   return lines.join('\n');
@@ -417,9 +445,12 @@ Commands:
   whoami                              Show the authenticated profile
   dashboard [--tags <ids>]             Show dashboard summary
   todos board [--tags <ids>]           Show Eisenhower board columns
+  todos pending|completed|archived|deleted List tasks by status
+  todos checklist-toggle <id> <item-id> Toggle a subtask checklist item
   todos link <id> --related_todo_id <id> Link related tasks/notes
   todos unlink <id> --related_todo_id <id> Unlink related tasks/notes
   todos restore-deleted <id>           Restore a soft-deleted task
+  notes list|archived|deleted          List active, archived, or deleted notes
   drawings shapes <id>                 List TLDraw shape records
   drawings shape-add <id> --file <json> Add a TLDraw shape record
   drawings shape-update <id> <shape> --file <json> Patch shape fields/props
@@ -611,9 +642,16 @@ export async function run(argv) {
   if (command === 'push' && rawSub === 'test') { print(await api('push/test', 'POST', {}, flags), flags.json); return; }
   if (command === 'focus' && rawSub === 'current') { print(await api('focus/current', 'GET', null, flags), flags.json); return; }
   if (command === 'habits' && rawSub === 'stats') { print(await api(`habits/${id}/stats`, 'GET', null, flags), flags.json); return; }
-  if (command === 'todos' && ['archived', 'completed', 'deleted'].includes(rawSub)) {
+  if (command === 'todos' && ['archived', 'completed', 'pending', 'deleted'].includes(rawSub)) {
     if (rawSub === 'archived') flags.archived = true;
     if (rawSub === 'completed') flags.filter = 'completed';
+    if (rawSub === 'pending') flags.filter = 'pending';
+    if (rawSub === 'deleted') flags.trashed = 'only';
+    print(await api('todos', 'GET', null, flags), flags.json); return;
+  }
+  if (command === 'notes' && ['archived', 'deleted'].includes(rawSub)) {
+    flags.type = 'note';
+    if (rawSub === 'archived') flags.archived = true;
     if (rawSub === 'deleted') flags.trashed = 'only';
     print(await api('todos', 'GET', null, flags), flags.json); return;
   }
