@@ -123,6 +123,19 @@ And a queue worker must be running for the delivery jobs to execute under the `d
 php artisan queue:work --tries=3
 ```
 
+#### Catch-up for missed nights
+
+The nightly job writes only the period that closes tonight, but also performs a
+write-only **catch-up** of any periods that closed on nights the host missed
+(e.g. the VM was down or the scheduler did not run). Missed daily, weekly,
+monthly, and yearly reports are generated directly in the database from the day
+after the last stored report (or from the first recorded activity when no
+reports exist yet). Their delivery rows are intentionally **not** queued, so a
+long gap can never flood the chat channel with stale messages — the owner can
+read them in the Reports workspace instead. Only the period closing on the
+current night reaches the delivery queue. An explicit `--backfill` with
+`--deliver` still opts into pushing the full history.
+
 ## Features
 
 ### Core Functionality

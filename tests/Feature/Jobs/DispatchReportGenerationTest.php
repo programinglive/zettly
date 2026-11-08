@@ -6,6 +6,7 @@ use App\Jobs\DispatchReportGeneration;
 use App\Models\AgentSession;
 use App\Models\JournalEntry;
 use App\Models\Report;
+use App\Models\ReportDelivery;
 use App\Models\User;
 use App\Models\UserReportChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,20 +17,21 @@ class DispatchReportGenerationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_scheduled_run_does_not_backfill_every_past_period(): void
+    public function test_the_scheduled_run_never_delivers_history_on_a_timer(): void
     {
-        // Regression: the nightly job called generateDue(), which emits every
-        // period since the first record. With 3 weeks of imported history that
-        // queued 30 deliveries and would have flooded the Discord channel with
-        // 30 messages in one night.
+        // Regression: the nightly job once queued a delivery for every past
+        // period, which after an import meant 30 Discord messages in one
+        // night. Missed periods may now be written to the database as a
+        // write-only catch-up, but only the period closing tonight may reach
+        // the delivery queue.
         $user = User::factory()->create();
         UserReportChannel::factory()->create(['user_id' => $user->id, 'channel' => 'discord']);
 
-        // Three weeks of history.
+        // Three weeks of history ending the day before the run below.
         for ($i = 20; $i >= 1; $i--) {
             JournalEntry::create([
                 'user_id' => $user->id,
-                'entry_date' => now('Asia/Jakarta')->subDays($i)->toDateString(),
+                'entry_date' => \Carbon\CarbonImmutable::parse('2026-11-08', 'Asia/Jakarta')->subDays($i)->toDateString(),
                 'kind' => JournalEntry::KIND_ACTIVITY,
                 'content' => 'day '.$i,
                 'source' => 'legacy-markdown',
@@ -38,14 +40,19 @@ class DispatchReportGenerationTest extends TestCase
 
         (new DispatchReportGeneration($user->id))->handle(
             app(\App\Services\ReportGenerator::class),
-            app(\App\Services\ReportDeliveryService::class)
+            app(\App\Services\ReportDeliveryService::class),
+            \Carbon\CarbonImmutable::parse('2026-11-09 23:59:00', 'Asia/Jakarta')
         );
 
-        $this->assertLessThanOrEqual(
+        $this->assertGreaterThan(
             8,
             Report::where('user_id', $user->id)->count(),
-            'A single scheduled run must not queue dozens of reports.'
+            'missed periods are written to the database for the catch-up'
         );
+
+        // ...and exactly one delivery row, for tonight's daily report.
+        $this->assertSame(1, ReportDelivery::count(), 'only the period closing tonight may be delivered');
+        $this->assertSame('daily:2026-11-09:2026-11-09', ReportDelivery::first()->report->report_key);
     }
 
     public function test_the_scheduled_run_still_covers_recent_periods(): void
