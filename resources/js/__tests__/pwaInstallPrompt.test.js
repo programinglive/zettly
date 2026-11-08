@@ -1,3 +1,7 @@
+/**
+ * Unit regression tests for PWA install prompt dismissal persistence,
+ * appinstalled lifecycle event handling, and standalone display-mode detection.
+ */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

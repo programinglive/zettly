@@ -123,6 +123,12 @@ php artisan queue:work --tries=3
 - ✅ **Draw workspace** — Create multiple TLDraw sketches with autosave and live synchronization.
 - ✅ **Web Push and PWA** — Subscribe to push notifications and install the app on supported devices.
 
+### Web Push and PWA Installation
+
+Zettly provides Progressive Web App (PWA) capabilities with service worker caching and install prompts:
+- **Dismissal persistence** — If a user dismisses the install prompt or installs the application, the dismissal state is persisted in `localStorage` (`zettly_pwa_install_dismissed`) and checked against `window.matchMedia('(display-mode: standalone)')` to avoid persistent repetitive install banners.
+- **Atomic asset builds** — Production frontend assets and service workers (`sw.js`) are built atomically via `scripts/build-assets.sh` into `public/build.next` before swapping to `public/build`, ensuring the Vite manifest and SW precache are always consistently available.
+
 ### Drawing Workspace
 
 The `/draw` experience introduces a multi-document sketching surface powered by TLDraw. Key capabilities:
