@@ -96,6 +96,21 @@ These are scheduled from `routes/console.php`:
 - Daily at 23:55 WIB (`Asia/Jakarta`) for report generation.
 - Every 15 minutes for delivery.
 
+#### Browsing reports in the app
+
+Signed-in users open the **Reports** workspace in the sidebar (`/reports`) to
+review the generated daily, weekly, monthly, and yearly recaps:
+
+- `GET /reports` — list view with a period-kind filter, the configured
+  delivery-channel status, and a **Generate now** action that (re)generates
+  today's daily report and queues its delivery.
+- `GET /reports/{id}` — full report detail, rendered client-side by a
+  dependency-free parser (`resources/js/lib/reportParser.js`) that only
+  understands the fixed markdown shape `ReportGenerator` emits.
+
+The API routes under `/api/v1/reports*` remain available to the CLI/MCP
+integrations; the web routes above are the in-app browsing layer.
+
 For the scheduler to actually fire, the host must run `php artisan schedule:run` every minute (standard Laravel cron entry):
 
 ```
