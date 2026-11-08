@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.6](https://github.com/programinglive/todo/compare/v0.12.5...v0.12.6) (2026-11-08)
+
+
+### ✅ Tests
+
+* update app/Events/DrawingUpdated.php, app/Events/TLDrawUpdated.php, docs/DEBUG_TROUBLESHOOTING.md +8 more ([3c15c81](https://github.com/programinglive/todo/commit/3c15c810746bc8fcf1a44e2a4ea6a3ddc77f727e))
+* update cli/README.md, cli/src/cli.js, and cli/tests/cli-routing.test.js ([4ac9b41](https://github.com/programinglive/todo/commit/4ac9b417340974819ac6d87e829dd9e0748ef73c))
+* update README.md and resources/js/__tests__/pwaInstallPrompt.test.js ([2b87044](https://github.com/programinglive/todo/commit/2b87044794c0696c37547635d03be2dfe2e98de6))
+
+
+### ✨ Features
+
+* **cli:** complete web feature parity with journal, agent, reports, and markdown formatting ([8375c23](https://github.com/programinglive/todo/commit/8375c23a7b5555f324886c1dfaa2c2b3243bd480))
+
+
+### 🐛 Bug Fixes
+
+* **pwa:** harden install prompt lifecycle, handle appinstalled, unify manifests and add offline caching ([ead9475](https://github.com/programinglive/todo/commit/ead9475ecd9bfa22e24973fafb2250278122d99f))
+* **pwa:** persist install dismissal and handle appinstalled event ([cd40c45](https://github.com/programinglive/todo/commit/cd40c45e1fd107bd249f3ba9f80b55e39e33c5ec))
+* **routes:** enforce numeric constraint on focus parameters to prevent SQLSTATE 22P02 ([0301cb3](https://github.com/programinglive/todo/commit/0301cb3d1962f38509b34cb3431d2384b211e4da))
+
 ### [0.12.5](https://github.com/programinglive/todo/compare/v0.12.3...v0.12.5) (2026-11-07)
 
 
