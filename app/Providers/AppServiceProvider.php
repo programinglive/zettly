@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Models\Tag;
 use App\Models\Todo;
 use App\Observers\TodoObserver;
 use App\Support\ResilientDatabaseStore;
@@ -10,6 +9,7 @@ use Google\Cloud\Storage\StorageClient;
 use Illuminate\Cache\Repository;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -36,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Enforce numeric constraints on route parameters to prevent PostgreSQL 22P02 bigint syntax exceptions
+        Route::pattern('focus', '[0-9]+');
+        Route::pattern('todo', '[0-9]+');
+
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }

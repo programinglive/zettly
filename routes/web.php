@@ -129,9 +129,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/focus/current', [FocusController::class, 'current'])->name('focus.current');
     Route::get('/focus', [FocusController::class, 'index'])->name('focus.index');
     Route::post('/focus', [FocusController::class, 'store'])->name('focus.store');
-    Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('focus.update');
-    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('focus.complete');
-    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('focus.destroy');
+    Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('focus.update')->whereNumber('focus');
+    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('focus.complete')->whereNumber('focus');
+    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('focus.destroy')->whereNumber('focus');
 
     // Organization management routes
     Route::resource('organizations', OrganizationController::class);

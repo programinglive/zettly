@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\TodoController;
-use App\Http\Controllers\Api\CliAuthController;
 use App\Http\Controllers\Api\CliApiController;
+use App\Http\Controllers\Api\CliAuthController;
+use App\Http\Controllers\Api\TodoController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\FocusController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -63,9 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/focus/current', [FocusController::class, 'current'])->name('api.focus.current');
     Route::get('/focus', [FocusController::class, 'index'])->name('api.focus.index');
     Route::post('/focus', [FocusController::class, 'store'])->name('api.focus.store');
-    Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('api.focus.update');
-    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.focus.complete');
-    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('api.focus.destroy');
+    Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('api.focus.update')->whereNumber('focus');
+    Route::post('/focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.focus.complete')->whereNumber('focus');
+    Route::delete('/focus/{focus}', [FocusController::class, 'destroy'])->name('api.focus.destroy')->whereNumber('focus');
 });
 
 // Stable API surface used by the standalone CLI. Keep /api endpoints backwards compatible.
@@ -109,12 +109,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     ]);
     Route::post('tags/{id}/restore', [TagController::class, 'restore'])->name('api.v1.tags.restore');
     Route::get('focus/current', [FocusController::class, 'current'])->name('api.v1.focus.current');
-    Route::get('focus/{focus}', [CliApiController::class, 'showFocus'])->name('api.v1.focus.show');
+    Route::get('focus/{focus}', [CliApiController::class, 'showFocus'])->name('api.v1.focus.show')->whereNumber('focus');
     Route::get('focus', [FocusController::class, 'index'])->name('api.v1.focus.index');
     Route::post('focus', [FocusController::class, 'store'])->name('api.v1.focus.store');
-    Route::match(['put', 'patch'], 'focus/{focus}', [FocusController::class, 'update'])->name('api.v1.focus.update');
-    Route::delete('focus/{focus}', [FocusController::class, 'destroy'])->name('api.v1.focus.destroy');
-    Route::post('focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.v1.focus.complete');
+    Route::match(['put', 'patch'], 'focus/{focus}', [FocusController::class, 'update'])->name('api.v1.focus.update')->whereNumber('focus');
+    Route::delete('focus/{focus}', [FocusController::class, 'destroy'])->name('api.v1.focus.destroy')->whereNumber('focus');
+    Route::post('focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.v1.focus.complete')->whereNumber('focus');
     Route::get('habits', [CliApiController::class, 'habits'])->name('api.v1.habits.index');
     Route::get('habits/{habit}', [CliApiController::class, 'showHabit'])->name('api.v1.habits.show');
     Route::post('habits', [CliApiController::class, 'createHabit'])->name('api.v1.habits.store');
