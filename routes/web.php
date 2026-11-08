@@ -9,6 +9,7 @@ use App\Http\Controllers\HabitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TodoController;
@@ -145,6 +146,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('habits', HabitController::class);
     Route::post('habits/{habit}/toggle', [HabitController::class, 'toggle'])->name('habits.toggle');
     Route::get('habits/{habit}/stats', [HabitController::class, 'stats'])->name('habits.stats');
+
+    // Report browsing (daily/weekly/monthly work recaps)
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::post('/reports/generate', [ReportsController::class, 'generateNow'])->name('reports.generate');
+    Route::get('/reports/{report}', [ReportsController::class, 'show'])->whereNumber('report')->name('reports.show');
 });
 
 require __DIR__.'/auth.php';

@@ -14,7 +14,8 @@ import {
     PanelLeftOpen,
     Monitor,
     Hash,
-    BookOpen
+    BookOpen,
+    ScrollText
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
@@ -84,6 +85,12 @@ export default function AppLayout({
             href: '/habits',
             label: 'Habits',
             icon: Target,
+            group: 'main',
+        },
+        {
+            href: '/reports',
+            label: 'Reports',
+            icon: ScrollText,
             group: 'main',
         },
         {
