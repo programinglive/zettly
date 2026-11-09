@@ -157,6 +157,7 @@ current night reaches the delivery queue. An explicit `--backfill` with
 - ✅ **Focus workspace** — Keep the current daily focus and important notifications visible.
 - ✅ **Eisenhower and Kanban boards** — Plan by urgency/importance or manage work in sortable drag-and-drop columns.
 - ✅ **Tags and relationships** — Organize tasks with tags and link related todos.
+- ✅ **Zettelkasten tag axes** — Every todo, drawing and journal entry carries tags on four axes (`proyek`, `tipe`, `area`, `sumber`), shown as chips and filterable per axis, so a record can be reached from its codebase, its kind of work, its subsystem or its source. See `docs/zettelkasten-tags.md`.
 - ✅ **Notes and rich text** — Capture notes separately from actionable tasks and write formatted descriptions with full Markdown support (headings, bold, lists, code blocks, and line breaks) cleanly rendered in the Zettly web UI.
 - ✅ **Attachments and checklists** — Add files and structured checklist items to tasks.
 - ✅ **Habit tracker** — Set recurring goals, record completions, and review streaks.
