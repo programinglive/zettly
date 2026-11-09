@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.11](https://github.com/programinglive/todo/compare/v0.12.10...v0.12.11) (2026-11-09)
+
+
+### 📝 Documentation
+
+* record v0.12.10 release notes entry ([ccb1a4f](https://github.com/programinglive/todo/commit/ccb1a4f1ae54d9cce80006b7cb31353e9f68d436))
+
+
+### 🐛 Bug Fixes
+
+* **reports:** repair agent-session active time and harden sparse comparison ([c5ca3c9](https://github.com/programinglive/todo/commit/c5ca3c90ddd178d9ff9759dd2fe6090825bfb77d))
+
 ### [0.12.10](https://github.com/programinglive/todo/compare/v0.12.9...v0.12.10) (2026-11-09)
 
 
