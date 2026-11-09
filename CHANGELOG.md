@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.10](https://github.com/programinglive/todo/compare/v0.12.9...v0.12.10) (2026-11-09)
+
+
+### 📝 Documentation
+
+* record v0.12.9 release notes entry ([03ed672](https://github.com/programinglive/todo/commit/03ed6727ed3006d6a76e58d584d640698b3b9a19))
+
+
+### ✨ Features
+
+* **reports:** replace placeholder historical comparison with real data ([63204de](https://github.com/programinglive/todo/commit/63204de318d6a113bd57ebd0c91b21adb5403cb9))
+
 ### [0.12.9](https://github.com/programinglive/todo/compare/v0.12.8...v0.12.9) (2026-11-09)
 
 
