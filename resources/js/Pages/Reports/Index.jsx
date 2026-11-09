@@ -122,7 +122,7 @@ export default function ReportsIndex({ reports, channels, periodKind, kinds }) {
                         {reports.map((report) => (
                             <li key={report.id}>
                                 <Link
-                                    href={`/reports/${report.id}`}
+                                    href={`/reports/view/${report.id}`}
                                     className="group block rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:border-gray-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600"
                                 >
                                     <div className="flex items-center justify-between gap-3">

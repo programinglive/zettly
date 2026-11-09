@@ -103,7 +103,7 @@ class ReportsController extends Controller
             DeliverReport::dispatch($deliveryRow->id);
         }
 
-        return redirect()->route('reports.show', $report);
+        return redirect()->route('reports.view', $report);
     }
 
     /**

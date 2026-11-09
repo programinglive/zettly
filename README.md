@@ -104,9 +104,13 @@ review the generated daily, weekly, monthly, and yearly recaps:
 - `GET /reports` — list view with a period-kind filter, the configured
   delivery-channel status, and a **Generate now** action that (re)generates
   today's daily report and queues its delivery.
-- `GET /reports/{id}` — full report detail, rendered client-side by a
+- `GET /reports/view/{id}` — full report detail, rendered client-side by a
   dependency-free parser (`resources/js/lib/reportParser.js`) that only
   understands the fixed markdown shape `ReportGenerator` emits.
+
+The legacy `GET /reports/{id}` (a redacted, noindex HTML page) remains as the
+private report link embedded in notification payloads; the in-app detail page
+deliberately lives under `/reports/view` so the two do not collide.
 
 The API routes under `/api/v1/reports*` remain available to the CLI/MCP
 integrations; the web routes above are the in-app browsing layer.

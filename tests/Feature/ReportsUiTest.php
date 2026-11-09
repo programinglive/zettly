@@ -127,7 +127,7 @@ class ReportsUiTest extends TestCase
             'content' => "# Weekly Productivity Report: 2026-11-02 - 2026-11-08\n\n- Machines: MMCH",
         ]);
 
-        $this->actingAs($user)->get('/reports/'.$report->id)->assertOk()
+        $this->actingAs($user)->get('/reports/view/'.$report->id)->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Reports/Show')
                 ->where('report.id', $report->id)
@@ -141,7 +141,7 @@ class ReportsUiTest extends TestCase
         $other = User::factory()->create();
         $report = Report::factory()->create(['user_id' => $other->id]);
 
-        $this->actingAs($user)->get('/reports/'.$report->id)->assertNotFound();
+        $this->actingAs($user)->get('/reports/view/'.$report->id)->assertNotFound();
     }
 
     public function test_generate_now_creates_todays_daily_report_and_redirects_to_it(): void
@@ -150,7 +150,7 @@ class ReportsUiTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->post('/reports/generate')
-            ->assertRedirect(route('reports.show', $report = Report::firstOrFail()));
+            ->assertRedirect(route('reports.view', $report = Report::firstOrFail()));
 
         $this->assertSame('daily', $report->period_kind);
         $this->assertStringStartsWith('# Daily Activity Summary', $report->content);

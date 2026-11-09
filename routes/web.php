@@ -147,10 +147,12 @@ Route::middleware('auth')->group(function () {
     Route::post('habits/{habit}/toggle', [HabitController::class, 'toggle'])->name('habits.toggle');
     Route::get('habits/{habit}/stats', [HabitController::class, 'stats'])->name('habits.stats');
 
-    // Report browsing (daily/weekly/monthly work recaps)
+    // Report browsing (daily/weekly/monthly work recaps). The detail page
+    // lives under /reports/view so the legacy redacted private link at
+    // /reports/{report} (used by notification payloads) keeps its URI.
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::post('/reports/generate', [ReportsController::class, 'generateNow'])->name('reports.generate');
-    Route::get('/reports/{report}', [ReportsController::class, 'show'])->whereNumber('report')->name('reports.show');
+    Route::get('/reports/view/{report}', [ReportsController::class, 'show'])->whereNumber('report')->name('reports.view');
 });
 
 require __DIR__.'/auth.php';
