@@ -97,3 +97,23 @@ Old lines are never edited; only the new section is inserted.
 
 Conventional commits on `feat/reports-human-recaps`, merge to `main`,
 `npm run release`; deploy to bw-app on the next explicit "lanjut".
+
+## Extension: report_summaries table + visual recap (2026-11-09, same day)
+
+Goal: pre-existing reports also show the new recap format without touching
+their raw content, plus a visual layer grounded in Zettly's zettelkasten
+data (tags on todos/notes, session projects/categories).
+
+- `report_summaries` (one row per report): `digest` (human paragraph) plus
+  structured fields `projects_minutes` (json: project -> active seconds),
+  `categories` (json: session category -> seconds), `tags` (json: tag name
+  -> count, from todos completed/open in period and todos linked from
+  journal entries in period).
+- `ReportGenerator::generate()` upserts the row; the row is derived data —
+  `Report.content` is never rewritten by anything in this feature.
+- `reports:backfill-summaries` (idempotent) recomputes rows for legacy
+  reports from the raw data, so old reports read with the new format.
+- Index cards prefer the table's digest; the detail page leads with the
+  digest + an "At a glance" panel (pure CSS bars for project share, tag
+  chips with counts) and keeps the raw content below, unchanged.
+- The `## Summary` paragraph optionally mentions up to three top tags.

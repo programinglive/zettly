@@ -38,6 +38,99 @@ function formatPeriod(start, end, kind) {
 }
 
 const DETAILS_MARKER = '## Work by project';
+const SUMMARY_MARKER = '## Summary';
+
+/**
+ * Remove the human summary section from the report lead so the digest can be
+ * rendered once, from the structured recap, instead of twice.
+ */
+function stripSummarySection(content) {
+    const start = content.indexOf(SUMMARY_MARKER);
+    if (start === -1) {
+        return content;
+    }
+
+    const after = content.slice(start + SUMMARY_MARKER.length);
+    const nextHeading = after.search(/\n## /);
+    const end = nextHeading === -1 ? after.length : nextHeading;
+
+    return content.slice(0, start) + after.slice(end);
+}
+
+/**
+ * Horizontal share bars: where the active time went. Pure CSS/Tailwind -
+ * no chart library - so the monochrome design system stays intact.
+ *
+ * @param {{ name: string, minutes: number }[]} items
+ */
+function ShareBars({ items }) {
+    if (!items.length) {
+        return null;
+    }
+
+    const max = Math.max(...items.map((item) => item.minutes), 1);
+
+    return (
+        <div className="space-y-1.5">
+            {items.map((item) => (
+                <div key={item.name} className="flex items-center gap-2">
+                    <span className="w-24 flex-shrink truncate text-[11px] font-medium text-gray-600 dark:text-slate-300">
+                        {item.name}
+                    </span>
+                    <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
+                        <div
+                            className="h-full rounded-full bg-gray-900 dark:bg-white"
+                            style={{ width: `${Math.max(Math.round((item.minutes / max) * 100), 2)}%` }}
+                        />
+                    </div>
+                    <span className="w-12 flex-shrink text-right text-[11px] tabular-nums text-gray-400 dark:text-slate-500">
+                        {item.minutes} min
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/**
+ * A small labelled block of the "At a glance" panel.
+ *
+ * @param {string} label
+ * @param {React.ReactNode} children
+ */
+function GlanceBlock({ label, children }) {
+    return (
+        <div>
+            <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                {label}
+            </h3>
+            {children}
+        </div>
+    );
+}
+
+/**
+ * @param {{ name: string, count: number }[]} items
+ */
+function TagChips({ items }) {
+    if (!items.length) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-wrap gap-1.5">
+            {items.map((item) => (
+                <span
+                    key={item.name}
+                    className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                >
+                    <span className="font-medium">{item.name}</span>
+                    <span className="tabular-nums text-gray-400 dark:text-slate-500">{item.count}</span>
+                </span>
+            ))}
+        </div>
+    );
+}
 
 export default function ReportsShow({ report }) {
     const generatedLabel = report.generated_at
@@ -47,8 +140,15 @@ export default function ReportsShow({ report }) {
     // The recap (title, headline stats and the human summary) stays visible;
     // the per-project drill-down is progressive disclosure.
     const markerIndex = typeof report.content === 'string' ? report.content.indexOf(DETAILS_MARKER) : -1;
-    const leadContent = markerIndex > -1 ? report.content.slice(0, markerIndex) : report.content || '';
+    const rawLead = markerIndex > -1 ? report.content.slice(0, markerIndex) : report.content || '';
     const detailContent = markerIndex > -1 ? report.content.slice(markerIndex) : '';
+
+    // The digest and the "At a glance" numbers come from the structured
+    // recap (report_summaries). The summary section is cut out of the lead
+    // so it renders exactly once - the raw content below stays untouched.
+    const headlineContent = stripSummarySection(rawLead).trim();
+    const visuals = report.visuals || { projects: [], categories: [], tags: [] };
+    const hasVisuals = visuals.projects.length > 0 || visuals.categories.length > 0 || visuals.tags.length > 0;
 
     const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -78,7 +178,33 @@ export default function ReportsShow({ report }) {
                 </header>
 
                 <article className="rounded-lg border border-gray-200 bg-white px-5 py-6 dark:border-slate-800 dark:bg-slate-900">
-                    <ReportContent content={leadContent} />
+                    {report.digest ? (
+                        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">{report.digest}</p>
+                    ) : null}
+
+                    {hasVisuals ? (
+                        <div className="mt-5 rounded-md border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                            <div className="space-y-4">
+                                {visuals.projects.length > 0 ? (
+                                    <GlanceBlock label="Time by project">
+                                        <ShareBars items={visuals.projects} />
+                                    </GlanceBlock>
+                                ) : null}
+                                {visuals.categories.length > 0 ? (
+                                    <GlanceBlock label="Time by category">
+                                        <ShareBars items={visuals.categories} />
+                                    </GlanceBlock>
+                                ) : null}
+                                {visuals.tags.length > 0 ? (
+                                    <GlanceBlock label="Tags">
+                                        <TagChips items={visuals.tags} />
+                                    </GlanceBlock>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {headlineContent ? <ReportContent content={headlineContent} /> : null}
 
                     {detailContent ? (
                         <div className="mt-6 border-t border-gray-100 pt-4 dark:border-slate-800">

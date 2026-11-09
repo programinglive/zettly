@@ -4,6 +4,8 @@ namespace Tests\Unit;
 
 use App\Models\AgentSession;
 use App\Models\Report;
+use App\Models\ReportSummary;
+use App\Models\Tag;
 use App\Models\Todo;
 use App\Models\User;
 use App\Services\ReportGenerator;
@@ -164,6 +166,78 @@ class ReportGeneratorTest extends TestCase
             'No recorded activity in this period, but 2 todos are still open.',
             $report->content
         );
+    }
+
+    public function test_generate_writes_a_report_summary_row(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-03 00:00:00');
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'ship it',
+            'category' => 'Development',
+            'status' => 'completed',
+            'completed_at' => $this->utc($day->copy()->addHours(9)),
+            'started_at' => $this->utc($day->copy()->addHours(8)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(9)),
+            'duration_seconds' => 2580, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'debug parser',
+            'category' => 'Development',
+            'status' => 'in_progress',
+            'started_at' => $this->utc($day->copy()->addHours(10)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(10)),
+            'duration_seconds' => 1200, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+        $summary = ReportSummary::where('report_id', $report->id)->first();
+
+        $this->assertNotNull($summary, 'a report_summaries row is written with the report');
+        $this->assertStringContainsString('You logged 63 minutes', $summary->digest);
+        $this->assertSame(63, (int) $summary->active_minutes);
+        $this->assertSame(1, (int) $summary->tasks_completed);
+        $this->assertSame(1, (int) $summary->tasks_open);
+        $this->assertSame(3780, $summary->projects_minutes['zettly']);
+        $this->assertSame(3780, $summary->categories['Development']);
+        $this->assertSame(['MMCH'], $summary->machines);
+        // The raw report content is not touched by the summary row.
+        $this->assertSame($report->content, Report::find($report->id)->content);
+    }
+
+    public function test_regenerating_a_report_does_not_duplicate_summary_rows(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-03 00:00:00');
+
+        $first = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+        $second = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertSame($first->id, $second->id, 'generate stays idempotent per report key');
+        $this->assertSame(1, ReportSummary::where('report_id', $first->id)->count());
+    }
+
+    public function test_report_summary_tags_come_from_period_todos(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-05 00:00:00');
+        $tag = Tag::factory()->create(['user_id' => $user->id, 'name' => 'release']);
+
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'cut the release',
+            'is_completed' => true,
+            'completed_at' => $this->utc($day->copy()->addHours(9)),
+        ]);
+        $todo->tags()->attach($tag->id);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+        $summary = ReportSummary::where('report_id', $report->id)->first();
+
+        $this->assertSame(['release' => 1], $summary->tags);
     }
 
     public function test_generate_includes_a_session_recorded_early_in_the_wib_day(): void

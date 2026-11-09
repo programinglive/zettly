@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\DeliverReport;
 use App\Models\Report;
+use App\Models\ReportSummary;
 use App\Models\User;
 use App\Models\UserReportChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -197,6 +198,71 @@ class ReportsUiTest extends TestCase
                 ->component('Reports/Index')
                 ->has('reports', 0)
                 ->where('has_more', false)
+            );
+    }
+
+    public function test_index_digest_prefers_the_summary_table(): void
+    {
+        $user = User::factory()->create();
+
+        $report = Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-08:2026-11-08',
+            'content' => '# Daily Activity Summary: 2026-11-08 - 2026-11-08',
+        ]);
+        ReportSummary::create([
+            'report_id' => $report->id,
+            'user_id' => $user->id,
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-08',
+            'period_end' => '2026-11-08',
+            'digest' => 'From the table.',
+        ]);
+
+        $this->actingAs($user)->get('/reports')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->where('reports.0.summary', 'From the table.')
+            );
+    }
+
+    public function test_show_payload_carries_the_digest_and_visuals(): void
+    {
+        $user = User::factory()->create();
+
+        $report = Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-08:2026-11-08',
+        ]);
+        ReportSummary::create([
+            'report_id' => $report->id,
+            'user_id' => $user->id,
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-08',
+            'period_end' => '2026-11-08',
+            'digest' => 'From the table.',
+            'projects_minutes' => ['zettly' => 3780, 'n8n' => 600],
+            'categories' => ['Development' => 3780, 'Ops' => 600],
+            'tags' => ['release' => 2, 'reports' => 1],
+            'machines' => ['MMCH'],
+        ]);
+
+        $this->actingAs($user)->get('/reports/view/'.$report->id)->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Show')
+                ->where('report.digest', 'From the table.')
+                ->where('report.visuals.projects', [
+                    ['name' => 'zettly', 'minutes' => 63],
+                    ['name' => 'n8n', 'minutes' => 10],
+                ])
+                ->where('report.visuals.tags', [
+                    ['name' => 'release', 'count' => 2],
+                    ['name' => 'reports', 'count' => 1],
+                ])
+                ->where('report.visuals.categories', [
+                    ['name' => 'Development', 'minutes' => 63],
+                    ['name' => 'Ops', 'minutes' => 10],
+                ])
             );
     }
 

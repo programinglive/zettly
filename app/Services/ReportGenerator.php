@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AgentSession;
 use App\Models\JournalEntry;
 use App\Models\Report;
+use App\Models\ReportSummary;
 use App\Models\Todo;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -210,6 +211,7 @@ class ReportGenerator
             intdiv($seconds, 60),
             $journalDays,
             $openTodos->count(),
+            $this->topTags($todos, $journalEntries),
         );
 
         $lines[] = '';
@@ -329,7 +331,8 @@ class ReportGenerator
         int $pending,
         int $minutes,
         int $journalDays,
-        int $openTodos
+        int $openTodos,
+        array $topTags = []
     ): string
     {
         $quiet = $sessions->isEmpty() && $journalDays === 0 && $completedSessions->isEmpty() && $todosCompleted === 0;
@@ -395,7 +398,63 @@ class ReportGenerator
             $sentences[] = "{$openTodos} todo".($openTodos === 1 ? ' is' : 's are')." still open.";
         }
 
+        if ($topTags !== []) {
+            $sentences[] = 'Top tags: '.implode(', ', $topTags).';';
+        }
+
         return implode(' ', $sentences) ?: 'No recorded activity in this period.';
+    }
+
+    /**
+     * The zettelkasten layer of the recap: how the period's todos (completed
+     * in the period, or still open) plus the todos linked from journal
+     * entries are tagged. Returns tag name => count, sorted by count then
+     * name (ties broken alphabetically, case-insensitive).
+     */
+    private function tagCountsFor(Collection $todos, Collection $journalEntries): array
+    {
+        $linkedIds = $journalEntries
+            ->map(fn (JournalEntry $entry) => $entry->todo_id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $pool = $todos;
+        if ($linkedIds->isNotEmpty()) {
+            $pool = $pool->concat(Todo::whereIn('id', $linkedIds)->get())->unique('id')->values();
+        }
+
+        $counts = [];
+
+        foreach ($pool as $todo) {
+            $todo->load('tags');
+            foreach ($todo->tags as $tag) {
+                $name = (string) $tag->name;
+                $counts[$name] = ($counts[$name] ?? 0) + 1;
+            }
+        }
+
+        // Count descending, name ascending on ties - stable and readable.
+        $pairs = [];
+        foreach ($counts as $name => $count) {
+            $pairs[] = [$name, $count];
+        }
+        usort($pairs, fn ($a, $b) => $b[1] <=> $a[1] ?: strcasecmp($a[0], $b[0]));
+
+        $sorted = [];
+        foreach ($pairs as [$name, $count]) {
+            $sorted[$name] = $count;
+        }
+
+        return $sorted;
+    }
+
+    /**
+     * Up to three most-used tag names in a period, for the digest line.
+     */
+    private function topTags(Collection $todos, Collection $journalEntries, int $limit = 3): array
+    {
+        return array_slice(array_keys($this->tagCountsFor($todos, $journalEntries)), 0, $limit);
     }
 
     /**
@@ -405,11 +464,118 @@ class ReportGenerator
     {
         $reportKey = sprintf('%s:%s:%s', $periodKind, $start->toDateString(), $end->toDateString());
 
-        // Boundaries are expressed in WIB (the zone reports are labelled in), then
-        // converted to UTC before binding. The timestamp columns are
+        [$sessions, $journalEntries, $todos, $undatedCompletions] = $this->rawDataFor($user, $start, $end);
+
+        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos, $undatedCompletions);
+
+        $report = Report::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'report_key' => $reportKey,
+            ],
+            [
+                'period_kind' => $periodKind,
+                'period_start' => $start->toDateString(),
+                'period_end' => $end->toDateString(),
+                'content' => $content,
+                'generated_at' => now(),
+            ]
+        );
+
+        // The structured recap lives in its own table so the UI can read it
+        // without ever re-parsing - or rewriting - the raw content column.
+        ReportSummary::updateOrCreate(
+            ['report_id' => $report->id],
+            $this->recapAttributesFor($report, $start, $end, $sessions, $journalEntries, $todos)
+        );
+
+        return $report;
+    }
+
+    /**
+     * The report_summaries attributes for one report, derived from the same
+     * raw data that the content column was rendered from.
+     */
+    public function recapAttributesFor(
+        Report $report,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+        Collection $sessions,
+        Collection $journalEntries,
+        Collection $todos
+    ): array {
+        $projectsMinutes = $sessions
+            ->groupBy(fn (AgentSession $session) => $session->project ?: 'unknown')
+            ->map(fn ($group) => (int) $group->sum('duration_seconds'));
+
+        $categories = $sessions
+            ->groupBy(fn (AgentSession $session) => $session->category ?: 'uncategorized')
+            ->map(fn ($group) => (int) $group->sum('duration_seconds'));
+
+        $machines = $sessions
+            ->map(fn (AgentSession $session) => $session->machine ?: 'unknown')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $metrics = $this->metricsFor($start, $end, $sessions, $journalEntries, $todos);
+
+        return [
+            'report_id' => $report->id,
+            'user_id' => $report->user_id,
+            'period_kind' => $report->period_kind,
+            'period_start' => $start->toDateString(),
+            'period_end' => $end->toDateString(),
+            'digest' => $metrics['digest'],
+            'active_minutes' => intdiv($metrics['seconds'], 60),
+            'tasks_completed' => $metrics['completed'] + $metrics['todosCompleted'],
+            'tasks_open' => $metrics['pending'] + $metrics['openTodosCount'],
+            'projects_minutes' => $projectsMinutes->all(),
+            'categories' => $categories->all(),
+            'tags' => $metrics['tagCounts'],
+            'machines' => $machines,
+        ];
+    }
+
+    /**
+     * Fill the structured recap of a report whose summary row is missing
+     * (legacy reports from before report_summaries existed). Idempotent:
+     * reports that already have a row are left untouched, and the raw
+     * content column is never written.
+     */
+    public function backfillSummary(Report $report): ?ReportSummary
+    {
+        $existing = $report->summary()->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $start = CarbonImmutable::parse($report->period_start);
+        $end = CarbonImmutable::parse($report->period_end);
+
+        [$sessions, $journalEntries, $todos] = $this->rawDataFor($report->user, $start, $end);
+
+        return ReportSummary::create(
+            $this->recapAttributesFor($report, $start, $end, $sessions, $journalEntries, $todos)
+        );
+    }
+
+    /**
+     * The raw records a report period is built from. Shared by generate()
+     * and backfillSummary() so both read identical data.
+     *
+     * @return array{0: Collection, 1: Collection, 2: Collection, 3: int}
+     */
+    private function rawDataFor(User $user, CarbonImmutable $start, CarbonImmutable $end): array
+    {
+        // Boundaries are expressed in WIB (the zone reports are labelled in),
+        // then converted to UTC before binding. The timestamp columns are
         // `timestamp without time zone` holding UTC, so binding the WIB wall
-        // clock cost 7 hours of offset and pushed early-morning sessions out of
-        // the window entirely (a 08:34 WIB session matched nothing).
+        // clock cost 7 hours of offset and pushed early-morning sessions out
+        // of the window entirely (a 08:34 WIB session matched nothing).
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
         $wibEnd = $end->setTimezone('Asia/Jakarta')->endOfDay();
         $utcStart = $wibStart->setTimezone('UTC')->format('Y-m-d H:i:s');
@@ -425,8 +591,8 @@ class ReportGenerator
             ->orderBy('title')
             ->get();
 
-        // Historical record. entry_date is a plain date, so it compares directly
-        // against the WIB calendar days the report is labelled with.
+        // Historical record. entry_date is a plain date, so it compares
+        // directly against the WIB calendar days the report is labelled with.
         $journalEntries = JournalEntry::where('user_id', $user->id)
             ->whereDate('entry_date', '>=', $wibStart->toDateString())
             ->whereDate('entry_date', '<=', $wibEnd->toDateString())
@@ -446,31 +612,101 @@ class ReportGenerator
             ->limit(200)
             ->get();
 
-        // Marked done but with no completion date, so they belong to no period. The
-        // import wrote null on purpose (ACTIVE.md carries a status, not dates), and
-        // created_at on those rows is the import timestamp - attributing them would
-        // invent a date. Counted so the report can say they exist.
+        // Marked done but with no completion date, so they belong to no
+        // period. Counted so the report can say they exist.
         $undatedCompletions = Todo::where('user_id', $user->id)
             ->where('is_completed', true)
             ->whereNull('completed_at')
             ->where('archived', false)
             ->count();
 
-        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos, $undatedCompletions);
+        return [$sessions, $journalEntries, $todos, $undatedCompletions];
+    }
 
-        return Report::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'report_key' => $reportKey,
-            ],
-            [
-                'period_kind' => $periodKind,
-                'period_start' => $start->toDateString(),
-                'period_end' => $end->toDateString(),
-                'content' => $content,
-                'generated_at' => now(),
-            ]
-        );
+    /**
+     * The headline numbers a report and its summary share.
+     */
+    private function metricsFor(
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+        Collection $sessions,
+        Collection $journalEntries,
+        Collection $todos
+    ): array {
+        $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
+        $wibEnd = $end->setTimezone('Asia/Jakarta')->startOfDay();
+
+        $completed = $sessions
+            ->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                && $session->completed_at
+                && $session->completed_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+            ->count();
+
+        $completedWithoutTimestamp = $sessions
+            ->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                && ! $session->completed_at
+                && $session->last_activity_at
+                && $session->last_activity_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+            ->values();
+
+        $completed += $completedWithoutTimestamp->count();
+
+        $pending = $sessions
+            ->filter(fn (AgentSession $session) => in_array(
+                $session->status,
+                [AgentSession::STATUS_IN_PROGRESS, AgentSession::STATUS_BLOCKED],
+                true
+            ))
+            ->count();
+
+        $seconds = (int) $sessions->sum(fn (AgentSession $session) => (int) $session->duration_seconds);
+
+        $journalDays = $journalEntries->count();
+        $todosCompleted = $todos->filter(fn (Todo $todo) => (bool) $todo->is_completed)->count();
+
+        $machines = $sessions
+            ->map(fn (AgentSession $session) => $session->machine ?: 'unknown')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        $projects = $sessions->map->project->filter()->unique()->sort()->values();
+
+        $openTodos = $todos->reject(fn (Todo $todo) => (bool) $todo->is_completed)->values();
+
+        $topTags = $this->topTags($todos, $journalEntries);
+
+        return [
+            'projects' => $projects,
+            'completed' => $completed,
+            'completedWithoutTimestamp' => $completedWithoutTimestamp,
+            'pending' => $pending,
+            'seconds' => $seconds,
+            'journalDays' => $journalDays,
+            'todosCompleted' => $todosCompleted,
+            'machines' => $machines,
+            'openTodos' => $openTodos,
+            'openTodosCount' => $openTodos->count(),
+            'topTags' => $topTags,
+            'tagCounts' => $this->tagCountsFor($todos, $journalEntries),
+            'digest' => $this->summarize(
+                $sessions,
+                $machines,
+                $projects->count(),
+                $completedWithoutTimestamp->merge(
+                    $sessions->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                        && $session->completed_at
+                        && $session->completed_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+                )->values(),
+                $todosCompleted,
+                $pending,
+                intdiv($seconds, 60),
+                $journalDays,
+                $openTodos->count(),
+                $topTags,
+            ),
+        ];
     }
 
     /**

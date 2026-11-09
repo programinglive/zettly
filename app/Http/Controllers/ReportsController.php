@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\DeliverReport;
 use App\Models\Report;
 use App\Models\ReportDelivery;
+use App\Models\ReportSummary;
 use App\Models\UserReportChannel;
 use App\Services\ReportDeliveryService;
 use App\Services\ReportGenerator;
@@ -43,17 +44,25 @@ class ReportsController extends Controller
 
         $hasMore = $query->count() > $page * $perPage;
 
-        $reports = $query
-            ->forPage($page, $perPage)
-            ->get()
-            ->map(fn (Report $report) => [
-                'id' => $report->id,
-                'period_kind' => $report->period_kind,
-                'period_start' => $report->period_start->toDateString(),
-                'period_end' => $report->period_end->toDateString(),
-                'generated_at' => $report->generated_at?->toDateTimeString(),
-                'summary' => self::summary($report->content),
-            ])
+        $rows = $query->forPage($page, $perPage)->get();
+
+        // Structured recaps live in their own table; legacy reports without a
+        // row fall back to parsing the raw content, so nothing is lost.
+        $summaries = ReportSummary::whereIn('report_id', $rows->pluck('id'))->get()->keyBy('report_id');
+
+        $reports = $rows
+            ->map(function (Report $report) use ($summaries) {
+                $digest = $summaries->get($report->id)?->digest;
+
+                return [
+                    'id' => $report->id,
+                    'period_kind' => $report->period_kind,
+                    'period_start' => $report->period_start->toDateString(),
+                    'period_end' => $report->period_end->toDateString(),
+                    'generated_at' => $report->generated_at?->toDateTimeString(),
+                    'summary' => $digest !== null && $digest !== '' ? self::clip($digest) : self::summary($report->content),
+                ];
+            })
             ->values();
 
         $channels = Auth::user()->reportChannels()
@@ -82,6 +91,7 @@ class ReportsController extends Controller
     public function show(int $report): \Inertia\Response
     {
         $report = Report::where('user_id', Auth::id())->findOrFail($report);
+        $summary = $report->summary()->first();
 
         return inertia('Reports/Show', [
             'report' => [
@@ -91,8 +101,44 @@ class ReportsController extends Controller
                 'period_end' => $report->period_end->toDateString(),
                 'generated_at' => $report->generated_at?->toDateTimeString(),
                 'content' => $report->content,
+                'digest' => $summary?->digest !== null && $summary?->digest !== ''
+                    ? $summary->digest
+                    : self::summary($report->content),
+                'visuals' => self::visuals($summary),
             ],
         ]);
+    }
+
+    /**
+     * The "At a glance" data for a report detail page: where the time went
+     * (projects and categories, in minutes) and how the period's work was
+     * tagged. Bar shapes, sorted by value descending (name ascending on
+     * ties); missing structured data yields empty lists.
+     */
+    private static function visuals(?ReportSummary $summary): array
+    {
+        $minutesMap = static function (?array $map, string $valueKey): array {
+            return collect($map ?? [])
+                ->map(fn ($seconds, $name) => [
+                    'name' => (string) $name,
+                    $valueKey => intdiv((int) $seconds, 60),
+                ])
+                ->sort(fn ($a, $b) => $b[$valueKey] <=> $a[$valueKey] ?: strcmp($a['name'], $b['name']))
+                ->values()
+                ->all();
+        };
+
+        $tags = collect($summary?->tags ?? [])
+            ->map(fn ($count, $name) => ['name' => (string) $name, 'count' => (int) $count])
+            ->sort(fn ($a, $b) => $b['count'] <=> $a['count'] ?: strcasecmp($a['name'], $b['name']))
+            ->values()
+            ->all();
+
+        return [
+            'projects' => $minutesMap($summary?->projects_minutes, 'minutes'),
+            'categories' => $minutesMap($summary?->categories, 'minutes'),
+            'tags' => $tags,
+        ];
     }
 
     /**
@@ -136,8 +182,7 @@ class ReportsController extends Controller
 
             if ($section === '## Summary') {
                 if (trim($line) !== '') {
-                    $text = trim($line);
-                    return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit - 1).'…' : $text;
+                    return self::clip(trim($line), $limit);
                 }
                 continue;
             }
@@ -162,6 +207,14 @@ class ReportsController extends Controller
 
         $text = implode(' | ', $head);
 
+        return self::clip($text, $limit);
+    }
+
+    /**
+     * Truncate a recap line for card display.
+     */
+    private static function clip(string $text, int $limit = 160): string
+    {
         return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit - 1).'…' : $text;
     }
 }

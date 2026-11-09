@@ -44,4 +44,9 @@ class Report extends Model
     {
         return $this->hasMany(ReportDelivery::class);
     }
+
+    public function summary(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ReportSummary::class);
+    }
 }
