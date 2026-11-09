@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.7 | 2026-11-09 | **cli:** add checklist subtasks, related links, attachments, and status shortcuts (bb996a0) |
 | 0.12.5 | 2026-11-07 | cleanup after release (a8afd3a) |
 | 0.12.4 | 2026-01-21 | cleanup after release (a4042cb) |
 | 0.12.3 | 2026-01-02 | cleanup after release (e340f2d) |
@@ -38,6 +39,18 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.7 – ✨ Features
+
+Released on **2026-11-09**.
+
+- **cli:** add checklist subtasks, related links, attachments, and status shortcuts (bb996a0)
+- **reports:** add in-app reports workspace for work recaps (67f41b5)
+- **deps:** lock marked, which package.json declares but the lockfile missed (c95f524)
+- **cli:** allow mutable assignment for positional id shorthand and resolve endpoint (22b448f)
+- **reports:** write-only catch-up for missed nights and deterministic nightly tests (3bcab57)
+- **routes:** move the in-app report detail under /reports/view (62abfa3)
 
 ## 0.12.5 – 🧹 Chores
 

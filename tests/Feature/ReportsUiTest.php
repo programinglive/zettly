@@ -144,6 +144,36 @@ class ReportsUiTest extends TestCase
         $this->actingAs($user)->get('/reports/view/'.$report->id)->assertNotFound();
     }
 
+    /**
+     * Guard against the merge that shadowed the legacy private report link.
+     *
+     * The In-app detail page lives at /reports/view/{id} (Inertia) while the
+     * legacy redacted page that notification payloads link to stays at
+     * /reports/{id} (plain Blade). If a future merge re-points /reports/{id}
+     * at the Inertia controller, this test fails and the private link leaks
+     * unredacted content back into the browser.
+     */
+    public function test_the_legacy_redacted_link_stays_a_plain_blade_page(): void
+    {
+        $user = User::factory()->create();
+        $report = Report::factory()->create([
+            'user_id' => $user->id,
+            'content' => "# Summary\n<script>alert(1)</script>\nBearer example-secret",
+        ]);
+
+        // The legacy /reports/{id} must NOT be the Inertia reports workspace:
+        // it renders the redacted Blade view, not the Reports/Show component.
+        $this->actingAs($user)->get('/reports/'.$report->id)
+            ->assertOk()
+            ->assertSee('Activity report')
+            ->assertDontSee('Reports/Show');
+
+        // The in-app detail is the Inertia page at /reports/view/{id}.
+        $this->actingAs($user)->get('/reports/view/'.$report->id)
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Reports/Show'));
+    }
+
     public function test_generate_now_creates_todays_daily_report_and_redirects_to_it(): void
     {
         Queue::fake();
