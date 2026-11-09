@@ -65,6 +65,7 @@ function resolveHook(): string | null {
 
   const known = [
     "D:/works/mine/code/zettly/scripts/codex_journal.py",
+    "D:/code/zettly/scripts/codex_journal.py",
     join(homedir(), "code/zettly/scripts/codex_journal.py"),
     join(homedir(), "works/mine/code/zettly/scripts/codex_journal.py"),
   ]
