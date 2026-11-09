@@ -154,3 +154,37 @@ migration, no rewrite of raw report content.
 Tests: five unit tests in `ReportGeneratorTest` pin all four line shapes
 plus the `generate()` regression; `ReportsUiTest` pins the `show()`
 payload (`lines.0`–`lines.3` + `previous_label`).
+
+## Extension: agent-session duration repair + sparse-data hardening (v0.12.11)
+
+Production check after v0.12.10: every `report_summaries` row had
+`active_minutes = 0`. Root cause, evidenced in prod and the client:
+
+- The client (`scripts/codex_journal.py`, shared by Codex and OpenCode
+  hooks) never sent `duration_seconds`, so the column stayed 0.
+- Its `Stop` hook resent `started_at` as its own "now", crushing the
+  recorded start to the stop time: in prod all five sessions carry
+  `started_at = last_activity_at = completed_at`, so even server-side
+  derivation was impossible on the old rows.
+- No sessions arrived after 2026-11-03 (hook coverage on the working
+  machines) — tracked as a separate follow-up.
+
+Fixes:
+
+- `AgentSessionIngestor::upsertSession()`: first write wins — a later
+  update that resends `started_at` cannot move the recorded start.
+- `duration_seconds` derivation: whenever no positive value was supplied,
+  the ingestor fills it from `completed_at` (or `last_activity_at` when
+  in progress) minus `started_at`, clamped to zero. An explicit positive
+  value always wins.
+- `codex_journal.py` `Stop` branch omits `started_at`; the create call
+  (`UserPromptSubmit`) still sends it. Python regression tests pin both.
+- `comparisonLines()` suppresses the "Active time" line when both sides
+  are zero and the "Top project" line when both sides are sub-minute,
+  and appends one pinned hint:
+  `No active-time baseline yet: agent sessions have not recorded time.`
+  All four previously pinned line shapes stay byte-identical when real
+  data exists.
+
+Existing crushed prod sessions stay 0 (their timestamps are lost); new
+sessions from the next hook run onward carry real durations.

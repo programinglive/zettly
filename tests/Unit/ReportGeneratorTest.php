@@ -513,6 +513,34 @@ class ReportGeneratorTest extends TestCase
         ], $lines);
     }
 
+    public function test_comparison_lines_when_no_active_time_was_recorded_on_either_side(): void
+    {
+        $current = [
+            'active_minutes' => 0,
+            'tasks_completed' => 1,
+            'projects_minutes' => [],
+            'categories' => [],
+            'tags' => ['reports' => 1],
+            'machines' => [],
+        ];
+        $previous = [
+            'active_minutes' => 0,
+            'tasks_completed' => 2,
+            'projects_minutes' => [],
+            'categories' => [],
+            'tags' => ['release' => 1],
+            'machines' => [],
+        ];
+
+        $lines = ReportGenerator::comparisonLines($current, $previous);
+
+        $this->assertSame([
+            'Tasks completed: 1 vs 2.',
+            'Top tags: reports vs release.',
+            'No active-time baseline yet: agent sessions have not recorded time.',
+        ], $lines);
+    }
+
     public function test_generate_writes_real_historical_comparison_into_content(): void
     {
         $user = User::factory()->create();
