@@ -17,7 +17,9 @@ class ReportDeliveryService
     public static function summary(string $content, int $limit = 1800): string
     {
         $lines = [];
+        $metrics = [];
         $actions = [];
+        $human = '';
         $section = '';
         $hasTitle = false;
         foreach (preg_split('/\R/u', $content) as $line) {
@@ -34,8 +36,15 @@ class ReportDeliveryService
 
                 continue;
             }
+            if ($section === '## Summary') {
+                if ($human === '' && trim($line) !== '') {
+                    $human = NotificationText::line(trim($line), 280);
+                }
+
+                continue;
+            }
             if ($section === '' && preg_match('/^- (Machines|Projects|Tasks completed|Tasks in progress or blocked|Observed active-turn time|Journal entries recorded): /', $line)) {
-                $lines[] = NotificationText::line($line, 160);
+                $metrics[] = NotificationText::line($line, 160);
             }
             if ($section === '## Outstanding work' && str_starts_with($line, '- ')
                 && $line !== '- None recorded.') {
@@ -43,20 +52,24 @@ class ReportDeliveryService
             }
         }
 
+        // The human recap leads the digest; legacy reports without a
+        // '## Summary' section fall back to the plain metric lines.
+        $digest = array_merge($lines, $human !== '' ? [$human] : [], $metrics);
+
         if ($actions !== []) {
             // Stable sorting keeps the original order within each urgency group.
             $actions = collect($actions)->sortBy(fn ($line) => str_contains($line, '(blocked)') ? 0 : (str_contains($line, '(urgent)') ? 1 : 2))->values();
-            $lines[] = '';
-            $lines[] = __('Needs attention');
+            $digest[] = '';
+            $digest[] = __('Needs attention');
             foreach ($actions->take(3) as $action) {
-                $lines[] = NotificationText::line($action, 150);
+                $digest[] = NotificationText::line($action, 150);
             }
             if ($actions->count() > 3) {
-                $lines[] = __('+ :count more in the full report.', ['count' => $actions->count() - 3]);
+                $digest[] = __('+ :count more in the full report.', ['count' => $actions->count() - 3]);
             }
         }
 
-        return NotificationText::truncate(implode("\n", $lines), max(0, $limit));
+        return NotificationText::truncate(implode("\n", $digest), max(0, $limit));
     }
 
     /**
@@ -184,6 +197,7 @@ class ReportDeliveryService
         $period = null;
         $metrics = [];
         $actions = [];
+        $summaryText = '';
         $section = '';
 
         foreach (preg_split('/\R/u', $content) as $line) {
@@ -206,6 +220,13 @@ class ReportDeliveryService
 
             if (preg_match('/^#{2,3} /', $line)) {
                 $section = trim($line);
+                continue;
+            }
+
+            if ($section === '## Summary') {
+                if ($summaryText === '') {
+                    $summaryText = NotificationText::line($line, 280);
+                }
                 continue;
             }
 
@@ -271,7 +292,9 @@ class ReportDeliveryService
             $color = 16705372; // Gold/Yellow (0xFEE75C)
         }
 
-        $description = $period ? "**Period:** {$period}\n[🔗 View Full Report]({$detailsUrl})" : "[🔗 View Full Report]({$detailsUrl})";
+        $description = $summaryText !== ''
+            ? ($period !== null ? "**Period:** {$period}\n\n" : '').$summaryText."\n\n[🔗 View Full Report]({$detailsUrl})"
+            : ($period ? "**Period:** {$period}\n[🔗 View Full Report]({$detailsUrl})" : "[🔗 View Full Report]({$detailsUrl})");
 
         $embed = [
             'title' => '📊 ' . $title,

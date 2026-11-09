@@ -101,12 +101,22 @@ These are scheduled from `routes/console.php`:
 Signed-in users open the **Reports** workspace in the sidebar (`/reports`) to
 review the generated daily, weekly, monthly, and yearly recaps:
 
-- `GET /reports` — list view with a period-kind filter, the configured
-  delivery-channel status, and a **Generate now** action that (re)generates
-  today's daily report and queues its delivery.
-- `GET /reports/view/{id}` — full report detail, rendered client-side by a
-  dependency-free parser (`resources/js/lib/reportParser.js`) that only
-  understands the fixed markdown shape `ReportGenerator` emits.
+- `GET /reports` — digest-first list: cards carry the report's human summary
+  line, grouped by month (newest month expanded) and paginated 30 at a time
+  with a "Show older reports" action. Includes a period-kind filter, the
+  configured delivery-channel status, and a **Generate now** action that
+  (re)generates today's daily report and queues its delivery.
+- `GET /reports/view/{id}` — full report detail: the summary block stays
+  visible at the top, the per-project drill-down sits behind a collapsed
+  "Full details" toggle. Rendered client-side by a dependency-free parser
+  (`resources/js/lib/reportParser.js`) that only understands the fixed
+  markdown shape `ReportGenerator` emits.
+
+Every report now starts with a short human "## Summary" paragraph (2–4
+templated sentences, deterministic, no LLM) placed after the headline metric
+bullets. That placement keeps the fixed machine format intact for the CLI
+formatter, the redacted legacy page, and Discord's structured embed — while
+the human recap leads both the in-app digest and the Discord chat summary.
 
 The legacy `GET /reports/{id}` (a redacted, noindex HTML page) remains as the
 private report link embedded in notification payloads; the in-app detail page

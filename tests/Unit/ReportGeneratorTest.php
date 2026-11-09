@@ -96,6 +96,76 @@ class ReportGeneratorTest extends TestCase
         $this->assertStringContainsString('60 minutes', $report->content);
     }
 
+    public function test_render_adds_a_human_summary_block_between_headline_and_details(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-03 00:00:00');
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'ship it',
+            'status' => 'completed',
+            'completed_at' => $this->utc($day->copy()->addHours(9)),
+            'started_at' => $this->utc($day->copy()->addHours(8)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(9)),
+            'duration_seconds' => 2580, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'debug parser',
+            'status' => 'in_progress',
+            'started_at' => $this->utc($day->copy()->addHours(10)),
+            'last_activity_at' => $this->utc($day->copy()->addHours(10)),
+            'duration_seconds' => 1200, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+        $content = $report->content;
+
+        // Placement: after the headline bullets, before the project details.
+        $headline = strpos($content, '- Observed active-turn time');
+        $summary = strpos($content, '## Summary');
+        $details = strpos($content, '## Work by project');
+        $this->assertNotFalse($summary, 'a human summary section is present');
+        $this->assertLessThan($summary, $headline, 'the summary sits below the headline bullets');
+        $this->assertLessThan($details, $summary, 'the summary sits above the project details');
+
+        // The paragraph itself reads like a sentence, built from the same data.
+        $this->assertStringContainsString('You logged 63 minutes of active agent work on MMCH in 1 project.', $content);
+        $this->assertStringContainsString('You completed 1 task, including "ship it" in zettly.', $content);
+        $this->assertStringContainsString('1 task remains in progress or blocked.', $content);
+
+        // The pre-existing lines survive untouched.
+        $this->assertStringContainsString('- Tasks in progress or blocked: 1', $content);
+        $this->assertStringContainsString('## Next actions', $content);
+    }
+
+    public function test_a_quiet_day_summarizes_the_absence_of_activity(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-04 00:00:00');
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString('No recorded activity in this period.', $report->content);
+        $this->assertStringNotContainsString('You logged', $report->content);
+    }
+
+    public function test_a_quiet_day_still_mentions_open_todos_in_the_summary(): void
+    {
+        $user = User::factory()->create();
+        $day = $this->wib('2026-11-04 00:00:00');
+        Todo::factory()->create(['user_id' => $user->id, 'title' => 'open one', 'is_completed' => false]);
+        Todo::factory()->create(['user_id' => $user->id, 'title' => 'open two', 'is_completed' => false]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $day, $day);
+
+        $this->assertStringContainsString(
+            'No recorded activity in this period, but 2 todos are still open.',
+            $report->content
+        );
+    }
+
     public function test_generate_includes_a_session_recorded_early_in_the_wib_day(): void
     {
         // Regression: the window was bound as a WIB wall clock against columns

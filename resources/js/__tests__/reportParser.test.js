@@ -101,3 +101,26 @@ test('splits bold segments for the renderer without touching React', () => {
 test('leaves text without bold markers as a single plain segment', () => {
     assert.deepEqual(inlineSegments('no markers'), [{ text: 'no markers', bold: false }]);
 });
+
+test('parses a human summary block into a heading and paragraph', () => {
+    const content = [
+        '# Daily Activity Summary: 2026-11-09 - 2026-11-09',
+        '',
+        '- Machines: MMCH',
+        '',
+        '## Summary',
+        '',
+        'You logged 12 minutes of active agent work on MMCH. 1 task remains in progress.',
+        '',
+        '## Work by project',
+    ].join('\n');
+
+    const blocks = parseReport(content);
+
+    assert.ok(blocks.some((b) => b.type === 'h2' && b.text === 'Summary'), 'summary heading block');
+    assert.ok(
+        blocks.some((b) => b.type === 'p' && b.text.startsWith('You logged 12 minutes')),
+        'summary paragraph block'
+    );
+    assert.ok(blocks.some((b) => b.type === 'h2' && b.text === 'Work by project'), 'details still parse');
+});
