@@ -77,6 +77,14 @@ class AgentSessionIngestor
             'machine' => self::redact((string) ($attributes['machine'] ?? 'unknown'), 80),
         ];
 
+        // First write wins: a later update (a Stop hook that resends its own
+        // "now" as started_at) must not move the recorded start forward.
+        $sessionId = (string) ($attributes['session_id'] ?? '');
+        $existing = AgentSession::where('user_id', $user->id)->where('session_id', $sessionId)->first();
+        if ($existing !== null && $existing->started_at !== null) {
+            unset($values['started_at']);
+        }
+
         // Optional fields: only included when the caller explicitly sent them,
         // so a subsequent upsert that omits them does not wipe the stored value.
         if (array_key_exists('duration_seconds', $attributes)) {
@@ -97,13 +105,38 @@ class AgentSessionIngestor
                 : self::redact((string) $attributes['outcome'], 500);
         }
 
-        return AgentSession::updateOrCreate(
+        $session = AgentSession::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'session_id' => (string) $attributes['session_id'],
+                'session_id' => $sessionId,
             ],
             $values
         );
+
+        $this->deriveDurationWhenAbsent($session);
+
+        return $session;
+    }
+
+    /**
+     * Fill duration_seconds from the timestamps when no positive value was
+     * ever supplied: completed_at when present, otherwise last_activity_at,
+     * clamped to zero so a clock skew can never yield a negative.
+     */
+    private function deriveDurationWhenAbsent(AgentSession $session): void
+    {
+        if ((int) $session->duration_seconds > 0 || $session->started_at === null) {
+            return;
+        }
+
+        $end = $session->completed_at ?? $session->last_activity_at;
+        if ($end === null) {
+            return;
+        }
+
+        $seconds = (int) round($end->getTimestamp() - $session->started_at->getTimestamp());
+        $session->duration_seconds = max(0, $seconds);
+        $session->save();
     }
 
     /**

@@ -143,7 +143,11 @@ def changed(cwd):
     return sorted({clean(x[3:].strip().replace("\\","/"),160) for x in r.stdout.splitlines() if x[3:].strip() and not re.search(r"(?i)(^|/)(\.env|credentials?|secrets?|[^/]*\.(pem|key))($|/)",x[3:].strip())})[:100]
 
 def session_payload(ident,sid,project,title,cat,status,start,last,machine,duration_seconds=None,files=None,errors=None,outcome=None):
-    body={"session_id":sid,"project":project,"title":title,"category":cat,"status":status,"started_at":start,"last_activity_at":last,"machine":machine}
+    body={"session_id":sid,"project":project,"title":title,"category":cat,"status":status,"last_activity_at":last,"machine":machine}
+    # started_at is only sent on the first write (create). A later update that
+    # resends it would crush the recorded start to the stop time; the server
+    # keeps the first write, so updates simply omit the key.
+    if start is not None:body["started_at"]=start
     if duration_seconds is not None:body["duration_seconds"]=duration_seconds
     if files is not None:body["files_changed"]=files
     if errors is not None:body["errors"]=errors
@@ -212,8 +216,9 @@ def ingest(e):
         ident="ACT-"+now.astimezone(WIB).strftime("%Y%m%d").upper()+"-"+hashlib.sha256(sid.encode()).hexdigest()[:8].upper()
         # A completed session needs its completed_at, otherwise every report
         # counts 0 tasks completed: the generator requires the timestamp, not
-        # just the status.
-        sess=session_payload(ident,sid,project,title="Development",cat="Development",status=status,start=at,last=at,machine=machine,files=files,outcome=outcome)
+        # just the status. started_at is intentionally omitted: the server
+        # keeps the original start from the create call (first write wins).
+        sess=session_payload(ident,sid,project,title="Development",cat="Development",status=status,start=None,last=at,machine=machine,files=files,outcome=outcome)
         if status=="completed":
             sess["completed_at"]=at
         if not post("/api/v1/agent/sessions",sess):

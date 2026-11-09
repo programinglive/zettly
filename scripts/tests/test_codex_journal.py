@@ -151,6 +151,25 @@ def test_redaction_still_applies_before_posting(tmp_path, monkeypatch):
     assert "supersecretvalue" not in cleaned
 
 
+def test_prompt_event_creates_the_session_with_a_started_at(tmp_path, monkeypatch):
+    """The first write records the start; Stop updates must not resend it."""
+    module = load(tmp_path, monkeypatch)
+    posted = []
+    monkeypatch.setattr(module, "post", lambda path, body: posted.append((path, body)) or True)
+
+    module.ingest({
+        "hook_event_name": "UserPromptSubmit",
+        "session_id": "sess-create-1",
+        "turn_id": "1",
+        "prompt": "Fix the printer offline bug",
+        "cwd": "D:/works/mine/code/zettly",
+    })
+
+    session = next(body for p, body in posted if p == "/api/v1/agent/sessions")
+    assert "started_at" in session
+    assert session["status"] == "in_progress"
+
+
 def test_stop_event_builds_session_and_outcome_payloads(tmp_path, monkeypatch):
     module = load(tmp_path, monkeypatch)
     posted = []
@@ -175,6 +194,9 @@ def test_stop_event_builds_session_and_outcome_payloads(tmp_path, monkeypatch):
     assert "all tests pass" in session["outcome"]
     # Regression: the positional-arg signature must not blow up (was a TypeError before the fix).
     assert "session_id" in session
+    # The Stop hook must not resend started_at: the server keeps the original
+    # start (first write wins), which is what makes duration derivation work.
+    assert "started_at" not in session
 
 
 def test_stop_event_without_a_matching_keyword_stays_in_progress(tmp_path, monkeypatch):

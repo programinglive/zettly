@@ -152,4 +152,108 @@ class AgentSessionIngestorTest extends TestCase
         $this->assertSame(['first failure'], $fresh->errors);
         $this->assertSame('printed ok', $fresh->outcome);
     }
+
+    public function test_started_at_keeps_the_first_write_when_a_later_stop_resends_it(): void
+    {
+        $user = User::factory()->create();
+        $ingestor = app(AgentSessionIngestor::class);
+
+        // Create: the hook records the prompt time as the start.
+        $ingestor->upsertSession($user, [
+            'session_id' => 'sess-5',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:00:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        // Stop: the old client resent "now" as started_at, crushing the real
+        // start to the stop time. The first write must win.
+        $ingestor->upsertSession($user, [
+            'session_id' => 'sess-5',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'completed',
+            'started_at' => '2026-11-01T11:00:00+07:00',
+            'last_activity_at' => '2026-11-01T11:00:00+07:00',
+            'completed_at' => '2026-11-01T11:00:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        $fresh = AgentSession::where('user_id', $user->id)->where('session_id', 'sess-5')->firstOrFail();
+
+        $this->assertSame('2026-11-01T10:00:00+00:00', $fresh->started_at->toIso8601String());
+        $this->assertSame(3600, $fresh->duration_seconds);
+    }
+
+    public function test_duration_is_derived_from_the_timestamps_when_never_sent(): void
+    {
+        $user = User::factory()->create();
+
+        $session = app(AgentSessionIngestor::class)->upsertSession($user, [
+            'session_id' => 'sess-6',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:30:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        $this->assertSame(1800, $session->duration_seconds);
+    }
+
+    public function test_in_progress_duration_derives_from_last_activity_so_far(): void
+    {
+        $user = User::factory()->create();
+
+        $session = app(AgentSessionIngestor::class)->upsertSession($user, [
+            'session_id' => 'sess-7',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:05:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        $this->assertSame(300, $session->duration_seconds);
+    }
+
+    public function test_an_explicit_positive_duration_wins_over_derivation(): void
+    {
+        $user = User::factory()->create();
+
+        $session = app(AgentSessionIngestor::class)->upsertSession($user, [
+            'session_id' => 'sess-8',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:30:00+07:00',
+            'duration_seconds' => 60,
+            'machine' => 'MMCH',
+        ]);
+
+        $this->assertSame(60, $session->duration_seconds);
+    }
+
+    public function test_a_clock_skew_end_before_start_derives_zero(): void
+    {
+        $user = User::factory()->create();
+
+        $session = app(AgentSessionIngestor::class)->upsertSession($user, [
+            'session_id' => 'sess-9',
+            'project' => 'clinic',
+            'title' => 'Fix printer',
+            'status' => 'in_progress',
+            'started_at' => '2026-11-01T10:30:00+07:00',
+            'last_activity_at' => '2026-11-01T10:00:00+07:00',
+            'machine' => 'MMCH',
+        ]);
+
+        $this->assertSame(0, $session->duration_seconds);
+    }
 }

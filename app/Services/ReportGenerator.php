@@ -364,25 +364,36 @@ class ReportGenerator
         $prevMinutes = (int) ($previous['active_minutes'] ?? 0);
         $diff = $curMinutes - $prevMinutes;
 
-        if ($prevMinutes === 0) {
-            $delta = 'no baseline yet';
-        } else {
-            $delta = $diff === 0
-                ? '0%'
-                : ($diff > 0 ? '+' : '-').intdiv(abs($diff) * 100, $prevMinutes).'%';
+        // Both sides zero means no active time was recorded at all: an
+        // "0 vs 0" line carries no information, so it is suppressed and a
+        // single honest hint is appended instead (see the bottom of the
+        // method).
+        $suppressActive = $curMinutes === 0 && $prevMinutes === 0;
+        if (!$suppressActive) {
+            $delta = $prevMinutes === 0
+                ? 'no baseline yet'
+                : ($diff === 0
+                    ? '0%'
+                    : ($diff > 0 ? '+' : '-').intdiv(abs($diff) * 100, $prevMinutes).'%');
+            $lines[] = sprintf('Active time: %d min vs %d min (%s).', $curMinutes, $prevMinutes, $delta);
         }
 
-        $lines[] = sprintf('Active time: %d min vs %d min (%s).', $curMinutes, $prevMinutes, $delta);
         $lines[] = sprintf('Tasks completed: %d vs %d.', (int) ($current['tasks_completed'] ?? 0), (int) ($previous['tasks_completed'] ?? 0));
 
         $curProject = self::topEntry($current['projects_minutes'] ?? []);
         $prevProject = self::topEntry($previous['projects_minutes'] ?? []);
-        if ($curProject !== null && $prevProject !== null) {
-            $lines[] = sprintf('Top project: %s (%d min) vs %s (%d min).', $curProject[0], $curProject[1], $prevProject[0], $prevProject[1]);
-        } elseif ($curProject !== null) {
-            $lines[] = sprintf('Top project: %s (%d min); none in the previous period.', $curProject[0], $curProject[1]);
-        } elseif ($prevProject !== null) {
-            $lines[] = sprintf('Top project: none this period; %s (%d min) previously.', $prevProject[0], $prevProject[1]);
+        // Sub-minute entries round to 0 and are treated as "not recorded",
+        // same as the all-zero active time above.
+        $suppressProject = ($curProject === null || $curProject[1] === 0)
+            && ($prevProject === null || $prevProject[1] === 0);
+        if (!$suppressProject) {
+            if ($curProject !== null && $prevProject !== null) {
+                $lines[] = sprintf('Top project: %s (%d min) vs %s (%d min).', $curProject[0], $curProject[1], $prevProject[0], $prevProject[1]);
+            } elseif ($curProject !== null) {
+                $lines[] = sprintf('Top project: %s (%d min); none in the previous period.', $curProject[0], $curProject[1]);
+            } elseif ($prevProject !== null) {
+                $lines[] = sprintf('Top project: none this period; %s (%d min) previously.', $prevProject[0], $prevProject[1]);
+            }
         }
 
         $curTags = self::topNames($current['tags'] ?? []);
@@ -393,6 +404,10 @@ class ReportGenerator
             $lines[] = 'Top tags: '.implode(', ', $curTags).'; none in the previous period.';
         } elseif ($prevTags !== []) {
             $lines[] = 'Top tags: none this period; '.implode(', ', $prevTags).' previously.';
+        }
+
+        if ($suppressActive && $suppressProject) {
+            $lines[] = 'No active-time baseline yet: agent sessions have not recorded time.';
         }
 
         return $lines;
