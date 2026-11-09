@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.12 | 2026-11-09 | record v0.12.11 release notes entry (e6bca63) |
 | 0.12.11 | 2026-11-09 | record v0.12.10 release notes entry (ccb1a4f) |
 | 0.12.10 | 2026-11-09 | record v0.12.9 release notes entry (03ed672) |
 | 0.12.9 | 2026-11-09 | **reports:** structured report_summaries recap store with visuals and backfill (287a2d8) |
@@ -48,6 +49,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.12 – 📝 Documentation
+
+Released on **2026-11-09**.
+
+- record v0.12.11 release notes entry (e6bca63)
+- **agent-api:** make started_at optional so client Stop updates are accepted (8b7ae0b)
 
 ## 0.12.11 – 📝 Documentation
 
