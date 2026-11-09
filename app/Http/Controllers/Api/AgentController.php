@@ -32,7 +32,11 @@ class AgentController
             'title' => ['required', 'string', 'max:180'],
             'category' => ['sometimes', 'nullable', 'string', 'max:40'],
             'status' => ['required', Rule::in(self::STATUSES)],
-            'started_at' => ['required', 'date'],
+            // Optional: the v0.12.11 client only sends it on the create call.
+            // On an update the ingestor keeps the first write (first write
+            // wins); on a create it falls back to now(). Required here would
+            // 422 every Stop update and leave the whole outbox stuck.
+            'started_at' => ['sometimes', 'nullable', 'date'],
             'last_activity_at' => ['required', 'date'],
             'completed_at' => ['sometimes', 'nullable', 'date'],
             'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:0'],
