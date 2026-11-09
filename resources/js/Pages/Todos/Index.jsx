@@ -5,7 +5,7 @@ import { CheckCircle, Circle, Plus, Eye, Edit, Trash2, X } from 'lucide-react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Button } from '../../Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/card';
-import TagBadge from '../../Components/TagBadge';
+import AxisTagBadge from '../../Components/AxisTagBadge';
 import ConfirmationModal from '../../Components/ConfirmationModal';
 import CompletionReasonDialog from '../../Components/CompletionReasonDialog';
 import filterAndSortTodos from './filterTodos';
@@ -98,6 +98,49 @@ const isDueSoon = (value, horizonDays = 3) => {
 
     return parsed >= today && parsed <= horizon;
 };
+
+/**
+ * Splits a tag name into its zettelkasten axis and value.
+ *
+ * A tag without a colon is returned with an empty axis so an older free-form
+ * name still renders instead of disappearing.
+ */
+export function splitTagName(name) {
+    const text = String(name || '');
+    const index = text.indexOf(':');
+    if (index <= 0) return { axis: '', value: text };
+    return { axis: text.slice(0, index), value: text.slice(index + 1) };
+}
+
+/** How each axis is titled in the filter panel; unknown axes keep their name. */
+const AXIS_TITLES = { proyek: 'Project', tipe: 'Type', area: 'Area', sumber: 'Source' };
+const AXIS_ORDER = ['proyek', 'tipe', 'area', 'sumber'];
+
+/**
+ * Groups tags by axis, in a fixed order, so the filter reads the same way every
+ * time instead of reshuffling as tags are added.
+ */
+export function groupTagsByAxis(tags) {
+    const buckets = new Map();
+    for (const tag of Array.isArray(tags) ? tags : []) {
+        if (!tag || !tag.name) continue;
+        const { axis } = splitTagName(tag.name);
+        const key = axis || 'other';
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(tag);
+    }
+
+    const keys = [...AXIS_ORDER.filter((axis) => buckets.has(axis))];
+    for (const key of buckets.keys()) {
+        if (!keys.includes(key)) keys.push(key);
+    }
+
+    return keys.map((axis) => ({
+        axis,
+        label: AXIS_TITLES[axis] || axis,
+        tags: buckets.get(axis).slice().sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+}
 
 export default function Index({ todos, tags, filter, selectedTag }) {
     const isPaginated = !!(todos && todos.data);
@@ -317,7 +360,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                         </div>
                     </div>
 
-                    {/* Tag Filters */}
+                    {/* Tag Filters, grouped by zettelkasten axis */}
                     {tags && tags.length > 0 && (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -333,27 +376,42 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                     </Link>
                                 )}
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.map(tag => {
-                                    const isSelected = selectedTag == tag.id;
+                            {/*
+                              * Grouped by axis so a reader can ask the question the
+                              * zettelkasten method actually raises: "everything in this
+                              * repository", "everything of this type", "everything from
+                              * this source" — instead of scanning one long list where a
+                              * project and a topic look alike.
+                              */}
+                            {groupTagsByAxis(tags).map((group) => (
+                                <div key={group.axis || 'other'} className="flex flex-wrap items-baseline gap-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 w-16 shrink-0">
+                                        {group.label}
+                                    </span>
+                                    {group.tags.map(tag => {
+                                        const isSelected = selectedTag == tag.id;
 
-                                    return (
-                                        <Link
-                                            key={tag.id}
-                                            href={buildUrl({ tag: tag.id })}
-                                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border transition-all shadow-sm ${isSelected
-                                                ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
-                                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:text-white'
-                                                }`}
-                                        >
-                                            {tag.name}
-                                            {isSelected && (
-                                                <X className="w-3.5 h-3.5 ml-2" />
-                                            )}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
+                                        return (
+                                            <Link
+                                                key={tag.id}
+                                                href={buildUrl({ tag: tag.id })}
+                                                title={tag.name}
+                                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border transition-all shadow-sm ${isSelected
+                                                    ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
+                                                    : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:text-white'
+                                                    }`}
+                                            >
+                                                {splitTagName(tag.name).value}
+                                                {isSelected && (
+                                                    <span className="ml-2 text-[10px] uppercase tracking-wide opacity-70">
+                                                        selected
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -447,7 +505,7 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                             {todo.tags && todo.tags.length > 0 && (
                                                 <div className="flex flex-wrap gap-1.5 pt-1">
                                                     {todo.tags.map(tag => (
-                                                        <TagBadge key={tag.id} tag={tag} />
+                                                        <AxisTagBadge key={tag.id} tag={tag} />
                                                     ))}
                                                 </div>
                                             )}

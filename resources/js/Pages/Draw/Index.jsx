@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../Components/ui/ca
 import { Input } from '../../Components/ui/input';
 import { ChevronLeft, Download, Loader2, Plus, Trash2, Check, Edit, Eye, Maximize2, Minimize2 } from 'lucide-react';
 import * as Sentry from '@sentry/react';
+import AxisTagBadge from '../../Components/AxisTagBadge';
 
 const TldrawComponent = lazy(() => import('tldraw').then((module) => ({ default: module.Tldraw })));
 
@@ -257,6 +258,19 @@ const DrawingGallery = ({ drawings, onDrawingClick, onDeleteDrawing, onEditTitle
                                 >
                                     {drawing.title}
                                 </CardTitle>
+                            )}
+                            {/* Tags, so a drawing shows the zettelkasten relations it takes part in. */}
+                            {Array.isArray(drawing.tags) && drawing.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1 mb-1">
+                                    {drawing.tags.slice(0, 4).map((tag) => (
+                                        <AxisTagBadge key={tag.id} tag={tag} />
+                                    ))}
+                                    {drawing.tags.length > 4 && (
+                                        <span className="text-[10px] text-gray-400 self-center">
+                                            +{drawing.tags.length - 4}
+                                        </span>
+                                    )}
+                                </div>
                             )}
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button

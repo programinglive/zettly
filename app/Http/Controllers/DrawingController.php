@@ -22,6 +22,10 @@ class DrawingController extends Controller
     {
         $drawings = Drawing::query()
             ->select(['id', 'title', 'updated_at', 'thumbnail'])
+            // Tags load with the list. Without this the gallery had no way to
+            // show the zettelkasten relations a drawing takes part in, even
+            // though the pivot has held them since 10 November 2026.
+            ->with('tags:id,name,color')
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
