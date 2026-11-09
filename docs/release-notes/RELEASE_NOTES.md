@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.9 | 2026-11-09 | **reports:** structured report_summaries recap store with visuals and backfill (287a2d8) |
 | 0.12.8 | 2026-11-09 | record v0.12.7 release notes and guard the legacy report link (fa693b2) |
 | 0.12.7 | 2026-11-09 | **cli:** add checklist subtasks, related links, attachments, and status shortcuts (bb996a0) |
 | 0.12.5 | 2026-11-07 | cleanup after release (a8afd3a) |
@@ -42,6 +43,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.9 – 📝 Documentation
+
+Released on **2026-11-09**.
+
+- record v0.12.8 release notes entry (a98ab9c)
+- **reports:** structured report_summaries recap store with visuals and backfill (287a2d8)
 
 ## 0.12.8 – 📝 Documentation
 
