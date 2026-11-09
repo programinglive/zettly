@@ -7,6 +7,7 @@ use App\Mail\DrawingCreated as DrawingCreatedMail;
 use App\Mail\DrawingDeleted as DrawingDeletedMail;
 use App\Mail\DrawingUpdated as DrawingUpdatedMail;
 use App\Models\Drawing;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,8 @@ class DrawingController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'document' => 'required|array',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'integer',
         ]);
 
         $validated = $validator->validate();
@@ -46,7 +49,20 @@ class DrawingController extends Controller
             'thumbnail' => $request->input('thumbnail'),
         ]);
 
-        $drawing = $drawing->fresh(['user']);
+        // Tags, so a drawing takes part in the zettelkasten relations the same
+        // way a Todo does (added 10 November 2026). Only tags owned by the
+        // caller are attached; an id belonging to someone else is dropped.
+        if (! empty($validated['tag_ids'])) {
+            $owned = Tag::whereIn('id', $validated['tag_ids'])
+                ->where('user_id', Auth::id())
+                ->pluck('id')
+                ->all();
+            if ($owned) {
+                $drawing->tags()->syncWithoutDetaching($owned);
+            }
+        }
+
+        $drawing = $drawing->fresh(['user', 'tags']);
 
         // Broadcast the new drawing
         broadcast(new DrawingUpdated($drawing, true));
@@ -105,8 +121,10 @@ class DrawingController extends Controller
             'title' => 'sometimes|nullable|string|max:255',
             'document' => 'sometimes|array',
             'thumbnail' => 'sometimes|nullable|string',
+            'tag_ids' => 'sometimes|array',
+            'tag_ids.*' => 'integer',
         ])->after(function ($validator) use ($request) {
-            if (! $request->hasAny(['title', 'document', 'thumbnail'])) {
+            if (! $request->hasAny(['title', 'document', 'thumbnail', 'tag_ids'])) {
                 $validator->errors()->add('payload', 'At least one field (title or document) is required.');
             }
         });
@@ -114,8 +132,18 @@ class DrawingController extends Controller
         $validated = $validator->validate();
 
         $documentChanged = array_key_exists('document', $validated);
+        // tag_ids is a relation, not a column: strip it before update().
+        unset($validated['tag_ids']);
 
         $drawing->update($validated);
+
+        if ($request->has('tag_ids')) {
+            $owned = Tag::whereIn('id', (array) $request->input('tag_ids'))
+                ->where('user_id', Auth::id())
+                ->pluck('id')
+                ->all();
+            $drawing->tags()->sync($owned);
+        }
         $drawing->refresh();
         $drawing->loadMissing('user');
 

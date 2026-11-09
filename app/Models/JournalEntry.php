@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class JournalEntry extends Model
 {
@@ -41,5 +42,16 @@ class JournalEntry extends Model
     public function todo(): BelongsTo
     {
         return $this->belongsTo(Todo::class);
+    }
+
+    /**
+     * Tags attached to this journal entry.
+     *
+     * Added 10 November 2026 so outcomes carry the same zettelkasten relations
+     * as the todo they report on. Uses the same pivot shape as `todo_tag`.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'journal_entry_tag');
     }
 }
