@@ -61,6 +61,64 @@ class AgentApiTest extends TestCase
         $this->assertSame(1, AgentSession::count());
     }
 
+    public function test_a_create_without_started_at_still_succeeds(): void
+    {
+        // The v0.12.11 client only sends started_at on the create call; making
+        // the field required here would 422 every Stop update from that client.
+        $user = $this->actingAsCliUser();
+
+        $this->postJson('/api/v1/agent/sessions', [
+            'session_id' => 'sess-no-start',
+            'project' => 'zettly',
+            'title' => 'Fix the printer offline bug',
+            'status' => 'in_progress',
+            'last_activity_at' => now()->toIso8601String(),
+        ])->assertCreated();
+
+        $session = AgentSession::where('user_id', $user->id)->where('session_id', 'sess-no-start')->firstOrFail();
+
+        $this->assertNotNull($session->started_at, 'a missing started_at must fall back to now() on create');
+    }
+
+    public function test_a_stop_update_omitting_started_at_keeps_the_original_start(): void
+    {
+        $user = $this->actingAsCliUser();
+
+        $this->postJson('/api/v1/agent/sessions', [
+            'session_id' => 'sess-stop-optional',
+            'project' => 'zettly',
+            'title' => 'Fix the printer offline bug',
+            'status' => 'in_progress',
+            // Real client UserPromptSubmit: start and last activity coincide,
+            // so the create call derives a ~0 duration (nothing is locked yet).
+            'started_at' => '2026-11-01T10:00:00+07:00',
+            'last_activity_at' => '2026-11-01T10:00:00+07:00',
+        ])->assertCreated();
+
+        // Exactly what the client's Stop hook sends: no started_at at all.
+        $this->postJson('/api/v1/agent/sessions', [
+            'session_id' => 'sess-stop-optional',
+            'project' => 'zettly',
+            'title' => 'Development',
+            'status' => 'completed',
+            'last_activity_at' => '2026-11-01T11:00:00+07:00',
+            'completed_at' => '2026-11-01T11:00:00+07:00',
+            'machine' => 'MMCH',
+        ])->assertOk();
+
+        $session = AgentSession::where('user_id', $user->id)->where('session_id', 'sess-stop-optional')->firstOrFail();
+
+        // Stored wall-clock behaviour: the +07:00 input is stored as the
+        // 10:00 wall clock (Laravel formats in the instance's own offset), so
+        // it renders as 10:00+00:00 in a UTC app. Both start and end carry
+        // the same offset, so the derived duration below is exact.
+        $this->assertSame('2026-11-01T10:00:00+00:00', $session->started_at->toIso8601String());
+        $this->assertSame('completed', $session->status);
+        // Create derived ~0 (start == last activity), so the stop's
+        // completed_at (11:00) minus the preserved start (10:00) yields 3600.
+        $this->assertSame(3600, $session->duration_seconds);
+    }
+
     public function test_it_rejects_an_unknown_status(): void
     {
         $this->actingAsCliUser();
