@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.13 | 2026-11-09 | record v0.12.12 release notes entry (70b7c9f) |
 | 0.12.12 | 2026-11-09 | record v0.12.11 release notes entry (e6bca63) |
 | 0.12.11 | 2026-11-09 | record v0.12.10 release notes entry (ccb1a4f) |
 | 0.12.10 | 2026-11-09 | record v0.12.9 release notes entry (03ed672) |
@@ -50,6 +51,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.13 – 📝 Documentation
+
+Released on **2026-11-09**.
+
+- record v0.12.12 release notes entry (70b7c9f)
+- **journal:** add D:/code/zettly to the OpenCode plugin's hook search paths (85e636f)
 
 ## 0.12.12 – 📝 Documentation
 
