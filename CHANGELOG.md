@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.13](https://github.com/programinglive/todo/compare/v0.12.12...v0.12.13) (2026-11-09)
+
+
+### 📝 Documentation
+
+* record v0.12.12 release notes entry ([70b7c9f](https://github.com/programinglive/todo/commit/70b7c9f88f678096c023b0a6229468ecae870cdb))
+
+
+### ✨ Features
+
+* **journal:** add D:/code/zettly to the OpenCode plugin's hook search paths ([85e636f](https://github.com/programinglive/todo/commit/85e636f8bbf95e1cb3b628b20bb00b1c89d9efea))
+
 ### [0.12.12](https://github.com/programinglive/todo/compare/v0.12.11...v0.12.12) (2026-11-09)
 
 
