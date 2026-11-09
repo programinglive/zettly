@@ -125,9 +125,9 @@ class ReportGenerator
                 && ! $session->completed_at
                 && $session->last_activity_at
                 && $session->last_activity_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
-            ->count();
+            ->values();
 
-        $completed += $completedWithoutTimestamp;
+        $completed += $completedWithoutTimestamp->count();
 
         $pending = $sessions
             ->filter(fn (AgentSession $session) => in_array(
@@ -185,6 +185,33 @@ class ReportGenerator
             );
         }
 
+        $completedSessions = $completedWithoutTimestamp->merge(
+            $sessions->filter(fn (AgentSession $session) => $session->status === AgentSession::STATUS_COMPLETED
+                && $session->completed_at
+                && $session->completed_at->setTimezone('Asia/Jakarta')->startOfDay()->between($wibStart, $wibEnd))
+        )->values();
+
+        $openTodos = $todos->reject(fn (Todo $todo) => (bool) $todo->is_completed)->values();
+
+        // A short human-readable recap, built from the same numbers as the
+        // headline bullets. It sits after the bullets so that shape-based
+        // consumers (Discord embed, CLI formatter, redacted page) keep
+        // reading the fixed machine format below; the prose stays bounded.
+        $lines[] = '';
+        $lines[] = '## Summary';
+        $lines[] = '';
+        $lines[] = $this->summarize(
+            $sessions,
+            $machines,
+            $projects->count(),
+            $completedSessions,
+            $todosCompleted,
+            $pending,
+            intdiv($seconds, 60),
+            $journalDays,
+            $openTodos->count(),
+        );
+
         $lines[] = '';
         $lines[] = '## Work by project';
         $lines[] = '';
@@ -239,8 +266,6 @@ class ReportGenerator
         // Open todos are outstanding work too. Capped, and labelled as current:
         // a full backlog repeated under every past day would misrepresent what
         // was actually open on that date.
-        $openTodos = $todos->reject(fn (Todo $todo) => (bool) $todo->is_completed)->values();
-
         foreach ($openTodos->take(10) as $todo) {
             $outstanding[] = sprintf(
                 '- %s%s',
@@ -286,6 +311,91 @@ class ReportGenerator
         $lines[] = '';
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * The 2-4 sentence human recap that leads the report body.
+     *
+     * Templated from the same data as the headline bullets (deterministic, no
+     * LLM) and kept short on purpose: it is also the first line delivered to
+     * Discord and the digest line on report cards.
+     */
+    private function summarize(
+        Collection $sessions,
+        Collection $machines,
+        int $projectCount,
+        Collection $completedSessions,
+        int $todosCompleted,
+        int $pending,
+        int $minutes,
+        int $journalDays,
+        int $openTodos
+    ): string
+    {
+        $quiet = $sessions->isEmpty() && $journalDays === 0 && $completedSessions->isEmpty() && $todosCompleted === 0;
+
+        if ($quiet) {
+            return $openTodos > 0
+                ? "No recorded activity in this period, but {$openTodos} ".($openTodos === 1 ? 'todo is still open' : "todos are still open").'.'
+                : 'No recorded activity in this period.';
+        }
+
+        $sentences = [];
+
+        if ($journalDays > 0 && $minutes === 0 && $sessions->isEmpty()) {
+            $sentences[] = sprintf('You recorded %d journal entr%s.', $journalDays, $journalDays === 1 ? 'y' : 'ies');
+        } else {
+            $phrase = "You logged {$minutes} minute".($minutes === 1 ? '' : 's').' of active agent work';
+
+            if ($machines->isNotEmpty()) {
+                if ($machines->count() === 1) {
+                    $phrase .= ' on '.$machines->first();
+                } elseif ($machines->count() === 2) {
+                    $phrase .= ' on '.$machines->first().' and '.$machines->last();
+                } else {
+                    $phrase .= ' on '.$machines->first().' and '.$machines->second()
+                        .' plus '.($machines->count() - 2).' more machines';
+                }
+            }
+
+            if ($projectCount === 1) {
+                $phrase .= ' in 1 project';
+            } elseif ($projectCount > 1) {
+                $phrase .= " across {$projectCount} projects";
+            }
+
+            $sentences[] = $phrase.'.';
+        }
+
+        if ($completedSessions->isNotEmpty()) {
+            $first = $completedSessions->first();
+            $count = $completedSessions->count();
+
+            $done = sprintf(
+                'You completed %d %s, including "%s" in %s%s',
+                $count,
+                $count === 1 ? 'task' : 'tasks',
+                AgentSessionIngestor::redact((string) $first->title, 60),
+                $first->project,
+                $todosCompleted > 0
+                    ? ', and marked '.$todosCompleted.' todo'.($todosCompleted === 1 ? '' : 's').' done'
+                    : ''
+            );
+
+            $sentences[] = $done.'.';
+        } elseif ($todosCompleted > 0) {
+            $sentences[] = sprintf('You marked %d todo%s done.', $todosCompleted, $todosCompleted === 1 ? '' : 's');
+        }
+
+        if ($pending > 0 && $openTodos > 0) {
+            $sentences[] = "{$pending} task".($pending === 1 ? ' remains' : 's remain')." in progress or blocked, and {$openTodos} todo".($openTodos === 1 ? ' is' : 's are')." still open.";
+        } elseif ($pending > 0) {
+            $sentences[] = "{$pending} task".($pending === 1 ? ' remains' : 's remain')." in progress or blocked.";
+        } elseif ($openTodos > 0) {
+            $sentences[] = "{$openTodos} todo".($openTodos === 1 ? ' is' : 's are')." still open.";
+        }
+
+        return implode(' ', $sentences) ?: 'No recorded activity in this period.';
     }
 
     /**

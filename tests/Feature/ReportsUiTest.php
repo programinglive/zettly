@@ -100,6 +100,106 @@ class ReportsUiTest extends TestCase
             );
     }
 
+    public function test_index_cards_carry_the_human_summary_as_the_digest(): void
+    {
+        $user = User::factory()->create();
+        $paragraph = 'You logged 43 minutes of active agent work on MMCH in 1 project.';
+
+        Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-09:2026-11-09',
+            'content' => implode("\n", [
+                '# Daily Activity Summary: 2026-11-09 - 2026-11-09',
+                '',
+                '- Machines: MMCH',
+                '',
+                '## Summary',
+                '',
+                $paragraph,
+                '',
+                '## Work by project',
+                '',
+                '- None recorded.',
+            ]),
+        ]);
+
+        $this->actingAs($user)->get('/reports')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->where('reports.0.summary', $paragraph)
+            );
+    }
+
+    public function test_index_digest_falls_back_to_headlines_for_legacy_reports(): void
+    {
+        $user = User::factory()->create();
+
+        Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-01:2026-11-01',
+            'content' => implode("\n", [
+                '# Daily Activity Summary: 2026-11-01 - 2026-11-01',
+                '',
+                '- Machines: MMCH',
+                '- Projects: 1',
+            ]),
+        ]);
+
+        $this->actingAs($user)->get('/reports')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->where('reports.0.summary', fn ($summary) => str_contains($summary, 'Machines: MMCH')
+                    && ! str_contains($summary, '##'))
+            );
+    }
+
+    public function test_index_paginates_thirty_reports_at_a_time(): void
+    {
+        $user = User::factory()->create();
+
+        foreach (range(1, 28) as $i) {
+            $day = sprintf('2026-10-%02d', $i);
+            Report::factory()->create([
+                'user_id' => $user->id,
+                'period_kind' => 'daily',
+                'period_start' => $day,
+                'period_end' => $day,
+                'report_key' => "daily:{$day}:{$day}",
+            ]);
+        }
+        foreach (range(1, 3) as $i) {
+            $day = sprintf('2026-11-%02d', $i);
+            Report::factory()->create([
+                'user_id' => $user->id,
+                'period_kind' => 'daily',
+                'period_start' => $day,
+                'period_end' => $day,
+                'report_key' => "daily:{$day}:{$day}",
+            ]);
+        }
+
+        $this->actingAs($user)->get('/reports')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->has('reports', 30)
+                ->where('has_more', true)
+            );
+
+        $this->actingAs($user)->get('/reports?page=2')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->has('reports', 1)
+                ->where('has_more', false)
+            );
+
+        $this->actingAs($user)->get('/reports?page=99')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->has('reports', 0)
+                ->where('has_more', false)
+            );
+    }
+
     public function test_it_shows_delivery_channels_without_exposing_webhook_urls(): void
     {
         $user = User::factory()->create();

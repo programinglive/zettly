@@ -26,6 +26,69 @@ class ReportDeliveryTest extends TestCase
         $this->assertSame(1, substr_count($summary, 'Daily Activity Summary'));
     }
 
+    public function test_chat_summary_leads_with_the_human_summary_block_when_present(): void
+    {
+        $paragraph = 'You logged 43 minutes of active agent work on MMCH in 1 project.';
+        $content = implode("\n", [
+            '# Daily Activity Summary: 2026-11-09 - 2026-11-09',
+            '',
+            '- Machines: MMCH',
+            '- Projects: 1',
+            '',
+            '## Summary',
+            '',
+            $paragraph,
+            '',
+            '## Work by project',
+            '',
+            '### zettly',
+            '',
+            '- **ship it** — completed (feature)',
+            '',
+            '## Outstanding work',
+            '',
+            '- None recorded.',
+        ]);
+
+        $summary = ReportDeliveryService::summary($content);
+
+        $this->assertStringContainsString($paragraph, $summary);
+        $this->assertLessThan(
+            strpos($summary, '- Machines: MMCH'),
+            strpos($summary, $paragraph),
+            'the human summary leads, before the metric bullets'
+        );
+    }
+
+    public function test_discord_embed_description_carries_the_human_summary_when_present(): void
+    {
+        $paragraph = 'You logged 43 minutes of active agent work on MMCH in 1 project.';
+        $content = implode("\n", [
+            '# Daily Activity Summary: 2026-11-09 - 2026-11-09',
+            '',
+            '- Machines: MMCH',
+            '',
+            '## Summary',
+            '',
+            $paragraph,
+            '',
+            '## Work by project',
+        ]);
+
+        $payload = ReportDeliveryService::discordPayload($content, 'https://zettly.example/reports/1');
+        $embed = $payload['embeds'][0];
+
+        $this->assertStringContainsString($paragraph, $embed['description']);
+        $this->assertStringContainsString('View Full Report', $embed['description']);
+
+        // Legacy content (no '## Summary' section) keeps the old description.
+        $legacy = ReportDeliveryService::discordPayload(
+            "# Daily Activity Summary: 2026-11-01 - 2026-11-01\n\n- Machines: MMCH\n\n## Work by project\n",
+            'https://zettly.example/reports/2'
+        );
+        $this->assertStringNotContainsString($paragraph, $legacy['embeds'][0]['description']);
+    }
+
     public function test_summary_preserves_lines_and_counts_without_dumping_history(): void
     {
         $content = implode("\n", [

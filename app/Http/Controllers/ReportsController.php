@@ -33,10 +33,18 @@ class ReportsController extends Controller
         $kind = $request->query('period_kind');
         $filter = in_array($kind, self::KINDS, true) ? $kind : null;
 
-        $reports = Report::where('user_id', Auth::id())
-            ->when($filter, fn ($query) => $query->where('period_kind', $filter))
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 30;
+
+        $query = Report::where('user_id', Auth::id())
+            ->when($filter, fn ($q) => $q->where('period_kind', $filter))
             ->orderByDesc('period_end')
-            ->orderByDesc('generated_at')
+            ->orderByDesc('generated_at');
+
+        $hasMore = $query->count() > $page * $perPage;
+
+        $reports = $query
+            ->forPage($page, $perPage)
             ->get()
             ->map(fn (Report $report) => [
                 'id' => $report->id,
@@ -63,6 +71,8 @@ class ReportsController extends Controller
             'channels' => $channels,
             'periodKind' => $filter,
             'kinds' => self::KINDS,
+            'page' => $page,
+            'has_more' => $hasMore,
         ]);
     }
 
@@ -107,24 +117,51 @@ class ReportsController extends Controller
     }
 
     /**
-     * The headline block of a report: everything before the first section.
+     * The digest line for a report card.
+     *
+     * Prefers the first paragraph of the human "## Summary" section; legacy
+     * reports (generated before the section existed) fall back to the
+     * headline block, everything before the first section heading.
      */
-    private static function summary(string $content, int $limit = 320): string
+    private static function summary(string $content, int $limit = 160): string
     {
-        $lines = [];
+        $lines = preg_split('/\n/', $content);
+        $section = '';
 
-        foreach (preg_split('/\n/', $content) as $line) {
+        foreach ($lines as $line) {
+            if (str_starts_with($line, '## ')) {
+                $section = trim($line);
+                continue;
+            }
+
+            if ($section === '## Summary') {
+                if (trim($line) !== '') {
+                    $text = trim($line);
+                    return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit - 1).'…' : $text;
+                }
+                continue;
+            }
+
+            if ($section !== '') {
+                break;
+            }
+        }
+
+        // Legacy shape: the headline block, joined.
+        $head = [];
+
+        foreach ($lines as $line) {
             if (str_starts_with($line, '## ')) {
                 break;
             }
             if (trim($line) === '') {
                 continue;
             }
-            $lines[] = trim($line);
+            $head[] = trim($line);
         }
 
-        $text = implode(' | ', $lines);
+        $text = implode(' | ', $head);
 
-        return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit). '…' : $text;
+        return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit - 1).'…' : $text;
     }
 }
