@@ -266,6 +266,63 @@ class ReportsUiTest extends TestCase
             );
     }
 
+    public function test_show_payload_carries_the_comparison(): void
+    {
+        $user = User::factory()->create();
+
+        $current = Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-08:2026-11-08',
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-08',
+            'period_end' => '2026-11-08',
+        ]);
+        $previous = Report::factory()->create([
+            'user_id' => $user->id,
+            'report_key' => 'daily:2026-11-07:2026-11-07',
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-07',
+            'period_end' => '2026-11-07',
+        ]);
+
+        ReportSummary::create([
+            'report_id' => $current->id,
+            'user_id' => $user->id,
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-08',
+            'period_end' => '2026-11-08',
+            'digest' => 'Current digest.',
+            'active_minutes' => 63,
+            'tasks_completed' => 3,
+            'projects_minutes' => ['zettly' => 3780],
+            'tags' => ['release' => 2],
+            'machines' => ['MMCH'],
+        ]);
+        ReportSummary::create([
+            'report_id' => $previous->id,
+            'user_id' => $user->id,
+            'period_kind' => 'daily',
+            'period_start' => '2026-11-07',
+            'period_end' => '2026-11-07',
+            'digest' => 'Previous digest.',
+            'active_minutes' => 90,
+            'tasks_completed' => 1,
+            'projects_minutes' => ['n8n' => 2700],
+            'tags' => ['dev' => 4],
+            'machines' => ['MMCH'],
+        ]);
+
+        $this->actingAs($user)->get('/reports/view/'.$current->id)->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Show')
+                ->where('report.comparison.lines.0', 'Active time: 63 min vs 90 min (-30%).')
+                ->where('report.comparison.lines.1', 'Tasks completed: 3 vs 1.')
+                ->where('report.comparison.lines.2', 'Top project: zettly (63 min) vs n8n (45 min).')
+                ->where('report.comparison.lines.3', 'Top tags: release vs dev.')
+                ->where('report.comparison.previous_label', 'Nov 7')
+            );
+    }
+
     public function test_it_shows_delivery_channels_without_exposing_webhook_urls(): void
     {
         $user = User::factory()->create();
