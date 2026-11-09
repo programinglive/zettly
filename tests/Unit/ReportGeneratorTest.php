@@ -410,4 +410,157 @@ class ReportGeneratorTest extends TestCase
         $this->assertStringContainsString('- Tasks completed: 1', $report->content);
         $this->assertStringNotContainsString('Undated completions', $report->content);
     }
+
+    public function test_comparison_lines_for_a_busy_previous_period(): void
+    {
+        $current = [
+            'active_minutes' => 63,
+            'tasks_completed' => 3,
+            'projects_minutes' => ['zettly' => 3780, 'n8n' => 600],
+            'categories' => ['Development' => 3780, 'Ops' => 600],
+            'tags' => ['release' => 2, 'reports' => 1],
+            'machines' => ['MMCH'],
+        ];
+        $previous = [
+            'active_minutes' => 90,
+            'tasks_completed' => 1,
+            'projects_minutes' => ['n8n' => 2700, 'zettly' => 600],
+            'categories' => ['Development' => 2700, 'Ops' => 600],
+            'tags' => ['dev' => 4, 'server' => 2],
+            'machines' => ['MMCH'],
+        ];
+
+        $lines = ReportGenerator::comparisonLines($current, $previous);
+
+        $this->assertSame([
+            'Active time: 63 min vs 90 min (-30%).',
+            'Tasks completed: 3 vs 1.',
+            'Top project: zettly (63 min) vs n8n (45 min).',
+            'Top tags: release, reports vs dev, server.',
+        ], $lines);
+    }
+
+    public function test_comparison_lines_when_the_previous_period_was_quiet(): void
+    {
+        $current = [
+            'active_minutes' => 63,
+            'tasks_completed' => 1,
+            'projects_minutes' => ['zettly' => 3780],
+            'categories' => [],
+            'tags' => [],
+            'machines' => ['MMCH'],
+        ];
+        $quiet = [
+            'active_minutes' => 0,
+            'tasks_completed' => 0,
+            'projects_minutes' => [],
+            'categories' => [],
+            'tags' => [],
+            'machines' => [],
+        ];
+
+        $lines = ReportGenerator::comparisonLines($current, $quiet);
+
+        $this->assertSame(
+            ['No activity recorded in the previous period, so there is no baseline to compare yet.'],
+            $lines
+        );
+    }
+
+    public function test_comparison_lines_without_any_previous_period(): void
+    {
+        $lines = ReportGenerator::comparisonLines([
+            'active_minutes' => 15,
+            'tasks_completed' => 1,
+            'projects_minutes' => ['n8n' => 900],
+            'categories' => [],
+            'tags' => [],
+            'machines' => [],
+        ], null);
+
+        $this->assertSame(
+            ['Unavailable until automated records exist for both periods.'],
+            $lines
+        );
+    }
+
+    public function test_comparison_lines_handle_a_zero_minute_baseline(): void
+    {
+        $current = [
+            'active_minutes' => 15,
+            'tasks_completed' => 1,
+            'projects_minutes' => ['n8n' => 900],
+            'categories' => [],
+            'tags' => ['reports' => 1],
+            'machines' => ['MMCH'],
+        ];
+        $previous = [
+            'active_minutes' => 0,
+            'tasks_completed' => 2,
+            'projects_minutes' => [],
+            'categories' => [],
+            'tags' => ['release' => 1],
+            'machines' => [],
+        ];
+
+        $lines = ReportGenerator::comparisonLines($current, $previous);
+
+        $this->assertSame([
+            'Active time: 15 min vs 0 min (no baseline yet).',
+            'Tasks completed: 1 vs 2.',
+            'Top project: n8n (15 min); none in the previous period.',
+            'Top tags: reports vs release.',
+        ], $lines);
+    }
+
+    public function test_generate_writes_real_historical_comparison_into_content(): void
+    {
+        $user = User::factory()->create();
+        $yesterday = $this->wib('2026-11-02 00:00:00');
+        $today = $this->wib('2026-11-03 00:00:00');
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'yesterday work',
+            'category' => 'Development', 'status' => 'completed',
+            'completed_at' => $this->utc($yesterday->copy()->addHours(9)),
+            'started_at' => $this->utc($yesterday->copy()->addHours(7)),
+            'last_activity_at' => $this->utc($yesterday->copy()->addHours(9)),
+            'duration_seconds' => 5400, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+
+        $first = app(ReportGenerator::class)->generate($user, 'daily', $yesterday, $yesterday);
+        $this->assertStringContainsString(
+            '- Unavailable until automated records exist for both periods.',
+            $first->content
+        );
+
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'ship it',
+            'category' => 'Development', 'status' => 'completed',
+            'completed_at' => $this->utc($today->copy()->addHours(9)),
+            'started_at' => $this->utc($today->copy()->addHours(8)),
+            'last_activity_at' => $this->utc($today->copy()->addHours(9)),
+            'duration_seconds' => 2580, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+        AgentSession::factory()->create([
+            'user_id' => $user->id, 'project' => 'zettly', 'title' => 'debug parser',
+            'category' => 'Development', 'status' => 'in_progress',
+            'started_at' => $this->utc($today->copy()->addHours(10)),
+            'last_activity_at' => $this->utc($today->copy()->addHours(10)),
+            'duration_seconds' => 1200, 'machine' => 'MMCH',
+            'files_changed' => [], 'errors' => [],
+        ]);
+
+        $report = app(ReportGenerator::class)->generate($user, 'daily', $today, $today);
+
+        $this->assertStringContainsString('- Active time: 63 min vs 90 min (-30%).', $report->content);
+        $this->assertStringContainsString('- Tasks completed: 1 vs 1.', $report->content);
+        $this->assertStringContainsString(
+            '- Top project: zettly (63 min) vs zettly (90 min).',
+            $report->content
+        );
+        $this->assertStringNotContainsString('Unavailable until automated records', $report->content);
+    }
 }

@@ -117,3 +117,40 @@ data (tags on todos/notes, session projects/categories).
   digest + an "At a glance" panel (pure CSS bars for project share, tag
   chips with counts) and keeps the raw content below, unchanged.
 - The `## Summary` paragraph optionally mentions up to three top tags.
+
+## Extension: real historical comparison (2026-11-09, same day)
+
+Goal: replace the placeholder `## Historical comparison` section with a
+deterministic comparison computed from `report_summaries`. No LLM, no new
+migration, no rewrite of raw report content.
+
+- `ReportGenerator::comparisonLines(array $current, ?array $previous)` is
+  static and pure. Both arguments are the flat metric shape of a
+  `report_summaries` row (`summaryAttributes()` normalizes seconds/count
+  columns into `active_minutes`, `tasks_completed`, `projects_minutes`,
+  `categories`, `tags`, `machines`).
+- Up to four lines: active time with signed % delta (zero-baseline guard
+  prints "no baseline yet" instead of dividing by zero), tasks completed,
+  top project with minutes, top three tags on each side. One-sided cases
+  read "; none in the previous period." / "previously.".
+- `$previous === null` keeps the old placeholder line; a quiet previous
+  period (no minutes, no completions, no projects, no tags) yields a single
+  honest "no baseline yet" line instead of misleading zeros.
+- "Previous period" = the latest same-kind `ReportSummary` with
+  `period_end <` the current period's start. `generate()` looks it up before
+  rendering and passes it to `render()` (new 8th parameter, default null),
+  so new reports carry the real comparison in their raw content and Discord
+  delivery for free.
+- Legacy reports keep their placeholder content byte-identical:
+  `ReportsController::show()` recomputes the comparison at read time and
+  sends `report.comparison.lines` + `report.comparison.previous_label`
+  (WIB-labeled, e.g. "Nov 7" daily, "M j – M j" weekly, "F" monthly,
+  "Y" yearly) to `Show.jsx`, which renders a compact block below the
+  At-a-glance panel.
+- `ReportDeliveryService::summary()` still drops the comparison section
+  from Discord embeds; its regression pins are on hardcoded content and
+  remain valid.
+
+Tests: five unit tests in `ReportGeneratorTest` pin all four line shapes
+plus the `generate()` regression; `ReportsUiTest` pins the `show()`
+payload (`lines.0`–`lines.3` + `previous_label`).

@@ -93,6 +93,26 @@ class ReportsController extends Controller
         $report = Report::where('user_id', Auth::id())->findOrFail($report);
         $summary = $report->summary()->first();
 
+        // The comparison is computed at read time from report_summaries, so
+        // legacy reports (whose content still carries the placeholder) gain
+        // a live comparison without their raw content being rewritten.
+        $comparison = ['lines' => [], 'previous_label' => null];
+        if ($summary !== null) {
+            $previous = ReportSummary::where('user_id', Auth::id())
+                ->where('period_kind', $summary->period_kind)
+                ->where('period_end', '<', $summary->period_end->toDateString())
+                ->orderByDesc('period_end')
+                ->first();
+
+            $comparison = [
+                'lines' => ReportGenerator::comparisonLines(
+                    ReportGenerator::summaryAttributes($summary),
+                    $previous !== null ? ReportGenerator::summaryAttributes($previous) : null
+                ),
+                'previous_label' => $previous !== null ? self::previousLabel($previous) : null,
+            ];
+        }
+
         return inertia('Reports/Show', [
             'report' => [
                 'id' => $report->id,
@@ -105,8 +125,25 @@ class ReportsController extends Controller
                     ? $summary->digest
                     : self::summary($report->content),
                 'visuals' => self::visuals($summary),
+                'comparison' => $comparison,
             ],
         ]);
+    }
+
+    /**
+     * How the "vs …" label of a previous period reads in the UI, in WIB.
+     */
+    private static function previousLabel(ReportSummary $previous): string
+    {
+        $start = CarbonImmutable::parse($previous->period_start->toDateString())->setTimezone('Asia/Jakarta');
+        $end = CarbonImmutable::parse($previous->period_end->toDateString())->setTimezone('Asia/Jakarta');
+
+        return match ($previous->period_kind) {
+            Report::KIND_WEEKLY => $start->format('M j').' – '.$end->format('M j'),
+            Report::KIND_MONTHLY => $start->format('F'),
+            Report::KIND_YEARLY => $start->format('Y'),
+            default => $start->equalTo($end) ? $start->format('M j') : $start->format('M j').' – '.$end->format('M j'),
+        };
     }
 
     /**

@@ -104,7 +104,8 @@ class ReportGenerator
         Collection $sessions,
         Collection $journalEntries = new Collection,
         Collection $todos = new Collection,
-        int $undatedCompletions = 0
+        int $undatedCompletions = 0,
+        ?array $previousSummary = null
     ): string
     {
         $wibStart = $start->setTimezone('Asia/Jakarta')->startOfDay();
@@ -309,10 +310,140 @@ class ReportGenerator
         $lines[] = '';
         $lines[] = '## Historical comparison';
         $lines[] = '';
-        $lines[] = '- Unavailable until automated records exist for both periods.';
+
+        $projectsMinutes = [];
+        foreach ($sessions as $session) {
+            $name = $session->project ?: 'unknown';
+            $projectsMinutes[$name] = ($projectsMinutes[$name] ?? 0) + (int) $session->duration_seconds;
+        }
+
+        foreach (self::comparisonLines([
+            'active_minutes' => intdiv($seconds, 60),
+            'tasks_completed' => $completed + $todosCompleted,
+            'projects_minutes' => $projectsMinutes,
+            'tags' => $this->tagCountsFor($todos, $journalEntries),
+        ], $previousSummary) as $comparisonLine) {
+            $lines[] = '- '.$comparisonLine;
+        }
+
         $lines[] = '';
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * The deterministic "## Historical comparison" lines.
+     *
+     * Both arguments are the flat metric shapes of a report_summaries row
+     * (see summaryAttributes()). $previous is null when no earlier report of
+     * the same kind exists - the honest placeholder stays; a quiet previous
+     * period yields one explanation line instead of misleading zeros.
+     *
+     * @param array $current
+     * @param array|null $previous
+     * @return array<int, string>
+     */
+    public static function comparisonLines(array $current, ?array $previous): array
+    {
+        if ($previous === null) {
+            return ['Unavailable until automated records exist for both periods.'];
+        }
+
+        $quiet = (int) ($previous['active_minutes'] ?? 0) === 0
+            && (int) ($previous['tasks_completed'] ?? 0) === 0
+            && empty($previous['projects_minutes'])
+            && empty($previous['tags']);
+
+        if ($quiet) {
+            return ['No activity recorded in the previous period, so there is no baseline to compare yet.'];
+        }
+
+        $lines = [];
+
+        $curMinutes = (int) ($current['active_minutes'] ?? 0);
+        $prevMinutes = (int) ($previous['active_minutes'] ?? 0);
+        $diff = $curMinutes - $prevMinutes;
+
+        if ($prevMinutes === 0) {
+            $delta = 'no baseline yet';
+        } else {
+            $delta = $diff === 0
+                ? '0%'
+                : ($diff > 0 ? '+' : '-').intdiv(abs($diff) * 100, $prevMinutes).'%';
+        }
+
+        $lines[] = sprintf('Active time: %d min vs %d min (%s).', $curMinutes, $prevMinutes, $delta);
+        $lines[] = sprintf('Tasks completed: %d vs %d.', (int) ($current['tasks_completed'] ?? 0), (int) ($previous['tasks_completed'] ?? 0));
+
+        $curProject = self::topEntry($current['projects_minutes'] ?? []);
+        $prevProject = self::topEntry($previous['projects_minutes'] ?? []);
+        if ($curProject !== null && $prevProject !== null) {
+            $lines[] = sprintf('Top project: %s (%d min) vs %s (%d min).', $curProject[0], $curProject[1], $prevProject[0], $prevProject[1]);
+        } elseif ($curProject !== null) {
+            $lines[] = sprintf('Top project: %s (%d min); none in the previous period.', $curProject[0], $curProject[1]);
+        } elseif ($prevProject !== null) {
+            $lines[] = sprintf('Top project: none this period; %s (%d min) previously.', $prevProject[0], $prevProject[1]);
+        }
+
+        $curTags = self::topNames($current['tags'] ?? []);
+        $prevTags = self::topNames($previous['tags'] ?? []);
+        if ($curTags !== [] && $prevTags !== []) {
+            $lines[] = 'Top tags: '.implode(', ', $curTags).' vs '.implode(', ', $prevTags).'.';
+        } elseif ($curTags !== []) {
+            $lines[] = 'Top tags: '.implode(', ', $curTags).'; none in the previous period.';
+        } elseif ($prevTags !== []) {
+            $lines[] = 'Top tags: none this period; '.implode(', ', $prevTags).' previously.';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * The flat metric shape of a report_summaries row, for comparisonLines().
+     */
+    public static function summaryAttributes(ReportSummary $summary): array
+    {
+        return [
+            'active_minutes' => (int) $summary->active_minutes,
+            'tasks_completed' => (int) $summary->tasks_completed,
+            'tasks_open' => (int) $summary->tasks_open,
+            'projects_minutes' => $summary->projects_minutes ?? [],
+            'categories' => $summary->categories ?? [],
+            'tags' => $summary->tags ?? [],
+            'machines' => $summary->machines ?? [],
+        ];
+    }
+
+    /**
+     * The single largest entry of a name => seconds map, as [name, minutes];
+     * ties broken by name ascending. Null when the map is empty.
+     *
+     * @return array{0: string, 1: int}|null
+     */
+    private static function topEntry(array $map): ?array
+    {
+        $best = null;
+
+        foreach ($map as $name => $seconds) {
+            $minutes = intdiv((int) $seconds, 60);
+            if ($best === null || $minutes > $best[1] || ($minutes === $best[1] && strcasecmp((string) $name, $best[0]) < 0)) {
+                $best = [(string) $name, $minutes];
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Up to three tag names, by count descending then name (case-insensitive).
+     * @return array<int, string>
+     */
+    private static function topNames(array $map, int $limit = 3): array
+    {
+        $pairs = array_map(fn ($name, $count) => [(string) $name, (int) $count], array_keys($map), $map);
+        usort($pairs, fn ($a, $b) => $b[1] <=> $a[1] ?: strcasecmp($a[0], $b[0]));
+
+        return array_map(fn ($pair) => $pair[0], array_slice($pairs, 0, $limit));
     }
 
     /**
@@ -466,7 +597,25 @@ class ReportGenerator
 
         [$sessions, $journalEntries, $todos, $undatedCompletions] = $this->rawDataFor($user, $start, $end);
 
-        $content = $this->render($periodKind, $start, $end, $sessions, $journalEntries, $todos, $undatedCompletions);
+        // The comparison baseline: the latest earlier report of the same kind.
+        // generateDue() runs chronologically, so that report already has its
+        // summary row by the time its successor is generated.
+        $previous = ReportSummary::where('user_id', $user->id)
+            ->where('period_kind', $periodKind)
+            ->where('period_end', '<', $start->toDateString())
+            ->orderByDesc('period_end')
+            ->first();
+
+        $content = $this->render(
+            $periodKind,
+            $start,
+            $end,
+            $sessions,
+            $journalEntries,
+            $todos,
+            $undatedCompletions,
+            $previous !== null ? self::summaryAttributes($previous) : null
+        );
 
         $report = Report::updateOrCreate(
             [

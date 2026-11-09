@@ -149,6 +149,7 @@ export default function ReportsShow({ report }) {
     const headlineContent = stripSummarySection(rawLead).trim();
     const visuals = report.visuals || { projects: [], categories: [], tags: [] };
     const hasVisuals = visuals.projects.length > 0 || visuals.categories.length > 0 || visuals.tags.length > 0;
+    const comparison = report.comparison || { lines: [], previous_label: null };
 
     const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -201,6 +202,26 @@ export default function ReportsShow({ report }) {
                                     </GlanceBlock>
                                 ) : null}
                             </div>
+                        </div>
+                    ) : null}
+
+                    {comparison.lines.length > 0 ? (
+                        <div className="mt-5">
+                            <div className="mb-1.5 flex items-baseline gap-2">
+                                <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                                    Historical comparison
+                                </h3>
+                                {comparison.previous_label ? (
+                                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
+                                        vs {comparison.previous_label}
+                                    </span>
+                                ) : null}
+                            </div>
+                            <ul className="space-y-1">
+                                {comparison.lines.map((line, i) => (
+                                    <li key={i} className="text-xs leading-relaxed text-gray-600 dark:text-slate-300">{line}</li>
+                                ))}
+                            </ul>
                         </div>
                     ) : null}
 
