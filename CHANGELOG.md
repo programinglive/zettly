@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.12](https://github.com/programinglive/todo/compare/v0.12.11...v0.12.12) (2026-11-09)
+
+
+### 📝 Documentation
+
+* record v0.12.11 release notes entry ([e6bca63](https://github.com/programinglive/todo/commit/e6bca63fb8045185037b2b7ccb01d1a74664c703))
+
+
+### 🐛 Bug Fixes
+
+* **agent-api:** make started_at optional so client Stop updates are accepted ([8b7ae0b](https://github.com/programinglive/todo/commit/8b7ae0b15380901a226bb41483eb610aee0cb1d1))
+
 ### [0.12.11](https://github.com/programinglive/todo/compare/v0.12.10...v0.12.11) (2026-11-09)
 
 
