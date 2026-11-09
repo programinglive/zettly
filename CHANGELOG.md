@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.7](https://github.com/programinglive/todo/compare/v0.12.6...v0.12.7) (2026-11-09)
+
+
+### ✨ Features
+
+* **cli:** add checklist subtasks, related links, attachments, and status shortcuts ([bb996a0](https://github.com/programinglive/todo/commit/bb996a0f4354183e8bcfddb8f25b5c0557a9037f))
+* **reports:** add in-app reports workspace for work recaps ([67f41b5](https://github.com/programinglive/todo/commit/67f41b54020e33dbda6951b5f85b395ce9f5c363))
+
+
+### 🧹 Chores
+
+* **deps:** lock marked, which package.json declares but the lockfile missed ([c95f524](https://github.com/programinglive/todo/commit/c95f5241b6b8127ac36e6490bc1ac42b1f356607))
+
+
+### 🐛 Bug Fixes
+
+* **cli:** allow mutable assignment for positional id shorthand and resolve endpoint ([22b448f](https://github.com/programinglive/todo/commit/22b448f08331a5d9edd908c4d704a9c9c6e61db6))
+* **reports:** write-only catch-up for missed nights and deterministic nightly tests ([3bcab57](https://github.com/programinglive/todo/commit/3bcab577201a6ea2d84560c383d3acfe016e7a4c))
+* **routes:** move the in-app report detail under /reports/view ([62abfa3](https://github.com/programinglive/todo/commit/62abfa3af4cbeb647de0eb7ce88c122f48181af4))
+
 ### [0.12.6](https://github.com/programinglive/todo/compare/v0.12.5...v0.12.6) (2026-11-08)
 
 
