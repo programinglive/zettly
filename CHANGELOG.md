@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.9](https://github.com/programinglive/todo/compare/v0.12.8...v0.12.9) (2026-11-09)
+
+
+### 📝 Documentation
+
+* record v0.12.8 release notes entry ([a98ab9c](https://github.com/programinglive/todo/commit/a98ab9ccf2b226f4e2e8e3ed78cbb9d781043c69))
+
+
+### ✨ Features
+
+* **reports:** structured report_summaries recap store with visuals and backfill ([287a2d8](https://github.com/programinglive/todo/commit/287a2d8f64d4fa7074dd2402525e81f5176a77d3))
+
 ### [0.12.8](https://github.com/programinglive/todo/compare/v0.12.7...v0.12.8) (2026-11-09)
 
 
