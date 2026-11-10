@@ -23,6 +23,7 @@ ZETTLY_WORKER_TOKEN="$(access_secret zettly-agent-worker-token)"
 GH_TOKEN="$(access_secret zettly-agent-github-token)"
 openai_key="$(access_secret zettly-agent-openai-api-key)"
 printf '%s' "${openai_key}" | codex login --with-api-key >/dev/null
+export CODEX_API_KEY="${openai_key}"
 unset openai_key
 
 exec /usr/bin/python3 -m agent_worker
