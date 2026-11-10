@@ -86,7 +86,7 @@ class CodingAgentPagesTest extends TestCase
         $todo->checklistItems()->create([
             'title' => 'Add eager loading test',
             'is_completed' => false,
-            'order' => 1,
+            'position' => 1,
         ]);
 
         CodingAgentJob::create([

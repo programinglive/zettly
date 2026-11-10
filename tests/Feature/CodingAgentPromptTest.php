@@ -30,7 +30,7 @@ class CodingAgentPromptTest extends TestCase
         $todo->checklistItems()->create([
             'title' => 'Verify CSV headers and UTF-8 BOM',
             'is_completed' => false,
-            'order' => 1,
+            'position' => 1,
         ]);
 
         config()->set('coding_agent.repositories', [

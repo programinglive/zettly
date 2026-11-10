@@ -39,7 +39,7 @@ class CodingAgentJobController extends Controller
         $todos = Todo::query()->where('user_id', $userId)
             ->whereNull('organization_id')->where('type', Todo::TYPE_TODO)
             ->where('is_completed', false)->orderBy('title')->limit(100)
-            ->with(['checklistItems:id,todo_id,title,is_completed,order', 'tags:id,name'])
+            ->with(['checklistItems:id,todo_id,title,is_completed,position', 'tags:id,name'])
             ->get(['id', 'title', 'description', 'priority'])
             ->map(fn (Todo $todo) => [
                 'id' => $todo->id,
