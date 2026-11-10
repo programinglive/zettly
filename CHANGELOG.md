@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.26](https://github.com/programinglive/todo/compare/v0.12.25...v0.12.26) (2026-11-10)
+
+
+### 📝 Documentation
+
+* **release:** record v0.12.25 release notes ([a779529](https://github.com/programinglive/todo/commit/a779529b90f92a29b55dd94cfcb89cd1894bcb65))
+
+
+### 🐛 Bug Fixes
+
+* **agent:** select position column on todo checklist items for PostgreSQL compatibility ([4299cca](https://github.com/programinglive/todo/commit/4299cca24cc372d41a091cc719712ae429a1af78))
+
 ### [0.12.25](https://github.com/programinglive/todo/compare/v0.12.24...v0.12.25) (2026-11-10)
 
 
