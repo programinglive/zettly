@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.21 | 2026-11-10 | **agent:** add AI magic wand prompt generator and enhancer (5689f64) |
 | 0.12.17 | 2026-11-10 | record v0.12.16 release notes entry (55e8cb0) |
 | 0.12.16 | 2026-11-10 | **agent:** configure custom model provider and env key for kenari codex worker (#23) (2595d59) |
 | 0.12.15 | 2026-11-10 | **agent:** allow worker user to execute installed node and codex CLIs (#21) (307e08d) |
@@ -60,6 +61,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.21 – ✨ Features
+
+Released on **2026-11-10**.
+
+- **agent:** add AI magic wand prompt generator and enhancer (5689f64)
 
 ## 0.12.17 – 📝 Documentation
 
