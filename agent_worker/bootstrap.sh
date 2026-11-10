@@ -52,6 +52,8 @@ env_key = "CODEX_API_KEY"
 EOF
 chown -R zettly-agent:zettly-agent /home/zettly-agent/.codex
 chmod 0640 /home/zettly-agent/.codex/config.toml
+runuser -u zettly-agent -- git config --global user.name "Zettly Coding Agent"
+runuser -u zettly-agent -- git config --global user.email "technology@edmeeclinic.com"
 
 archive="$(mktemp)"
 trap 'rm -f "${archive}"' EXIT

@@ -46,6 +46,14 @@ class BootstrapScriptTest(unittest.TestCase):
         content = start_script.read_text(encoding="utf-8")
         self.assertIn('export CODEX_API_KEY="${openai_key}"', content)
 
+    def test_git_identity_configured_for_worker(self):
+        self.assertIn('git config --global user.name "Zettly Coding Agent"', self.script_content)
+        self.assertIn('git config --global user.email "technology@edmeeclinic.com"', self.script_content)
+        start_script = Path(__file__).resolve().parent / "start.sh"
+        start_content = start_script.read_text(encoding="utf-8")
+        self.assertIn('git config --global user.name "Zettly Coding Agent"', start_content)
+        self.assertIn('git config --global user.email "technology@edmeeclinic.com"', start_content)
+
 
 if __name__ == "__main__":
     unittest.main()
