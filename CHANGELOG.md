@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.20](https://github.com/programinglive/todo/compare/v0.12.19...v0.12.20) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** complete coding job 5 ([d849c1b](https://github.com/programinglive/todo/commit/d849c1b2eeda97fc8f627c4fb855069772850e35))
+* **agent:** release coding job [#5](https://github.com/programinglive/todo/issues/5) ([40c6451](https://github.com/programinglive/todo/commit/40c645194d17fa90dd85ab879fb59cf10562cb18))
+
 ### [0.12.19](https://github.com/programinglive/todo/compare/v0.12.18...v0.12.19) (2026-11-10)
 
 
