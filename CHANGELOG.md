@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.24](https://github.com/programinglive/todo/compare/v0.12.23...v0.12.24) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** add real-time worker execution phases, live status banner, and accelerated polling ([0d667bd](https://github.com/programinglive/todo/commit/0d667bd1dff0b3a9267d70f8e9adb704e3dbe6e0))
+
 ### [0.12.23](https://github.com/programinglive/todo/compare/v0.12.22...v0.12.23) (2026-11-10)
 
 
