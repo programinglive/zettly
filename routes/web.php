@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::post('jobs/{job}/resume', [\App\Http\Controllers\CodingAgentJobController::class, 'resume'])->name('jobs.resume');
         Route::post('jobs/{job}/cancel', [\App\Http\Controllers\CodingAgentJobController::class, 'cancel'])->name('jobs.cancel');
         Route::post('jobs/{job}/approve-release', [\App\Http\Controllers\CodingAgentApprovalController::class, 'store'])->name('jobs.approve-release');
+        Route::post('generate-prompt', [\App\Http\Controllers\CodingAgentPromptController::class, 'generate'])->name('generate-prompt');
     });
     Route::get('reports/{report}', \App\Http\Controllers\ReportDetailsController::class)->name('reports.show');
     // Special routes that need to come before resource routes

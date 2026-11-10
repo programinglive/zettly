@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import AppLayout from '../../Layouts/AppLayout';
 import { createRequestId, statusLabel } from './jobView';
 
 export default function Index({ jobs, todos, repositories, models, default_model }) {
     const form = useForm({ todo_id: todos[0]?.id ?? '', repository: repositories[0] ?? '', instruction: '', model: default_model ?? models?.[0] ?? 'agnes-3-0-flash:free', client_request_id: '' });
     const [online, setOnline] = useState(typeof navigator === 'undefined' || navigator.onLine);
+    const [generatingPrompt, setGeneratingPrompt] = useState(false);
+    const [promptError, setPromptError] = useState('');
 
     useEffect(() => {
         const update = () => setOnline(navigator.onLine);
@@ -31,6 +34,31 @@ export default function Index({ jobs, todos, repositories, models, default_model
         form.setData('client_request_id', requestId);
     };
 
+    const enhancePrompt = async () => {
+        if (!form.data.todo_id) {
+            setPromptError('Please select a Todo first.');
+            return;
+        }
+        setGeneratingPrompt(true);
+        setPromptError('');
+        try {
+            const response = await axios.post('/agent/generate-prompt', {
+                todo_id: form.data.todo_id,
+                instruction: form.data.instruction,
+                repository: form.data.repository,
+                model: form.data.model,
+            });
+            if (response.data?.prompt) {
+                form.setData('instruction', response.data.prompt);
+            }
+        } catch (err) {
+            const msg = err.response?.data?.error || err.message || 'Failed to generate prompt.';
+            setPromptError(msg);
+        } finally {
+            setGeneratingPrompt(false);
+        }
+    };
+
     return <AppLayout title="Coding Agent">
         <Head title="Coding Agent" />
         <div className="mx-auto max-w-3xl space-y-6 py-6 pb-20">
@@ -53,9 +81,31 @@ export default function Index({ jobs, todos, repositories, models, default_model
                         {(models ?? [form.data.model]).map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                 </label>
-                <label className="block text-sm font-medium">What should the agent do?
-                    <textarea className="mt-1 min-h-32 w-full rounded-lg border p-3 dark:bg-gray-900" maxLength={5000} value={form.data.instruction} onChange={(e) => form.setData('instruction', e.target.value)} required />
-                </label>
+                <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="agent-instruction" className="block text-sm font-medium">What should the agent do?</label>
+                        <button
+                            type="button"
+                            onClick={enhancePrompt}
+                            disabled={generatingPrompt || !online || !form.data.todo_id}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
+                            title="Use AI Magic Wand to generate or enhance your prompt based on the selected Todo"
+                        >
+                            <span aria-hidden="true">{generatingPrompt ? '⏳' : '🪄'}</span>
+                            {generatingPrompt ? 'Generating…' : form.data.instruction ? 'Refine with AI' : 'Generate with AI'}
+                        </button>
+                    </div>
+                    <textarea
+                        id="agent-instruction"
+                        className="mt-1 min-h-32 w-full rounded-lg border p-3 dark:bg-gray-900"
+                        maxLength={5000}
+                        value={form.data.instruction}
+                        onChange={(e) => form.setData('instruction', e.target.value)}
+                        placeholder="Describe what the agent should implement, or click 'Generate with AI' above…"
+                        required
+                    />
+                    {promptError && <p className="text-xs text-red-600">{promptError}</p>}
+                </div>
                 {Object.values(form.errors).map((error, index) => <p key={index} className="text-sm text-red-600">{error}</p>)}
                 <button type="submit" disabled={form.processing || !online || !todos.length || !repositories.length} className="w-full rounded-lg bg-blue-700 px-4 py-3 font-medium text-white disabled:opacity-50">{form.processing ? 'Creating…' : 'Create job'}</button>
             </form>
