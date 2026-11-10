@@ -69,7 +69,7 @@ class CodingAgentJobController extends Controller
         $data = $request->validate([
             'todo_id' => ['required', 'integer'],
             'repository' => ['required', 'string', Rule::in(array_keys(config('coding_agent.repositories', [])))],
-            'instruction' => ['required', 'string', 'max:5000'],
+            'instruction' => ['required', 'string', 'max:20000'],
             'client_request_id' => ['required', 'string', 'max:100'],
             'model' => ['nullable', 'string', Rule::in(config('coding_agent.models', ['agnes-3-0-flash:free']))],
         ]);
@@ -99,7 +99,7 @@ class CodingAgentJobController extends Controller
     {
         $job = $this->ownedJob($request, $job);
         abort_unless(in_array($job->status, ['queued', 'running', 'needs_input', 'paused'], true), 409);
-        $data = $request->validate(['instruction' => ['required', 'string', 'max:5000']]);
+        $data = $request->validate(['instruction' => ['required', 'string', 'max:20000']]);
         $job->events()->create([
             'event_key' => (string) Str::uuid(),
             'kind' => 'instruction',

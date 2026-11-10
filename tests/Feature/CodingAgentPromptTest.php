@@ -64,6 +64,30 @@ class CodingAgentPromptTest extends TestCase
         });
     }
 
+    public function test_long_ai_response_is_truncated_to_instruction_max(): void
+    {
+        [$owner, $todo] = $this->setupOwner();
+
+        // AI returns a prompt well over 5000 chars
+        $longPrompt = str_repeat("This is a very detailed instruction line.\n\n", 150); // ~6300 chars
+
+        Http::fake([
+            'https://kenari.id/v1/chat/completions' => Http::response([
+                'choices' => [['message' => ['content' => $longPrompt]]],
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($owner)->postJson('/agent/generate-prompt', [
+            'todo_id' => $todo->id,
+            'repository' => 'zettly',
+        ]);
+
+        $response->assertOk();
+        $prompt = $response->json('prompt');
+        $this->assertLessThanOrEqual(5000, mb_strlen($prompt),
+            'Generated prompt must be truncated to ≤ 5000 chars so it fits the instruction field.');
+    }
+
     public function test_non_owner_is_forbidden_from_generating_prompt(): void
     {
         [$owner, $todo] = $this->setupOwner();
