@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.21](https://github.com/programinglive/todo/compare/v0.12.20...v0.12.21) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** add AI magic wand prompt generator and enhancer ([5689f64](https://github.com/programinglive/todo/commit/5689f648b4c6cdf2013effbb45ce75b9ddc099e2))
+
 ### [0.12.20](https://github.com/programinglive/todo/compare/v0.12.19...v0.12.20) (2026-11-10)
 
 
