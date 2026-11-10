@@ -21,7 +21,10 @@ if [[ -f /opt/zettly-agent/.release-sha256 ]] &&
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update
+# The stock security.ubuntu.com endpoint times out behind this VM's Cloud NAT;
+# the regional GCE mirror serves the same signed noble-security repository.
+sed -i 's#http://security.ubuntu.com/ubuntu#http://asia-southeast2.gce.archive.ubuntu.com/ubuntu#' /etc/apt/sources.list.d/ubuntu.sources
+apt-get -o Acquire::http::Timeout=30 -o Acquire::Retries=2 update
 apt-get install -y ca-certificates curl git gh npm php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 composer unzip
 npm install --global n
 n 22.16.0
