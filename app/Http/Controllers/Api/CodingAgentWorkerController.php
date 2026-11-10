@@ -82,6 +82,20 @@ class CodingAgentWorkerController
         return response()->json(['success' => true]);
     }
 
+    public function instructions(Request $request, CodingAgentJob $job): JsonResponse
+    {
+        $data = $request->validate([
+            'lease_token' => ['required', 'string'],
+            'after_id' => ['sometimes', 'integer', 'min:0'],
+        ]);
+        $job = $this->leasedJob($request, $job, $data['lease_token']);
+        $instructions = $job->events()->where('kind', 'instruction')
+            ->where('id', '>', $data['after_id'] ?? 0)
+            ->orderBy('id')->limit(50)->get(['id', 'detail', 'occurred_at']);
+
+        return response()->json(['data' => $instructions]);
+    }
+
     public function result(Request $request, CodingAgentJob $job): JsonResponse
     {
         $data = $request->validate([
@@ -95,6 +109,7 @@ class CodingAgentWorkerController
         ]);
         $job = $this->leasedJob($request, $job, $data['lease_token']);
         unset($data['lease_token']);
+        $data['test_summary'] = AgentSessionIngestor::redact($data['test_summary'], 2000);
         $job->update([
             ...$data,
             'status' => $data['tests_passed'] ? 'review' : 'failed',

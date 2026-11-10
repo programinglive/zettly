@@ -18,7 +18,11 @@ class CodingAgentJobTransitions
     {
         $next = self::ALLOWED[$job->status][$action] ?? null;
         abort_if($next === null, 409, 'This job cannot perform that action.');
-        $job->update(['status' => $next]);
+        $job->update([
+            'status' => $next,
+            'lease_token_hash' => null,
+            'leased_until' => null,
+        ]);
 
         return $job;
     }

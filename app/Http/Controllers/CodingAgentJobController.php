@@ -9,9 +9,58 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CodingAgentJobController extends Controller
 {
+    public function index(Request $request): Response
+    {
+        $jobs = CodingAgentJob::query()->where('user_id', $request->user()->id)
+            ->with('todo:id,title')->latest()->paginate(12)
+            ->through(fn (CodingAgentJob $job) => [
+                'id' => $job->id,
+                'todo_title' => $job->todo?->title,
+                'repository' => $job->repository,
+                'status' => $job->status,
+                'updated_at' => $job->updated_at?->toIso8601String(),
+            ]);
+
+        return Inertia::render('Agent/Index', [
+            'jobs' => $jobs,
+            'todos' => Todo::query()->where('user_id', $request->user()->id)
+                ->whereNull('organization_id')->where('type', Todo::TYPE_TODO)
+                ->where('is_completed', false)->orderBy('title')->limit(100)
+                ->get(['id', 'title']),
+            'repositories' => array_keys(config('coding_agent.repositories', [])),
+        ]);
+    }
+
+    public function show(Request $request, CodingAgentJob $job): Response
+    {
+        $job = $this->ownedJob($request, $job)->load('todo:id,title');
+
+        return Inertia::render('Agent/Show', [
+            'job' => [
+                'id' => $job->id,
+                'todo_id' => $job->todo_id,
+                'todo_title' => $job->todo?->title,
+                'repository' => $job->repository,
+                'instruction' => $job->instruction,
+                'status' => $job->status,
+                'branch' => $job->branch,
+                'commit_sha' => $job->commit_sha,
+                'pr_url' => $job->pr_url,
+                'test_summary' => $job->test_summary,
+                'tests_passed' => $job->tests_passed,
+                'target_environment' => $job->target_environment,
+                'last_heartbeat_at' => $job->last_heartbeat_at?->toIso8601String(),
+                'approved' => $job->hasCurrentApproval(),
+            ],
+            'events' => $job->events()->latest('occurred_at')->paginate(20, ['id', 'event_key', 'kind', 'detail', 'occurred_at']),
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -37,7 +86,7 @@ class CodingAgentJobController extends Controller
             'This request ID belongs to a different job.'
         );
 
-        return redirect()->route('todos.show', $job->todo_id);
+        return redirect()->route('agent.jobs.show', $job->id);
     }
 
     public function instruction(Request $request, CodingAgentJob $job): RedirectResponse
@@ -52,21 +101,28 @@ class CodingAgentJobController extends Controller
             'occurred_at' => now(),
         ]);
 
-        return redirect()->route('todos.show', $job->todo_id);
+        return redirect()->route('agent.jobs.show', $job->id);
     }
 
     public function pause(Request $request, CodingAgentJob $job, CodingAgentJobTransitions $transitions): RedirectResponse
     {
         $job = $transitions->apply($this->ownedJob($request, $job), 'pause');
 
-        return redirect()->route('todos.show', $job->todo_id);
+        return redirect()->route('agent.jobs.show', $job->id);
+    }
+
+    public function resume(Request $request, CodingAgentJob $job, CodingAgentJobTransitions $transitions): RedirectResponse
+    {
+        $job = $transitions->apply($this->ownedJob($request, $job), 'resume');
+
+        return redirect()->route('agent.jobs.show', $job->id);
     }
 
     public function cancel(Request $request, CodingAgentJob $job, CodingAgentJobTransitions $transitions): RedirectResponse
     {
         $job = $transitions->apply($this->ownedJob($request, $job), 'cancel');
 
-        return redirect()->route('todos.show', $job->todo_id);
+        return redirect()->route('agent.jobs.show', $job->id);
     }
 
     private function ownedJob(Request $request, CodingAgentJob $job): CodingAgentJob

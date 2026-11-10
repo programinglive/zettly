@@ -49,6 +49,6 @@ class CodingAgentApprovalController extends Controller
             $job->update(['status' => 'release_pending']);
         });
 
-        return redirect()->route('todos.show', $job->todo_id);
+        return redirect()->route('agent.jobs.show', $job->id);
     }
 }

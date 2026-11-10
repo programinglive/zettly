@@ -101,4 +101,19 @@ class CodingAgentJobWebTest extends TestCase
         $this->actingAs($owner)->postJson('/agent/jobs', [...$payload, 'instruction' => 'Delete accounts'])->assertStatus(409);
         $this->assertSame('Fix login', CodingAgentJob::firstOrFail()->instruction);
     }
+
+    public function test_owner_can_resume_paused_job_for_a_fresh_lease(): void
+    {
+        $owner = $this->owner();
+        $todo = Todo::factory()->asTask()->create(['user_id' => $owner->id]);
+        $job = CodingAgentJob::create([
+            'user_id' => $owner->id, 'todo_id' => $todo->id, 'repository' => 'zettly',
+            'instruction' => 'Fix login', 'client_request_id' => 'mobile-resume', 'status' => 'paused',
+            'lease_token_hash' => hash('sha256', 'old'), 'leased_until' => now()->addMinute(),
+        ]);
+
+        $this->actingAs($owner)->post("/agent/jobs/{$job->id}/resume")->assertRedirect();
+        $this->assertSame('queued', $job->fresh()->status);
+        $this->assertNull($job->fresh()->lease_token_hash);
+    }
 }

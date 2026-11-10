@@ -104,13 +104,37 @@ class CodingAgentWorkerTest extends TestCase
             'lease_token' => $lease,
             'branch' => 'fix/login',
             'commit_sha' => str_repeat('a', 40),
-            'test_summary' => 'Targeted tests passed',
+            'test_summary' => 'Targeted tests passed; Bearer secretvalue123',
             'tests_passed' => true,
             'target_environment' => 'staging',
         ])->assertOk();
 
         $this->assertSame('review', $job->fresh()->status);
+        $this->assertSame('Targeted tests passed; [redacted]', $job->fresh()->test_summary);
         $this->assertNull($job->fresh()->lease_token_hash);
         $this->assertArrayNotHasKey('lease_token_hash', $job->toArray());
+    }
+
+    public function test_worker_reads_follow_up_instructions_only_while_lease_is_valid(): void
+    {
+        [$owner, $job] = $this->setupJob();
+        $token = $owner->createToken('agent-worker', ['coding-agent:worker'])->plainTextToken;
+        $lease = $this->withToken($token)->postJson('/api/v1/coding-agent/claim')->json('data.lease_token');
+        $event = $job->events()->create([
+            'event_key' => 'owner-1', 'kind' => 'instruction',
+            'detail' => 'Also check sessions', 'occurred_at' => now(),
+        ]);
+        $job->events()->create([
+            'event_key' => 'status-1', 'kind' => 'progress',
+            'detail' => 'Working', 'occurred_at' => now(),
+        ]);
+
+        $this->withToken($token)->postJson("/api/v1/coding-agent/jobs/{$job->id}/instructions", ['lease_token' => $lease])
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $event->id);
+        $this->withToken($token)->postJson("/api/v1/coding-agent/jobs/{$job->id}/instructions", ['lease_token' => $lease, 'after_id' => $event->id])
+            ->assertOk()->assertJsonCount(0, 'data');
+        $job->update(['status' => 'paused']);
+        $this->withToken($token)->postJson("/api/v1/coding-agent/jobs/{$job->id}/instructions", ['lease_token' => $lease])
+            ->assertStatus(409);
     }
 }
