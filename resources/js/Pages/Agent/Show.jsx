@@ -57,7 +57,8 @@ export default function Show({ job, events }) {
                 {job.pr_url && <a href={job.pr_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 underline">Open pull request</a>}
                 {job.test_summary && <p className="whitespace-pre-wrap text-sm">{job.test_summary}</p>}
                 <p className="text-sm">Target: {job.target_environment} · Tests: {job.tests_passed ? 'passed' : 'failed'}</p>
-                {job.approved && <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">Approved for this exact commit. Awaiting the repository release pipeline.</p>}
+                {job.status === 'completed' && <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">Completed. Pull request merged and changes released.</p>}
+                {job.approved && job.status === 'release_pending' && <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">Approved for this exact commit. Awaiting the repository release pipeline.</p>}
                 {approvalReady && <button disabled={!online} onClick={() => router.post(`/agent/jobs/${job.id}/approve-release`, { commit_sha: job.commit_sha, target_environment: job.target_environment })} className="w-full rounded-lg bg-green-700 px-4 py-3 text-sm font-medium text-white disabled:opacity-50">Approve this commit for release</button>}
             </section>}
             <section className="space-y-3"><h2 className="font-medium">Activity</h2>

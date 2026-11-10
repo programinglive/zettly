@@ -41,4 +41,8 @@ return [
         'ws_url' => env('GRAPH_WS_URL'),
     ],
 
+    'github' => [
+        'token' => env('CODING_AGENT_GITHUB_TOKEN', env('GITHUB_TOKEN')),
+    ],
+
 ];

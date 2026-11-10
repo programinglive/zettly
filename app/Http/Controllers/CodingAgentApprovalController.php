@@ -6,6 +6,8 @@ use App\Models\CodingAgentJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CodingAgentApprovalController extends Controller
@@ -46,9 +48,60 @@ class CodingAgentApprovalController extends Controller
                     'occurred_at' => now(),
                 ]);
             }
-            $job->update(['status' => 'release_pending']);
+
+            $merged = $this->attemptAutoMerge($job);
+
+            if ($merged) {
+                $job->update(['status' => 'completed']);
+                $job->todo?->update(['is_completed' => true]);
+                $job->events()->create([
+                    'event_key' => (string) Str::uuid(),
+                    'kind' => 'release_merged',
+                    'detail' => "merged_pr:{$job->pr_url}",
+                    'occurred_at' => now(),
+                ]);
+            } else {
+                $job->update(['status' => 'release_pending']);
+            }
         });
 
         return redirect()->route('agent.jobs.show', $job->id);
+    }
+
+    private function attemptAutoMerge(CodingAgentJob $job): bool
+    {
+        $token = config('coding_agent.github_token') ?? config('services.github.token');
+        if (! $token || ! $job->pr_url) {
+            return false;
+        }
+
+        if (! preg_match('#github\.com/([^/]+/[^/]+)/pull/(\d+)#', $job->pr_url, $matches)) {
+            return false;
+        }
+
+        $repository = $matches[1];
+        $pullNumber = (int) $matches[2];
+
+        try {
+            $response = Http::withToken($token)
+                ->withHeaders([
+                    'Accept' => 'application/vnd.github+json',
+                    'X-GitHub-Api-Version' => '2022-11-28',
+                ])
+                ->put("https://api.github.com/repos/{$repository}/pulls/{$pullNumber}/merge", [
+                    'commit_title' => "feat(agent): release coding job #{$job->id}",
+                    'merge_method' => 'merge',
+                ]);
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            Log::warning("GitHub PR merge failed for job #{$job->id}: {$response->status()} - {$response->body()}");
+        } catch (\Throwable $e) {
+            Log::error("GitHub PR merge exception for job #{$job->id}: {$e->getMessage()}");
+        }
+
+        return false;
     }
 }
