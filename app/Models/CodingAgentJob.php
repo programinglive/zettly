@@ -43,4 +43,20 @@ class CodingAgentJob extends Model
     {
         return $this->hasMany(CodingAgentJobEvent::class, 'coding_agent_job_id');
     }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(CodingAgentApproval::class, 'coding_agent_job_id');
+    }
+
+    public function hasCurrentApproval(): bool
+    {
+        if (! $this->commit_sha || ! $this->target_environment) {
+            return false;
+        }
+
+        return $this->approvals()->where('repository', $this->repository)
+            ->where('target_environment', $this->target_environment)
+            ->where('commit_sha', $this->commit_sha)->exists();
+    }
 }
