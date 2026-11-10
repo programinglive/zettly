@@ -14,7 +14,7 @@ on:
 
 jobs:
   worker-tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - name: Test worker orchestration
@@ -23,7 +23,7 @@ jobs:
   worker-release:
     if: startsWith(github.ref, 'refs/tags/agent-worker-v')
     needs: worker-tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: write
     steps:
@@ -48,7 +48,7 @@ jobs:
   worker-deploy:
     if: startsWith(github.ref, 'refs/tags/agent-worker-v')
     needs: worker-release
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: read
       id-token: write
