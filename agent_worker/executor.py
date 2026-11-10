@@ -185,7 +185,12 @@ class JobExecutor:
         if not staged:
             raise RuntimeError('Agent produced no code changes')
         self.check_staged_paths(staged)
-        self._run(['git', '-c', 'core.hooksPath=/dev/null', 'commit', '-m', f'feat(agent): complete coding job {job["id"]}'], cwd=worktree)
+        self._run([
+            'git', '-c', 'core.hooksPath=/dev/null',
+            '-c', 'user.name=Zettly Coding Agent',
+            '-c', 'user.email=technology@edmeeclinic.com',
+            'commit', '-m', f'feat(agent): complete coding job {job["id"]}',
+        ], cwd=worktree)
         sha = self._run(['git', 'rev-parse', 'HEAD'], cwd=worktree, capture=True)
         checkpoint()
         self._run_with_heartbeat(

@@ -26,4 +26,7 @@ printf '%s' "${openai_key}" | codex login --with-api-key >/dev/null
 export CODEX_API_KEY="${openai_key}"
 unset openai_key
 
+git config --global user.name "Zettly Coding Agent"
+git config --global user.email "technology@edmeeclinic.com"
+
 exec /usr/bin/python3 -m agent_worker
