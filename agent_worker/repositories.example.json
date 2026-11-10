@@ -1,0 +1,15 @@
+{
+  "zettly": {
+    "remote": "programinglive/zettly",
+    "base": "main",
+    "setup": [
+      ["composer", "install", "--no-interaction", "--prefer-dist"],
+      ["npm", "ci"]
+    ],
+    "tests": [
+      ["php", "artisan", "test", "--compact"],
+      ["npm", "test"],
+      ["npm", "run", "build"]
+    ]
+  }
+}

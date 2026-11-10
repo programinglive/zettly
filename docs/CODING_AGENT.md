@@ -26,6 +26,7 @@ All routes below require `Authorization: Bearer <dedicated-worker-token>` and `C
 | POST | `/api/v1/coding-agent/jobs/{id}/instructions` | Read at most 50 follow-up instructions after an event ID. Send `lease_token` and optional `after_id` in the JSON body. |
 | POST | `/api/v1/coding-agent/jobs/{id}/events` | Append `event_key`, `kind`, `detail`, `occurred_at`, and `lease_token`. Repeating an event key is idempotent. Detail is redacted and bounded before storage. |
 | POST | `/api/v1/coding-agent/jobs/{id}/result` | Submit `lease_token`, `branch`, `commit_sha`, `pr_url` (optional), `test_summary`, `tests_passed`, and `target_environment`. A passing result enters review; a failing result enters failed. |
+| POST | `/api/v1/coding-agent/jobs/{id}/fail` | Mark a leased job failed with `lease_token` and a bounded `summary` when no commit exists. |
 
 Lease tokens expire after 120 seconds and are stored only as hashes. The worker must stop work if a heartbeat or instruction request returns HTTP 409, such as when the owner pauses or cancels the job or another worker reclaims an expired lease. The worker cannot approve a release. A browser session and a generic CLI token cannot use these routes.
 
@@ -33,4 +34,6 @@ The worker should perform all code changes on a branch, run local tests, use Con
 
 ## Current rollout boundary
 
-The control plane and tests are in the Zettly branch. A GCP VM, worker runtime, secret delivery, repository-specific CI adapter, and production enablement remain separate follow-up work. Billing and available Compute Engine instances must be verified again immediately before provisioning; prior account inventory is not proof of a live VM.
+The control plane is in draft PR #17. The worker implementation and its checks are in a separate dependent branch. The GCP pilot VM `zettly-coding-agent-1` exists in `phrasal-ground-377312`, zone `asia-southeast2-a`, with an e2-standard-2 machine, 50 GiB balanced boot disk, dedicated service account, private `10.250.10.2` address, and no external IP. It is currently **stopped**. Its dedicated VPC allows SSH only from IAP and uses Cloud NAT for outbound access. The project has a verified IDR 2,000,000 monthly budget with 50%, 90%, and 100% alerts; alerts are not a hard spending cap. Stopped VM storage and networking resources can still incur charges. See [Cloud NAT pricing](https://cloud.google.com/nat/pricing) and [IAP TCP forwarding](https://docs.cloud.google.com/iap/docs/using-tcp-forwarding).
+
+`technology@edmeeclinic.com` has IAP tunnel and OS Login administrator access for infrastructure maintenance. The requested `mahatma.mahardhika@programinglive.com` address was rejected as a nonexistent GCP IAM user; Zettly application access remains restricted to that exact address. The VM has no worker installed or service credentials. Secret delivery, an official worker deployment pipeline, a disposable PostgreSQL competing-claim test, end-to-end phone smoke test, and repository-specific CI release adapter remain open. Do not enable `CODING_AGENT_ENABLED` until the worker can process a test job and the exact-SHA review flow has been verified.

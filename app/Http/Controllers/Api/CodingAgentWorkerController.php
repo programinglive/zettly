@@ -120,6 +120,24 @@ class CodingAgentWorkerController
         return response()->json(['success' => true]);
     }
 
+    public function fail(Request $request, CodingAgentJob $job): JsonResponse
+    {
+        $data = $request->validate([
+            'lease_token' => ['required', 'string'],
+            'summary' => ['required', 'string', 'max:2000'],
+        ]);
+        $job = $this->leasedJob($request, $job, $data['lease_token']);
+        $job->update([
+            'status' => 'failed',
+            'test_summary' => AgentSessionIngestor::redact($data['summary'], 2000),
+            'tests_passed' => false,
+            'lease_token_hash' => null,
+            'leased_until' => null,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     private function leasedJob(Request $request, CodingAgentJob $job, string $leaseToken): CodingAgentJob
     {
         $job = CodingAgentJob::query()->whereKey($job->id)

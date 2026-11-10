@@ -1,0 +1,18 @@
+name: Coding agent worker checks
+
+on:
+  pull_request:
+    paths:
+      - 'agent_worker/**'
+      - '.github/workflows/coding-agent-worker.yml'
+      - 'app/Http/Controllers/Api/CodingAgentWorkerController.php'
+      - 'routes/api.php'
+      - 'tests/Feature/Api/CodingAgentWorkerTest.php'
+
+jobs:
+  worker-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test worker orchestration
+        run: python3 -m unittest discover -s agent_worker -p 'test_*.py' -v
