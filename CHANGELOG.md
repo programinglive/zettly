@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.25](https://github.com/programinglive/todo/compare/v0.12.24...v0.12.25) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** consolidate Factory engineering hub features into Zettly ([05643e3](https://github.com/programinglive/todo/commit/05643e3f51b1719b8dec90d89b52161f316686b5))
+
+
+### 🧹 Chores
+
+* **release:** merge feat/consolidate-factory-to-zettly into main ([1103f3b](https://github.com/programinglive/todo/commit/1103f3be5b0aa055e198743bfcd6706a92afadbe))
+
 ### [0.12.24](https://github.com/programinglive/todo/compare/v0.12.23...v0.12.24) (2026-11-10)
 
 
