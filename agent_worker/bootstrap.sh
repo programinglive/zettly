@@ -25,7 +25,9 @@ export DEBIAN_FRONTEND=noninteractive
 # the regional GCE mirror serves the same signed noble-security repository.
 sed -i 's#http://security.ubuntu.com/ubuntu#http://asia-southeast2.gce.archive.ubuntu.com/ubuntu#' /etc/apt/sources.list.d/ubuntu.sources
 apt-get -o Acquire::http::Timeout=30 -o Acquire::Retries=2 update
-apt-get install -y ca-certificates curl git gh npm php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 composer unzip
+apt-get install -y ca-certificates curl git gh npm php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 composer unzip bubblewrap
+sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 2>/dev/null || true
+echo 'kernel.apparmor_restrict_unprivileged_userns=0' > /etc/sysctl.d/99-bubblewrap.conf 2>/dev/null || true
 npm install --global n
 n 22.16.0
 npm install --global @openai/codex@0.167.0
@@ -37,6 +39,19 @@ id zettly-agent >/dev/null 2>&1 || useradd --create-home --home-dir /home/zettly
 install -d -m 0755 /opt/zettly-agent
 install -d -m 0700 -o zettly-agent -g zettly-agent /srv/zettly-agent
 install -d -m 0750 -o root -g zettly-agent /etc/zettly-agent
+install -d -m 0750 -o zettly-agent -g zettly-agent /home/zettly-agent/.codex
+
+cat >/home/zettly-agent/.codex/config.toml <<'EOF'
+model_provider = "openai-custom"
+model = "gpt-6-1-sol"
+
+[model_providers.openai-custom]
+name = "openai"
+base_url = "https://kenari.id/v1"
+env_key = "CODEX_API_KEY"
+EOF
+chown -R zettly-agent:zettly-agent /home/zettly-agent/.codex
+chmod 0640 /home/zettly-agent/.codex/config.toml
 
 archive="$(mktemp)"
 trap 'rm -f "${archive}"' EXIT

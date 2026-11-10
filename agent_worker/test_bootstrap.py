@@ -32,6 +32,20 @@ class BootstrapScriptTest(unittest.TestCase):
                 f"bootstrap.sh must verify that '{cmd}' executes successfully as the unprivileged zettly-agent user",
             )
 
+    def test_bootstrap_installs_bubblewrap_and_configures_userns(self):
+        self.assertIn("bubblewrap", self.script_content, "bootstrap.sh must install bubblewrap for codex sandbox")
+        self.assertIn("kernel.apparmor_restrict_unprivileged_userns=0", self.script_content)
+
+    def test_bootstrap_configures_codex_model_provider(self):
+        self.assertIn('model_provider = "openai-custom"', self.script_content)
+        self.assertIn('base_url = "https://kenari.id/v1"', self.script_content)
+        self.assertIn('env_key = "CODEX_API_KEY"', self.script_content)
+
+    def test_start_script_exports_codex_api_key(self):
+        start_script = Path(__file__).resolve().parent / "start.sh"
+        content = start_script.read_text(encoding="utf-8")
+        self.assertIn('export CODEX_API_KEY="${openai_key}"', content)
+
 
 if __name__ == "__main__":
     unittest.main()
