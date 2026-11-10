@@ -49,6 +49,9 @@ model = "agnes-3-0-flash:free"
 name = "openai"
 base_url = "https://kenari.id/v1"
 env_key = "CODEX_API_KEY"
+
+[mcp_servers.central-gateway]
+url = "http://100.77.138.14:3200/mcp"
 EOF
 chown -R zettly-agent:zettly-agent /home/zettly-agent/.codex
 chmod 0640 /home/zettly-agent/.codex/config.toml

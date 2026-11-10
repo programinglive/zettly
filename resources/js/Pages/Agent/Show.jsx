@@ -10,6 +10,9 @@ export default function Show({ job, events }) {
     const [now, setNow] = useState(Date.now());
     const [copied, setCopied] = useState(false);
 
+    const isLive = ['queued', 'running', 'needs_input'].includes(job.status);
+    const pollInterval = isLive ? 3000 : 15000;
+
     useEffect(() => {
         const update = () => setOnline(navigator.onLine);
         window.addEventListener('online', update);
@@ -17,13 +20,13 @@ export default function Show({ job, events }) {
         const timer = window.setInterval(() => {
             setNow(Date.now());
             if (navigator.onLine && !document.hidden) router.reload({ only: ['job', 'events'] });
-        }, 15000);
+        }, pollInterval);
         return () => {
             window.removeEventListener('online', update);
             window.removeEventListener('offline', update);
             window.clearInterval(timer);
         };
-    }, []);
+    }, [pollInterval]);
 
     const copyPrompt = async () => {
         if (!job.instruction) return;
@@ -42,6 +45,19 @@ export default function Show({ job, events }) {
     };
     const action = (name) => router.post(`/agent/jobs/${job.id}/${name}`);
     const approvalReady = canApprove(job, job.commit_sha, job.target_environment) && !job.approved;
+
+    const latestPhaseEvent = events.data?.find((e) => e.kind === 'worker_phase');
+    const currentPhase = latestPhaseEvent?.detail || (job.status === 'running' ? 'Worker is actively executing...' : null);
+
+    const getStageIndex = (phaseText) => {
+        if (!phaseText) return 1;
+        const lower = phaseText.toLowerCase();
+        if (lower.includes('pull request') || lower.includes('pushing') || lower.includes('committed') || lower.includes('pr_url')) return 4;
+        if (lower.includes('test') || lower.includes('verifying diff')) return 3;
+        if (lower.includes('codex') || lower.includes('reasoning') || lower.includes('applying follow-up')) return 2;
+        return 1;
+    };
+    const currentStep = getStageIndex(currentPhase);
 
     return <AppLayout title="Coding Agent Job">
         <Head title={`Agent job #${job.id}`} />
@@ -71,6 +87,81 @@ export default function Show({ job, events }) {
             </header>
 
             {!online && <div role="status" className="rounded-xl bg-amber-100 p-3 text-sm text-amber-900">Offline. Actions are paused until you reconnect.</div>}
+
+            {/* Live Worker Status Banner (when running) */}
+            {job.status === 'running' && (
+                <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/90 via-white to-blue-50/50 p-5 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:via-gray-900 dark:to-blue-950/20">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 pb-3 dark:border-emerald-950">
+                        <div className="flex items-center gap-2.5">
+                            <span className="relative flex h-3 w-3">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
+                            </span>
+                            <h2 className="font-semibold text-emerald-950 dark:text-emerald-200">
+                                Worker is actively executing Job #{job.id}
+                            </h2>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                            <span className="animate-spin text-[10px]">⚙️</span> Worker Active · {heartbeatLabel(job.last_heartbeat_at, now)}
+                        </span>
+                    </div>
+
+                    {/* Visual 4-Step Stepper */}
+                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {[
+                            { num: 1, title: 'Setup & Worktree', icon: '📁' },
+                            { num: 2, title: 'Code Generation', icon: '🤖' },
+                            { num: 3, title: 'Automated Tests', icon: '🧪' },
+                            { num: 4, title: 'Pull Request', icon: '🐙' },
+                        ].map((step) => {
+                            const isCurrent = currentStep === step.num;
+                            const isDone = currentStep > step.num;
+                            return (
+                                <div
+                                    key={step.num}
+                                    className={`flex flex-col gap-1 rounded-xl border p-2.5 transition-colors ${
+                                        isCurrent
+                                            ? 'border-emerald-500 bg-emerald-500/10 shadow-sm dark:border-emerald-400 dark:bg-emerald-950/60'
+                                            : isDone
+                                            ? 'border-emerald-200 bg-emerald-50/50 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300'
+                                            : 'border-gray-200/60 bg-gray-50/50 opacity-60 dark:border-gray-800 dark:bg-gray-900/40'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between text-xs font-semibold">
+                                        <span>{step.icon} Step {step.num}</span>
+                                        {isDone && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
+                                        {isCurrent && <span className="animate-pulse text-emerald-600 dark:text-emerald-400 font-bold">● Active</span>}
+                                    </div>
+                                    <div className="text-xs font-medium text-gray-900 dark:text-gray-100">{step.title}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Current Phase Message */}
+                    {currentPhase && (
+                        <div className="mt-4 rounded-xl border border-emerald-200/60 bg-white/90 p-3.5 text-xs font-mono text-emerald-950 shadow-sm dark:border-emerald-900/50 dark:bg-gray-900/90 dark:text-emerald-200">
+                            <span className="font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Current Phase: </span>
+                            <span className="font-normal">{currentPhase}</span>
+                        </div>
+                    )}
+                </section>
+            )}
+
+            {/* Queued Status Notice */}
+            {job.status === 'queued' && (
+                <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg" aria-hidden="true">⏳</span>
+                        <div>
+                            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">Job is Queued</h2>
+                            <p className="text-xs text-amber-700 dark:text-amber-400">
+                                Waiting for an available runner worker (`bw-tools` or dedicated GCE worker) to claim this job...
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Main Job Instruction with Rich Markdown Rendering */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -177,9 +268,20 @@ export default function Show({ job, events }) {
             <section className="space-y-3">
                 <h2 className="font-semibold text-gray-900 dark:text-gray-100">Activity Stream</h2>
                 {events.data.length === 0 && <p className="text-sm text-gray-500">No activity yet.</p>}
-                {events.data.map((event) => <article key={event.id} className="rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                {events.data.map((event) => <article
+                    key={event.id}
+                    className={`rounded-xl border p-4 text-sm shadow-sm transition-colors ${
+                        event.kind === 'worker_phase'
+                            ? 'border-l-4 border-l-emerald-500 border-gray-200 bg-emerald-50/30 dark:border-gray-800 dark:border-l-emerald-400 dark:bg-emerald-950/20'
+                            : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
+                    }`}
+                >
                     <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-2 dark:border-gray-800">
-                        <strong className="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">{event.kind.replaceAll('_', ' ')}</strong>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            {event.kind === 'worker_phase' && <span className="text-emerald-600 dark:text-emerald-400" aria-hidden="true">⚡</span>}
+                            {event.kind === 'instruction' && <span aria-hidden="true">💬</span>}
+                            {event.kind.replaceAll('_', ' ')}
+                        </span>
                         <time className="text-xs text-gray-500">{new Date(event.occurred_at).toLocaleString()}</time>
                     </div>
                     {event.detail && (

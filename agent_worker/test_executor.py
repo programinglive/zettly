@@ -170,6 +170,37 @@ class JobExecutorTest(unittest.TestCase):
         self.assertTrue(any('--model' in c and 'agnes-3-0-flash:free' in c for c in codex_calls),
                         f'Expected --model agnes-3-0-flash:free in codex call, got: {codex_calls}')
 
+    def test_execute_emits_worker_phases(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        worktree = Path(self.root.name) / 'jobs' / '101'
+        worktree.mkdir(parents=True, exist_ok=True)
+        emitted_phases = []
+
+        def fake_emit(kind, detail):
+            emitted_phases.append((kind, detail))
+
+        def fake_run(argv, cwd=None, capture=False, allow_github=False):
+            cmd = argv[0] if argv else ''
+            if 'diff' in argv and '--cached' in argv:
+                return 'app/Http/Controllers/HomeController.php'
+            if 'rev-parse' in argv:
+                return 'abcdef1234567890abcdef1234567890abcdef12'
+            if 'pr' in argv and 'create' in argv:
+                return 'https://github.com/programinglive/zettly/pull/12'
+            return ''
+
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-101')), \
+             patch.object(executor, '_run_with_heartbeat'), \
+             patch.object(executor, '_run', side_effect=fake_run):
+            job = {'id': 101, 'repository': 'zettly', 'instruction': 'Fix login'}
+            res = executor.execute(job, lambda: None, emit_event=fake_emit)
+            self.assertEqual(res['pr_url'], 'https://github.com/programinglive/zettly/pull/12')
+
+        self.assertTrue(any(kind == 'worker_phase' and 'Codex AI agent' in detail for kind, detail in emitted_phases))
+        self.assertTrue(any(kind == 'worker_phase' and 'automated test' in detail for kind, detail in emitted_phases))
+        self.assertTrue(any(kind == 'worker_phase' and 'Pull request created' in detail for kind, detail in emitted_phases))
+
+
 
 if __name__ == '__main__':
     unittest.main()

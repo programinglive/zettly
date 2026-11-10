@@ -64,6 +64,25 @@ class AgentWorkerTest(unittest.TestCase):
         self.assertIn(('result', 7, 'private-lease', self.artifact), client.calls)
         self.assertNotIn(('fail', 7, 'private-lease', 'Tests passed'), client.calls)
 
+    def test_worker_emits_claimed_event_and_forwards_emit_callback(self):
+        client = FakeClient(self.job)
+        captured_emits = []
+
+        class EventExecutor:
+            def execute(self, job, checkpoint, emit_event=None):
+                if emit_event:
+                    emit_event('worker_phase', 'Starting test stage')
+                checkpoint()
+                return {'branch': 'agent/job-7', 'commit_sha': 'b' * 40, 'test_summary': 'ok', 'tests_passed': True, 'target_environment': 'staging'}
+
+        worker = AgentWorker(client, EventExecutor())
+        self.assertTrue(worker.run_once())
+        # Verify initial claimed phase event
+        self.assertTrue(any(call[0] == 'event' and call[3] == 'worker_phase' and 'claimed job #7' in call[4] for call in client.calls))
+        # Verify forwarded emit_event call
+        self.assertTrue(any(call[0] == 'event' and call[3] == 'worker_phase' and 'Starting test stage' in call[4] for call in client.calls))
+
+
     def test_execution_failure_reports_failed_without_commit(self):
         client = FakeClient(self.job)
         self.assertTrue(AgentWorker(client, FakeExecutor(error=RuntimeError('Codex exited 1'))).run_once())

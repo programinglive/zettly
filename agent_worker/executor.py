@@ -144,11 +144,22 @@ class JobExecutor:
         self._run(['gh', 'auth', 'status'], allow_github=True)
         self._run(['codex', 'login', 'status'])
 
-    def execute(self, job, checkpoint):
+    def execute(self, job, checkpoint, emit_event=None):
+        def emit(kind, detail):
+            if emit_event:
+                try:
+                    emit_event(kind, detail)
+                except Exception:
+                    pass
+
         config = self.repository_for(job)
+        branch = self.branch_for(job)
+        emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}`...')
         worktree, branch = self._worktree(job, config, checkpoint)
         for command in config.get('setup', []):
             checkpoint()
+            cmd_str = ' '.join(command)
+            emit('worker_phase', f'Running setup command: `{cmd_str}`')
             self._run_with_heartbeat(command, worktree, checkpoint)
         pending = checkpoint()
         turns = [job['instruction']]
@@ -158,6 +169,7 @@ class JobExecutor:
         agent_environment['CODEX_DISABLE_AUTO_UPDATE'] = '1'
         model = job.get('model') or os.environ.get('AGENT_CODEX_MODEL', 'agnes-3-0-flash:free')
 
+        emit('worker_phase', f'Codex AI agent started reasoning and implementation (model: `{model}`)...')
         for prompt in turns:
             self._run_with_heartbeat(
                 ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
@@ -168,6 +180,7 @@ class JobExecutor:
             pending = checkpoint()
             if not pending:
                 break
+            emit('worker_phase', 'Applying follow-up instruction to Codex AI agent...')
             self._run_with_heartbeat(
                 ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
                  '--model', model, '--config', 'approval_policy=never', '\n'.join(pending)],
@@ -175,11 +188,15 @@ class JobExecutor:
             )
 
         summary = []
+        emit('worker_phase', 'Codex agent finished code changes. Executing automated test suite...')
         for command in config['tests']:
             checkpoint()
+            cmd_str = ' '.join(command)
+            emit('worker_phase', f'Running automated test: `{cmd_str}`')
             self._run_with_heartbeat(command, worktree, checkpoint)
             summary.append(' '.join(command) + ': passed')
         checkpoint()
+        emit('worker_phase', 'All tests passed. Staging and verifying diff...')
         self._run(['git', 'diff', '--check'], cwd=worktree)
         self._run(['git', 'add', '-A'], cwd=worktree)
         staged = self._run(['git', 'diff', '--cached', '--name-only'], cwd=worktree, capture=True).splitlines()
@@ -194,6 +211,7 @@ class JobExecutor:
         ], cwd=worktree)
         sha = self._run(['git', 'rev-parse', 'HEAD'], cwd=worktree, capture=True)
         checkpoint()
+        emit('worker_phase', f'Committed changes ({sha[:8]}). Pushing branch `{branch}` to origin...')
         self._run_with_heartbeat(
             ['git', '-c', 'core.hooksPath=/dev/null', 'push', '-u', 'origin', branch],
             worktree, checkpoint, env=self.command_environment(True),
@@ -201,10 +219,12 @@ class JobExecutor:
         body = self.root / 'jobs' / f'{job["id"]}-pull-request.md'
         body.write_text(f'Automated coding job #{job["id"]}.\n\nTests: {"; ".join(summary)}\n', encoding='utf-8')
         checkpoint()
+        emit('worker_phase', 'Branch pushed. Creating draft pull request on GitHub...')
         pr_url = self._run([
             'gh', 'pr', 'create', '--draft', '--base', config['base'], '--head', branch,
             '--title', f'feat(agent): coding job {job["id"]}', '--body-file', str(body),
         ], cwd=worktree, capture=True, allow_github=True)
+        emit('worker_phase', f'Pull request created: {pr_url}')
         return {
             'branch': branch,
             'commit_sha': sha,

@@ -93,13 +93,25 @@ class AgentWorker:
                 last_instruction_id = max(event['id'] for event in events)
             return [event['detail'] for event in events]
 
+        def emit_event(kind, detail):
+            try:
+                self.client.event(job_id, lease, kind, detail)
+            except Exception:
+                pass
+
         try:
-            artifact = self.executor.execute(job, checkpoint)
+            emit_event('worker_phase', f'Worker claimed job #{job_id}. Starting execution...')
+            try:
+                artifact = self.executor.execute(job, checkpoint, emit_event=emit_event)
+            except TypeError:
+                artifact = self.executor.execute(job, checkpoint)
             self.client.result(job_id, lease, artifact)
+            emit_event('worker_phase', f'Job #{job_id} completed successfully.')
         except LeaseLost:
             return True
         except Exception as error:
             try:
+                emit_event('worker_phase', f'Worker execution failed: {str(error)[:200]}')
                 self.client.fail(job_id, lease, str(error)[:2000] or type(error).__name__)
             except LeaseLost:
                 pass
