@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.23](https://github.com/programinglive/todo/compare/v0.12.22...v0.12.23) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** render rich markdown specification and activity stream on job details ([e1023ba](https://github.com/programinglive/todo/commit/e1023ba168158b04e308e02db2b276af0dbd7fe7))
+
 ### [0.12.22](https://github.com/programinglive/todo/compare/v0.12.21...v0.12.22) (2026-11-10)
 
 
