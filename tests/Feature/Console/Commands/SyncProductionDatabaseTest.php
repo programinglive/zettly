@@ -36,16 +36,38 @@ class SyncProductionDatabaseTest extends TestCase
     {
         Config::set('app.env', 'local');
         
-        // Set required env vars
-        putenv('PROD_DB_HOST=test-host');
-        putenv('PROD_DB_DATABASE=test-db');
-        putenv('PROD_DB_USERNAME=test-user');
-        putenv('PROD_DB_PASSWORD=test-pass');
+        $testVariables = [
+            'PROD_DB_HOST' => 'test-host',
+            'PROD_DB_DATABASE' => 'test-db',
+            'PROD_DB_USERNAME' => 'test-user',
+            'PROD_DB_PASSWORD' => 'test-pass',
+        ];
+        $previous = [];
+        foreach ($testVariables as $name => $value) {
+            $previous[$name] = [$_ENV[$name] ?? null, $_SERVER[$name] ?? null];
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
 
-        $this->artisan('db:sync-production')
-            ->expectsQuestion('This will replace your local database with production data. Continue?', false)
-            ->expectsOutput('Operation cancelled.')
-            ->assertExitCode(0);
+        try {
+            $this->artisan('db:sync-production')
+                ->expectsQuestion('This will replace your local database with production data. Continue?', false)
+                ->expectsOutput('Operation cancelled.')
+                ->assertExitCode(0);
+        } finally {
+            foreach ($previous as $name => [$envValue, $serverValue]) {
+                if ($envValue === null) {
+                    unset($_ENV[$name]);
+                } else {
+                    $_ENV[$name] = $envValue;
+                }
+                if ($serverValue === null) {
+                    unset($_SERVER[$name]);
+                } else {
+                    $_SERVER[$name] = $serverValue;
+                }
+            }
+        }
     }
 
     public function test_pgpass_file_is_created_correctly()
