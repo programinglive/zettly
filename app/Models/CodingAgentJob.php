@@ -18,6 +18,8 @@ class CodingAgentJob extends Model
         'tests_passed', 'target_environment',
     ];
 
+    protected $hidden = ['lease_token_hash'];
+
     protected function casts(): array
     {
         return [

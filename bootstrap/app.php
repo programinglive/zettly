@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureCodingAgentOwner;
+use App\Http\Middleware\EnsureCodingAgentWorker;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'super-admin' => EnsureSuperAdmin::class,
             'coding-agent-owner' => EnsureCodingAgentOwner::class,
+            'coding-agent-worker' => EnsureCodingAgentWorker::class,
             'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         ]);
 
