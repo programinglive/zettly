@@ -34,7 +34,14 @@ class BootstrapScriptTest(unittest.TestCase):
 
     def test_bootstrap_installs_bubblewrap_and_configures_userns(self):
         self.assertIn("bubblewrap", self.script_content, "bootstrap.sh must install bubblewrap for codex sandbox")
+        self.assertIn("php-gd", self.script_content, "bootstrap.sh must install php-gd for image tests")
         self.assertIn("kernel.apparmor_restrict_unprivileged_userns=0", self.script_content)
+
+    def test_example_repository_config_prepares_local_environment(self):
+        config_path = Path(__file__).resolve().parent / "repositories.example.json"
+        content = config_path.read_text(encoding="utf-8")
+        self.assertIn('["cp", ".env.example", ".env"]', content)
+        self.assertIn('["php", "artisan", "key:generate"]', content)
 
     def test_bootstrap_configures_codex_model_provider(self):
         self.assertIn('model_provider = "openai-custom"', self.script_content)

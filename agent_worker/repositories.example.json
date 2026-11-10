@@ -3,6 +3,8 @@
     "remote": "programinglive/zettly",
     "base": "main",
     "setup": [
+      ["cp", ".env.example", ".env"],
+      ["php", "artisan", "key:generate"],
       ["composer", "install", "--no-interaction", "--prefer-dist"],
       ["npm", "ci"]
     ],

@@ -25,7 +25,7 @@ export DEBIAN_FRONTEND=noninteractive
 # the regional GCE mirror serves the same signed noble-security repository.
 sed -i 's#http://security.ubuntu.com/ubuntu#http://asia-southeast2.gce.archive.ubuntu.com/ubuntu#' /etc/apt/sources.list.d/ubuntu.sources
 apt-get -o Acquire::http::Timeout=30 -o Acquire::Retries=2 update
-apt-get install -y ca-certificates curl git gh npm php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 composer unzip bubblewrap
+apt-get install -y ca-certificates curl git gh npm php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-gd composer unzip bubblewrap
 sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 2>/dev/null || true
 echo 'kernel.apparmor_restrict_unprivileged_userns=0' > /etc/sysctl.d/99-bubblewrap.conf 2>/dev/null || true
 npm install --global n
