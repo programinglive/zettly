@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.16](https://github.com/programinglive/todo/compare/v0.12.15...v0.12.16) (2026-11-10)
+
+
+### 🐛 Bug Fixes
+
+* **agent:** configure custom model provider and env key for kenari codex worker ([#23](https://github.com/programinglive/todo/issues/23)) ([2595d59](https://github.com/programinglive/todo/commit/2595d59ad16450f853a7ac59d2a7abd2ae41bab2))
+* **worker:** configure git author identity for automated job commits ([#24](https://github.com/programinglive/todo/issues/24)) ([77de58f](https://github.com/programinglive/todo/commit/77de58f4af0ec25bad137dccc376f29fc44e255c))
+* **worker:** install php-gd and configure env setup in repositories ([#25](https://github.com/programinglive/todo/issues/25)) ([97b2ba8](https://github.com/programinglive/todo/commit/97b2ba89a3e777361717c9c647206218774428d0))
+
+
+### ✨ Features
+
+* **agent:** add model selection with agnes-3-0-flash:free as default ([#27](https://github.com/programinglive/todo/issues/27)) ([dc91dee](https://github.com/programinglive/todo/commit/dc91deeb41cb8049337d9fdb2ba27a4551a820a4))
+
+
+### 📝 Documentation
+
+* add CODING_AGENT_MODELS and DEFAULT_MODEL to env.example ([4f51dda](https://github.com/programinglive/todo/commit/4f51ddabf7b0a85bbac3731fc6cdd7592041afcd))
+
 ### [0.12.15](https://github.com/programinglive/todo/compare/v0.12.14...v0.12.15) (2026-11-10)
 
 
