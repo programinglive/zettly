@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.26 | 2026-11-10 | **release:** record v0.12.25 release notes (a779529) |
 | 0.12.25 | 2026-11-10 | **agent:** consolidate Factory engineering hub features into Zettly (05643e3) |
 | 0.12.24 | 2026-11-10 | **agent:** add real-time worker execution phases, live status banner, and accelerated polling (0d667bd) |
 | 0.12.22 | 2026-11-10 | **release:** record v0.12.21 release notes (eb18506) |
@@ -68,6 +69,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.26 – 📝 Documentation
+
+Released on **2026-11-10**.
+
+- **release:** record v0.12.25 release notes (a779529)
+- **agent:** select position column on todo checklist items for PostgreSQL compatibility (4299cca)
 
 ## 0.12.25 – ✨ Features
 
