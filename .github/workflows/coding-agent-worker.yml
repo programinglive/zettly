@@ -8,6 +8,9 @@ on:
       - 'app/Http/Controllers/Api/CodingAgentWorkerController.php'
       - 'routes/api.php'
       - 'tests/Feature/Api/CodingAgentWorkerTest.php'
+  push:
+    tags:
+      - 'agent-worker-v*'
 
 jobs:
   worker-tests:
@@ -16,3 +19,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test worker orchestration
         run: python3 -m unittest discover -s agent_worker -p 'test_*.py' -v
+
+  worker-release:
+    if: startsWith(github.ref, 'refs/tags/agent-worker-v')
+    needs: worker-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package worker
+        run: tar -czf agent-worker.tar.gz agent_worker
+      - name: Publish release artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: agent-worker.tar.gz
