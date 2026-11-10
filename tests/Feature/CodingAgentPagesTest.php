@@ -78,4 +78,40 @@ class CodingAgentPagesTest extends TestCase
         config()->set('coding_agent.owner_email', $foreign->email);
         $this->actingAs($foreign)->get("/agent/jobs/{$job->id}")->assertNotFound();
     }
+
+    public function test_index_includes_enriched_todo_dod_recap_and_repository_registry(): void
+    {
+        [$owner, $todo, $job] = $this->fixture();
+        $todo->update(['description' => 'Fix the Sentry N+1 query in clinic dashboard']);
+        $todo->checklistItems()->create([
+            'title' => 'Add eager loading test',
+            'is_completed' => false,
+            'order' => 1,
+        ]);
+
+        CodingAgentJob::create([
+            'user_id' => $owner->id,
+            'todo_id' => $todo->id,
+            'repository' => 'zettly',
+            'instruction' => 'Shipped fix',
+            'client_request_id' => 'completed-job-1',
+            'status' => 'completed',
+        ]);
+
+        $this->actingAs($owner)->get("/agent/jobs?todo_id={$todo->id}")->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Agent/Index')
+                ->where('selectedTodoId', $todo->id)
+                ->where('todos.0.id', $todo->id)
+                ->where('todos.0.description', 'Fix the Sentry N+1 query in clinic dashboard')
+                ->where('todos.0.checklist_items.0.title', 'Add eager loading test')
+                ->has('repositoryRegistry', 1)
+                ->where('repositoryRegistry.0.slug', 'zettly')
+                ->where('recap.today', 1)
+                ->where('recap.all', 1)
+                ->has('recap.dailyStrip', 14)
+                ->where('recap.byRepository.0.repository', 'zettly')
+                ->where('recap.byRepository.0.completed', 1)
+                ->etc());
+    }
 }

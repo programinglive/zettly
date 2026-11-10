@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Todo;
+use App\Support\CodingAgentRepositoryRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -21,18 +22,25 @@ class CodingAgentPromptController extends Controller
 
         $todoTitle = '';
         $todoDescription = '';
+        $checklistLines = [];
 
         if (! empty($validated['todo_id'])) {
             $todo = Todo::query()->where('user_id', $request->user()->id)
+                ->with('checklistItems')
                 ->whereKey($validated['todo_id'])->first();
             if ($todo) {
                 $todoTitle = (string) $todo->title;
                 $todoDescription = (string) ($todo->description ?? '');
+                foreach ($todo->checklistItems as $item) {
+                    $mark = $item->is_completed ? 'x' : ' ';
+                    $checklistLines[] = "- [{$mark}] {$item->title}";
+                }
             }
         }
 
         $roughInstruction = trim((string) ($validated['instruction'] ?? ''));
         $repository = (string) ($validated['repository'] ?? 'zettly');
+        $repoMeta = CodingAgentRepositoryRegistry::find($repository);
         $model = (string) ($validated['model'] ?? config('coding_agent.default_model', 'agnes-3-0-flash:free'));
 
         $apiKey = config('coding_agent.kenari_api_key');
@@ -51,8 +59,18 @@ class CodingAgentPromptController extends Controller
         if ($todoDescription !== '') {
             $promptContext[] = "Todo Context: {$todoDescription}";
         }
+        if ($checklistLines !== []) {
+            $promptContext[] = "Definition of Done (Checklist):\n" . implode("\n", $checklistLines);
+        }
         if ($repository !== '') {
-            $promptContext[] = "Repository: {$repository}";
+            $repoLine = "Repository: {$repository}";
+            if ($repoMeta) {
+                $repoLine .= " ({$repoMeta['remote']} @ {$repoMeta['base']}, stack: {$repoMeta['stack']})";
+                if ($repoMeta['checks'] !== '') {
+                    $repoLine .= "\nRequired Verification Command: {$repoMeta['checks']}";
+                }
+            }
+            $promptContext[] = $repoLine;
         }
         if ($roughInstruction !== '') {
             $promptContext[] = "Developer's Rough Notes / Intent: {$roughInstruction}";

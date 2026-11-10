@@ -53,6 +53,7 @@ const formatPriorityText = (priority) => {
     };
 
 export default function Show({ todo, availableTodos, statusEvents = [] }) {
+    const { canUseCodingAgent } = usePage().props;
     const toggleForm = useForm({ reason: '' });
     const archiveForm = useForm({ reason: '' });
     const restoreForm = useForm({ reason: '' });
@@ -576,6 +577,14 @@ export default function Show({ todo, availableTodos, statusEvents = [] }) {
                         )}
 
                         <div className="mt-12 flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-800 sm:flex-row sm:justify-end lg:gap-4">
+                            {canUseCodingAgent && !isNote && !todo.is_completed && (
+                                <Link href={`/agent/jobs?todo_id=${todo.id}`} className="sm:w-auto">
+                                    <button type="button" className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 sm:w-auto">
+                                        <span aria-hidden="true">🤖</span>
+                                        Dispatch to Coding Agent
+                                    </button>
+                                </Link>
+                            )}
                             <Link href={`/todos/${todo.id}/edit`} className="sm:w-auto">
                                 <button className="flex w-full items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white rounded-md px-4 py-2 font-medium sm:w-auto">
                                     <Edit className="h-4 w-4" />

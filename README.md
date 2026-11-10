@@ -8,9 +8,9 @@
 
 Zettly is a productivity workspace for tasks, focus sessions, notes, habits, shared organizations, knowledge graphs, and drawings. It is built with Laravel 12, React, Inertia.js, and Tailwind CSS.
 
-## Coding Agent Pilot
+## Coding Agent & Engineering Hub
 
-The private coding agent control plane links jobs to personal Todos. The owner can create and monitor jobs from `/agent/jobs` in the PWA, review a branch and test summary, and record approval for one exact commit. The feature is disabled by default and does not provision a VM or trigger a release. See [docs/CODING_AGENT.md](./docs/CODING_AGENT.md) for configuration, worker API, and rollout boundaries.
+The private coding agent control plane links jobs to personal Todos and replaces standalone engineering boards (Factory). The owner can create and monitor jobs from `/agent/jobs` (or dispatch directly from any Todo detail page `/todos/{id}`), inspect the centralized Project & Repository Registry in `/agent/setup`, track the 14-day Engineering Recap and active AI sessions, review a branch and test summary, and record approval for one exact commit. See [docs/CODING_AGENT.md](./docs/CODING_AGENT.md) for configuration, worker API, and rollout boundaries.
 
 ## Design System
 
