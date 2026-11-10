@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.19](https://github.com/programinglive/todo/compare/v0.12.18...v0.12.19) (2026-11-10)
+
+
+### ✨ Features
+
+* **agent:** auto-merge PR, auto-complete todo on approval and auto-tag release ([05a9ea3](https://github.com/programinglive/todo/commit/05a9ea35e6983ff4450b75a5ac8e27e94b9954ff))
+
 ### [0.12.18](https://github.com/programinglive/todo/compare/v0.12.17...v0.12.18) (2026-11-10)
 
 
