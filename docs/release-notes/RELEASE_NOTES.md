@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.14 | 2026-11-10 | Owner-only coding agent control plane and private VM worker pilot |
 | 0.12.13 | 2026-11-09 | record v0.12.12 release notes entry (70b7c9f) |
 | 0.12.12 | 2026-11-09 | record v0.12.11 release notes entry (e6bca63) |
 | 0.12.11 | 2026-11-09 | record v0.12.10 release notes entry (ccb1a4f) |
@@ -52,6 +53,49 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.14 – Coding Agent Pilot
+
+Released on **2026-11-10**.
+
+The owner-only coding workspace, worker API, and release review records are included. The coding workspace remains disabled by default while the private VM worker and credentials are verified.
+
+- **release:** 0.12.10 🚀 f180b30
+- **release:** 0.12.11 🚀 98fc2e3
+- **release:** 0.12.12 🚀 004dc49
+- **release:** 0.12.13 🚀 9269931
+- **release:** 0.12.9 🚀 7b2a6ce
+- isolate broadcast and command environment 02e6b6b
+- **agent:** add leased worker API f45abb0
+- **agent:** add mobile coding workspace 645784b
+- **agent:** add owner guard and job records 4ffd953
+- **agent:** add owner job controls 2572482
+- **agent:** add owner worker-token setup 4839b68
+- **agent:** add private VM worker pilot 6be54e2
+- **agent:** record exact-commit release approval 2f9c21c
+- **journal:** add D:/code/zettly to the OpenCode plugin's hook search paths 85e636f
+- **reports:** replace placeholder historical comparison with real data 63204de
+- **reports:** structured report_summaries recap store with visuals and backfill 287a2d8
+- **tags:** give drawings and journal entries zettelkasten tags ed47d76
+- **tags:** normalise legacy tags onto the four zettelkasten axes 5d39526
+- **ui:** show tags as axis chips and group the filter by axis f8e6429
+- **agent:** clarify VM access verification cea1827
+- **agent:** record verified VM access a395b0a
+- design Zettly mobile coding agent c327f7f
+- plan Zettly coding agent control plane 8a555c6
+- record v0.12.10 release notes entry ccb1a4f
+- record v0.12.11 release notes entry e6bca63
+- record v0.12.12 release notes entry 70b7c9f
+- record v0.12.13 release notes entry 7ebb9d6
+- record v0.12.8 release notes entry a98ab9c
+- record v0.12.9 release notes entry 03ed672
+- **tags:** document the four tag axes, backfill and normalisation 49d03ea
+- **agent:** deploy worker releases through GCP startup 91ce9e0
+- **agent:** package worker release artifact 4af597a
+- **agent-api:** make started_at optional so client Stop updates are accepted 8b7ae0b
+- **agent:** use reachable Ubuntu mirror on pilot VM a32bb10
+- **reports:** repair agent-session active time and harden sparse comparison c5ca3c9
 
 ## 0.12.13 – 📝 Documentation
 
