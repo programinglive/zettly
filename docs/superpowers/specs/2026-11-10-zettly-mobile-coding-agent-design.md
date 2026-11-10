@@ -1,7 +1,7 @@
 # Zettly Mobile Coding Agent Design
 
 - **Date:** 2026-11-10
-- **Status:** Design approved in conversation; written specification pending owner review
+- **Status:** Written specification approved by owner on 2026-11-10; implementation planning in progress
 - **Canonical Todo:** Zettly #481
 - **Architecture flow:** [Zettly Draw #140](https://zettly.programinglive.com/draw/140)
 
