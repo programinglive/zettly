@@ -27,6 +27,21 @@ class CodingAgentPromptTest extends TestCase
             'description' => 'Users should be able to download reports as CSV files with date filtering.',
         ]);
 
+        $todo->checklistItems()->create([
+            'title' => 'Verify CSV headers and UTF-8 BOM',
+            'is_completed' => false,
+            'order' => 1,
+        ]);
+
+        config()->set('coding_agent.repositories', [
+            'zettly' => [
+                'remote' => 'programinglive/zettly',
+                'base' => 'main',
+                'stack' => 'Laravel',
+                'checks' => 'php artisan test && npm run test:js',
+            ],
+        ]);
+
         return [$owner, $todo];
     }
 
@@ -60,7 +75,9 @@ class CodingAgentPromptTest extends TestCase
         Http::assertSent(function ($request) {
             return $request->url() === 'https://kenari.id/v1/chat/completions'
                 && $request->hasHeader('Authorization', 'Bearer test-kenari-key')
-                && str_contains($request['messages'][1]['content'], 'Add CSV export to ReportController');
+                && str_contains($request['messages'][1]['content'], 'Add CSV export to ReportController')
+                && str_contains($request['messages'][1]['content'], 'Verify CSV headers and UTF-8 BOM')
+                && str_contains($request['messages'][1]['content'], 'php artisan test && npm run test:js');
         });
     }
 

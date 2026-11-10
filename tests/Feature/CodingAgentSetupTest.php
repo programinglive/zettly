@@ -56,4 +56,31 @@ class CodingAgentSetupTest extends TestCase
         $this->actingAs($other)->postJson('/agent/setup/worker-token')->assertForbidden();
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
+
+    public function test_setup_page_exposes_normalized_repository_registry(): void
+    {
+        $owner = $this->owner();
+        config()->set('coding_agent.repositories', [
+            'zettly' => [
+                'name' => 'Zettly Workspace',
+                'remote' => 'programinglive/zettly',
+                'base' => 'main',
+                'stack' => 'Laravel',
+                'checks' => 'php artisan test && npm run test:js',
+            ],
+            'clinic' => 'beautyworld_repository/clinic',
+        ]);
+
+        $this->actingAs($owner)->get('/agent/setup')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Agent/Setup')
+                ->has('repositoryRegistry', 2)
+                ->where('repositoryRegistry.0.slug', 'zettly')
+                ->where('repositoryRegistry.0.stack', 'Laravel')
+                ->where('repositoryRegistry.0.checks', 'php artisan test && npm run test:js')
+                ->where('repositoryRegistry.1.slug', 'clinic')
+                ->where('repositoryRegistry.1.remote', 'beautyworld_repository/clinic')
+                ->where('repositoryRegistry.1.base', 'main')
+                ->etc());
+    }
 }

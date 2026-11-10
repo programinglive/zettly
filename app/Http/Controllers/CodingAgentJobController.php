@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentSession;
 use App\Models\CodingAgentJob;
 use App\Models\Todo;
 use App\Services\CodingAgentJobTransitions;
+use App\Support\CodingAgentRepositoryRegistry;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,26 +19,152 @@ class CodingAgentJobController extends Controller
 {
     public function index(Request $request): Response
     {
-        $jobs = CodingAgentJob::query()->where('user_id', $request->user()->id)
+        $userId = $request->user()->id;
+
+        $jobs = CodingAgentJob::query()->where('user_id', $userId)
             ->with('todo:id,title')->latest()->paginate(12)
             ->through(fn (CodingAgentJob $job) => [
                 'id' => $job->id,
+                'todo_id' => $job->todo_id,
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
                 'status' => $job->status,
+                'branch' => $job->branch,
+                'pr_url' => $job->pr_url,
+                'tests_passed' => $job->tests_passed,
+                'last_heartbeat_at' => $job->last_heartbeat_at?->toIso8601String(),
                 'updated_at' => $job->updated_at?->toIso8601String(),
             ]);
 
+        $todos = Todo::query()->where('user_id', $userId)
+            ->whereNull('organization_id')->where('type', Todo::TYPE_TODO)
+            ->where('is_completed', false)->orderBy('title')->limit(100)
+            ->with(['checklistItems:id,todo_id,title,is_completed,order', 'tags:id,name'])
+            ->get(['id', 'title', 'description', 'priority'])
+            ->map(fn (Todo $todo) => [
+                'id' => $todo->id,
+                'title' => $todo->title,
+                'description' => $todo->description,
+                'priority' => $todo->priority,
+                'checklist_items' => $todo->checklistItems->map(fn ($item) => [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'is_completed' => (bool) $item->is_completed,
+                ])->values()->all(),
+                'tags' => $todo->tags->pluck('name')->values()->all(),
+            ]);
+
+        $repositoryRegistry = CodingAgentRepositoryRegistry::all();
+        $selectedTodoId = $request->query('todo_id') ? (int) $request->query('todo_id') : null;
+
+        $activeSessions = AgentSession::query()
+            ->where('user_id', $userId)
+            ->where('status', AgentSession::STATUS_IN_PROGRESS)
+            ->orderByDesc('last_activity_at')
+            ->limit(10)
+            ->get(['session_id', 'project', 'title', 'machine', 'status', 'last_activity_at'])
+            ->map(fn (AgentSession $s) => [
+                'session_id' => $s->session_id,
+                'project' => $s->project,
+                'title' => $s->title,
+                'machine' => $s->machine,
+                'status' => $s->status,
+                'last_activity_at' => $s->last_activity_at?->toIso8601String(),
+            ])->values()->all();
+
         return Inertia::render('Agent/Index', [
             'jobs' => $jobs,
-            'todos' => Todo::query()->where('user_id', $request->user()->id)
-                ->whereNull('organization_id')->where('type', Todo::TYPE_TODO)
-                ->where('is_completed', false)->orderBy('title')->limit(100)
-                ->get(['id', 'title']),
-            'repositories' => array_keys(config('coding_agent.repositories', [])),
+            'todos' => $todos,
+            'selectedTodoId' => $selectedTodoId,
+            'repositories' => CodingAgentRepositoryRegistry::slugs(),
+            'repositoryRegistry' => $repositoryRegistry,
             'models' => config('coding_agent.models', ['agnes-3-0-flash:free']),
             'default_model' => config('coding_agent.default_model', 'agnes-3-0-flash:free'),
+            'recap' => $this->buildEngineeringRecap($userId),
+            'activeSessions' => $activeSessions,
         ]);
+    }
+
+    /**
+     * Build Factory-equivalent Engineering Recap metrics (Today, Week, Month, All, 14-day strip, per-repo).
+     *
+     * @return array<string, mixed>
+     */
+    private function buildEngineeringRecap(int $userId): array
+    {
+        $tz = 'Asia/Jakarta';
+        $nowJkt = CarbonImmutable::now($tz);
+        $todayStartUtc = $nowJkt->startOfDay()->utc();
+        $weekStartUtc = $nowJkt->startOfWeek()->utc();
+        $monthStartUtc = $nowJkt->startOfMonth()->utc();
+        $stripStartUtc = $nowJkt->subDays(13)->startOfDay()->utc();
+
+        $allCompletedJobs = CodingAgentJob::query()
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->get(['id', 'repository', 'updated_at']);
+
+        $todayCount = 0;
+        $weekCount = 0;
+        $monthCount = 0;
+        $byDate = [];
+        $byRepo = [];
+
+        for ($i = 13; $i >= 0; $i--) {
+            $dayKey = $nowJkt->subDays($i)->format('Y-m-d');
+            $byDate[$dayKey] = 0;
+        }
+
+        foreach ($allCompletedJobs as $completedJob) {
+            $updatedAt = $completedJob->updated_at
+                ? CarbonImmutable::instance($completedJob->updated_at)
+                : $nowJkt;
+
+            if ($updatedAt->greaterThanOrEqualTo($todayStartUtc)) {
+                $todayCount++;
+            }
+            if ($updatedAt->greaterThanOrEqualTo($weekStartUtc)) {
+                $weekCount++;
+            }
+            if ($updatedAt->greaterThanOrEqualTo($monthStartUtc)) {
+                $monthCount++;
+            }
+            if ($updatedAt->greaterThanOrEqualTo($stripStartUtc)) {
+                $dayKey = $updatedAt->setTimezone($tz)->format('Y-m-d');
+                if (array_key_exists($dayKey, $byDate)) {
+                    $byDate[$dayKey]++;
+                }
+            }
+
+            $repoKey = $completedJob->repository ?: 'unknown';
+            $byRepo[$repoKey] = ($byRepo[$repoKey] ?? 0) + 1;
+        }
+
+        $dailyStrip = [];
+        foreach ($byDate as $date => $count) {
+            $dailyStrip[] = [
+                'date' => $date,
+                'label' => CarbonImmutable::createFromFormat('Y-m-d', $date, $tz)->format('d M'),
+                'count' => $count,
+            ];
+        }
+
+        $byRepository = [];
+        foreach ($byRepo as $repo => $count) {
+            $byRepository[] = [
+                'repository' => $repo,
+                'completed' => $count,
+            ];
+        }
+
+        return [
+            'today' => $todayCount,
+            'week' => $weekCount,
+            'month' => $monthCount,
+            'all' => $allCompletedJobs->count(),
+            'dailyStrip' => $dailyStrip,
+            'byRepository' => $byRepository,
+        ];
     }
 
     public function show(Request $request, CodingAgentJob $job): Response

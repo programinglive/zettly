@@ -4,13 +4,29 @@ This pilot lets the configured, verified owner create and review coding jobs fro
 
 ## Configuration
 
-The feature is off by default. Set `CODING_AGENT_ENABLED=true`, `CODING_AGENT_OWNER_USER_ID` to the existing Zettly user's numeric ID, and `CODING_AGENT_OWNER_EMAIL=mahatma.mahardhika@programinglive.com` only after the worker pilot is verified. Set `CODING_AGENT_REPOSITORIES` to a JSON object mapping stable keys to approved repository paths, for example `'{"zettly":"programinglive/zettly"}'` as a dotenv value. Verify the resulting Laravel config before enabling. The browser accepts only keys in this allowlist. Do not place Git credentials or shell commands in the mapping.
+The feature is off by default. Set `CODING_AGENT_ENABLED=true`, `CODING_AGENT_OWNER_USER_ID` to the existing Zettly user's numeric ID, and `CODING_AGENT_OWNER_EMAIL=mahatma.mahardhika@programinglive.com` only after the worker pilot is verified. Set `CODING_AGENT_REPOSITORIES` to a JSON object mapping stable keys to approved repository metadata (or shorthand remote strings), for example:
+
+```json
+{
+  "zettly": {
+    "name": "programinglive/zettly",
+    "remote": "programinglive/zettly",
+    "base": "main",
+    "stack": "Laravel",
+    "checks": "php artisan test && npm run test:js"
+  }
+}
+```
+
+Verify the resulting Laravel config before enabling (`App\Support\CodingAgentRepositoryRegistry`). The browser accepts only keys in this allowlist, and `/agent/setup` displays the full registered Project & Repository Registry.
 
 The configured owner can open `/agent/setup` while jobs are disabled and issue a dedicated Sanctum token with the **exact** `coding-agent:worker` ability. A normal `*` token is rejected by the worker middleware. A newly issued token revokes the previous worker token and appears only once; store it in the VM secret manager, never in a repository or chat. The owner must keep a verified email. Only the configured owner ID and email can open `/agent/jobs` or `/agent/setup`; another super administrator is denied.
 
-## Browser workflow
+## Browser workflow (Consolidated Engineering Hub)
 
-1. Open `/agent/jobs` in the Zettly PWA. Select an existing personal Todo and allowlisted repository, then describe the task. The browser keeps a `client_request_id` across retries so a dropped connection cannot create the same job twice.
+1. Open `/agent/jobs` in the Zettly PWA (or click **Dispatch to Coding Agent** directly on any personal Todo page `/todos/{id}`, which links to `/agent/jobs?todo_id={id}`).
+2. When a Todo is selected, Zettly automatically matches its `proyek:*` tag to the registered repository and allows one-click loading of the Todo's description, checklist items (Definition of Done), and repository verification command (`checks`) into the agent specification. The browser keeps a `client_request_id` across retries so a dropped connection cannot create the same job twice.
+3. `/agent/jobs` also surfaces the **14-Day Engineering Recap** (`Today`, `This Week`, `This Month`, `All Completed` in `Asia/Jakarta` timezone, 14-day bar strip, and per-repository breakdown), **Active AI Coding Sessions**, and **Engineering Pipeline stage filters** (`All`, `Queued`, `Running`, `Needs Input`, `Review / PR Ready`, `Completed`, `Failed / Cancelled`).
 2. The job page shows persisted status, worker heartbeat, recent activity, and controls to pause, resume, cancel, or send a follow-up instruction. Offline actions are disabled; reloading reads the saved state.
 3. The worker submits a branch, commit SHA, test summary, and target environment. Approval is available only for a reviewed artifact with passing tests. Approval stores the exact SHA and marks the job `release_pending`.
 4. A future repository-specific CI adapter must independently verify that the recorded approval still matches the repository, environment, and SHA before any release. No route in this pilot deploys code or edits a production server.

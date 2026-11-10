@@ -69,7 +69,7 @@ class CodingAgentApprovalTest extends TestCase
         $this->assertSame('completed', $job->fresh()->status);
         $this->assertTrue((bool) $todo->fresh()->is_completed);
 
-        $this->assertDatabaseHas('coding_agent_events', [
+        $this->assertDatabaseHas('coding_agent_job_events', [
             'coding_agent_job_id' => $job->id,
             'kind' => 'release_merged',
         ]);

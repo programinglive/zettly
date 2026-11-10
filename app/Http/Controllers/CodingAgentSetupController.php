@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CodingAgentRepositoryRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ class CodingAgentSetupController extends Controller
         return Inertia::render('Agent/Setup', [
             'newToken' => $request->session()->pull('newAgentWorkerToken'),
             'agentEnabled' => (bool) config('coding_agent.enabled'),
+            'repositoryRegistry' => CodingAgentRepositoryRegistry::all(),
         ]);
     }
 
