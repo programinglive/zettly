@@ -8,9 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCodingAgentOwner
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $mode = 'use'): Response
     {
-        if (! config('coding_agent.enabled')) {
+        if (! config('coding_agent.enabled') && $mode !== 'provision') {
             abort(404);
         }
 

@@ -45,6 +45,10 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::middleware('coding-agent-owner:provision')->prefix('agent')->name('agent.')->group(function () {
+        Route::get('setup', [\App\Http\Controllers\CodingAgentSetupController::class, 'index'])->name('setup');
+        Route::post('setup/worker-token', [\App\Http\Controllers\CodingAgentSetupController::class, 'issueWorkerToken'])->name('setup.worker-token');
+    });
     Route::middleware('coding-agent-owner')->prefix('agent')->name('agent.')->group(function () {
         Route::get('jobs', [\App\Http\Controllers\CodingAgentJobController::class, 'index'])->name('jobs.index');
         Route::get('jobs/{job}', [\App\Http\Controllers\CodingAgentJobController::class, 'show'])->name('jobs.show');

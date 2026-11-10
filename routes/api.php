@@ -75,6 +75,7 @@ Route::prefix('v1/coding-agent')->middleware(['auth:sanctum', 'coding-agent-work
     Route::post('jobs/{job}/instructions', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'instructions']);
     Route::post('jobs/{job}/events', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'event']);
     Route::post('jobs/{job}/result', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'result']);
+    Route::post('jobs/{job}/fail', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'fail']);
 });
 
 // Public auth endpoints are throttled; user-specific CLI routes require a scoped token.

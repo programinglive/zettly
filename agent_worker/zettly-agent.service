@@ -1,0 +1,21 @@
+[Unit]
+Description=Zettly outbound coding agent worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zettly-agent
+Group=zettly-agent
+WorkingDirectory=/opt/zettly-agent
+EnvironmentFile=/etc/zettly-agent/worker.env
+ExecStart=/bin/bash /opt/zettly-agent/agent_worker/start.sh
+Restart=always
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/srv/zettly-agent /home/zettly-agent
+
+[Install]
+WantedBy=multi-user.target

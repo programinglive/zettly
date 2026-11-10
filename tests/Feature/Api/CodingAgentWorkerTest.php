@@ -137,4 +137,21 @@ class CodingAgentWorkerTest extends TestCase
         $this->withToken($token)->postJson("/api/v1/coding-agent/jobs/{$job->id}/instructions", ['lease_token' => $lease])
             ->assertStatus(409);
     }
+
+    public function test_worker_can_fail_before_a_commit_exists(): void
+    {
+        [$owner, $job] = $this->setupJob();
+        $token = $owner->createToken('agent-worker', ['coding-agent:worker'])->plainTextToken;
+        $lease = $this->withToken($token)->postJson('/api/v1/coding-agent/claim')->json('data.lease_token');
+
+        $this->withToken($token)->postJson("/api/v1/coding-agent/jobs/{$job->id}/fail", [
+            'lease_token' => $lease,
+            'summary' => 'Codex authentication unavailable; Bearer secretvalue123',
+        ])->assertOk();
+
+        $this->assertSame('failed', $job->fresh()->status);
+        $this->assertSame('Codex authentication unavailable; [redacted]', $job->fresh()->test_summary);
+        $this->assertNull($job->fresh()->lease_token_hash);
+        $this->assertNull($job->fresh()->commit_sha);
+    }
 }

@@ -32,7 +32,7 @@ export default function AppLayout({
     variant,
 }) {
     const page = usePage();
-    const { auth, flash, canUseCodingAgent } = page.props;
+    const { auth, flash, canUseCodingAgent, canProvisionCodingAgent } = page.props;
     const isSuperAdmin = auth?.user?.role === 'super_admin';
     const { url } = page;
     const { isStandalone, isTablet } = usePwaMode();
@@ -106,6 +106,15 @@ export default function AppLayout({
         sidebarNavigation.push({
             href: '/agent/jobs',
             label: 'Coding Agent',
+            icon: Bot,
+            group: 'main',
+        });
+    }
+
+    if (canProvisionCodingAgent && !canUseCodingAgent) {
+        sidebarNavigation.push({
+            href: '/agent/setup',
+            label: 'Coding Agent Setup',
             icon: Bot,
             group: 'main',
         });

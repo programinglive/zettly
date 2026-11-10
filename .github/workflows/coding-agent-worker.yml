@@ -1,0 +1,90 @@
+name: Coding agent worker checks
+
+on:
+  pull_request:
+    paths:
+      - 'agent_worker/**'
+      - '.github/workflows/coding-agent-worker.yml'
+      - 'app/Http/Controllers/Api/CodingAgentWorkerController.php'
+      - 'routes/api.php'
+      - 'tests/Feature/Api/CodingAgentWorkerTest.php'
+  push:
+    tags:
+      - 'agent-worker-v*'
+
+jobs:
+  worker-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test worker orchestration
+        run: python3 -m unittest discover -s agent_worker -p 'test_*.py' -v
+
+  worker-release:
+    if: startsWith(github.ref, 'refs/tags/agent-worker-v')
+    needs: worker-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package worker
+        run: |
+          tar -czf agent-worker.tar.gz agent_worker
+          sha256sum agent-worker.tar.gz > agent-worker.tar.gz.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-worker-release
+          path: |
+            agent-worker.tar.gz
+            agent-worker.tar.gz.sha256
+      - name: Publish release artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            agent-worker.tar.gz
+            agent-worker.tar.gz.sha256
+
+  worker-deploy:
+    if: startsWith(github.ref, 'refs/tags/agent-worker-v')
+    needs: worker-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require a tag on main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-worker-release
+      - name: Authenticate to pilot GCP project
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/1006462635311/locations/global/workloadIdentityPools/zettly-agent-github/providers/zettly-agent-release
+          service_account: zettly-agent-deployer@phrasal-ground-377312.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: phrasal-ground-377312
+      - name: Install release through instance startup metadata
+        env:
+          AGENT_ENABLE: ${{ vars.ZETTLY_AGENT_ENABLE }}
+        run: |
+          set -euo pipefail
+          status="$(gcloud compute instances describe zettly-coding-agent-1 --project=phrasal-ground-377312 --zone=asia-southeast2-a --format='value(status)')"
+          test "$status" = TERMINATED
+          sha="$(cut -d ' ' -f 1 agent-worker.tar.gz.sha256)"
+          echo "$sha  agent-worker.tar.gz" | sha256sum --check --status
+          enable=false
+          if test "$AGENT_ENABLE" = true; then enable=true; fi
+          gcloud compute instances add-metadata zettly-coding-agent-1 \
+            --project=phrasal-ground-377312 --zone=asia-southeast2-a \
+            --metadata="agent-worker-tag=${GITHUB_REF_NAME},agent-worker-sha256=${sha},agent-worker-enable=${enable}" \
+            --metadata-from-file=startup-script=agent_worker/bootstrap.sh
+          gcloud compute instances start zettly-coding-agent-1 \
+            --project=phrasal-ground-377312 --zone=asia-southeast2-a --quiet
