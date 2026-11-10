@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.22 | 2026-11-10 | **release:** record v0.12.21 release notes (eb18506) |
 | 0.12.21 | 2026-11-10 | **agent:** add AI magic wand prompt generator and enhancer (5689f64) |
 | 0.12.17 | 2026-11-10 | record v0.12.16 release notes entry (55e8cb0) |
 | 0.12.16 | 2026-11-10 | **agent:** configure custom model provider and env key for kenari codex worker (#23) (2595d59) |
@@ -62,6 +63,15 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.22 – 📝 Documentation
+
+Released on **2026-11-10**.
+
+- **release:** record v0.12.21 release notes (eb18506)
+- migrate all workflows to bw-tools self-hosted runner (5be0eed)
+- **agent:** expand instruction limit to 20k chars and clamp AI prompt generation (1b57471)
 
 ## 0.12.21 – ✨ Features
 
