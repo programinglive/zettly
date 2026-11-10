@@ -13,6 +13,9 @@
 #
 set -euo pipefail
 
+ORIGINAL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export ZETTLY_APP_DIR="${ZETTLY_APP_DIR:-$(cd "$ORIGINAL_SCRIPT_DIR/.." && pwd)}"
+
 # ---------------------------------------------------------------------------
 # Re-exec from a temp copy so git reset --hard does not alter running script.
 # ---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ if [ "${ZETTLY_DEPLOY_REEXEC:-}" != "1" ]; then
     ZETTLY_DEPLOY_REEXEC=1 exec bash "$TMP_SCRIPT" "$@"
 fi
 
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP_DIR="$ZETTLY_APP_DIR"
 cd "$APP_DIR"
 
 BRANCH="main"
