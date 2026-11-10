@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.17 | 2026-11-10 | record v0.12.16 release notes entry (55e8cb0) |
 | 0.12.16 | 2026-11-10 | **agent:** configure custom model provider and env key for kenari codex worker (#23) (2595d59) |
 | 0.12.15 | 2026-11-10 | **agent:** allow worker user to execute installed node and codex CLIs (#21) (307e08d) |
 | 0.12.14 | 2026-11-10 | Owner-only coding agent control plane and private VM worker pilot |
@@ -58,6 +59,16 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.17 – 📝 Documentation
+
+Released on **2026-11-10**.
+
+- record v0.12.16 release notes entry (55e8cb0)
+- **agent:** complete coding job 4 (8d7eacc)
+- **agent:** separate form.transform and form.post in coding agent index (5dd8ce1)
+- **worker:** run composer install before php artisan key:generate in setup (#28) (f0c2ae2)
 
 ## 0.12.16 – 🐛 Bug Fixes
 
