@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-umask 077
+umask 022
 
 metadata() {
     curl --fail --silent --show-error --header 'Metadata-Flavor: Google' \
@@ -30,6 +30,9 @@ npm install --global n
 n 22.16.0
 npm install --global @openai/codex@0.167.0
 
+# Ensure CLI binaries and shared node libraries are executable by unprivileged users
+chmod -R a+rX /usr/local/bin /usr/local/lib/node_modules /usr/local/n /usr/local/include /usr/local/share /opt/zettly-agent 2>/dev/null || true
+
 id zettly-agent >/dev/null 2>&1 || useradd --create-home --home-dir /home/zettly-agent --shell /bin/bash zettly-agent
 install -d -m 0755 /opt/zettly-agent
 install -d -m 0700 -o zettly-agent -g zettly-agent /srv/zettly-agent
@@ -42,6 +45,7 @@ curl --fail --silent --show-error --location --retry 3 \
     --output "${archive}"
 echo "${release_sha}  ${archive}" | sha256sum --check --status
 tar -xzf "${archive}" --directory /opt/zettly-agent --no-same-owner
+chmod -R a+rX /usr/local/bin /usr/local/lib/node_modules /usr/local/n /usr/local/include /usr/local/share /opt/zettly-agent
 install -m 0644 -o root -g root /opt/zettly-agent/agent_worker/zettly-agent.service /etc/systemd/system/zettly-agent.service
 install -m 0640 -o root -g zettly-agent /opt/zettly-agent/agent_worker/repositories.example.json /etc/zettly-agent/repositories.json
 cat >/etc/zettly-agent/worker.env <<'EOF'
@@ -53,6 +57,12 @@ AGENT_TARGET_ENVIRONMENT=staging
 EOF
 chown root:zettly-agent /etc/zettly-agent/worker.env
 chmod 0640 /etc/zettly-agent/worker.env
+
+# Verify that all required CLIs can be executed by the zettly-agent user
+for cmd in node npm codex git gh php composer; do
+    runuser -u zettly-agent -- ${cmd} --version >/dev/null
+done
+
 echo "${release_sha}" >/opt/zettly-agent/.release-sha256
 systemctl daemon-reload
 if [[ "$(metadata agent-worker-enable)" == true ]]; then
