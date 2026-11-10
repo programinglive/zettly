@@ -15,7 +15,8 @@ import {
     Monitor,
     Hash,
     BookOpen,
-    ScrollText
+    ScrollText,
+    Bot
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
@@ -31,7 +32,7 @@ export default function AppLayout({
     variant,
 }) {
     const page = usePage();
-    const { auth, flash } = page.props;
+    const { auth, flash, canUseCodingAgent } = page.props;
     const isSuperAdmin = auth?.user?.role === 'super_admin';
     const { url } = page;
     const { isStandalone, isTablet } = usePwaMode();
@@ -100,6 +101,15 @@ export default function AppLayout({
             group: 'main',
         },
     ];
+
+    if (canUseCodingAgent) {
+        sidebarNavigation.push({
+            href: '/agent/jobs',
+            label: 'Coding Agent',
+            icon: Bot,
+            group: 'main',
+        });
+    }
 
     if (isSuperAdmin) {
         sidebarNavigation.unshift({

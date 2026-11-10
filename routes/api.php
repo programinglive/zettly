@@ -69,6 +69,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Stable API surface used by the standalone CLI. Keep /api endpoints backwards compatible.
+Route::prefix('v1/coding-agent')->middleware(['auth:sanctum', 'coding-agent-worker'])->group(function () {
+    Route::post('claim', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'claim']);
+    Route::post('jobs/{job}/heartbeat', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'heartbeat']);
+    Route::post('jobs/{job}/instructions', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'instructions']);
+    Route::post('jobs/{job}/events', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'event']);
+    Route::post('jobs/{job}/result', [\App\Http\Controllers\Api\CodingAgentWorkerController::class, 'result']);
+});
+
 // Public auth endpoints are throttled; user-specific CLI routes require a scoped token.
 Route::prefix('v1')->middleware('throttle:6,1')->group(function () {
     Route::post('auth/login', [CliAuthController::class, 'login'])->name('api.v1.auth.login');

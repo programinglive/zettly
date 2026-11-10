@@ -45,6 +45,16 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::middleware('coding-agent-owner')->prefix('agent')->name('agent.')->group(function () {
+        Route::get('jobs', [\App\Http\Controllers\CodingAgentJobController::class, 'index'])->name('jobs.index');
+        Route::get('jobs/{job}', [\App\Http\Controllers\CodingAgentJobController::class, 'show'])->name('jobs.show');
+        Route::post('jobs', [\App\Http\Controllers\CodingAgentJobController::class, 'store'])->name('jobs.store');
+        Route::post('jobs/{job}/instructions', [\App\Http\Controllers\CodingAgentJobController::class, 'instruction'])->name('jobs.instructions');
+        Route::post('jobs/{job}/pause', [\App\Http\Controllers\CodingAgentJobController::class, 'pause'])->name('jobs.pause');
+        Route::post('jobs/{job}/resume', [\App\Http\Controllers\CodingAgentJobController::class, 'resume'])->name('jobs.resume');
+        Route::post('jobs/{job}/cancel', [\App\Http\Controllers\CodingAgentJobController::class, 'cancel'])->name('jobs.cancel');
+        Route::post('jobs/{job}/approve-release', [\App\Http\Controllers\CodingAgentApprovalController::class, 'store'])->name('jobs.approve-release');
+    });
     Route::get('reports/{report}', \App\Http\Controllers\ReportDetailsController::class)->name('reports.show');
     // Special routes that need to come before resource routes
     Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');

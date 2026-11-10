@@ -37,6 +37,10 @@ class HandleInertiaRequests extends Middleware
             'preferences' => [
                 'workspace_view' => $request->user()?->workspace_view,
             ],
+            'canUseCodingAgent' => config('coding_agent.enabled')
+                && $request->user()?->id === (int) config('coding_agent.owner_user_id')
+                && $request->user()?->email === (string) config('coding_agent.owner_email')
+                && $request->user()?->hasVerifiedEmail(),
             'csrf_token' => csrf_token(),
         ];
     }
