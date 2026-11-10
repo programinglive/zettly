@@ -46,7 +46,7 @@ export default function Show({ job, events }) {
                 </div>
             </section>
             {['queued', 'running', 'needs_input', 'paused'].includes(job.status) && <form onSubmit={sendInstruction} className="space-y-3 rounded-2xl border bg-white p-4 shadow-sm dark:bg-gray-900">
-                <label className="block text-sm font-medium">Follow-up instruction<textarea className="mt-2 min-h-24 w-full rounded-lg border p-3 dark:bg-gray-900" maxLength={5000} value={instruction.data.instruction} onChange={(e) => instruction.setData('instruction', e.target.value)} required /></label>
+                <label className="block text-sm font-medium">Follow-up instruction<textarea className="mt-2 min-h-24 w-full rounded-lg border p-3 dark:bg-gray-900" maxLength={20000} value={instruction.data.instruction} onChange={(e) => instruction.setData('instruction', e.target.value)} required /></label>
                 {instruction.errors.instruction && <p className="text-sm text-red-600">{instruction.errors.instruction}</p>}
                 <button disabled={!online || instruction.processing} className="rounded-lg bg-blue-700 px-4 py-2 text-sm text-white disabled:opacity-50">Send instruction</button>
             </form>}

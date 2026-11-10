@@ -34,6 +34,8 @@ export default function Index({ jobs, todos, repositories, models, default_model
         form.setData('client_request_id', requestId);
     };
 
+    const INSTRUCTION_MAX = 20000;
+
     const enhancePrompt = async () => {
         if (!form.data.todo_id) {
             setPromptError('Please select a Todo first.');
@@ -49,7 +51,12 @@ export default function Index({ jobs, todos, repositories, models, default_model
                 model: form.data.model,
             });
             if (response.data?.prompt) {
-                form.setData('instruction', response.data.prompt);
+                // Guard: trim generated prompt to instruction field max length
+                let generated = response.data.prompt;
+                if (generated.length > INSTRUCTION_MAX) {
+                    generated = generated.slice(0, INSTRUCTION_MAX);
+                }
+                form.setData('instruction', generated);
             }
         } catch (err) {
             const msg = err.response?.data?.error || err.message || 'Failed to generate prompt.';
@@ -98,12 +105,15 @@ export default function Index({ jobs, todos, repositories, models, default_model
                     <textarea
                         id="agent-instruction"
                         className="mt-1 min-h-32 w-full rounded-lg border p-3 dark:bg-gray-900"
-                        maxLength={5000}
+                        maxLength={INSTRUCTION_MAX}
                         value={form.data.instruction}
                         onChange={(e) => form.setData('instruction', e.target.value)}
                         placeholder="Describe what the agent should implement, or click 'Generate with AI' above…"
                         required
                     />
+                    <p className={`text-right text-xs ${form.data.instruction.length >= INSTRUCTION_MAX ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+                        {form.data.instruction.length} / {INSTRUCTION_MAX}
+                    </p>
                     {promptError && <p className="text-xs text-red-600">{promptError}</p>}
                 </div>
                 {Object.values(form.errors).map((error, index) => <p key={index} className="text-sm text-red-600">{error}</p>)}

@@ -14,7 +14,7 @@ class CodingAgentPromptController extends Controller
     {
         $validated = $request->validate([
             'todo_id' => ['nullable', 'integer'],
-            'instruction' => ['nullable', 'string', 'max:5000'],
+            'instruction' => ['nullable', 'string', 'max:20000'],
             'repository' => ['nullable', 'string'],
             'model' => ['nullable', 'string'],
         ]);
@@ -72,6 +72,7 @@ Structure the prompt cleanly with:
 2. **Key Implementation Steps**: Core files, classes, methods, and edge cases to handle.
 3. **Testing & Verification (TDD)**: Explicit instruction to write failing unit/feature tests first, make them green, and run the project's test suite (e.g. php artisan test / npm test) before finishing.
 4. **Constraints**: Maintain clean code, follow Conventional Commits, and do not break existing functionality.
+5. **Length**: Keep the prompt focused, concise, actionable, and under 4,500 characters so it fits cleanly into the instruction buffer.
 
 CRITICAL: Return ONLY the raw prompt text for the coding agent. Do NOT include markdown code fences around the entire response, greetings, or conversational remarks like "Here is your prompt:". Start directly with the prompt content.
 PROMPT;
@@ -90,6 +91,19 @@ PROMPT;
                 $content = $response->json('choices.0.message.content');
                 $generated = trim((string) $content);
                 if ($generated !== '') {
+                    // Truncate to job instruction max length (5000 chars) with a safe margin.
+                    // Prefer cutting at a paragraph boundary to preserve readability.
+                    $maxLen = 4900;
+                    if (mb_strlen($generated) > $maxLen) {
+                        $truncated = mb_substr($generated, 0, $maxLen);
+                        // Try to cut at the last paragraph break for clean output.
+                        $lastPara = mb_strrpos($truncated, "\n\n");
+                        if ($lastPara !== false && $lastPara > $maxLen / 2) {
+                            $truncated = mb_substr($truncated, 0, $lastPara);
+                        }
+                        $generated = rtrim($truncated) . "\n\n[Prompt truncated to fit instruction limit]";
+                    }
+
                     return response()->json(['prompt' => $generated]);
                 }
             }
