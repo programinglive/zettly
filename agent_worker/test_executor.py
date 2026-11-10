@@ -108,6 +108,68 @@ class JobExecutorTest(unittest.TestCase):
                 executor._run_with_heartbeat(['codex'], Path(self.root.name), lambda: (_ for _ in ()).throw(RuntimeError('network failed')))
         self.assertTrue(process.terminated)
 
+    def test_execute_passes_model_flag_to_codex(self):
+        """codex exec must include --model <model> from the job payload."""
+        commands_seen = []
+
+        def fake_run(argv, **kwargs):
+            commands_seen.append(list(argv))
+            from subprocess import CompletedProcess
+            return CompletedProcess(argv, 0, stdout='')
+
+        executor = JobExecutor(Path(self.root.name), self.repositories, run_command=fake_run)
+
+        # Patch _worktree and _run_with_heartbeat so we don't need real git/codex
+        worktree = Path(self.root.name) / 'jobs' / '99'
+        worktree.mkdir(parents=True, exist_ok=True)
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-99')), \
+             patch.object(executor, '_run_with_heartbeat') as mock_hb, \
+             patch.object(executor, '_run', side_effect=fake_run):
+            # Capture calls to _run_with_heartbeat
+            captured_hb_calls = []
+
+            def capture_hb(argv, cwd, checkpoint, env=None):
+                captured_hb_calls.append(list(argv))
+
+            mock_hb.side_effect = capture_hb
+
+            job = {'id': 99, 'repository': 'zettly', 'instruction': 'Fix login', 'model': 'gpt-4o-mini:free'}
+            try:
+                executor.execute(job, lambda: None)
+            except Exception:
+                pass  # may fail on git commands; we only care about codex call
+
+        codex_calls = [c for c in captured_hb_calls if c and c[0] == 'codex']
+        self.assertTrue(any('--model' in c and 'gpt-4o-mini:free' in c for c in codex_calls),
+                        f'Expected --model gpt-4o-mini:free in codex call, got: {codex_calls}')
+
+    def test_execute_uses_default_model_when_not_in_job(self):
+        """When job has no model field, codex exec defaults to agnes-3-0-flash:free."""
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+
+        worktree = Path(self.root.name) / 'jobs' / '100'
+        worktree.mkdir(parents=True, exist_ok=True)
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-100')), \
+             patch.object(executor, '_run_with_heartbeat') as mock_hb, \
+             patch.object(executor, '_run'):
+
+            captured_hb_calls = []
+
+            def capture_hb(argv, cwd, checkpoint, env=None):
+                captured_hb_calls.append(list(argv))
+
+            mock_hb.side_effect = capture_hb
+
+            job = {'id': 100, 'repository': 'zettly', 'instruction': 'Fix login'}
+            try:
+                executor.execute(job, lambda: None)
+            except Exception:
+                pass
+
+        codex_calls = [c for c in captured_hb_calls if c and c[0] == 'codex']
+        self.assertTrue(any('--model' in c and 'agnes-3-0-flash:free' in c for c in codex_calls),
+                        f'Expected --model agnes-3-0-flash:free in codex call, got: {codex_calls}')
+
 
 if __name__ == '__main__':
     unittest.main()

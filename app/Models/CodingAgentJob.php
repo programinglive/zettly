@@ -12,7 +12,7 @@ class CodingAgentJob extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'todo_id', 'workflow_task_id', 'repository', 'instruction',
+        'user_id', 'todo_id', 'workflow_task_id', 'repository', 'instruction', 'model',
         'client_request_id', 'status', 'lease_token_hash', 'leased_until',
         'last_heartbeat_at', 'branch', 'commit_sha', 'pr_url', 'test_summary',
         'tests_passed', 'target_environment',

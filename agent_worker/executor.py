@@ -156,11 +156,12 @@ class JobExecutor:
             turns.append('\n'.join(pending))
         agent_environment = self.command_environment()
         agent_environment['CODEX_DISABLE_AUTO_UPDATE'] = '1'
+        model = job.get('model') or os.environ.get('AGENT_CODEX_MODEL', 'agnes-3-0-flash:free')
 
         for prompt in turns:
             self._run_with_heartbeat(
                 ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
-                 '--config', 'approval_policy=never', prompt],
+                 '--model', model, '--config', 'approval_policy=never', prompt],
                 worktree, checkpoint, env=agent_environment,
             )
         for _ in range(3):
@@ -169,7 +170,7 @@ class JobExecutor:
                 break
             self._run_with_heartbeat(
                 ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
-                 '--config', 'approval_policy=never', '\n'.join(pending)],
+                 '--model', model, '--config', 'approval_policy=never', '\n'.join(pending)],
                 worktree, checkpoint, env=agent_environment,
             )
 

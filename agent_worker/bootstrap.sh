@@ -43,7 +43,7 @@ install -d -m 0750 -o zettly-agent -g zettly-agent /home/zettly-agent/.codex
 
 cat >/home/zettly-agent/.codex/config.toml <<'EOF'
 model_provider = "openai-custom"
-model = "gpt-6-1-sol"
+model = "agnes-3-0-flash:free"
 
 [model_providers.openai-custom]
 name = "openai"

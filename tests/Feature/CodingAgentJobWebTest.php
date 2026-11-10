@@ -116,4 +116,55 @@ class CodingAgentJobWebTest extends TestCase
         $this->assertSame('queued', $job->fresh()->status);
         $this->assertNull($job->fresh()->lease_token_hash);
     }
+
+    public function test_job_stores_model_field_and_defaults_to_configured_model(): void
+    {
+        $owner = $this->owner();
+        config()->set('coding_agent.default_model', 'agnes-3-0-flash:free');
+        config()->set('coding_agent.models', ['agnes-3-0-flash:free', 'gpt-4o-mini:free']);
+        $todo = Todo::factory()->asTask()->create(['user_id' => $owner->id]);
+
+        // No model specified → uses default
+        $this->actingAs($owner)->post('/agent/jobs', [
+            'todo_id' => $todo->id, 'repository' => 'zettly', 'instruction' => 'Fix login',
+            'client_request_id' => 'mobile-model-1',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('coding_agent_jobs', ['client_request_id' => 'mobile-model-1', 'model' => 'agnes-3-0-flash:free']);
+
+        // Explicit model from allowed list
+        $this->actingAs($owner)->post('/agent/jobs', [
+            'todo_id' => $todo->id, 'repository' => 'zettly', 'instruction' => 'Fix login',
+            'client_request_id' => 'mobile-model-2', 'model' => 'gpt-4o-mini:free',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('coding_agent_jobs', ['client_request_id' => 'mobile-model-2', 'model' => 'gpt-4o-mini:free']);
+    }
+
+    public function test_unknown_model_is_rejected(): void
+    {
+        $owner = $this->owner();
+        config()->set('coding_agent.models', ['agnes-3-0-flash:free']);
+        $todo = Todo::factory()->asTask()->create(['user_id' => $owner->id]);
+
+        $this->actingAs($owner)->postJson('/agent/jobs', [
+            'todo_id' => $todo->id, 'repository' => 'zettly', 'instruction' => 'Fix login',
+            'client_request_id' => 'mobile-model-3', 'model' => 'evil-model',
+        ])->assertUnprocessable()->assertJsonValidationErrors('model');
+    }
+
+    public function test_claim_includes_model_in_job_payload(): void
+    {
+        $owner = $this->owner();
+        $todo = Todo::factory()->asTask()->create(['user_id' => $owner->id]);
+        CodingAgentJob::create([
+            'user_id' => $owner->id, 'todo_id' => $todo->id, 'repository' => 'zettly',
+            'instruction' => 'Fix login', 'client_request_id' => 'mobile-claim-model',
+            'model' => 'gpt-4o-mini:free',
+        ]);
+
+        $workerToken = $owner->createToken('zettly-coding-worker', ['coding-agent:worker'])->plainTextToken;
+
+        $this->withToken($workerToken)->postJson('/api/v1/coding-agent/claim')
+            ->assertOk()
+            ->assertJsonPath('data.model', 'gpt-4o-mini:free');
+    }
 }
