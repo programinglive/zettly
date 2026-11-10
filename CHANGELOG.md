@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.22](https://github.com/programinglive/todo/compare/v0.12.21...v0.12.22) (2026-11-10)
+
+
+### 📝 Documentation
+
+* **release:** record v0.12.21 release notes ([eb18506](https://github.com/programinglive/todo/commit/eb18506453608f79b8b92f385be8a5d57ee2329c))
+
+
+### 👷 Continuous Integration
+
+* migrate all workflows to bw-tools self-hosted runner ([5be0eed](https://github.com/programinglive/todo/commit/5be0eed6df31fee5006015fb00ac470134d0289a))
+
+
+### 🐛 Bug Fixes
+
+* **agent:** expand instruction limit to 20k chars and clamp AI prompt generation ([1b57471](https://github.com/programinglive/todo/commit/1b57471a7a8a077fe260f5c694f4d7c07eaed9d3))
+
 ### [0.12.21](https://github.com/programinglive/todo/compare/v0.12.20...v0.12.21) (2026-11-10)
 
 
