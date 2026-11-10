@@ -24,7 +24,8 @@ export default function Index({ jobs, todos, repositories, models, default_model
     const submit = (event) => {
         event.preventDefault();
         const requestId = createRequestId(undefined, form.data.client_request_id || null);
-        form.transform((data) => ({ ...data, client_request_id: requestId })).post('/agent/jobs', {
+        form.transform((data) => ({ ...data, client_request_id: requestId }));
+        form.post('/agent/jobs', {
             onSuccess: () => form.reset('instruction', 'client_request_id'),
         });
         form.setData('client_request_id', requestId);
