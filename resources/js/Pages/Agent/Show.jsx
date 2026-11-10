@@ -34,7 +34,7 @@ export default function Show({ job, events }) {
         <Head title={`Agent job #${job.id}`} />
         <div className="mx-auto max-w-3xl space-y-5 py-6 pb-20">
             <Link href="/agent/jobs" className="text-sm text-blue-700">← All jobs</Link>
-            <header><h1 className="text-2xl font-semibold">{job.todo_title}</h1><p className="mt-1 text-sm text-gray-500">{job.repository} · {statusLabel(job.status)}</p></header>
+            <header><h1 className="text-2xl font-semibold">{job.todo_title}</h1><p className="mt-1 text-sm text-gray-500">{job.repository} · {statusLabel(job.status)}{job.model ? ` · ${job.model}` : ''}</p></header>
             {!online && <div role="status" className="rounded-xl bg-amber-100 p-3 text-sm text-amber-900">Offline. Actions are paused until you reconnect.</div>}
             <section className="rounded-2xl border bg-white p-4 shadow-sm dark:bg-gray-900">
                 <h2 className="font-medium">Job</h2><p className="mt-2 whitespace-pre-wrap text-sm">{job.instruction}</p>

@@ -3,8 +3,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 import { createRequestId, statusLabel } from './jobView';
 
-export default function Index({ jobs, todos, repositories }) {
-    const form = useForm({ todo_id: todos[0]?.id ?? '', repository: repositories[0] ?? '', instruction: '', client_request_id: '' });
+export default function Index({ jobs, todos, repositories, models, default_model }) {
+    const form = useForm({ todo_id: todos[0]?.id ?? '', repository: repositories[0] ?? '', instruction: '', model: default_model ?? models?.[0] ?? 'agnes-3-0-flash:free', client_request_id: '' });
     const [online, setOnline] = useState(typeof navigator === 'undefined' || navigator.onLine);
 
     useEffect(() => {
@@ -45,6 +45,11 @@ export default function Index({ jobs, todos, repositories }) {
                 <label className="block text-sm font-medium">Repository
                     <select className="mt-1 w-full rounded-lg border p-3 dark:bg-gray-900" value={form.data.repository} onChange={(e) => form.setData('repository', e.target.value)} required>
                         <option value="">Select a repository</option>{repositories.map((repo) => <option key={repo} value={repo}>{repo}</option>)}
+                    </select>
+                </label>
+                <label className="block text-sm font-medium">AI Model
+                    <select className="mt-1 w-full rounded-lg border p-3 dark:bg-gray-900" value={form.data.model} onChange={(e) => form.setData('model', e.target.value)}>
+                        {(models ?? [form.data.model]).map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                 </label>
                 <label className="block text-sm font-medium">What should the agent do?

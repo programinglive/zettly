@@ -45,6 +45,7 @@ class BootstrapScriptTest(unittest.TestCase):
 
     def test_bootstrap_configures_codex_model_provider(self):
         self.assertIn('model_provider = "openai-custom"', self.script_content)
+        self.assertIn('model = "agnes-3-0-flash:free"', self.script_content)
         self.assertIn('base_url = "https://kenari.id/v1"', self.script_content)
         self.assertIn('env_key = "CODEX_API_KEY"', self.script_content)
 

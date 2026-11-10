@@ -40,6 +40,7 @@ class CodingAgentWorkerController
                 'id' => $job->id,
                 'repository' => $job->repository,
                 'instruction' => $job->instruction,
+                'model' => $job->model ?? config('coding_agent.default_model', 'agnes-3-0-flash:free'),
                 'lease_token' => $leaseToken,
                 'leased_until' => $job->leased_until->toIso8601String(),
             ];

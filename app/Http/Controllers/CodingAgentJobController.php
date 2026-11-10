@@ -33,6 +33,8 @@ class CodingAgentJobController extends Controller
                 ->where('is_completed', false)->orderBy('title')->limit(100)
                 ->get(['id', 'title']),
             'repositories' => array_keys(config('coding_agent.repositories', [])),
+            'models' => config('coding_agent.models', ['agnes-3-0-flash:free']),
+            'default_model' => config('coding_agent.default_model', 'agnes-3-0-flash:free'),
         ]);
     }
 
@@ -47,6 +49,7 @@ class CodingAgentJobController extends Controller
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
                 'instruction' => $job->instruction,
+                'model' => $job->model,
                 'status' => $job->status,
                 'branch' => $job->branch,
                 'commit_sha' => $job->commit_sha,
@@ -68,15 +71,18 @@ class CodingAgentJobController extends Controller
             'repository' => ['required', 'string', Rule::in(array_keys(config('coding_agent.repositories', [])))],
             'instruction' => ['required', 'string', 'max:5000'],
             'client_request_id' => ['required', 'string', 'max:100'],
+            'model' => ['nullable', 'string', Rule::in(config('coding_agent.models', ['agnes-3-0-flash:free']))],
         ]);
 
         Todo::query()->whereKey($data['todo_id'])
             ->where('user_id', $request->user()->id)
             ->whereNull('organization_id')->firstOrFail();
 
+        $model = $data['model'] ?? config('coding_agent.default_model', 'agnes-3-0-flash:free');
+
         $job = CodingAgentJob::firstOrCreate(
             ['user_id' => $request->user()->id, 'client_request_id' => $data['client_request_id']],
-            ['todo_id' => $data['todo_id'], 'repository' => $data['repository'], 'instruction' => $data['instruction']]
+            ['todo_id' => $data['todo_id'], 'repository' => $data['repository'], 'instruction' => $data['instruction'], 'model' => $model]
         );
         abort_unless(
             $job->todo_id === $data['todo_id']
