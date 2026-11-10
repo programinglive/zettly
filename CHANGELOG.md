@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.18](https://github.com/programinglive/todo/compare/v0.12.17...v0.12.18) (2026-11-10)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** preserve app dir across re-exec and set executable mode ([bb3821d](https://github.com/programinglive/todo/commit/bb3821dc24e0728ad13e14127665412360b43e44))
+
 ### [0.12.17](https://github.com/programinglive/todo/compare/v0.12.16...v0.12.17) (2026-11-10)
 
 
