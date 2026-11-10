@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.15 | 2026-11-10 | **agent:** allow worker user to execute installed node and codex CLIs (#21) (307e08d) |
 | 0.12.14 | 2026-11-10 | Owner-only coding agent control plane and private VM worker pilot |
 | 0.12.13 | 2026-11-09 | record v0.12.12 release notes entry (70b7c9f) |
 | 0.12.12 | 2026-11-09 | record v0.12.11 release notes entry (e6bca63) |
@@ -54,6 +55,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.15 – 🐛 Bug Fixes
+
+Released on **2026-11-10**.
+
+- **agent:** allow worker user to execute installed node and codex CLIs (#21) (307e08d)
+- **deploy:** add zettly deploy script and owner agent config defaults (#22) (bc42c0d)
 
 ## 0.12.14 – Coding Agent Pilot
 
