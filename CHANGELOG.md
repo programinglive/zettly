@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.17](https://github.com/programinglive/todo/compare/v0.12.16...v0.12.17) (2026-11-10)
+
+
+### 📝 Documentation
+
+* record v0.12.16 release notes entry ([55e8cb0](https://github.com/programinglive/todo/commit/55e8cb00157a720ee2079b89a1412dfada25c307))
+
+
+### ✨ Features
+
+* **agent:** complete coding job 4 ([8d7eacc](https://github.com/programinglive/todo/commit/8d7eacc66341d5166ea11b615b1b269284dbfb80))
+
+
+### 🐛 Bug Fixes
+
+* **agent:** separate form.transform and form.post in coding agent index ([5dd8ce1](https://github.com/programinglive/todo/commit/5dd8ce110441d152d931f8f92b3d0fb973beae66))
+* **worker:** run composer install before php artisan key:generate in setup ([#28](https://github.com/programinglive/todo/issues/28)) ([f0c2ae2](https://github.com/programinglive/todo/commit/f0c2ae2aa371d2918ab179cb99fac91d99a7e258))
+
 ### [0.12.16](https://github.com/programinglive/todo/compare/v0.12.15...v0.12.16) (2026-11-10)
 
 
