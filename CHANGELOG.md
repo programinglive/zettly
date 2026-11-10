@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.15](https://github.com/programinglive/todo/compare/v0.12.14...v0.12.15) (2026-11-10)
+
+
+### 🐛 Bug Fixes
+
+* **agent:** allow worker user to execute installed node and codex CLIs ([#21](https://github.com/programinglive/todo/issues/21)) ([307e08d](https://github.com/programinglive/todo/commit/307e08dcf9b1f45fb0c0748ddf8042bfd271bacd))
+
+
+### ✨ Features
+
+* **deploy:** add zettly deploy script and owner agent config defaults ([#22](https://github.com/programinglive/todo/issues/22)) ([bc42c0d](https://github.com/programinglive/todo/commit/bc42c0d8744f5660400e50ce19d80ee548aa7b12))
+
 ### [0.12.14](https://github.com/programinglive/todo/compare/v0.12.8...v0.12.14) (2026-11-10)
 
 
