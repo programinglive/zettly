@@ -4,8 +4,8 @@
     "base": "main",
     "setup": [
       ["cp", ".env.example", ".env"],
-      ["php", "artisan", "key:generate"],
       ["composer", "install", "--no-interaction", "--prefer-dist"],
+      ["php", "artisan", "key:generate"],
       ["npm", "ci"]
     ],
     "tests": [

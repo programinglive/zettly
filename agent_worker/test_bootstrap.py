@@ -41,7 +41,12 @@ class BootstrapScriptTest(unittest.TestCase):
         config_path = Path(__file__).resolve().parent / "repositories.example.json"
         content = config_path.read_text(encoding="utf-8")
         self.assertIn('["cp", ".env.example", ".env"]', content)
+        self.assertIn('["composer", "install", "--no-interaction", "--prefer-dist"]', content)
         self.assertIn('["php", "artisan", "key:generate"]', content)
+        cp_idx = content.find('["cp", ".env.example", ".env"]')
+        composer_idx = content.find('["composer", "install"')
+        key_idx = content.find('["php", "artisan", "key:generate"]')
+        self.assertTrue(cp_idx < composer_idx < key_idx, "composer install must run before key:generate")
 
     def test_bootstrap_configures_codex_model_provider(self):
         self.assertIn('model_provider = "openai-custom"', self.script_content)
