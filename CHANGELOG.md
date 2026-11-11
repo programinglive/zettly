@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.42](https://github.com/programinglive/todo/compare/v0.12.41...v0.12.42) (2026-11-11)
+
+
+### 📝 Documentation
+
+* **release:** record v0.12.41 release notes ([97b9c1f](https://github.com/programinglive/todo/commit/97b9c1f21b1bb084968c580a896de56a44f6740c))
+
+
+### ✨ Features
+
+* **agent:** expose release approval over the API for BOTOL ([#37](https://github.com/programinglive/todo/issues/37)) ([bc248c2](https://github.com/programinglive/todo/commit/bc248c2729c4eb4fce8d0c90485c43503d0074d0))
+
 ### [0.12.41](https://github.com/programinglive/todo/compare/v0.12.40...v0.12.41) (2026-11-11)
 
 
