@@ -71,4 +71,23 @@ class DeployScriptTagTargetTest extends TestCase
             'deploy.sh must write version marker for auto-deploy tracking'
         );
     }
+
+    /**
+     * Queue workers keep the job classes they booted with in memory.
+     *
+     * 11 November 2026: a fix to DispatchReportGeneration was deployed and the
+     * site reported success, but every queued run still failed with the old
+     * BindingResolutionException because the workers had been running for 50
+     * minutes. `queue:restart` makes each worker finish its current job and
+     * exit, so supervisor starts it on the new code.
+     */
+    public function test_restarts_queue_workers_after_deploy(): void
+    {
+        $code = $this->code();
+        $this->assertStringContainsString(
+            'queue:restart',
+            $code,
+            'deploy.sh must run queue:restart, otherwise workers keep executing the previous release'
+        );
+    }
 }
