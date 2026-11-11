@@ -40,7 +40,7 @@
 - Consumes: `App\Models\Tag::todos()` (belongsToMany to `Todo`), `App\Models\Todo` scopes, `Auth::id()`.
 - Produces: route name `api.v1.todos.by-tag`; controller method `byTag(Request $request, Tag $tag): JsonResponse`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/Feature/Api/TodoByTagApiTest.php`:
 
@@ -139,12 +139,12 @@ class TodoByTagApiTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `php artisan test tests/Feature/Api/TodoByTagApiTest.php`
 Expected: FAIL — 404 for every case because the route does not exist yet.
 
-- [ ] **Step 3: Register the route**
+- [x] **Step 3: Register the route**
 
 In `routes/api.php`, inside the `v1` group, immediately before `Route::apiResource('todos', TodoController::class)`:
 
@@ -152,7 +152,7 @@ In `routes/api.php`, inside the `v1` group, immediately before `Route::apiResour
 Route::get('todos/by-tag/{tag}', [TodoController::class, 'byTag'])->name('api.v1.todos.by-tag');
 ```
 
-- [ ] **Step 4: Implement `byTag` in `app/Http/Controllers/Api/TodoController.php`**
+- [x] **Step 4: Implement `byTag` in `app/Http/Controllers/Api/TodoController.php`**
 
 Add after `index()`:
 
@@ -190,17 +190,17 @@ public function byTag(Request $request, Tag $tag): JsonResponse
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `php artisan test tests/Feature/Api/TodoByTagApiTest.php`
 Expected: PASS (5 tests).
 
-- [ ] **Step 6: Run the neighbouring API suites for regressions**
+- [x] **Step 6: Run the neighbouring API suites for regressions**
 
 Run: `php artisan test tests/Feature/Api`
 Expected: PASS, including `RouteResolutionTest` (proves the literal segment still resolves).
 
-- [ ] **Step 7: Document the endpoint**
+- [x] **Step 7: Document the endpoint**
 
 Append to `docs/reference/API_DOCUMENTATION.md`:
 
@@ -227,7 +227,7 @@ Append to `docs/reference/API_DOCUMENTATION.md`:
  */
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add routes/api.php app/Http/Controllers/Api/TodoController.php tests/Feature/Api/TodoByTagApiTest.php docs/reference/API_DOCUMENTATION.md
@@ -243,14 +243,14 @@ git commit -m "feat(api): add paginated tag-scoped todo listing endpoint"
 **Interfaces:**
 - Consumes: the deployed `GET /api/v1/todos/by-tag/{tag}` from Task 1.
 
-- [ ] **Step 1: Confirm the tag id and count**
+- [x] **Step 1: Confirm the tag id and count**
 
 Use the Zettly MCP `zettly_api` tool: `GET /api/v1/tags/57` and read `todos_count`.
 
-- [ ] **Step 2: Fetch the tag's todos through the new endpoint**
+- [x] **Step 2: Fetch the tag's todos through the new endpoint**
 
 Call `GET /api/v1/todos/by-tag/57?per_page=100` and confirm `pagination.total` matches the tag count and every returned todo carries the `area:factory` tag.
 
-- [ ] **Step 3: Report the list to the owner**
+- [x] **Step 3: Report the list to the owner**
 
 List the todo ids and titles. Do not archive or delete anything; that is a separate confirmed action.
