@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.31](https://github.com/programinglive/todo/compare/v0.12.30...v0.12.31) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **reports:** stop the queue worker failing to resolve the report job handler ([247485a](https://github.com/programinglive/todo/commit/247485a54947dd3a781230636380427ffd044ade))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/report-job-container-resolution into main ([33735cd](https://github.com/programinglive/todo/commit/33735cd1cb62012803b85dd9214628de7cbed194))
+
 ### [0.12.30](https://github.com/programinglive/todo/compare/v0.12.29...v0.12.30) (2026-11-11)
 
 
