@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.39 | 2026-11-11 | **deploy:** hand storage back to the web user after the root git reset (e8f7bfb) |
 | 0.12.38 | 2026-11-11 | **focus:** add the focus board endpoint and page (2bfb4cb) |
 | 0.12.37 | 2026-11-11 | **focus:** add the focus board endpoint and page (2bfb4cb) |
 | 0.12.36 | 2026-11-11 | **deploy:** explain the two-stage re-exec in the script header (9e39478) |
@@ -94,6 +95,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.39 – 🐛 Bug Fixes
+
+Released on **2026-11-11**.
+
+- **deploy:** hand storage back to the web user after the root git reset (e8f7bfb)
+- **release:** merge fix/deploy-chown-after-reset into main (d8814f6)
 
 ## 0.12.38 – ✨ Features
 
