@@ -47,6 +47,24 @@ fi
 APP_DIR="$ZETTLY_APP_DIR"
 cd "$APP_DIR"
 
+# ---------------------------------------------------------------------------
+# Run artisan as the web user.
+#
+# The deploy itself runs as root (auto-deploy cron, or `sudo scripts/deploy.sh`).
+# Running `php artisan view:cache` as root leaves compiled views owned by root,
+# and the web user then cannot rewrite them: the next request fails with
+# "touch(): Utime failed: Operation not permitted" (Sentry POS-CLINIC-EB, 49
+# events). Every artisan call below goes through this helper so the files it
+# writes stay owned by the user that serves them.
+# ---------------------------------------------------------------------------
+artisan() {
+    if [ "$(id -u)" -eq 0 ] && id -u www-data >/dev/null 2>&1; then
+        sudo -u www-data php artisan "$@"
+    else
+        command php artisan "$@"
+    fi
+}
+
 BRANCH="main"
 DEPLOY_TAG=""
 RUN_MIGRATIONS=1
@@ -131,7 +149,7 @@ fi
 
 if [ "$RUN_MIGRATIONS" -eq 1 ]; then
     echo "[deploy] 3. Running database migrations..."
-    php artisan migrate --force
+    artisan migrate --force
 fi
 
 if [ -f "scripts/build-assets.sh" ]; then
@@ -140,14 +158,14 @@ if [ -f "scripts/build-assets.sh" ]; then
 fi
 
 echo "[deploy] 5. Refreshing caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan cache:clear
+artisan config:clear
+artisan route:clear
+artisan view:clear
+artisan cache:clear
 
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+artisan config:cache
+artisan route:cache
+artisan view:cache
 
 # Queue workers hold the job classes they booted with in memory, so a release
 # that changes a job would keep running the old code until someone restarted
@@ -156,7 +174,7 @@ php artisan view:cache
 # workers stayed up. queue:restart lets each worker finish its current job and
 # exit, and supervisor starts it on the new release.
 echo "[deploy] 6. Restarting queue workers..."
-php artisan queue:restart
+artisan queue:restart
 
 MARKER_DIR="/var/lib/deploy-tags/deployed"
 if [ -d "$(dirname "$MARKER_DIR")" ]; then

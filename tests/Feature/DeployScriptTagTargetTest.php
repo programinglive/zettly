@@ -120,4 +120,30 @@ class DeployScriptTagTargetTest extends TestCase
             'The stage-2 re-exec must come AFTER git reset --hard, otherwise it runs the old script again'
         );
     }
+
+    /**
+     * Artisan must run as the web user, not as root.
+     *
+     * WHY THIS TEST EXISTS
+     * --------------------
+     * The deploy runs as root (auto-deploy cron, or `sudo scripts/deploy.sh`).
+     * `php artisan view:cache` as root leaves compiled views owned by root, and
+     * the web user then cannot rewrite them. The next request fails with
+     * "touch(): Utime failed: Operation not permitted" (Sentry POS-CLINIC-EB,
+     * 49 events). Every artisan call must go through the helper that drops to
+     * www-data.
+     */
+    public function test_runs_artisan_as_the_web_user(): void
+    {
+        $script = $this->script();
+
+        $this->assertStringContainsString('sudo -u www-data php artisan', $script,
+            'deploy.sh must run artisan as www-data when it runs as root');
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/^\s*php artisan /m',
+            $script,
+            'deploy.sh must not call php artisan directly; use the artisan() helper'
+        );
+    }
 }
