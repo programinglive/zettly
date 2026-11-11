@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.30 | 2026-11-11 | document the tag auto-deploy path to bw-app (38249ff) |
 | 0.12.29 | 2026-11-11 | pin every workflow to the bw-tools runner and add a test pipeline (9543a5e) |
 | 0.12.28 | 2026-11-11 | **graph:** declare services.graph.enabled so GRAPH_SERVICE_ENABLED takes effect (0a47d9e) |
 | 0.12.27 | 2026-11-11 | **api:** add paginated tag-scoped todo listing endpoint (d7358ab) |
@@ -76,6 +77,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.30 – 📝 Documentation
+
+Released on **2026-11-11**.
+
+- document the tag auto-deploy path to bw-app (38249ff)
+- **release:** merge chore/document-auto-deploy into main (499d8dc)
 
 ## 0.12.29 – 👷 Continuous Integration
 
