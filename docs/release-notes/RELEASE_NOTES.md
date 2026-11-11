@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.29 | 2026-11-11 | pin every workflow to the bw-tools runner and add a test pipeline (9543a5e) |
 | 0.12.28 | 2026-11-11 | **graph:** declare services.graph.enabled so GRAPH_SERVICE_ENABLED takes effect (0a47d9e) |
 | 0.12.27 | 2026-11-11 | **api:** add paginated tag-scoped todo listing endpoint (d7358ab) |
 | 0.12.26 | 2026-11-10 | **release:** record v0.12.25 release notes (a779529) |
@@ -74,6 +75,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.29 – 👷 Continuous Integration
+
+Released on **2026-11-11**.
+
+- pin every workflow to the bw-tools runner and add a test pipeline (9543a5e)
+- **release:** merge ci/bw-tools-runner-standard into main (6e862b5)
 
 ## 0.12.28 – 🐛 Bug Fixes
 
