@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Focus;
 use App\Models\FocusStatusEvent;
+use App\Models\Todo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -41,6 +42,33 @@ class FocusController extends Controller
             ])
             ->first();
 
+        // Every running focus, newest first. The single focus in `data` is kept
+        // for older clients that only understand one.
+        $activeFocuses = Auth::user()
+            ->activeFoci()
+            ->orderByDesc('started_at')
+            ->get(['id', 'title', 'color', 'status', 'started_at']);
+
+        $openTodos = Todo::query()
+            ->where('user_id', Auth::id())
+            ->where('type', Todo::TYPE_TODO)
+            ->where('is_completed', false)
+            ->whereIn('focus_id', $activeFocuses->pluck('id'))
+            ->selectRaw('focus_id, count(*) as aggregate')
+            ->groupBy('focus_id')
+            ->pluck('aggregate', 'focus_id');
+
+        $activeFocusPayload = $activeFocuses
+            ->map(fn (Focus $active) => [
+                'id' => $active->id,
+                'title' => $active->title,
+                'color' => $active->color,
+                'status' => $active->status,
+                'started_at' => $active->started_at,
+                'open_todos' => (int) ($openTodos[$active->id] ?? 0),
+            ])
+            ->values();
+
         $recentEvents = FocusStatusEvent::query()
             ->where('user_id', Auth::id())
             ->whereDate('created_at', $filterDate)
@@ -59,7 +87,8 @@ class FocusController extends Controller
             'filter_date' => $filterDate->toDateString(),
             // Several focuses may run at once; a client needs to know that the
             // single focus returned in `data` is not the only one.
-            'active_focus_count' => Auth::user()->activeFoci()->count(),
+            'active_focus_count' => $activeFocuses->count(),
+            'active_focuses' => $activeFocusPayload,
         ]);
     }
 

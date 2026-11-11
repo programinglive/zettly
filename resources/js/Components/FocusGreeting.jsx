@@ -11,6 +11,7 @@ import axios from 'axios';
 export default function FocusGreeting() {
     const authUser = usePage().props.auth.user;
     const [currentFocus, setCurrentFocus] = useState(null);
+    const [activeFocuses, setActiveFocuses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +87,7 @@ export default function FocusGreeting() {
             const data = response.data;
             if (data?.success) {
                 setCurrentFocus(data.data);
+                setActiveFocuses(Array.isArray(data.active_focuses) ? data.active_focuses : []);
                 const history = Array.isArray(data.recent_events)
                     ? data.recent_events
                     : Array.isArray(data.data?.status_events)
@@ -151,6 +153,9 @@ export default function FocusGreeting() {
             setDescription('');
             setShowDialog(false);
             autoOpenRef.current = true;
+            // The new focus joins the list of running focuses; refetch so the
+            // dashboard shows every one of them rather than only this card.
+            fetchCurrentFocus({ skipAutoOpen: true });
         } catch (err) {
             console.error('Failed to create focus:', err);
             setError('An error occurred while creating focus');
@@ -190,6 +195,7 @@ export default function FocusGreeting() {
             setCurrentFocus(null);
             setTitle('');
             setDescription('');
+            fetchCurrentFocus({ skipAutoOpen: true });
             if (!tabletDetectionRef.current) {
                 setShowDialog(true);
             } else {
@@ -329,7 +335,31 @@ export default function FocusGreeting() {
                     </div>
                 </div>
 
-                {currentFocus ? (
+                {activeFocuses.length > 1 ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {activeFocuses.map((active) => (
+                            <a
+                                key={active.id}
+                                href={`/focus/${active.id}`}
+                                className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-500"
+                            >
+                                <div
+                                    className="absolute inset-x-0 top-0 h-1"
+                                    style={{ backgroundColor: active.color || '#6366F1' }}
+                                />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
+                                    Active focus
+                                </span>
+                                <h3 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
+                                    {active.title}
+                                </h3>
+                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                    {active.open_todos} open {active.open_todos === 1 ? 'todo' : 'todos'}
+                                </p>
+                            </a>
+                        ))}
+                    </div>
+                ) : currentFocus ? (
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-15 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
                         <div className="relative bg-white dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-800 rounded-2xl p-8 sm:p-10 shadow-xl overflow-hidden">
@@ -359,6 +389,12 @@ export default function FocusGreeting() {
                                             <AlertCircle className="w-4 h-4" />
                                             <span>Started {new Date(currentFocus.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
+                                        <a
+                                            href={`/focus/${currentFocus.id}`}
+                                            className="font-semibold text-indigo-600 underline-offset-2 hover:underline dark:text-indigo-400"
+                                        >
+                                            Open board
+                                        </a>
                                     </div>
                                 </div>
 
