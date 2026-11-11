@@ -18,6 +18,12 @@ export ZETTLY_APP_DIR="${ZETTLY_APP_DIR:-$(cd "$ORIGINAL_SCRIPT_DIR/.." && pwd)}
 
 # ---------------------------------------------------------------------------
 # Re-exec from a temp copy so git reset --hard does not alter running script.
+#
+# Two stages, on purpose:
+#   1. the copy taken here is the PREVIOUS release's script;
+#   2. after the reset, the script shipped by the target commit is executed.
+# Stage 2 is what makes a newly added deploy step apply in the release that
+# introduces it instead of one release later.
 # ---------------------------------------------------------------------------
 if [ "${ZETTLY_DEPLOY_REEXEC:-}" != "1" ]; then
     TMP_SCRIPT="$(mktemp /tmp/zettly-deploy.XXXXXX.sh)"
