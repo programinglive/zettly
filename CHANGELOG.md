@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.37](https://github.com/programinglive/todo/compare/v0.12.36...v0.12.37) (2026-11-11)
+
+
+### ✨ Features
+
+* **focus:** add the focus board endpoint and page ([2bfb4cb](https://github.com/programinglive/todo/commit/2bfb4cb1999d2cc3baecc3d77ddac50d6dc1112f))
+
 ### [0.12.36](https://github.com/programinglive/todo/compare/v0.12.35...v0.12.36) (2026-11-11)
 
 
