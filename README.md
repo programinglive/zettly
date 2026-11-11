@@ -136,6 +136,14 @@ Production is the `bw-app` host and the site is `/var/www/zettly`, served at
 To pause auto-deploy for the whole host, remove `/etc/deploy/PRODUCTION_ENABLED`.
 To pause only Zettly, remove `zettly` from `/etc/deploy/rilis-bertahap`.
 
+`scripts/deploy.sh` copies itself to `/tmp` before `git reset --hard`, because
+bash reads a script incrementally and resetting the file mid-run is unsafe. That
+copy is the *previous* release's script, so after the reset the script
+re-executes the version the target commit ships. Without that second re-exec a
+newly added deploy step silently waits one release to take effect — which is
+exactly how `queue:restart` was added in v0.12.32 and still did not run during
+the cycle that installed it.
+
 ### API Documentation
 
 The API endpoints and authentication examples are documented in [docs/reference/API_DOCUMENTATION.md](./docs/reference/API_DOCUMENTATION.md).
