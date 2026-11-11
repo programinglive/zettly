@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.32 | 2026-11-11 | **deploy:** restart queue workers so a release actually runs the new job code (a10d868) |
 | 0.12.31 | 2026-11-11 | **reports:** stop the queue worker failing to resolve the report job handler (247485a) |
 | 0.12.30 | 2026-11-11 | document the tag auto-deploy path to bw-app (38249ff) |
 | 0.12.29 | 2026-11-11 | pin every workflow to the bw-tools runner and add a test pipeline (9543a5e) |
@@ -80,6 +81,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.32 – 🐛 Bug Fixes
+
+Released on **2026-11-11**.
+
+- **deploy:** restart queue workers so a release actually runs the new job code (a10d868)
+- **release:** merge fix/deploy-restarts-workers into main (41400dc)
 
 ## 0.12.31 – 🐛 Bug Fixes
 
