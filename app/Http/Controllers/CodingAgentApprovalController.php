@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\CodingAgentJob;
+use App\Services\CodingAgentApprovalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class CodingAgentApprovalController extends Controller
 {
+    public function __construct(private readonly CodingAgentApprovalService $approvals)
+    {
+    }
+
     public function store(Request $request, CodingAgentJob $job): RedirectResponse
     {
         $data = $request->validate([
@@ -19,89 +20,13 @@ class CodingAgentApprovalController extends Controller
             'target_environment' => ['required', 'string', 'in:development,staging,production'],
         ]);
 
-        DB::transaction(function () use ($request, $job, $data): void {
-            $job = CodingAgentJob::query()->whereKey($job->id)
-                ->where('user_id', $request->user()->id)->lockForUpdate()->firstOrFail();
-            abort_unless(
-                in_array($job->status, ['review', 'release_pending'], true)
-                    && $job->tests_passed === true
-                    && preg_match('/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/', (string) $job->commit_sha)
-                    && hash_equals($job->commit_sha, $data['commit_sha'])
-                    && $job->target_environment === $data['target_environment'],
-                409,
-                'The reviewed artifact changed or is not ready for approval.'
-            );
-
-            $approval = $job->approvals()->firstOrCreate(
-                [
-                    'repository' => $job->repository,
-                    'target_environment' => $job->target_environment,
-                    'commit_sha' => $job->commit_sha,
-                ],
-                ['approved_by' => $request->user()->id]
-            );
-            if ($approval->wasRecentlyCreated) {
-                $job->events()->create([
-                    'event_key' => (string) Str::uuid(),
-                    'kind' => 'release_approved',
-                    'detail' => "{$job->target_environment}:{$job->commit_sha}",
-                    'occurred_at' => now(),
-                ]);
-            }
-
-            $merged = $this->attemptAutoMerge($job);
-
-            if ($merged) {
-                $job->update(['status' => 'completed']);
-                $job->todo?->update(['is_completed' => true]);
-                $job->events()->create([
-                    'event_key' => (string) Str::uuid(),
-                    'kind' => 'release_merged',
-                    'detail' => "merged_pr:{$job->pr_url}",
-                    'occurred_at' => now(),
-                ]);
-            } else {
-                $job->update(['status' => 'release_pending']);
-            }
-        });
+        $this->approvals->approve(
+            $job,
+            $request->user()->id,
+            $data['commit_sha'],
+            $data['target_environment'],
+        );
 
         return redirect()->route('agent.jobs.show', $job->id);
-    }
-
-    private function attemptAutoMerge(CodingAgentJob $job): bool
-    {
-        $token = config('coding_agent.github_token') ?? config('services.github.token');
-        if (! $token || ! $job->pr_url) {
-            return false;
-        }
-
-        if (! preg_match('#github\.com/([^/]+/[^/]+)/pull/(\d+)#', $job->pr_url, $matches)) {
-            return false;
-        }
-
-        $repository = $matches[1];
-        $pullNumber = (int) $matches[2];
-
-        try {
-            $response = Http::withToken($token)
-                ->withHeaders([
-                    'Accept' => 'application/vnd.github+json',
-                    'X-GitHub-Api-Version' => '2022-11-28',
-                ])
-                ->put("https://api.github.com/repos/{$repository}/pulls/{$pullNumber}/merge", [
-                    'commit_title' => "feat(agent): release coding job #{$job->id}",
-                    'merge_method' => 'merge',
-                ]);
-
-            if ($response->successful()) {
-                return true;
-            }
-
-            Log::warning("GitHub PR merge failed for job #{$job->id}: {$response->status()} - {$response->body()}");
-        } catch (\Throwable $e) {
-            Log::error("GitHub PR merge exception for job #{$job->id}: {$e->getMessage()}");
-        }
-
-        return false;
     }
 }
