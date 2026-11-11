@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.33](https://github.com/programinglive/todo/compare/v0.12.32...v0.12.33) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** run the deploy script shipped by the target release, not the previous one ([9383441](https://github.com/programinglive/todo/commit/938344198e7d71fc03b8217dcd264d2a842af735))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/deploy-runs-target-script into main ([2fea53b](https://github.com/programinglive/todo/commit/2fea53b5e062a0ac481e64bc09c7873c5f22c990))
+
 ### [0.12.32](https://github.com/programinglive/todo/compare/v0.12.31...v0.12.32) (2026-11-11)
 
 
