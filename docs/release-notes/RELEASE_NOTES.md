@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.38 | 2026-11-11 | **focus:** add the focus board endpoint and page (2bfb4cb) |
 | 0.12.37 | 2026-11-11 | **focus:** add the focus board endpoint and page (2bfb4cb) |
 | 0.12.36 | 2026-11-11 | **deploy:** explain the two-stage re-exec in the script header (9e39478) |
 | 0.12.35 | 2026-11-11 | **deploy:** remove the first temp copy when the script re-executes (a3ee545) |
@@ -92,6 +93,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.38 – ✨ Features
+
+Released on **2026-11-11**.
+
+- **focus:** add the focus board endpoint and page (2bfb4cb)
+- **release:** record v0.12.37 release notes (fe109d1)
+- **deploy:** run artisan as the web user so compiled views stay writable (106557f)
+- **release:** 0.12.37 🚀 (454ea1d)
+- **release:** merge fix/deploy-artisan-as-web-user into main (721d07f)
 
 ## 0.12.37 – ✨ Features
 
