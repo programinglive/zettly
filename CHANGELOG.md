@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.30](https://github.com/programinglive/todo/compare/v0.12.29...v0.12.30) (2026-11-11)
+
+
+### 📝 Documentation
+
+* document the tag auto-deploy path to bw-app ([38249ff](https://github.com/programinglive/todo/commit/38249ff80da308ceb585f6273fb2f80c2f70ac96))
+
+
+### 🧹 Chores
+
+* **release:** merge chore/document-auto-deploy into main ([499d8dc](https://github.com/programinglive/todo/commit/499d8dcecc698927eb3af392b27e1dd50761b74f))
+
 ### [0.12.29](https://github.com/programinglive/todo/compare/v0.12.28...v0.12.29) (2026-11-11)
 
 
