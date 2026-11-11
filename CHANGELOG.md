@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.34](https://github.com/programinglive/todo/compare/v0.12.33...v0.12.34) (2026-11-11)
+
+
+### 📝 Documentation
+
+* explain why the deploy script re-executes the shipped version ([0ad3fe1](https://github.com/programinglive/todo/commit/0ad3fe16b376705794bd6bd07cb5c3f948036ea8))
+
+
+### 🧹 Chores
+
+* **release:** merge docs/deploy-script-late-step into main ([11c2d89](https://github.com/programinglive/todo/commit/11c2d89b71fbc32c314af351d62c9d1ca406e3df))
+
 ### [0.12.33](https://github.com/programinglive/todo/compare/v0.12.32...v0.12.33) (2026-11-11)
 
 
