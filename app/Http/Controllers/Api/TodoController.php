@@ -82,6 +82,38 @@ class TodoController extends Controller
     }
 
     /**
+     * List the todos linked to a single tag, paginated.
+     */
+    public function byTag(Request $request, Tag $tag): JsonResponse
+    {
+        if ($tag->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
+        $page = max((int) $request->input('page', 1), 1);
+
+        $todos = $tag->todos()
+            ->with(['tags', 'checklistItems'])
+            ->latest()
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'success' => true,
+            'data' => $todos->items(),
+            'pagination' => [
+                'total' => $todos->total(),
+                'per_page' => $todos->perPage(),
+                'current_page' => $todos->currentPage(),
+                'last_page' => $todos->lastPage(),
+            ],
+        ]);
+    }
+
+    /**
      * Store a newly created todo.
      */
     public function store(Request $request): JsonResponse

@@ -87,6 +87,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::delete('profile', [CliApiController::class, 'deleteProfile'])->name('api.v1.profile.destroy');
     Route::post('auth/token', [CliApiController::class, 'issueCliToken'])->name('api.v1.auth.token');
     Route::delete('profile/tokens/{token}', [CliApiController::class, 'deleteToken'])->name('api.v1.profile.tokens.destroy');
+    Route::get('todos/by-tag/{tag}', [TodoController::class, 'byTag'])->name('api.v1.todos.by-tag');
     Route::apiResource('todos', TodoController::class)->names([
         'index' => 'api.v1.todos.index', 'store' => 'api.v1.todos.store', 'show' => 'api.v1.todos.show',
         'update' => 'api.v1.todos.update', 'destroy' => 'api.v1.todos.destroy',
