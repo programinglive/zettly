@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.32](https://github.com/programinglive/todo/compare/v0.12.31...v0.12.32) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** restart queue workers so a release actually runs the new job code ([a10d868](https://github.com/programinglive/todo/commit/a10d86844b256e43ae0fa85620533f2ccdacb9a6))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/deploy-restarts-workers into main ([41400dc](https://github.com/programinglive/todo/commit/41400dcd993dd24897551ddcfa914000b40c3996))
+
 ### [0.12.31](https://github.com/programinglive/todo/compare/v0.12.30...v0.12.31) (2026-11-11)
 
 
