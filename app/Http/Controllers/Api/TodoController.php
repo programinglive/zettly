@@ -82,6 +82,57 @@ class TodoController extends Controller
     }
 
     /**
+     * List the todos linked to a single tag, paginated.
+     */
+    public function byTag(Request $request, Tag $tag): JsonResponse
+    {
+        if ($tag->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $requestedType = $request->get('type');
+        $type = in_array($requestedType, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)
+            ? $requestedType
+            : Todo::TYPE_TODO;
+
+        $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
+        $page = max((int) $request->input('page', 1), 1);
+
+        $query = $tag->todos()
+            ->where('todos.user_id', Auth::id())
+            ->with(['tags', 'checklistItems', 'relatedTodos:id,title']);
+
+        if ($type === Todo::TYPE_NOTE) {
+            $query->notes();
+        } else {
+            $query->tasks();
+        }
+
+        if ($request->has('archived')) {
+            $query->where('archived', $request->boolean('archived'));
+        }
+
+        $todos = $query
+            ->latest()
+            ->orderByDesc('id')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'success' => true,
+            'data' => $todos->items(),
+            'pagination' => [
+                'total' => $todos->total(),
+                'per_page' => $todos->perPage(),
+                'current_page' => $todos->currentPage(),
+                'last_page' => $todos->lastPage(),
+            ],
+        ]);
+    }
+
+    /**
      * Store a newly created todo.
      */
     public function store(Request $request): JsonResponse

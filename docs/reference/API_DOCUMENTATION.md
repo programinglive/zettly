@@ -210,3 +210,32 @@ const deleteTodo = async (id) => {
 | Consider adding CORS middleware or configuring your web server.
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Tag-scoped todo listing (v1)
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * GET /api/v1/todos/by-tag/{tag}
+ * List the todos linked to one tag, paginated.
+ *
+ * Path Parameters:
+ * - tag: numeric tag id
+ *
+ * Query Parameters:
+ * - per_page: 1..100 (default 50)
+ * - page: page number (default 1)
+ * - type: 'todo' (default) or 'note'
+ * - archived: optional boolean filter
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": [ ...todos ],
+ *   "pagination": { "total": 12, "per_page": 50, "current_page": 1, "last_page": 1 }
+ * }
+ *
+ * Example: GET /api/v1/todos/by-tag/57?per_page=20
+ */
