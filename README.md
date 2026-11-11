@@ -193,6 +193,7 @@ The `/draw` experience introduces a multi-document sketching surface powered by 
 Task and note relationships are asynchronously synced to the graph microservice via `App\Jobs\SyncGraphEvent`:
 
 - **Graceful degradation** — If the graph microservice (`http://localhost:3001` or configured `GRAPH_SERVICE_URL`) is unreachable, the queue job catches `ConnectionException`, logs a warning with event details, and completes cleanly without throwing unhandled exceptions to Sentry or failing the queue worker.
+- **Disabling the integration** — Set `GRAPH_SERVICE_ENABLED=false` when the graph service is not deployed on this host. The job then returns before any HTTP call, so it cannot post to a port owned by another service, throw a non-success status, or accumulate rows in `failed_jobs`. When the service *is* running, leave it `true`: a non-success response still throws on purpose so the queue retries instead of silently dropping the event.
 - **Configurable sync** — Graph synchronization can be explicitly controlled via `services.graph.enabled` and `services.graph.url`.
 - **Sentry exception suppression** — Eliminates noise from unreachable local microservices in migrated single-host topologies.
 
