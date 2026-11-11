@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.28](https://github.com/programinglive/todo/compare/v0.12.27...v0.12.28) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **graph:** declare services.graph.enabled so GRAPH_SERVICE_ENABLED takes effect ([0a47d9e](https://github.com/programinglive/todo/commit/0a47d9e25ab43225c33f7ba97464d0911eac28f9))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/graph-sync-disable-switch into main ([ccb3399](https://github.com/programinglive/todo/commit/ccb339932e8bfe540cf1241a2365e7694939b9e3))
+
 ### [0.12.27](https://github.com/programinglive/todo/compare/v0.12.26...v0.12.27) (2026-11-11)
 
 
