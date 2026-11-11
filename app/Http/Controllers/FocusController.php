@@ -345,6 +345,66 @@ class FocusController extends Controller
     }
 
     /**
+     * Everything filed inside one focus, in a single read.
+     *
+     * The board exists so a workspace page does not have to fan out into four
+     * requests, and so the counts and the lists can never disagree.
+     */
+    public function board(Request $request, Focus $focus): JsonResponse
+    {
+        if ($focus->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->boardPayload($focus),
+        ]);
+    }
+
+    public function boardPage(Focus $focus)
+    {
+        abort_unless($focus->user_id === Auth::id(), 404);
+
+        return \Inertia\Inertia::render('Focus/Board', $this->boardPayload($focus));
+    }
+
+    /**
+     * @return array{focus: array<string, mixed>, counts: array<string, int>, todos: mixed, notes: mixed, drawings: mixed, journal: mixed}
+     */
+    private function boardPayload(Focus $focus): array
+    {
+        $todos = $focus->todos()->where('user_id', $focus->user_id)->orderBy('is_completed')->latest('id')->get();
+        $notes = $focus->notes()->where('user_id', $focus->user_id)->latest('id')->get();
+
+        return [
+            'focus' => [
+                'id' => $focus->id,
+                'title' => $focus->title,
+                'description' => $focus->description,
+                'status' => $focus->status,
+                'color' => $focus->color,
+                'started_at' => $focus->started_at,
+                'completed_at' => $focus->completed_at,
+            ],
+            'counts' => [
+                'todos' => $todos->count(),
+                'notes' => $notes->count(),
+                'drawings' => $focus->drawings()->where('user_id', $focus->user_id)->count(),
+                'journal' => $focus->journalEntries()->where('user_id', $focus->user_id)->count(),
+                'open_todos' => $todos->where('is_completed', false)->count(),
+            ],
+            'todos' => $todos->values(),
+            'notes' => $notes->values(),
+            'drawings' => $focus->drawings()->where('user_id', $focus->user_id)->latest('id')->get(['id', 'title', 'thumbnail', 'updated_at']),
+            'journal' => $focus->journalEntries()->where('user_id', $focus->user_id)->latest('id')->get(['id', 'entry_date', 'kind', 'content', 'created_at']),
+        ];
+    }
+
+    /**
      * Delete a focus.
      */
     public function destroy(Focus $focus): JsonResponse

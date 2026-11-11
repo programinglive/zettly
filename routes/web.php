@@ -143,6 +143,7 @@ Route::middleware('auth')->group(function () {
 
     // Focus management routes
     Route::get('/focus/current', [FocusController::class, 'current'])->name('focus.current');
+Route::get('/focus/{focus}', [FocusController::class, 'boardPage'])->name('focus.board')->whereNumber('focus');
     Route::get('/focus', [FocusController::class, 'index'])->name('focus.index');
     Route::post('/focus', [FocusController::class, 'store'])->name('focus.store');
     Route::put('/focus/{focus}', [FocusController::class, 'update'])->name('focus.update')->whereNumber('focus');
