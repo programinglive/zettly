@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.36](https://github.com/programinglive/todo/compare/v0.12.35...v0.12.36) (2026-11-11)
+
+
+### 📝 Documentation
+
+* **deploy:** explain the two-stage re-exec in the script header ([9e39478](https://github.com/programinglive/todo/commit/9e3947877c4afcbbe8c4b4eba6cba150c9897837))
+
+
+### 🧹 Chores
+
+* **release:** merge docs/deploy-two-stages into main ([1e38ed0](https://github.com/programinglive/todo/commit/1e38ed0fb91ab5f05322a33786db0147881a3181))
+
 ### [0.12.35](https://github.com/programinglive/todo/compare/v0.12.34...v0.12.35) (2026-11-11)
 
 
