@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.35 | 2026-11-11 | **deploy:** remove the first temp copy when the script re-executes (a3ee545) |
 | 0.12.34 | 2026-11-11 | explain why the deploy script re-executes the shipped version (0ad3fe1) |
 | 0.12.33 | 2026-11-11 | **deploy:** run the deploy script shipped by the target release, not the previous one (9383441) |
 | 0.12.32 | 2026-11-11 | **deploy:** restart queue workers so a release actually runs the new job code (a10d868) |
@@ -86,6 +87,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.35 – 🐛 Bug Fixes
+
+Released on **2026-11-11**.
+
+- **deploy:** remove the first temp copy when the script re-executes (a3ee545)
+- **release:** merge fix/deploy-tmp-cleanup into main (364698d)
 
 ## 0.12.34 – 📝 Documentation
 
