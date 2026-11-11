@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.31 | 2026-11-11 | **reports:** stop the queue worker failing to resolve the report job handler (247485a) |
 | 0.12.30 | 2026-11-11 | document the tag auto-deploy path to bw-app (38249ff) |
 | 0.12.29 | 2026-11-11 | pin every workflow to the bw-tools runner and add a test pipeline (9543a5e) |
 | 0.12.28 | 2026-11-11 | **graph:** declare services.graph.enabled so GRAPH_SERVICE_ENABLED takes effect (0a47d9e) |
@@ -78,6 +79,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.31 – 🐛 Bug Fixes
+
+Released on **2026-11-11**.
+
+- **reports:** stop the queue worker failing to resolve the report job handler (247485a)
+- **release:** merge fix/report-job-container-resolution into main (33735cd)
 
 ## 0.12.30 – 📝 Documentation
 
