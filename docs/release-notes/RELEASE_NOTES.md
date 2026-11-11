@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.34 | 2026-11-11 | explain why the deploy script re-executes the shipped version (0ad3fe1) |
 | 0.12.33 | 2026-11-11 | **deploy:** run the deploy script shipped by the target release, not the previous one (9383441) |
 | 0.12.32 | 2026-11-11 | **deploy:** restart queue workers so a release actually runs the new job code (a10d868) |
 | 0.12.31 | 2026-11-11 | **reports:** stop the queue worker failing to resolve the report job handler (247485a) |
@@ -84,6 +85,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.34 – 📝 Documentation
+
+Released on **2026-11-11**.
+
+- explain why the deploy script re-executes the shipped version (0ad3fe1)
+- **release:** merge docs/deploy-script-late-step into main (11c2d89)
 
 ## 0.12.33 – 🐛 Bug Fixes
 
