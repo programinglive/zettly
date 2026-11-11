@@ -118,9 +118,25 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Focus::class);
     }
 
+    /**
+     * Every focus that is running right now. Several may be open at once: a
+     * single-focus limit is a human attention limit, not a system rule.
+     */
+    public function activeFoci()
+    {
+        return $this->foci()
+            ->where('status', Focus::STATUS_ACTIVE)
+            ->whereNull('completed_at');
+    }
+
+    /**
+     * Newest running focus, kept for the dashboard card. A paused focus is never
+     * returned here, which is why the query filters on status as well.
+     */
     public function currentFocus()
     {
         return $this->hasOne(Focus::class)
+            ->where('status', Focus::STATUS_ACTIVE)
             ->whereNull('completed_at')
             ->orderBy('started_at', 'desc');
     }

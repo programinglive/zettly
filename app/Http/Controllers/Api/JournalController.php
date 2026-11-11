@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Concerns\ValidatesFocusOwnership;
 use App\Models\JournalEntry;
 use App\Services\AgentSessionIngestor;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class JournalController
 {
+    use ValidatesFocusOwnership;
+
     private const KINDS = [
         JournalEntry::KIND_ACTIVITY,
         JournalEntry::KIND_DECISION,
@@ -27,6 +30,7 @@ class JournalController
             'content' => ['required', 'string'],
             'source' => ['sometimes', 'nullable', 'string', 'max:20'],
             'todo_id' => ['sometimes', 'nullable', 'integer', Rule::exists('todos', 'id')->where('user_id', Auth::id())],
+            'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
         ]);
 
         $entry = JournalEntry::create([
@@ -36,6 +40,10 @@ class JournalController
             'content' => AgentSessionIngestor::redact($payload['content'], 20000),
             'source' => $payload['source'] ?? 'manual',
             'todo_id' => $payload['todo_id'] ?? null,
+            'focus_id' => $this->resolveFocusId(
+                $payload['focus_id'] ?? null,
+                $payload['todo_id'] ?? null,
+            ),
         ]);
 
         return response()->json(['success' => true, 'data' => $entry], 201);

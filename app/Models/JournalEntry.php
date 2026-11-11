@@ -23,6 +23,8 @@ class JournalEntry extends Model
 
     protected $fillable = [
         'user_id',
+        'organization_id',
+        'focus_id',
         'entry_date',
         'kind',
         'content',
@@ -53,5 +55,14 @@ class JournalEntry extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'journal_entry_tag');
+    }
+
+    /**
+     * Optional grouping link. When absent it is derived from `todo_id` on
+     * create; when both are present an explicit focus_id wins.
+     */
+    public function focus(): BelongsTo
+    {
+        return $this->belongsTo(Focus::class);
     }
 }

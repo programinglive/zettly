@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Concerns\ValidatesFocusOwnership;
 use App\Models\Todo;
 use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TodoController extends Controller
 {
+    use ValidatesFocusOwnership;
     /**
      * Display a listing of the user's todos.
      */
@@ -157,6 +159,7 @@ class TodoController extends Controller
             'checklist_items' => 'nullable|array',
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
+            'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
         ]);
 
         $validator->sometimes('due_date', 'after_or_equal:today', function ($input) {
@@ -273,6 +276,7 @@ class TodoController extends Controller
             'checklist_items.*.id' => 'nullable|exists:todo_checklist_items,id',
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
+            'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
         ]);
 
         $validator->sometimes('due_date', 'after_or_equal:today', function ($input) use ($todo) {

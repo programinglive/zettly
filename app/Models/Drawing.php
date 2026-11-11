@@ -14,6 +14,7 @@ class Drawing extends Model
     protected $fillable = [
         'user_id',
         'organization_id',
+        'focus_id',
         'title',
         'document',
         'thumbnail',
@@ -43,5 +44,10 @@ class Drawing extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function focus(): BelongsTo
+    {
+        return $this->belongsTo(Focus::class);
     }
 }

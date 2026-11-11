@@ -125,6 +125,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::match(['put', 'patch'], 'focus/{focus}', [FocusController::class, 'update'])->name('api.v1.focus.update')->whereNumber('focus');
     Route::delete('focus/{focus}', [FocusController::class, 'destroy'])->name('api.v1.focus.destroy')->whereNumber('focus');
     Route::post('focus/{focus}/complete', [FocusController::class, 'complete'])->name('api.v1.focus.complete')->whereNumber('focus');
+    Route::patch('focus/{focus}/status', [FocusController::class, 'updateStatus'])->name('api.v1.focus.status')->whereNumber('focus');
     Route::get('habits', [CliApiController::class, 'habits'])->name('api.v1.habits.index');
     Route::get('habits/{habit}', [CliApiController::class, 'showHabit'])->name('api.v1.habits.show');
     Route::post('habits', [CliApiController::class, 'createHabit'])->name('api.v1.habits.store');

@@ -8,7 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class FocusController extends Controller
 {
@@ -55,6 +57,9 @@ class FocusController extends Controller
             'data' => $focus,
             'recent_events' => $recentEvents,
             'filter_date' => $filterDate->toDateString(),
+            // Several focuses may run at once; a client needs to know that the
+            // single focus returned in `data` is not the only one.
+            'active_focus_count' => Auth::user()->activeFoci()->count(),
         ]);
     }
 
@@ -89,6 +94,9 @@ class FocusController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            // A focus cannot be born paused or already finished.
+            'status' => ['sometimes', 'nullable', Rule::in([Focus::STATUS_ACTIVE])],
         ]);
 
         if ($validator->fails()) {
@@ -101,6 +109,8 @@ class FocusController extends Controller
         $focus = Auth::user()->foci()->create([
             'title' => $request->title,
             'description' => $request->description,
+            'color' => $request->input('color') ?? Focus::DEFAULT_COLOR,
+            'status' => Focus::STATUS_ACTIVE,
             'started_at' => now(),
         ]);
 
@@ -141,6 +151,7 @@ class FocusController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         if ($validator->fails()) {
@@ -153,6 +164,7 @@ class FocusController extends Controller
         $focus->update([
             'title' => $request->title,
             'description' => $request->description,
+            'color' => $request->input('color') ?? $focus->color,
         ]);
 
         $focus->load([
@@ -215,6 +227,7 @@ class FocusController extends Controller
 
         $focus->update([
             'completed_at' => now(),
+            'status' => Focus::STATUS_COMPLETED,
         ]);
 
         $event = FocusStatusEvent::create([
@@ -254,6 +267,80 @@ class FocusController extends Controller
             'event' => $event,
             'recent_events' => $recentEvents,
             'filter_date' => $filterDate->toDateString(),
+        ]);
+    }
+
+    /**
+     * Move a focus between active, paused and completed.
+     *
+     * `foci.status` is the current state that queries filter on;
+     * `focus_status_events` stays the append-only audit trail. Both are written
+     * in one transaction so they can never disagree.
+     */
+    public function updateStatus(Request $request, Focus $focus): JsonResponse
+    {
+        if ($focus->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', Rule::in([
+                Focus::STATUS_ACTIVE,
+                Focus::STATUS_PAUSED,
+                Focus::STATUS_COMPLETED,
+            ])],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($focus->isCompleted() && $request->status !== Focus::STATUS_COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A completed focus cannot be reopened',
+            ], 400);
+        }
+
+        $status = $request->status;
+
+        if ($status === $focus->status) {
+            return response()->json([
+                'success' => true,
+                'data' => $focus,
+                'changed' => false,
+            ]);
+        }
+
+        $action = $status === Focus::STATUS_COMPLETED
+            ? 'completed'
+            : ($status === Focus::STATUS_PAUSED ? 'paused' : 'resumed');
+
+        DB::transaction(function () use ($focus, $status, $action, $request) {
+            $focus->update([
+                'status' => $status,
+                'completed_at' => $status === Focus::STATUS_COMPLETED ? now() : null,
+            ]);
+
+            FocusStatusEvent::create([
+                'focus_id' => $focus->id,
+                'user_id' => Auth::id(),
+                'action' => $action,
+                'reason' => $request->input('reason')
+                    ?: "Focus moved to {$status}",
+            ]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $focus->fresh(['statusEvents']),
+            'changed' => true,
         ]);
     }
 

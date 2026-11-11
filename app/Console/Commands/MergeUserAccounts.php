@@ -64,10 +64,15 @@ class MergeUserAccounts extends Command
                 ->where('a.user_id', $sourceId)->where('b.user_id', $targetId)->exists()) {
                 throw new RuntimeException('Tag names collide; resolve the names before merging.');
             }
+            // Several focuses may legitimately be active now, so they are all
+            // closed rather than treated as a data conflict.
             $active = DB::table('foci')->where('user_id', $sourceId)->whereNull('completed_at')->pluck('id');
-            if ($active->count() > 1) throw new RuntimeException('Source account has multiple active foci.');
             foreach ($active as $focusId) {
-                DB::table('foci')->where('id', $focusId)->update(['completed_at' => now(), 'updated_at' => now()]);
+                DB::table('foci')->where('id', $focusId)->update([
+                    'completed_at' => now(),
+                    'status' => 'completed',
+                    'updated_at' => now(),
+                ]);
                 DB::table('focus_status_events')->insert([
                     'focus_id' => $focusId, 'user_id' => $targetId, 'action' => 'completed',
                     'reason' => 'Account consolidation into owner '.$targetId,

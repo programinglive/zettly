@@ -30,6 +30,7 @@ class Todo extends Model
     protected $fillable = [
         'user_id',
         'organization_id',
+        'focus_id',
         'type',
         'title',
         'description',
@@ -115,6 +116,11 @@ class Todo extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function focus(): BelongsTo
+    {
+        return $this->belongsTo(Focus::class);
     }
 
     /**

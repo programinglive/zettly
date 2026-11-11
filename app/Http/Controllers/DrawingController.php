@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\DrawingUpdated;
+use App\Http\Requests\Concerns\ValidatesFocusOwnership;
 use App\Mail\DrawingCreated as DrawingCreatedMail;
 use App\Mail\DrawingDeleted as DrawingDeletedMail;
 use App\Mail\DrawingUpdated as DrawingUpdatedMail;
@@ -18,6 +19,7 @@ use Inertia\Response;
 
 class DrawingController extends Controller
 {
+    use ValidatesFocusOwnership;
     public function index(Request $request): Response
     {
         $drawings = Drawing::query()
@@ -42,6 +44,7 @@ class DrawingController extends Controller
             'document' => 'required|array',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'integer',
+            'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
         ]);
 
         $validated = $validator->validate();
@@ -51,6 +54,7 @@ class DrawingController extends Controller
             'title' => $validated['title'],
             'document' => $validated['document'],
             'thumbnail' => $request->input('thumbnail'),
+            'focus_id' => $validated['focus_id'] ?? null,
         ]);
 
         // Tags, so a drawing takes part in the zettelkasten relations the same
@@ -127,9 +131,10 @@ class DrawingController extends Controller
             'thumbnail' => 'sometimes|nullable|string',
             'tag_ids' => 'sometimes|array',
             'tag_ids.*' => 'integer',
+            'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
         ])->after(function ($validator) use ($request) {
-            if (! $request->hasAny(['title', 'document', 'thumbnail', 'tag_ids'])) {
-                $validator->errors()->add('payload', 'At least one field (title or document) is required.');
+            if (! $request->hasAny(['title', 'document', 'thumbnail', 'tag_ids', 'focus_id'])) {
+                $validator->errors()->add('payload', 'At least one field (title, document, tag_ids or focus_id) is required.');
             }
         });
 
