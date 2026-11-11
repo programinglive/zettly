@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.35](https://github.com/programinglive/todo/compare/v0.12.34...v0.12.35) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** remove the first temp copy when the script re-executes ([a3ee545](https://github.com/programinglive/todo/commit/a3ee545e4bcad876ac4f972b503aa2380462825d))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/deploy-tmp-cleanup into main ([364698d](https://github.com/programinglive/todo/commit/364698d3f14638c28726f699e721c802b08ba444))
+
 ### [0.12.34](https://github.com/programinglive/todo/compare/v0.12.33...v0.12.34) (2026-11-11)
 
 
