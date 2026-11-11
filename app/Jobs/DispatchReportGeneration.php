@@ -25,8 +25,15 @@ class DispatchReportGeneration implements ShouldQueue
 
     /**
      * @param  \Carbon\CarbonInterface|null  $now  Injectable moment for tests; defaults to now.
+     *
+     * `$now` is deliberately untyped. A class-typed parameter is treated as a
+     * container dependency even when it has a default, so
+     * `?Carbon\CarbonInterface $now = null` made the queue worker fail with
+     * "Target [Carbon\CarbonInterface] is not instantiable" (Sentry TODOAPP-6F)
+     * and no nightly report was ever generated. Keep it untyped; the value is
+     * normalised to CarbonImmutable below.
      */
-    public function handle(ReportGenerator $generator, ReportDeliveryService $delivery, ?\Carbon\CarbonInterface $now = null): void
+    public function handle(ReportGenerator $generator, ReportDeliveryService $delivery, $now = null): void
     {
         $user = User::find($this->userId);
         if (! $user) {
