@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.33 | 2026-11-11 | **deploy:** run the deploy script shipped by the target release, not the previous one (9383441) |
 | 0.12.32 | 2026-11-11 | **deploy:** restart queue workers so a release actually runs the new job code (a10d868) |
 | 0.12.31 | 2026-11-11 | **reports:** stop the queue worker failing to resolve the report job handler (247485a) |
 | 0.12.30 | 2026-11-11 | document the tag auto-deploy path to bw-app (38249ff) |
@@ -82,6 +83,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.33 – 🐛 Bug Fixes
+
+Released on **2026-11-11**.
+
+- **deploy:** run the deploy script shipped by the target release, not the previous one (9383441)
+- **release:** merge fix/deploy-runs-target-script into main (2fea53b)
 
 ## 0.12.32 – 🐛 Bug Fixes
 
