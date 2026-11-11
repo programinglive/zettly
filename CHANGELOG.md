@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.40](https://github.com/programinglive/todo/compare/v0.12.39...v0.12.40) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** chown storage in whichever stage runs, not only the reset stage ([81b1ffe](https://github.com/programinglive/todo/commit/81b1ffe279211245799d4bec9e0d48ce1fbaca93))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/deploy-chown-both-stages into main ([6b87616](https://github.com/programinglive/todo/commit/6b87616273257a9db804d67c308b6ed6eb43c7b3))
+
 ### [0.12.39](https://github.com/programinglive/todo/compare/v0.12.38...v0.12.39) (2026-11-11)
 
 
