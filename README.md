@@ -113,6 +113,29 @@ build when a workflow drops the label or references a decommissioned runner.
 | `auto-release.yml` | merged pull request from an `agent/` branch | bumps the patch version and pushes the tag |
 | `coding-agent-worker.yml` | PR touching the worker, push to `main`, tag `agent-worker-v*` | tests, packages and installs the coding agent worker |
 
+### Deployment
+
+Production is the `bw-app` host and the site is `/var/www/zettly`, served at
+`https://zettly.programinglive.com`. A release reaches it automatically:
+
+1. `npm run release` bumps the version, writes `CHANGELOG.md` and creates the
+   `vX.Y.Z` tag.
+2. `git push --follow-tags origin main` publishes the tag.
+3. On `bw-app`, a scheduled `deploy_tags.sh` cycle (every 5 minutes) reads
+   `/root/command/deploy_targets.conf`. Zettly is registered as
+   `laravel-script`, so the cycle runs this repository's own
+   `scripts/deploy.sh --tag=vX.Y.Z`, which also refreshes the route and config
+   caches. A `laravel-generic` entry would skip that refresh and a new route
+   would answer 404 while the release still reported success.
+4. Rollout is gated by `/etc/deploy/rilis-bertahap`. While that allowlist
+   exists, only the sites named in it are auto-deployed — currently `zettly`
+   alone, so the ten other active sites on the host are untouched.
+5. After the deploy the cycle health-checks the URL and rolls back to the
+   previous commit if it does not answer 2xx/3xx.
+
+To pause auto-deploy for the whole host, remove `/etc/deploy/PRODUCTION_ENABLED`.
+To pause only Zettly, remove `zettly` from `/etc/deploy/rilis-bertahap`.
+
 ### API Documentation
 
 The API endpoints and authentication examples are documented in [docs/reference/API_DOCUMENTATION.md](./docs/reference/API_DOCUMENTATION.md).
