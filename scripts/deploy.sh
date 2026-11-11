@@ -125,11 +125,6 @@ if [ "${ZETTLY_DEPLOY_RESET_DONE:-}" != "1" ]; then
 
     # git runs as root here, so every tracked file it writes is owned by root.
     # The app only needs to write storage/ and bootstrap/cache/, but leaving
-    # those root-owned is what produced "touch(): Utime failed" before. Hand
-    # them back to the web user right after the reset.
-    if [ "$(id -u)" -eq 0 ] && id -u www-data >/dev/null 2>&1; then
-        chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-    fi
 fi
 
 # Now that the working tree is the target release, run the deploy script that
@@ -148,6 +143,15 @@ if [ "${ZETTLY_DEPLOY_STAGE2:-}" != "1" ]; then
         ZETTLY_DEPLOY_STAGE2=1 ZETTLY_DEPLOY_RESET_DONE=1 ZETTLY_DEPLOY_TMP="$TMP2" \
             exec bash "$TMP2" "$@"
     fi
+fi
+
+# git runs as root, so every tracked file it wrote is owned by root. The app
+# only needs to write storage/ and bootstrap/cache/, but leaving those
+# root-owned is what produced "touch(): Utime failed" (Sentry POS-CLINIC-EB).
+# This runs in whichever stage ends up executing, because stage 2 skips the
+# reset block above.
+if [ "$(id -u)" -eq 0 ] && id -u www-data >/dev/null 2>&1; then
+    chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
 fi
 
 if [ -f "composer.json" ] && command -v composer >/dev/null 2>&1; then
