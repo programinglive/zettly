@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.29](https://github.com/programinglive/todo/compare/v0.12.28...v0.12.29) (2026-11-11)
+
+
+### 👷 Continuous Integration
+
+* pin every workflow to the bw-tools runner and add a test pipeline ([9543a5e](https://github.com/programinglive/todo/commit/9543a5ece8be2f1c7666c2f325ac8c1828296c9b))
+
+
+### 🧹 Chores
+
+* **release:** merge ci/bw-tools-runner-standard into main ([6e862b5](https://github.com/programinglive/todo/commit/6e862b52b571bad3128b59c13abda0054cf9e9bb))
+
 ### [0.12.28](https://github.com/programinglive/todo/compare/v0.12.27...v0.12.28) (2026-11-11)
 
 
