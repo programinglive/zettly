@@ -28,6 +28,16 @@ if [ "${ZETTLY_DEPLOY_REEXEC:-}" != "1" ]; then
     ZETTLY_DEPLOY_REEXEC=1 exec bash "$TMP_SCRIPT" "$@"
 fi
 
+# The copy above is the PREVIOUS release's script, because it is taken before
+# `git reset --hard`. Any step added to this file therefore used to take effect
+# one release late: v0.12.32 added `queue:restart`, but the cycle that installed
+# it still ran v0.12.31's copy and never restarted the workers. Keep the temp
+# copy (bash reads a script incrementally, so resetting it mid-run is unsafe),
+# and clean it up in whichever stage ends up running.
+if [ -n "${ZETTLY_DEPLOY_TMP:-}" ]; then
+    trap 'rm -f "${ZETTLY_DEPLOY_TMP:-}"' EXIT
+fi
+
 APP_DIR="$ZETTLY_APP_DIR"
 cd "$APP_DIR"
 
@@ -71,7 +81,7 @@ fi
 
 echo "[deploy] Before: ${BEFORE_COMMIT:0:7} | Target: ${TARGET_COMMIT:0:7} (${DEPLOY_TAG:-origin/$BRANCH})"
 
-if [ "$TARGET_COMMIT" = "$BEFORE_COMMIT" ]; then
+if [ "$TARGET_COMMIT" = "$BEFORE_COMMIT" ] && [ "${ZETTLY_DEPLOY_RESET_DONE:-}" != "1" ]; then
     echo "[deploy] Already at target ($TARGET_COMMIT). Nothing to deploy."
     exit 0
 fi
@@ -85,8 +95,25 @@ if [ "$DRY_RUN" -eq 1 ]; then
     exit 0
 fi
 
-echo "[deploy] 1. Resetting git working tree to $TARGET_COMMIT..."
-git reset --hard "$TARGET_COMMIT"
+if [ "${ZETTLY_DEPLOY_RESET_DONE:-}" != "1" ]; then
+    echo "[deploy] 1. Resetting git working tree to $TARGET_COMMIT..."
+    git reset --hard "$TARGET_COMMIT"
+fi
+
+# Now that the working tree is the target release, run the deploy script that
+# release actually ships. Without this the steps below are always the previous
+# release's steps, so a newly added step silently waits one release to apply.
+if [ "${ZETTLY_DEPLOY_STAGE2:-}" != "1" ]; then
+    NEW_SCRIPT="$APP_DIR/scripts/deploy.sh"
+    if [ -f "$NEW_SCRIPT" ] && ! cmp -s "$NEW_SCRIPT" "${ZETTLY_DEPLOY_TMP:-/dev/null}"; then
+        TMP2="$(mktemp /tmp/zettly-deploy-stage2.XXXXXX.sh)"
+        cp "$NEW_SCRIPT" "$TMP2"
+        chmod 700 "$TMP2"
+        echo "[deploy] Re-executing the deploy script shipped by $TARGET_COMMIT..."
+        ZETTLY_DEPLOY_STAGE2=1 ZETTLY_DEPLOY_RESET_DONE=1 ZETTLY_DEPLOY_TMP="$TMP2" \
+            exec bash "$TMP2" "$@"
+    fi
+fi
 
 if [ -f "composer.json" ] && command -v composer >/dev/null 2>&1; then
     echo "[deploy] 2. Updating composer dependencies..."

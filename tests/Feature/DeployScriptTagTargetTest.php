@@ -90,4 +90,34 @@ class DeployScriptTagTargetTest extends TestCase
             'deploy.sh must run queue:restart, otherwise workers keep executing the previous release'
         );
     }
+
+    /**
+     * The script must run the version it just installed, not the one it started as.
+     *
+     * WHY THIS TEST EXISTS
+     * --------------------
+     * `deploy.sh` copies itself to /tmp before `git reset --hard`, because bash
+     * reads a script incrementally and resetting the file mid-run is unsafe.
+     * The copy is therefore the PREVIOUS release's script. Every step added to
+     * this file used to take effect one release late: v0.12.32 added
+     * `queue:restart`, the cycle installed v0.12.32, and the workers were never
+     * restarted because the running copy was v0.12.31's.
+     *
+     * The fix re-executes the script that the target commit ships, after the
+     * reset. This test pins that the re-exec happens after `git reset`.
+     */
+    public function test_reexecutes_the_script_shipped_by_the_target_commit(): void
+    {
+        $script = $this->script();
+        $resetAt = strpos($script, 'git reset --hard');
+        $stage2At = strpos($script, 'ZETTLY_DEPLOY_STAGE2');
+
+        $this->assertNotFalse($resetAt, 'deploy.sh must reset the working tree');
+        $this->assertNotFalse($stage2At, 'deploy.sh must re-exec the script shipped by the target commit');
+        $this->assertGreaterThan(
+            $resetAt,
+            $stage2At,
+            'The stage-2 re-exec must come AFTER git reset --hard, otherwise it runs the old script again'
+        );
+    }
 }
