@@ -122,6 +122,14 @@ fi
 if [ "${ZETTLY_DEPLOY_RESET_DONE:-}" != "1" ]; then
     echo "[deploy] 1. Resetting git working tree to $TARGET_COMMIT..."
     git reset --hard "$TARGET_COMMIT"
+
+    # git runs as root here, so every tracked file it writes is owned by root.
+    # The app only needs to write storage/ and bootstrap/cache/, but leaving
+    # those root-owned is what produced "touch(): Utime failed" before. Hand
+    # them back to the web user right after the reset.
+    if [ "$(id -u)" -eq 0 ] && id -u www-data >/dev/null 2>&1; then
+        chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+    fi
 fi
 
 # Now that the working tree is the target release, run the deploy script that
