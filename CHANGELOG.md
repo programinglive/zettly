@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.41](https://github.com/programinglive/todo/compare/v0.12.40...v0.12.41) (2026-11-11)
+
+
+### ✨ Features
+
+* **focus:** list every active focus on the dashboard ([fe28824](https://github.com/programinglive/todo/commit/fe28824fe3a849b4bcd2cf080359dcba86c50543))
+
 ### [0.12.40](https://github.com/programinglive/todo/compare/v0.12.39...v0.12.40) (2026-11-11)
 
 
