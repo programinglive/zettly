@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.27](https://github.com/programinglive/todo/compare/v0.12.26...v0.12.27) (2026-11-11)
+
+
+### ✨ Features
+
+* **api:** add paginated tag-scoped todo listing endpoint ([d7358ab](https://github.com/programinglive/todo/commit/d7358ab73836633ebe922a806c77809010639887))
+
+
+### 🐛 Bug Fixes
+
+* **api:** scope tag todos to the caller and mirror index type defaults ([b44874c](https://github.com/programinglive/todo/commit/b44874c0697cfaace9653856f030032a24ba3c86))
+
+
+### 📝 Documentation
+
+* **plan:** mark implementation steps complete ([1184199](https://github.com/programinglive/todo/commit/11841991c6a202282d4cd3390054a654adea4684))
+* **release:** record v0.12.26 release notes ([e2b35b6](https://github.com/programinglive/todo/commit/e2b35b6728b2f500462abcc1588bbced552950c4))
+
+
+### 🧹 Chores
+
+* **release:** merge feat/api-todos-by-tag into main ([382445a](https://github.com/programinglive/todo/commit/382445af5f1fd7dddf45e9a74b44e185f9245b0a))
+
 ### [0.12.26](https://github.com/programinglive/todo/compare/v0.12.25...v0.12.26) (2026-11-10)
 
 
