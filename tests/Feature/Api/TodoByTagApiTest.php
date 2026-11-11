@@ -89,4 +89,63 @@ class TodoByTagApiTest extends TestCase
 
         $this->getJson('/api/v1/todos/by-tag/999999')->assertNotFound();
     }
+
+    public function test_it_404s_for_a_non_numeric_tag_id(): void
+    {
+        Sanctum::actingAs(User::factory()->create(), ['zettly:cli']);
+
+        $this->getJson('/api/v1/todos/by-tag/not-a-number')->assertNotFound();
+    }
+
+    public function test_it_never_returns_another_users_todo_attached_to_my_tag(): void
+    {
+        $owner = User::factory()->create();
+        $attacker = User::factory()->create();
+        $tag = Tag::factory()->create(['user_id' => $owner->id]);
+
+        $foreign = Todo::factory()->asTask()->create(['user_id' => $attacker->id]);
+        $foreign->tags()->attach($tag->id);
+
+        Sanctum::actingAs($owner, ['zettly:cli']);
+
+        $this->getJson('/api/v1/todos/by-tag/'.$tag->id)
+            ->assertOk()
+            ->assertJsonPath('pagination.total', 0)
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_it_lists_tasks_by_default_and_notes_on_request(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->create(['user_id' => $user->id]);
+
+        $task = Todo::factory()->asTask()->create(['user_id' => $user->id]);
+        $note = Todo::factory()->asNote()->create(['user_id' => $user->id]);
+        $tag->todos()->attach([$task->id, $note->id]);
+
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $this->getJson('/api/v1/todos/by-tag/'.$tag->id)
+            ->assertOk()
+            ->assertJsonPath('pagination.total', 1)
+            ->assertJsonPath('data.0.id', $task->id);
+
+        $this->getJson('/api/v1/todos/by-tag/'.$tag->id.'?type=note')
+            ->assertOk()
+            ->assertJsonPath('pagination.total', 1)
+            ->assertJsonPath('data.0.id', $note->id);
+    }
+
+    public function test_it_clamps_per_page_to_at_least_one(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->create(['user_id' => $user->id]);
+        $tag->todos()->attach(Todo::factory()->asTask()->create(['user_id' => $user->id])->id);
+
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $this->getJson('/api/v1/todos/by-tag/'.$tag->id.'?per_page=0')
+            ->assertOk()
+            ->assertJsonPath('pagination.per_page', 1);
+    }
 }

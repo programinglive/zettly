@@ -93,12 +93,31 @@ class TodoController extends Controller
             ], 403);
         }
 
+        $requestedType = $request->get('type');
+        $type = in_array($requestedType, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)
+            ? $requestedType
+            : Todo::TYPE_TODO;
+
         $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
         $page = max((int) $request->input('page', 1), 1);
 
-        $todos = $tag->todos()
-            ->with(['tags', 'checklistItems'])
+        $query = $tag->todos()
+            ->where('todos.user_id', Auth::id())
+            ->with(['tags', 'checklistItems', 'relatedTodos:id,title']);
+
+        if ($type === Todo::TYPE_NOTE) {
+            $query->notes();
+        } else {
+            $query->tasks();
+        }
+
+        if ($request->has('archived')) {
+            $query->where('archived', $request->boolean('archived'));
+        }
+
+        $todos = $query
             ->latest()
+            ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
