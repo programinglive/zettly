@@ -113,6 +113,15 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Queue workers hold the job classes they booted with in memory, so a release
+# that changes a job would keep running the old code until someone restarted
+# supervisor by hand. That happened on 11 November 2026: the report job fix was
+# deployed and still failed with the previous exception for as long as the
+# workers stayed up. queue:restart lets each worker finish its current job and
+# exit, and supervisor starts it on the new release.
+echo "[deploy] 6. Restarting queue workers..."
+php artisan queue:restart
+
 MARKER_DIR="/var/lib/deploy-tags/deployed"
 if [ -d "$(dirname "$MARKER_DIR")" ]; then
     mkdir -p "$MARKER_DIR" 2>/dev/null || true
