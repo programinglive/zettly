@@ -227,6 +227,8 @@ const deleteTodo = async (id) => {
  * Query Parameters:
  * - per_page: 1..100 (default 50)
  * - page: page number (default 1)
+ * - type: 'todo' (default) or 'note'
+ * - archived: optional boolean filter
  *
  * Response:
  * {
