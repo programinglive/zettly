@@ -96,6 +96,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::delete('profile', [CliApiController::class, 'deleteProfile'])->name('api.v1.profile.destroy');
     Route::post('auth/token', [CliApiController::class, 'issueCliToken'])->name('api.v1.auth.token');
     Route::delete('profile/tokens/{token}', [CliApiController::class, 'deleteToken'])->name('api.v1.profile.tokens.destroy');
+
+    // Persetujuan rilis coding agent, dipakai BOTOL dari Discord.
+    Route::get('agent/jobs', [\App\Http\Controllers\Api\CodingAgentApprovalApiController::class, 'index'])->name('api.v1.agent.jobs.index');
+    Route::post('agent/jobs/{job}/approve', [\App\Http\Controllers\Api\CodingAgentApprovalApiController::class, 'approve'])->name('api.v1.agent.jobs.approve');
+    Route::post('agent/jobs/{job}/reject', [\App\Http\Controllers\Api\CodingAgentApprovalApiController::class, 'reject'])->name('api.v1.agent.jobs.reject');
+
     Route::get('todos/by-tag/{tag}', [TodoController::class, 'byTag'])->name('api.v1.todos.by-tag');
     Route::apiResource('todos', TodoController::class)->names([
         'index' => 'api.v1.todos.index', 'store' => 'api.v1.todos.store', 'show' => 'api.v1.todos.show',
