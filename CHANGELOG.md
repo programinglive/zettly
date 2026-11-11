@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.39](https://github.com/programinglive/todo/compare/v0.12.38...v0.12.39) (2026-11-11)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** hand storage back to the web user after the root git reset ([e8f7bfb](https://github.com/programinglive/todo/commit/e8f7bfbc72c0ed0372012c7b65b76728c267b09f))
+
+
+### 🧹 Chores
+
+* **release:** merge fix/deploy-chown-after-reset into main ([d8814f6](https://github.com/programinglive/todo/commit/d8814f6818e19cca076bd3ea79c1342a56b82ecc))
+
 ### [0.12.38](https://github.com/programinglive/todo/compare/v0.12.36...v0.12.38) (2026-11-11)
 
 
