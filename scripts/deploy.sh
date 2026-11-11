@@ -110,6 +110,9 @@ if [ "${ZETTLY_DEPLOY_STAGE2:-}" != "1" ]; then
         cp "$NEW_SCRIPT" "$TMP2"
         chmod 700 "$TMP2"
         echo "[deploy] Re-executing the deploy script shipped by $TARGET_COMMIT..."
+        # Hand the cleanup of the first copy to this stage; after exec the old
+        # trap is gone, so without this the /tmp file would be left behind.
+        rm -f "${ZETTLY_DEPLOY_TMP:-}" 2>/dev/null || true
         ZETTLY_DEPLOY_STAGE2=1 ZETTLY_DEPLOY_RESET_DONE=1 ZETTLY_DEPLOY_TMP="$TMP2" \
             exec bash "$TMP2" "$@"
     fi
