@@ -9,21 +9,22 @@ on:
 permissions:
   contents: write
 
+# Fleet standard: every job runs on the bw-tools self-hosted runner
+# (100.77.138.14) with the explicit `bw-tools` label.
 jobs:
   auto-release:
     if: github.event.pull_request.merged == true && (startsWith(github.event.pull_request.head.ref, 'agent/') || startsWith(github.event.pull_request.title, 'feat(agent):'))
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, linux, x64, bw-tools]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Configure Git User

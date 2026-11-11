@@ -84,6 +84,35 @@ php artisan config:clear
   ```
   The frontend suite is run by the `test:js` script in `package.json`; it includes regression coverage for drawing synchronization, editor styles, and other UI behavior.
 
+If PHPUnit segfaults locally, it is Xdebug's `develop` mode crashing in its
+exception hook when Mockery throws — not the application. Run the suite with
+the debugger off, which is also what CI does:
+
+```bash
+php -d xdebug.mode=off vendor/bin/phpunit
+```
+
+### Continuous integration
+
+Every workflow in `.github/workflows/` runs on the fleet's universal
+self-hosted runner on `bw-tools` (`100.77.138.14`). Jobs must name the
+`bw-tools` label explicitly:
+
+```yaml
+runs-on: [self-hosted, linux, x64, bw-tools]
+```
+
+A bare `[self-hosted, linux, x64]` set matches any self-hosted Linux host,
+including a retired one, so `Tests\Feature\CiWorkflowRunnerTest` fails the
+build when a workflow drops the label or references a decommissioned runner.
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| `tests.yml` | pull request, push to `main` | runs the PHP suite and the JavaScript/CLI suites |
+| `release.yml` | tag `v*` | builds assets and creates the GitHub Release |
+| `auto-release.yml` | merged pull request from an `agent/` branch | bumps the patch version and pushes the tag |
+| `coding-agent-worker.yml` | PR touching the worker, push to `main`, tag `agent-worker-v*` | tests, packages and installs the coding agent worker |
+
 ### API Documentation
 
 The API endpoints and authentication examples are documented in [docs/reference/API_DOCUMENTATION.md](./docs/reference/API_DOCUMENTATION.md).
