@@ -146,4 +146,17 @@ class DeployScriptTagTargetTest extends TestCase
             'deploy.sh must not call php artisan directly; use the artisan() helper'
         );
     }
+
+    /**
+     * `git reset --hard` runs as root, so every tracked file it writes is owned
+     * by root. storage/ and bootstrap/cache/ must be handed back to the web user
+     * or the app cannot write compiled views and caches.
+     */
+    public function test_returns_storage_to_the_web_user_after_reset(): void
+    {
+        $script = $this->script();
+
+        $this->assertStringContainsString('chown -R www-data:www-data storage bootstrap/cache', $script,
+            'deploy.sh must chown storage and bootstrap/cache after the root git reset');
+    }
 }
