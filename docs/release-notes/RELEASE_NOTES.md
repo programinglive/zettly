@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.27 | 2026-11-11 | **api:** add paginated tag-scoped todo listing endpoint (d7358ab) |
 | 0.12.26 | 2026-11-10 | **release:** record v0.12.25 release notes (a779529) |
 | 0.12.25 | 2026-11-10 | **agent:** consolidate Factory engineering hub features into Zettly (05643e3) |
 | 0.12.24 | 2026-11-10 | **agent:** add real-time worker execution phases, live status banner, and accelerated polling (0d667bd) |
@@ -70,6 +71,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.27 – ✨ Features
+
+Released on **2026-11-11**.
+
+- **api:** add paginated tag-scoped todo listing endpoint (d7358ab)
+- **api:** scope tag todos to the caller and mirror index type defaults (b44874c)
+- **plan:** mark implementation steps complete (1184199)
+- **release:** record v0.12.26 release notes (e2b35b6)
+- **release:** merge feat/api-todos-by-tag into main (382445a)
 
 ## 0.12.26 – 📝 Documentation
 
