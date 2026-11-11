@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.38](https://github.com/programinglive/todo/compare/v0.12.36...v0.12.38) (2026-11-11)
+
+
+### ✨ Features
+
+* **focus:** add the focus board endpoint and page ([2bfb4cb](https://github.com/programinglive/todo/commit/2bfb4cb1999d2cc3baecc3d77ddac50d6dc1112f))
+
+
+### 📝 Documentation
+
+* **release:** record v0.12.37 release notes ([fe109d1](https://github.com/programinglive/todo/commit/fe109d19de1861616ce6b99ac651121ad67da744))
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** run artisan as the web user so compiled views stay writable ([106557f](https://github.com/programinglive/todo/commit/106557ffdaebc93182effcf5725386952273ff2f))
+
+
+### 🧹 Chores
+
+* **release:** 0.12.37 🚀 ([454ea1d](https://github.com/programinglive/todo/commit/454ea1da83accd4f973af125c4f01cdc08f11e95))
+* **release:** merge fix/deploy-artisan-as-web-user into main ([721d07f](https://github.com/programinglive/todo/commit/721d07f99bdcf6224d9dc76f9901eb279c0405eb))
+
 ### [0.12.37](https://github.com/programinglive/todo/compare/v0.12.36...v0.12.37) (2026-11-11)
 
 
