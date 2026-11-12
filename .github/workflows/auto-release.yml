@@ -5,15 +5,31 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (major produces 1.0.0)'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
 
 permissions:
   contents: write
 
 # Fleet standard: every job runs on the bw-tools self-hosted runner
-# (100.77.138.14) with the explicit `bw-tools` label.
+# (100.77.138.14). The explicit `bw-tools` label is required; a bare
+# [self-hosted, linux, x64] set can land on any host, including a retired one.
 jobs:
   auto-release:
-    if: github.event.pull_request.merged == true && (startsWith(github.event.pull_request.head.ref, 'agent/') || startsWith(github.event.pull_request.title, 'feat(agent):'))
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.head.ref, 'agent/') ||
+      startsWith(github.event.pull_request.title, 'feat(agent):') ||
+      startsWith(github.event.pull_request.title, 'fix(agent):')))
     runs-on: [self-hosted, linux, x64, bw-tools]
     steps:
       - name: Checkout repository
@@ -36,7 +52,9 @@ jobs:
         run: npm ci
 
       - name: Bump Version and Create Tag
-        run: npm run release:patch
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
+        run: npm run "release:${RELEASE_TYPE}"
 
       - name: Push release commit and tags
         run: git push --follow-tags origin main
