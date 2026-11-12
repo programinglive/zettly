@@ -57,7 +57,7 @@ install -d -m 0750 -o zettly-agent -g zettly-agent /home/zettly-agent/.config/op
 cat >/home/zettly-agent/.config/opencode/opencode.json <<'EOF'
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "kenari/claude-sonnet-5-5",
+  "model": "kenari/qwen3-5-397b-a17b:free",
   "providers": {
     "kenari": {
       "name": "Kenari.ID",
@@ -67,16 +67,16 @@ cat >/home/zettly-agent/.config/opencode/opencode.json <<'EOF'
         "baseURL": "https://kenari.id/v1"
       },
       "models": {
-        "claude-sonnet-5-5": {},
-        "claude-opus-5-5": {},
-        "gpt-6-1-sol": {},
-        "kimi-k2-7-code": {},
-        "qwen3-8-max": {},
-        "deepseek-v4-pro": {},
-        "glm-5-3": {},
-        "gemini-3-8-flash": {},
-        "minimax-m3": {},
-        "north-mini-code:free": {}
+        "qwen3-5-397b-a17b:free": {},
+        "north-mini-code:free": {},
+        "qwen3-8-27b:free": {},
+        "nemotron-3-ultra-550b-a55b:free": {},
+        "glm-4-7-flash:free": {},
+        "hy4:free": {},
+        "muse-spark-1-3-contributor:free": {},
+        "xing4-0-29b-a4b:free": {},
+        "longcat-2-5:free": {},
+        "solar-mini4:free": {}
       }
     }
   }

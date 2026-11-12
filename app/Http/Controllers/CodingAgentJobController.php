@@ -78,8 +78,8 @@ class CodingAgentJobController extends Controller
             'selectedTodoId' => $selectedTodoId,
             'repositories' => CodingAgentRepositoryRegistry::slugs(),
             'repositoryRegistry' => $repositoryRegistry,
-            'models' => config('coding_agent.models', ['claude-sonnet-5-5']),
-            'default_model' => config('coding_agent.default_model', 'claude-sonnet-5-5'),
+            'models' => config('coding_agent.models', ['qwen3-5-397b-a17b:free']),
+            'default_model' => config('coding_agent.default_model', 'qwen3-5-397b-a17b:free'),
             'recap' => $this->buildEngineeringRecap($userId),
             'activeSessions' => $activeSessions,
         ]);
@@ -200,14 +200,14 @@ class CodingAgentJobController extends Controller
             'repository' => ['required', 'string', Rule::in(array_keys(config('coding_agent.repositories', [])))],
             'instruction' => ['required', 'string', 'max:20000'],
             'client_request_id' => ['required', 'string', 'max:100'],
-            'model' => ['nullable', 'string', Rule::in(config('coding_agent.models', ['claude-sonnet-5-5']))],
+            'model' => ['nullable', 'string', Rule::in(config('coding_agent.models', ['qwen3-5-397b-a17b:free']))],
         ]);
 
         Todo::query()->whereKey($data['todo_id'])
             ->where('user_id', $request->user()->id)
             ->whereNull('organization_id')->firstOrFail();
 
-        $model = $data['model'] ?? config('coding_agent.default_model', 'claude-sonnet-5-5');
+        $model = $data['model'] ?? config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 
         $job = CodingAgentJob::firstOrCreate(
             ['user_id' => $request->user()->id, 'client_request_id' => $data['client_request_id']],

@@ -40,7 +40,7 @@ class CodingAgentWorkerController
                 'id' => $job->id,
                 'repository' => $job->repository,
                 'instruction' => $job->instruction,
-                'model' => $job->model ?? config('coding_agent.default_model', 'claude-sonnet-5-5'),
+                'model' => $job->model ?? config('coding_agent.default_model', 'qwen3-5-397b-a17b:free'),
                 'lease_token' => $leaseToken,
                 'leased_until' => $job->leased_until->toIso8601String(),
             ];

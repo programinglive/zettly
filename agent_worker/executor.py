@@ -14,7 +14,19 @@ SAFE_REF = re.compile(r'\A[a-zA-Z0-9_.-]+\Z')
 SAFE_MODEL = re.compile(r'\A[a-zA-Z0-9_.:-]+\Z')
 SENSITIVE_PATH = re.compile(r'(^|/)(\.env(?:\..*)?|\.ssh|\.aws|\.config|auth\.json|.*(?:secret|credential|token|private.key).*)$', re.I)
 MODEL_PROVIDER = 'kenari'
-DEFAULT_MODEL = 'claude-sonnet-5-5'
+DEFAULT_MODEL = 'qwen3-5-397b-a17b:free'
+FREE_MODELS = (
+    'qwen3-5-397b-a17b:free',
+    'north-mini-code:free',
+    'qwen3-8-27b:free',
+    'nemotron-3-ultra-550b-a55b:free',
+    'glm-4-7-flash:free',
+    'hy4:free',
+    'muse-spark-1-3-contributor:free',
+    'xing4-0-29b-a4b:free',
+    'longcat-2-5:free',
+    'solar-mini4:free',
+)
 MODEL_CREDENTIAL = 'KENARI_API_KEY'
 WORKER_CREDENTIALS = ('ZETTLY_WORKER_TOKEN', 'GH_TOKEN', 'OPENAI_API_KEY', 'CODEX_API_KEY', MODEL_CREDENTIAL)
 
@@ -90,10 +102,17 @@ class JobExecutor:
             environment['PWD'] = str(cwd)
         return environment
 
+    def allowed_models(self):
+        configured = os.environ.get('AGENT_OPENCODE_MODELS', '')
+        models = tuple(model.strip() for model in configured.split(',') if model.strip())
+        return models or FREE_MODELS
+
     def model_reference(self, job):
         model = (job.get('model') or os.environ.get('AGENT_OPENCODE_MODEL') or DEFAULT_MODEL).strip()
         if not SAFE_MODEL.fullmatch(model):
             raise ValueError('Job model must be a safe model identifier')
+        if model not in self.allowed_models():
+            raise ValueError('Job model is not in the allowed free model list')
         return f'{MODEL_PROVIDER}/{model}'
 
     def _run(self, argv, cwd=None, capture=False, allow_github=False):

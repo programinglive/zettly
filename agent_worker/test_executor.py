@@ -160,7 +160,7 @@ class JobExecutorTest(unittest.TestCase):
 
     def test_execute_runs_opencode_with_kenari_model(self):
         captured, _ = self._capture_agent_calls(
-            {'id': 99, 'repository': 'zettly', 'instruction': 'Fix login', 'model': 'kimi-k2-7-code'}
+            {'id': 99, 'repository': 'zettly', 'instruction': 'Fix login', 'model': 'north-mini-code:free'}
         )
         agent_calls = [call['argv'] for call in captured if call['argv'] and call['argv'][0] == 'opencode']
         self.assertTrue(agent_calls, f'Expected an opencode invocation, got: {[c["argv"] for c in captured]}')
@@ -169,7 +169,7 @@ class JobExecutorTest(unittest.TestCase):
         self.assertIn('--standalone', argv)
         self.assertIn('--auto', argv)
         self.assertIn('--model', argv)
-        self.assertEqual(argv[argv.index('--model') + 1], 'kenari/kimi-k2-7-code')
+        self.assertEqual(argv[argv.index('--model') + 1], 'kenari/north-mini-code:free')
 
     def test_execute_uses_default_kenari_model_when_not_in_job(self):
         captured, _ = self._capture_agent_calls(
@@ -178,7 +178,20 @@ class JobExecutorTest(unittest.TestCase):
         agent_calls = [call['argv'] for call in captured if call['argv'] and call['argv'][0] == 'opencode']
         self.assertTrue(agent_calls)
         argv = agent_calls[0]
-        self.assertEqual(argv[argv.index('--model') + 1], 'kenari/claude-sonnet-5-5')
+        self.assertEqual(argv[argv.index('--model') + 1], 'kenari/qwen3-5-397b-a17b:free')
+
+    def test_default_model_is_free(self):
+        from agent_worker.executor import DEFAULT_MODEL
+        self.assertTrue(DEFAULT_MODEL.endswith(':free'), f'Default model must be free, got {DEFAULT_MODEL}')
+
+    def test_execute_rejects_a_paid_model(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        with self.assertRaisesRegex(ValueError, 'allowed free model'):
+            executor.model_reference({'model': 'claude-sonnet-5-5'})
+
+    def test_execute_accepts_an_allowlisted_free_model(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        self.assertEqual(executor.model_reference({'model': 'north-mini-code:free'}), 'kenari/north-mini-code:free')
 
     def test_execute_never_invokes_codex(self):
         captured, _ = self._capture_agent_calls(
