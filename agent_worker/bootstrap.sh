@@ -15,7 +15,10 @@ release_sha="$(metadata agent-worker-sha256)"
 if [[ -f /opt/zettly-agent/.release-sha256 ]] &&
     [[ "$(cat /opt/zettly-agent/.release-sha256)" == "${release_sha}" ]]; then
     if [[ "$(metadata agent-worker-enable)" == true ]]; then
-        systemctl enable --now zettly-agent.service
+        systemctl enable zettly-agent.service
+    fi
+    if systemctl is-enabled --quiet zettly-agent.service || systemctl is-active --quiet zettly-agent.service; then
+        systemctl restart zettly-agent.service
     fi
     exit 0
 fi
@@ -131,5 +134,10 @@ fi
 echo "${release_sha}" >/opt/zettly-agent/.release-sha256
 systemctl daemon-reload
 if [[ "$(metadata agent-worker-enable)" == true ]]; then
-    systemctl enable --now zettly-agent.service
+    systemctl enable zettly-agent.service
+fi
+# The unit is enabled, so systemd starts it at boot before this script runs.
+# Restart it so the process always executes the release that was just installed.
+if systemctl is-enabled --quiet zettly-agent.service || systemctl is-active --quiet zettly-agent.service; then
+    systemctl restart zettly-agent.service
 fi
