@@ -30,7 +30,15 @@ sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 2>/dev/null || true
 echo 'kernel.apparmor_restrict_unprivileged_userns=0' > /etc/sysctl.d/99-bubblewrap.conf 2>/dev/null || true
 npm install --global n
 n 22.16.0
-npm install --global @openai/codex@0.167.0
+npm install --global @opencode/cli
+
+# Codex is retired on this host. Remove the package, the shim, and every
+# per-user configuration directory so no process can fall back to it.
+npm uninstall --global @openai/codex >/dev/null 2>&1 || true
+rm -f /usr/local/bin/codex
+rm -rf /home/zettly-agent/.codex
+rm -rf /root/.codex
+rm -rf /home/dhika/.codex
 
 # Ensure CLI binaries and shared node libraries are executable by unprivileged users
 chmod -R a+rX /usr/local/bin /usr/local/lib/node_modules /usr/local/n /usr/local/include /usr/local/share /opt/zettly-agent 2>/dev/null || true
@@ -39,24 +47,55 @@ id zettly-agent >/dev/null 2>&1 || useradd --create-home --home-dir /home/zettly
 install -d -m 0755 /opt/zettly-agent
 install -d -m 0700 -o zettly-agent -g zettly-agent /srv/zettly-agent
 install -d -m 0750 -o root -g zettly-agent /etc/zettly-agent
-install -d -m 0750 -o zettly-agent -g zettly-agent /home/zettly-agent/.codex
+install -d -m 0750 -o zettly-agent -g zettly-agent /home/zettly-agent/.config/opencode
 
-cat >/home/zettly-agent/.codex/config.toml <<'EOF'
-model_provider = "openai-custom"
-model = "agnes-3-0-flash:free"
-
-[model_providers.openai-custom]
-name = "openai"
-base_url = "https://kenari.id/v1"
-env_key = "CODEX_API_KEY"
-
-[mcp_servers.central-gateway]
-url = "http://100.77.138.14:3200/mcp"
+# OpenCode talks to Kenari.ID through the OpenAI-compatible runtime. The key is
+# read from KENARI_API_KEY, which only the worker and its OpenCode child receive.
+cat >/home/zettly-agent/.config/opencode/opencode.json <<'EOF'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "kenari/claude-sonnet-5-5",
+  "providers": {
+    "kenari": {
+      "name": "Kenari.ID",
+      "env": ["KENARI_API_KEY"],
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://kenari.id/v1"
+      },
+      "models": {
+        "claude-sonnet-5-5": {},
+        "claude-opus-5-5": {},
+        "gpt-6-1-sol": {},
+        "kimi-k2-7-code": {},
+        "qwen3-8-max": {},
+        "deepseek-v4-pro": {},
+        "glm-5-3": {},
+        "gemini-3-8-flash": {},
+        "minimax-m3": {},
+        "north-mini-code:free": {}
+      }
+    }
+  }
+}
 EOF
-chown -R zettly-agent:zettly-agent /home/zettly-agent/.codex
-chmod 0640 /home/zettly-agent/.codex/config.toml
+chown -R zettly-agent:zettly-agent /home/zettly-agent/.config
+chmod 0640 /home/zettly-agent/.config/opencode/opencode.json
 runuser -u zettly-agent -- git config --global user.name "Zettly Coding Agent"
 runuser -u zettly-agent -- git config --global user.email "technology@edmeeclinic.com"
+
+# Manual coding for the owner uses OpenCode and the Antigravity CLI, never Codex.
+if id dhika >/dev/null 2>&1; then
+    install -d -m 0755 -o dhika -g dhika /home/dhika/.config/opencode
+    install -m 0644 -o dhika -g dhika /home/zettly-agent/.config/opencode/opencode.json /home/dhika/.config/opencode/opencode.json
+    runuser -u dhika -- bash -lc 'curl -fsSL https://antigravity.google/cli/install.sh | bash' || true
+    for profile in /home/dhika/.profile /home/dhika/.bashrc; do
+        if [[ -f "${profile}" ]] && ! grep -q '/home/dhika/.local/bin' "${profile}"; then
+            printf '\nexport PATH="/home/dhika/.local/bin:$PATH"\n' >>"${profile}"
+        fi
+    done
+    chown dhika:dhika /home/dhika/.profile /home/dhika/.bashrc 2>/dev/null || true
+fi
 
 archive="$(mktemp)"
 trap 'rm -f "${archive}"' EXIT
@@ -79,9 +118,15 @@ chown root:zettly-agent /etc/zettly-agent/worker.env
 chmod 0640 /etc/zettly-agent/worker.env
 
 # Verify that all required CLIs can be executed by the zettly-agent user
-for cmd in node npm codex git gh php composer; do
+for cmd in node npm opencode git gh php composer; do
     runuser -u zettly-agent -- ${cmd} --version >/dev/null
 done
+
+# Codex must be gone: no binary on PATH and no package left behind.
+if command -v codex >/dev/null 2>&1; then
+    echo 'codex is still installed; refusing to mark the release successful' >&2
+    exit 1
+fi
 
 echo "${release_sha}" >/opt/zettly-agent/.release-sha256
 systemctl daemon-reload

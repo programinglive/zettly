@@ -76,6 +76,21 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: phrasal-ground-377312
+      - name: Plan downtime and stop the pilot VM
+        run: |
+          set -euo pipefail
+          status="$(gcloud compute instances describe zettly-coding-agent-1 --project=phrasal-ground-377312 --zone=asia-southeast2-a --format='value(status)')"
+          if test "$status" = RUNNING; then
+            echo "Planned worker release window: stopping zettly-coding-agent-1"
+            gcloud compute instances stop zettly-coding-agent-1 \
+              --project=phrasal-ground-377312 --zone=asia-southeast2-a --quiet
+          fi
+          for attempt in $(seq 1 60); do
+            status="$(gcloud compute instances describe zettly-coding-agent-1 --project=phrasal-ground-377312 --zone=asia-southeast2-a --format='value(status)')"
+            if test "$status" = TERMINATED; then break; fi
+            sleep 10
+          done
+          test "$status" = TERMINATED
       - name: Install release through instance startup metadata
         env:
           AGENT_ENABLE: ${{ vars.ZETTLY_AGENT_ENABLE }}

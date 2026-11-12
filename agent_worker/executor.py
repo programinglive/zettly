@@ -11,7 +11,12 @@ from pathlib import Path
 
 REPOSITORY_NAME = re.compile(r'\A[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\Z')
 SAFE_REF = re.compile(r'\A[a-zA-Z0-9_.-]+\Z')
+SAFE_MODEL = re.compile(r'\A[a-zA-Z0-9_.:-]+\Z')
 SENSITIVE_PATH = re.compile(r'(^|/)(\.env(?:\..*)?|\.ssh|\.aws|\.config|auth\.json|.*(?:secret|credential|token|private.key).*)$', re.I)
+MODEL_PROVIDER = 'kenari'
+DEFAULT_MODEL = 'claude-sonnet-5-5'
+MODEL_CREDENTIAL = 'KENARI_API_KEY'
+WORKER_CREDENTIALS = ('ZETTLY_WORKER_TOKEN', 'GH_TOKEN', 'OPENAI_API_KEY', 'CODEX_API_KEY', MODEL_CREDENTIAL)
 
 
 class JobExecutor:
@@ -70,13 +75,21 @@ class JobExecutor:
         if any(SENSITIVE_PATH.search(path.replace('\\', '/')) for path in paths):
             raise ValueError('A sensitive file was staged')
 
-    def command_environment(self, allow_github=False):
+    def command_environment(self, allow_github=False, allow_model=False):
         environment = os.environ.copy()
-        for name in ('ZETTLY_WORKER_TOKEN', 'GH_TOKEN', 'OPENAI_API_KEY'):
+        for name in WORKER_CREDENTIALS:
             environment.pop(name, None)
         if allow_github and os.environ.get('GH_TOKEN'):
             environment['GH_TOKEN'] = os.environ['GH_TOKEN']
+        if allow_model and os.environ.get(MODEL_CREDENTIAL):
+            environment[MODEL_CREDENTIAL] = os.environ[MODEL_CREDENTIAL]
         return environment
+
+    def model_reference(self, job):
+        model = (job.get('model') or os.environ.get('AGENT_OPENCODE_MODEL') or DEFAULT_MODEL).strip()
+        if not SAFE_MODEL.fullmatch(model):
+            raise ValueError('Job model must be a safe model identifier')
+        return f'{MODEL_PROVIDER}/{model}'
 
     def _run(self, argv, cwd=None, capture=False, allow_github=False):
         result = self.run_command(
@@ -141,8 +154,10 @@ class JobExecutor:
     def preflight(self):
         if not os.environ.get('GH_TOKEN'):
             raise ValueError('GH_TOKEN is required')
+        if not os.environ.get(MODEL_CREDENTIAL):
+            raise ValueError('KENARI_API_KEY is required')
         self._run(['gh', 'auth', 'status'], allow_github=True)
-        self._run(['codex', 'login', 'status'])
+        self._run(['opencode', '--version'])
 
     def execute(self, job, checkpoint, emit_event=None):
         def emit(kind, detail):
@@ -156,44 +171,44 @@ class JobExecutor:
         branch = self.branch_for(job)
         emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}`...')
         worktree, branch = self._worktree(job, config, checkpoint)
+        setup_environment = self.command_environment()
         for command in config.get('setup', []):
             checkpoint()
             cmd_str = ' '.join(command)
             emit('worker_phase', f'Running setup command: `{cmd_str}`')
-            self._run_with_heartbeat(command, worktree, checkpoint)
+            self._run_with_heartbeat(command, worktree, checkpoint, env=setup_environment)
         pending = checkpoint()
         turns = [job['instruction']]
         if pending:
             turns.append('\n'.join(pending))
-        agent_environment = self.command_environment()
-        agent_environment['CODEX_DISABLE_AUTO_UPDATE'] = '1'
-        model = job.get('model') or os.environ.get('AGENT_CODEX_MODEL', 'agnes-3-0-flash:free')
+        agent_environment = self.command_environment(allow_model=True)
+        model = self.model_reference(job)
 
-        emit('worker_phase', f'Codex AI agent started reasoning and implementation (model: `{model}`)...')
-        for prompt in turns:
-            self._run_with_heartbeat(
-                ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
-                 '--model', model, '--config', 'approval_policy=never', prompt],
-                worktree, checkpoint, env=agent_environment,
-            )
+        emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (model: `{model}`)...')
+        for index, prompt in enumerate(turns):
+            argv = ['opencode', 'run', '--standalone', '--auto', '--model', model]
+            if index:
+                argv.append('--continue')
+            argv.append(prompt)
+            self._run_with_heartbeat(argv, worktree, checkpoint, env=agent_environment)
         for _ in range(3):
             pending = checkpoint()
             if not pending:
                 break
-            emit('worker_phase', 'Applying follow-up instruction to Codex AI agent...')
+            emit('worker_phase', 'Applying follow-up instruction to OpenCode AI agent...')
             self._run_with_heartbeat(
-                ['codex', 'exec', '--cd', str(worktree), '--sandbox', 'workspace-write',
-                 '--model', model, '--config', 'approval_policy=never', '\n'.join(pending)],
+                ['opencode', 'run', '--standalone', '--auto', '--continue', '--model', model, '\n'.join(pending)],
                 worktree, checkpoint, env=agent_environment,
             )
 
         summary = []
-        emit('worker_phase', 'Codex agent finished code changes. Executing automated test suite...')
+        emit('worker_phase', 'OpenCode agent finished code changes. Executing automated test suite...')
+        test_environment = self.command_environment()
         for command in config['tests']:
             checkpoint()
             cmd_str = ' '.join(command)
             emit('worker_phase', f'Running automated test: `{cmd_str}`')
-            self._run_with_heartbeat(command, worktree, checkpoint)
+            self._run_with_heartbeat(command, worktree, checkpoint, env=test_environment)
             summary.append(' '.join(command) + ': passed')
         checkpoint()
         emit('worker_phase', 'All tests passed. Staging and verifying diff...')

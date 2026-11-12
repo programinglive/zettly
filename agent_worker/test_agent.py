@@ -85,8 +85,8 @@ class AgentWorkerTest(unittest.TestCase):
 
     def test_execution_failure_reports_failed_without_commit(self):
         client = FakeClient(self.job)
-        self.assertTrue(AgentWorker(client, FakeExecutor(error=RuntimeError('Codex exited 1'))).run_once())
-        self.assertIn(('fail', 7, 'private-lease', 'Codex exited 1'), client.calls)
+        self.assertTrue(AgentWorker(client, FakeExecutor(error=RuntimeError('OpenCode exited 1'))).run_once())
+        self.assertIn(('fail', 7, 'private-lease', 'OpenCode exited 1'), client.calls)
         self.assertFalse(any(call[0] == 'result' for call in client.calls))
 
     def test_lost_lease_does_not_report_stale_result(self):

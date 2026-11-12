@@ -7,6 +7,8 @@ class BootstrapScriptTest(unittest.TestCase):
         self.script_path = Path(__file__).resolve().parent / "bootstrap.sh"
         self.assertTrue(self.script_path.is_file(), "bootstrap.sh must exist")
         self.script_content = self.script_path.read_text(encoding="utf-8")
+        self.start_script = Path(__file__).resolve().parent / "start.sh"
+        self.start_content = self.start_script.read_text(encoding="utf-8")
 
     def test_bootstrap_does_not_set_restrictive_global_umask_at_top(self):
         lines = [line.strip() for line in self.script_content.splitlines() if line.strip() and not line.strip().startswith("#")]
@@ -25,7 +27,7 @@ class BootstrapScriptTest(unittest.TestCase):
 
     def test_bootstrap_verifies_all_required_clis_run_as_worker_user_before_marking_success(self):
         self.assertIn("runuser -u zettly-agent -- ${cmd} --version", self.script_content)
-        for cmd in ["node", "npm", "codex", "git", "gh", "php", "composer"]:
+        for cmd in ["node", "npm", "opencode", "git", "gh", "php", "composer"]:
             self.assertIn(
                 cmd,
                 self.script_content,
@@ -33,7 +35,7 @@ class BootstrapScriptTest(unittest.TestCase):
             )
 
     def test_bootstrap_installs_bubblewrap_and_configures_userns(self):
-        self.assertIn("bubblewrap", self.script_content, "bootstrap.sh must install bubblewrap for codex sandbox")
+        self.assertIn("bubblewrap", self.script_content, "bootstrap.sh must install bubblewrap for the agent sandbox")
         self.assertIn("php-gd", self.script_content, "bootstrap.sh must install php-gd for image tests")
         self.assertIn("kernel.apparmor_restrict_unprivileged_userns=0", self.script_content)
 
@@ -48,24 +50,44 @@ class BootstrapScriptTest(unittest.TestCase):
         key_idx = content.find('["php", "artisan", "key:generate"]')
         self.assertTrue(cp_idx < composer_idx < key_idx, "composer install must run before key:generate")
 
-    def test_bootstrap_configures_codex_model_provider(self):
-        self.assertIn('model_provider = "openai-custom"', self.script_content)
-        self.assertIn('model = "agnes-3-0-flash:free"', self.script_content)
-        self.assertIn('base_url = "https://kenari.id/v1"', self.script_content)
-        self.assertIn('env_key = "CODEX_API_KEY"', self.script_content)
+    def test_bootstrap_installs_opencode_cli(self):
+        self.assertIn("npm install --global @opencode/cli", self.script_content)
 
-    def test_start_script_exports_codex_api_key(self):
-        start_script = Path(__file__).resolve().parent / "start.sh"
-        content = start_script.read_text(encoding="utf-8")
-        self.assertIn('export CODEX_API_KEY="${openai_key}"', content)
+    def test_bootstrap_never_installs_codex(self):
+        self.assertNotIn("npm install --global @openai/codex", self.script_content)
+
+    def test_bootstrap_purges_every_codex_artifact(self):
+        self.assertIn("npm uninstall --global @openai/codex", self.script_content)
+        self.assertIn("rm -f /usr/local/bin/codex", self.script_content)
+        self.assertIn("rm -rf /home/zettly-agent/.codex", self.script_content)
+        self.assertIn("rm -rf /root/.codex", self.script_content)
+
+    def test_bootstrap_fails_when_codex_is_still_present(self):
+        self.assertIn("command -v codex", self.script_content)
+
+    def test_bootstrap_configures_kenari_provider_for_opencode(self):
+        self.assertIn('"kenari"', self.script_content)
+        self.assertIn('"baseURL": "https://kenari.id/v1"', self.script_content)
+        self.assertIn('"KENARI_API_KEY"', self.script_content)
+        self.assertIn("/home/zettly-agent/.config/opencode/opencode.json", self.script_content)
+
+    def test_bootstrap_installs_antigravity_cli_for_dhika(self):
+        self.assertIn("antigravity.google/cli/install.sh", self.script_content)
+        self.assertIn("runuser -u dhika", self.script_content)
+        self.assertIn("/home/dhika/.local/bin", self.script_content)
+
+    def test_start_script_exports_kenari_key_for_the_worker_process(self):
+        self.assertIn('export KENARI_API_KEY', self.start_content)
+
+    def test_start_script_no_longer_logs_into_codex(self):
+        self.assertNotIn("codex login", self.start_content)
+        self.assertNotIn("CODEX_API_KEY", self.start_content)
 
     def test_git_identity_configured_for_worker(self):
         self.assertIn('git config --global user.name "Zettly Coding Agent"', self.script_content)
         self.assertIn('git config --global user.email "technology@edmeeclinic.com"', self.script_content)
-        start_script = Path(__file__).resolve().parent / "start.sh"
-        start_content = start_script.read_text(encoding="utf-8")
-        self.assertIn('git config --global user.name "Zettly Coding Agent"', start_content)
-        self.assertIn('git config --global user.email "technology@edmeeclinic.com"', start_content)
+        self.assertIn('git config --global user.name "Zettly Coding Agent"', self.start_content)
+        self.assertIn('git config --global user.email "technology@edmeeclinic.com"', self.start_content)
 
 
 if __name__ == "__main__":
