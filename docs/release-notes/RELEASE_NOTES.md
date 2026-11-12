@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.12.42 | 2026-11-11 | **release:** record v0.12.41 release notes (97b9c1f) |
 | 0.12.41 | 2026-11-11 | **focus:** list every active focus on the dashboard (fe28824) |
 | 0.12.40 | 2026-11-11 | **deploy:** chown storage in whichever stage runs, not only the reset stage (81b1ffe) |
 | 0.12.39 | 2026-11-11 | **deploy:** hand storage back to the web user after the root git reset (e8f7bfb) |
@@ -100,6 +101,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 0.12.42 – 📝 Documentation
+
+Released on **2026-11-11**.
+
+- **release:** record v0.12.41 release notes (97b9c1f)
+- **agent:** expose release approval over the API for BOTOL (#37) (bc248c2)
 
 ## 0.12.41 – ✨ Features
 
