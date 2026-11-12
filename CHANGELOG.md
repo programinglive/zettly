@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.44](https://github.com/programinglive/todo/compare/v0.12.43...v0.12.44) (2026-11-12)
+
+
+### 🐛 Bug Fixes
+
+* **agent:** restart the worker after bootstrap installs a release ([456bc10](https://github.com/programinglive/todo/commit/456bc108d343de8ed1d289a610f65cdd78306d39))
+* **agent:** restrict the coding worker to free Kenari models ([af97002](https://github.com/programinglive/todo/commit/af970021a8a2e19aeaca07cc82d27268718651af))
+* **agent:** run OpenCode inside the job worktree and capture its output ([6d0ec3a](https://github.com/programinglive/todo/commit/6d0ec3ac9ec7673f4b72042d3dd39c4c9d8b3154))
+
+
+### 👷 Continuous Integration
+
+* **agent:** allow manual release type and release agent fixes ([89d46fa](https://github.com/programinglive/todo/commit/89d46fa8fdfd9242a3423d4fc015c5d22bb7db06))
+
+
+### ✨ Features
+
+* **agent:** complete coding job 10 ([b84f244](https://github.com/programinglive/todo/commit/b84f2446769be84592543898748cd122f7145fb9))
+* **agent:** release coding job [#10](https://github.com/programinglive/todo/issues/10) ([8e4f93b](https://github.com/programinglive/todo/commit/8e4f93bf0b50f73c8244524819eb8797d054d2f2))
+
 ### [0.12.43](https://github.com/programinglive/todo/compare/v0.12.42...v0.12.43) (2026-11-12)
 
 
