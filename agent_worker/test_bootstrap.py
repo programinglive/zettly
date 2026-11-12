@@ -71,6 +71,12 @@ class BootstrapScriptTest(unittest.TestCase):
         self.assertIn('"KENARI_API_KEY"', self.script_content)
         self.assertIn("/home/zettly-agent/.config/opencode/opencode.json", self.script_content)
 
+    def test_bootstrap_configures_only_free_kenari_models(self):
+        self.assertNotIn('claude-sonnet-5-5', self.script_content)
+        self.assertNotIn('kimi-k2-7-code', self.script_content)
+        self.assertIn('"qwen3-5-397b-a17b:free"', self.script_content)
+        self.assertIn('"north-mini-code:free"', self.script_content)
+
     def test_bootstrap_installs_antigravity_cli_for_dhika(self):
         self.assertIn("antigravity.google/cli/install.sh", self.script_content)
         self.assertIn("runuser -u dhika", self.script_content)
