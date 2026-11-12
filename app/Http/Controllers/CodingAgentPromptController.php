@@ -41,7 +41,7 @@ class CodingAgentPromptController extends Controller
         $roughInstruction = trim((string) ($validated['instruction'] ?? ''));
         $repository = (string) ($validated['repository'] ?? 'zettly');
         $repoMeta = CodingAgentRepositoryRegistry::find($repository);
-        $model = (string) ($validated['model'] ?? config('coding_agent.default_model', 'agnes-3-0-flash:free'));
+        $model = (string) ($validated['model'] ?? config('coding_agent.default_model', 'claude-sonnet-5-5'));
 
         $apiKey = config('coding_agent.kenari_api_key');
         $baseUrl = rtrim(config('coding_agent.kenari_base_url', 'https://kenari.id/v1'), '/');

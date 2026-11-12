@@ -17,14 +17,15 @@ access_secret() {
         | python3 -c 'import base64,json,sys; sys.stdout.buffer.write(base64.b64decode(json.load(sys.stdin)["payload"]["data"]))'
 }
 
+# The worker process needs the Zettly lease token and the GitHub token. The
+# Kenari key is exported only so the executor can hand it to the OpenCode
+# subprocess; every other child process has it stripped again.
 export ZETTLY_WORKER_TOKEN
 export GH_TOKEN
+export KENARI_API_KEY
 ZETTLY_WORKER_TOKEN="$(access_secret zettly-agent-worker-token)"
 GH_TOKEN="$(access_secret zettly-agent-github-token)"
-openai_key="$(access_secret zettly-agent-openai-api-key)"
-printf '%s' "${openai_key}" | codex login --with-api-key >/dev/null
-export CODEX_API_KEY="${openai_key}"
-unset openai_key
+KENARI_API_KEY="$(access_secret zettly-agent-openai-api-key)"
 
 git config --global user.name "Zettly Coding Agent"
 git config --global user.email "technology@edmeeclinic.com"
