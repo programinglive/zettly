@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 import signal
 import subprocess
 from pathlib import Path
@@ -170,6 +171,45 @@ class JobExecutor:
         if status:
             raise RuntimeError(f'{argv[0]} command failed with exit {status}{self._log_tail(log_path) if log_path else ""}')
 
+    def _try_run(self, argv, cwd=None):
+        try:
+            self.run_command(
+                argv, cwd=cwd, text=True, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, check=False,
+                env=self.command_environment(cwd=cwd),
+            )
+        except Exception:
+            pass
+
+    def prune_worktrees(self, cache, keep=None, active_job_id=None):
+        """Remove finished job worktrees and their branches, keeping the newest ones."""
+        jobs_dir = self.root / 'jobs'
+        if not jobs_dir.is_dir():
+            return []
+        if keep is None:
+            try:
+                keep = int(os.environ.get('AGENT_KEEP_WORKTREES', '2'))
+            except ValueError:
+                keep = 2
+        keep = max(0, keep)
+        candidates = sorted(
+            (path for path in jobs_dir.iterdir() if path.is_dir() and path.name.isdigit()),
+            key=lambda path: int(path.name),
+        )
+        keep_ids = {int(path.name) for path in candidates[-keep:]} if keep else set()
+        if active_job_id is not None:
+            keep_ids.add(int(active_job_id))
+        removed = []
+        for path in candidates:
+            job_id = int(path.name)
+            if job_id in keep_ids:
+                continue
+            self._try_run(['git', '-C', str(cache), 'worktree', 'remove', '--force', str(path)], cwd=self.root)
+            self._try_run(['git', '-C', str(cache), 'branch', '-D', f'agent/job-{job_id}'], cwd=self.root)
+            shutil.rmtree(path, ignore_errors=True)
+            removed.append(job_id)
+        return removed
+
     def _worktree(self, job, config, checkpoint):
         key = job['repository']
         branch = self.branch_for(job)
@@ -183,6 +223,7 @@ class JobExecutor:
             self._run_with_heartbeat(['gh', 'repo', 'clone', config['remote'], str(cache)], self.root, checkpoint, env=self.command_environment(True))
         if not (cache / '.git').exists():
             raise RuntimeError('Repository cache is not a Git checkout')
+        self.prune_worktrees(cache, active_job_id=job['id'])
         if worktree.exists():
             raise RuntimeError('Job worktree already exists; inspect it before retrying')
         self._run_with_heartbeat(['git', '-C', str(cache), 'fetch', 'origin', config['base']], self.root, checkpoint, env=self.command_environment(True))
