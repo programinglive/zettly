@@ -13,21 +13,21 @@
         "build:atomic": "bash scripts/build-assets.sh",
         "build": "vite build",
         "dev": "vite",
-        "release": "node scripts/release.cjs",
-        "release:patch": "node scripts/release.cjs patch",
-        "release:minor": "node scripts/release.cjs minor",
-        "release:major": "node scripts/release.cjs major",
+        "release": "commiter release",
+        "release:patch": "commiter release patch",
+        "release:minor": "commiter release minor",
+        "release:major": "commiter release major",
         "test": "npm run test:js && npm run test:cli",
         "test:js": "node --test resources/js/**/*.test.js",
         "test:cli": "node --test cli/tests/*.test.js",
         "test:php": "php artisan test",
         "prepare": "husky",
-        "release:first": "node scripts/release.cjs --first-release"
+        "release:first": "commiter release --first-release"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
-        "@programinglive/commiter": "^1.2.18",
+        "@programinglive/commiter": "^1.5.1",
         "@tailwindcss/forms": "^0.5.3",
         "@types/react": "^18.3.0",
         "@types/react-dom": "^18.3.0",
@@ -128,5 +128,10 @@
                 "section": "⏪ Reverts"
             }
         ]
+    },
+    "commiter": {
+        "release": {
+            "branch": "main"
+        }
     }
 }
