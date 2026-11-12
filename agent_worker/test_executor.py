@@ -140,8 +140,8 @@ class JobExecutorTest(unittest.TestCase):
         worktree.mkdir(parents=True, exist_ok=True)
         captured = []
 
-        def capture_hb(argv, cwd, checkpoint, env=None):
-            captured.append({'argv': list(argv), 'env': env})
+        def capture_hb(argv, cwd, checkpoint, env=None, log_path=None):
+            captured.append({'argv': list(argv), 'env': env, 'log_path': log_path})
 
         def fake_run(argv, cwd=None, capture=False, allow_github=False):
             if 'diff' in argv and '--cached' in argv:
@@ -212,6 +212,40 @@ class JobExecutorTest(unittest.TestCase):
         self.assertGreaterEqual(len(agent_calls), 2)
         self.assertNotIn('--continue', agent_calls[0])
         self.assertIn('--continue', agent_calls[1])
+
+    def test_execute_sets_pwd_to_the_job_worktree(self):
+        # OpenCode resolves its project directory from PWD. Popen(cwd=...)
+        # does not update PWD, so the worker must set it explicitly or the
+        # agent edits the service WorkingDirectory instead of the worktree.
+        captured, _ = self._capture_agent_calls(
+            {'id': 106, 'repository': 'zettly', 'instruction': 'Fix login'}
+        )
+        agent_calls = [call for call in captured if call['argv'] and call['argv'][0] == 'opencode']
+        self.assertTrue(agent_calls)
+        self.assertEqual(agent_calls[0]['env']['PWD'], str(Path(self.root.name) / 'jobs' / '106'))
+
+    def test_agent_failure_includes_captured_output_tail(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        log_path = Path(self.root.name) / 'agent.log'
+
+        class FakeProcess:
+            pid = 4321
+
+            def __init__(self, stdout):
+                stdout.write(b'Model unavailable: kenari/unknown-model\n')
+                stdout.flush()
+
+            def wait(self, timeout=None):
+                return 1
+
+        def fake_popen(argv, **kwargs):
+            return FakeProcess(kwargs['stdout'])
+
+        with patch('agent_worker.executor.subprocess.Popen', side_effect=fake_popen):
+            with self.assertRaisesRegex(RuntimeError, 'Model unavailable'):
+                executor._run_with_heartbeat(
+                    ['opencode', 'run'], Path(self.root.name), lambda: None, log_path=log_path
+                )
 
     def test_execute_emits_worker_phases(self):
         executor = JobExecutor(Path(self.root.name), self.repositories)
