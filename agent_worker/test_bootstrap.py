@@ -83,6 +83,12 @@ class BootstrapScriptTest(unittest.TestCase):
         self.assertNotIn("codex login", self.start_content)
         self.assertNotIn("CODEX_API_KEY", self.start_content)
 
+    def test_bootstrap_restarts_the_worker_after_installing_the_release(self):
+        # The unit is enabled, so systemd starts it at boot before the startup
+        # script runs. Without a restart the process keeps executing the old
+        # release that was on disk at boot.
+        self.assertIn("systemctl restart zettly-agent.service", self.script_content)
+
     def test_git_identity_configured_for_worker(self):
         self.assertIn('git config --global user.name "Zettly Coding Agent"', self.script_content)
         self.assertIn('git config --global user.email "technology@edmeeclinic.com"', self.script_content)
