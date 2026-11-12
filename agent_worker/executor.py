@@ -75,7 +75,7 @@ class JobExecutor:
         if any(SENSITIVE_PATH.search(path.replace('\\', '/')) for path in paths):
             raise ValueError('A sensitive file was staged')
 
-    def command_environment(self, allow_github=False, allow_model=False):
+    def command_environment(self, allow_github=False, allow_model=False, cwd=None):
         environment = os.environ.copy()
         for name in WORKER_CREDENTIALS:
             environment.pop(name, None)
@@ -83,6 +83,11 @@ class JobExecutor:
             environment['GH_TOKEN'] = os.environ['GH_TOKEN']
         if allow_model and os.environ.get(MODEL_CREDENTIAL):
             environment[MODEL_CREDENTIAL] = os.environ[MODEL_CREDENTIAL]
+        if cwd is not None:
+            # Popen(cwd=...) does not update PWD, and OpenCode resolves its
+            # project directory from PWD. Without this the agent edits the
+            # service WorkingDirectory instead of the job worktree.
+            environment['PWD'] = str(cwd)
         return environment
 
     def model_reference(self, job):
@@ -95,18 +100,33 @@ class JobExecutor:
         result = self.run_command(
             argv, cwd=cwd, text=True, stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
             stderr=subprocess.DEVNULL, check=False,
-            env=self.command_environment(allow_github),
+            env=self.command_environment(allow_github, cwd=cwd),
         )
         if result.returncode:
             raise RuntimeError(f'{argv[0]} command failed with exit {result.returncode}')
         return result.stdout.strip() if capture else ''
 
-    def _run_with_heartbeat(self, argv, cwd, checkpoint, env=None):
-        process = subprocess.Popen(
-            argv, cwd=cwd, env=env or self.command_environment(),
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=os.name == 'posix',
-        )
+    @staticmethod
+    def _log_tail(log_path, limit=1500):
+        try:
+            data = Path(log_path).read_text(encoding='utf-8', errors='replace')
+        except OSError:
+            return ''
+        tail = data.strip()[-limit:]
+        return f': {tail}' if tail else ''
+
+    def _run_with_heartbeat(self, argv, cwd, checkpoint, env=None, log_path=None):
+        handle = open(log_path, 'ab') if log_path else None
+        try:
+            process = subprocess.Popen(
+                argv, cwd=cwd, env=env or self.command_environment(cwd=cwd),
+                stdout=handle if handle else subprocess.DEVNULL,
+                stderr=subprocess.STDOUT if handle else subprocess.DEVNULL,
+                start_new_session=os.name == 'posix',
+            )
+        finally:
+            if handle:
+                handle.close()
         try:
             while True:
                 try:
@@ -129,7 +149,7 @@ class JobExecutor:
                 process.wait()
             raise
         if status:
-            raise RuntimeError(f'{argv[0]} command failed with exit {status}')
+            raise RuntimeError(f'{argv[0]} command failed with exit {status}{self._log_tail(log_path) if log_path else ""}')
 
     def _worktree(self, job, config, checkpoint):
         key = job['repository']
@@ -171,7 +191,7 @@ class JobExecutor:
         branch = self.branch_for(job)
         emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}`...')
         worktree, branch = self._worktree(job, config, checkpoint)
-        setup_environment = self.command_environment()
+        setup_environment = self.command_environment(cwd=worktree)
         for command in config.get('setup', []):
             checkpoint()
             cmd_str = ' '.join(command)
@@ -181,8 +201,9 @@ class JobExecutor:
         turns = [job['instruction']]
         if pending:
             turns.append('\n'.join(pending))
-        agent_environment = self.command_environment(allow_model=True)
+        agent_environment = self.command_environment(allow_model=True, cwd=worktree)
         model = self.model_reference(job)
+        agent_log = self.root / 'jobs' / f'{job["id"]}-agent.log'
 
         emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (model: `{model}`)...')
         for index, prompt in enumerate(turns):
@@ -190,7 +211,7 @@ class JobExecutor:
             if index:
                 argv.append('--continue')
             argv.append(prompt)
-            self._run_with_heartbeat(argv, worktree, checkpoint, env=agent_environment)
+            self._run_with_heartbeat(argv, worktree, checkpoint, env=agent_environment, log_path=agent_log)
         for _ in range(3):
             pending = checkpoint()
             if not pending:
@@ -198,12 +219,12 @@ class JobExecutor:
             emit('worker_phase', 'Applying follow-up instruction to OpenCode AI agent...')
             self._run_with_heartbeat(
                 ['opencode', 'run', '--standalone', '--auto', '--continue', '--model', model, '\n'.join(pending)],
-                worktree, checkpoint, env=agent_environment,
+                worktree, checkpoint, env=agent_environment, log_path=agent_log,
             )
 
         summary = []
         emit('worker_phase', 'OpenCode agent finished code changes. Executing automated test suite...')
-        test_environment = self.command_environment()
+        test_environment = self.command_environment(cwd=worktree)
         for command in config['tests']:
             checkpoint()
             cmd_str = ' '.join(command)
