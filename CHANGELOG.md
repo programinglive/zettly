@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/programinglive/todo/compare/v0.12.44...v1.0.0) (2026-11-12)
+
 ### [0.12.44](https://github.com/programinglive/todo/compare/v0.12.43...v0.12.44) (2026-11-12)
 
 
