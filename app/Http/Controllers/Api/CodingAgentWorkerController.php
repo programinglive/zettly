@@ -16,34 +16,56 @@ class CodingAgentWorkerController
     public function claim(Request $request): JsonResponse
     {
         $claim = DB::transaction(function () use ($request): ?array {
-            $job = CodingAgentJob::query()->where('user_id', $request->user()->id)
-                ->where(function ($query) {
-                    $query->where('status', 'queued')
-                        ->orWhere(function ($expired) {
-                            $expired->where('status', 'running')->where('leased_until', '<', now());
-                        });
-                })->orderBy('id')->lockForUpdate()->first();
+            $allowedModels = config('coding_agent.models', []);
+            $defaultModel = config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 
-            if (! $job) {
-                return null;
+            // A job created before the free allowlist changed can still be
+            // queued with a paid model. Fail it here instead of handing it to
+            // the worker, so no paid model can ever start.
+            for ($attempt = 0; $attempt < 10; $attempt++) {
+                $job = CodingAgentJob::query()->where('user_id', $request->user()->id)
+                    ->where(function ($query) {
+                        $query->where('status', 'queued')
+                            ->orWhere(function ($expired) {
+                                $expired->where('status', 'running')->where('leased_until', '<', now());
+                            });
+                    })->orderBy('id')->lockForUpdate()->first();
+
+                if (! $job) {
+                    return null;
+                }
+
+                $model = $job->model ?? $defaultModel;
+                if ($allowedModels && ! in_array($model, $allowedModels, true)) {
+                    $job->update([
+                        'status' => 'failed',
+                        'test_summary' => "Model {$model} is not in the free allowlist; the job was not started.",
+                        'lease_token_hash' => null,
+                        'leased_until' => null,
+                    ]);
+
+                    continue;
+                }
+
+                $leaseToken = Str::random(64);
+                $job->update([
+                    'status' => 'running',
+                    'lease_token_hash' => hash('sha256', $leaseToken),
+                    'leased_until' => now()->addSeconds(self::LEASE_SECONDS),
+                    'last_heartbeat_at' => now(),
+                ]);
+
+                return [
+                    'id' => $job->id,
+                    'repository' => $job->repository,
+                    'instruction' => $job->instruction,
+                    'model' => $model,
+                    'lease_token' => $leaseToken,
+                    'leased_until' => $job->leased_until->toIso8601String(),
+                ];
             }
 
-            $leaseToken = Str::random(64);
-            $job->update([
-                'status' => 'running',
-                'lease_token_hash' => hash('sha256', $leaseToken),
-                'leased_until' => now()->addSeconds(self::LEASE_SECONDS),
-                'last_heartbeat_at' => now(),
-            ]);
-
-            return [
-                'id' => $job->id,
-                'repository' => $job->repository,
-                'instruction' => $job->instruction,
-                'model' => $job->model ?? config('coding_agent.default_model', 'qwen3-5-397b-a17b:free'),
-                'lease_token' => $leaseToken,
-                'leased_until' => $job->leased_until->toIso8601String(),
-            ];
+            return null;
         });
 
         return $claim ? response()->json(['data' => $claim]) : response()->json(null, 204);

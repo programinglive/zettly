@@ -36,6 +36,37 @@ class CodingAgentWorkerTest extends TestCase
         $this->assertSame('running', $job->fresh()->status);
     }
 
+    public function test_claim_fails_a_job_whose_model_is_not_in_the_free_allowlist(): void
+    {
+        [$owner, $job] = $this->setupJob();
+        config()->set('coding_agent.models', ['north-mini-code:free']);
+        $job->update(['model' => 'claude-sonnet-5-5']);
+        $token = $owner->createToken('agent-worker', ['coding-agent:worker'])->plainTextToken;
+
+        $this->withToken($token)->postJson('/api/v1/coding-agent/claim')->assertNoContent();
+
+        $this->assertSame('failed', $job->fresh()->status);
+        $this->assertStringContainsString('allowlist', (string) $job->fresh()->test_summary);
+    }
+
+    public function test_claim_skips_a_paid_job_and_returns_the_next_free_one(): void
+    {
+        [$owner, $paid] = $this->setupJob();
+        config()->set('coding_agent.models', ['north-mini-code:free']);
+        $paid->update(['model' => 'claude-sonnet-5-5']);
+        $free = CodingAgentJob::create([
+            'user_id' => $owner->id, 'todo_id' => $paid->todo_id, 'repository' => 'zettly',
+            'instruction' => 'Fix login', 'model' => 'north-mini-code:free', 'client_request_id' => 'mobile-2',
+        ]);
+        $token = $owner->createToken('agent-worker', ['coding-agent:worker'])->plainTextToken;
+
+        $this->withToken($token)->postJson('/api/v1/coding-agent/claim')
+            ->assertOk()->assertJsonPath('data.id', $free->id);
+
+        $this->assertSame('failed', $paid->fresh()->status);
+        $this->assertSame('running', $free->fresh()->status);
+    }
+
     public function test_generic_cli_token_cannot_claim_job(): void
     {
         [$owner] = $this->setupJob();

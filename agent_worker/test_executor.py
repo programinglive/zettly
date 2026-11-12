@@ -2,7 +2,7 @@ import tempfile
 import unittest
 import os
 from pathlib import Path
-from subprocess import TimeoutExpired
+from subprocess import CompletedProcess, TimeoutExpired
 from unittest.mock import patch
 
 from agent_worker.executor import JobExecutor
@@ -259,6 +259,50 @@ class JobExecutorTest(unittest.TestCase):
                 executor._run_with_heartbeat(
                     ['opencode', 'run'], Path(self.root.name), lambda: None, log_path=log_path
                 )
+
+    def test_prune_removes_old_worktrees_and_keeps_the_newest(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        jobs = Path(self.root.name) / 'jobs'
+        for number in (1, 2, 3, 4, 5):
+            (jobs / str(number)).mkdir(parents=True)
+        (jobs / '5-agent.log').write_text('log', encoding='utf-8')
+        commands = []
+
+        def fake_run(argv, **kwargs):
+            commands.append(list(argv))
+            return CompletedProcess(argv, 0, stdout='')
+
+        executor.run_command = fake_run
+        removed = executor.prune_worktrees(Path(self.root.name) / 'repositories' / 'zettly', keep=2, active_job_id=5)
+
+        self.assertEqual(sorted(removed), [1, 2, 3])
+        self.assertEqual(sorted(p.name for p in jobs.iterdir() if p.is_dir()), ['4', '5'])
+        self.assertTrue((jobs / '5-agent.log').exists(), 'agent logs must survive pruning')
+        self.assertTrue(any('worktree' in command and 'remove' in command for command in commands))
+        self.assertTrue(any('branch' in command and '-D' in command for command in commands))
+
+    def test_prune_keeps_the_active_job_even_when_it_is_old(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        jobs = Path(self.root.name) / 'jobs'
+        for number in (1, 2, 3, 4, 5):
+            (jobs / str(number)).mkdir(parents=True)
+        executor.run_command = lambda argv, **kwargs: CompletedProcess(argv, 0, stdout='')
+
+        executor.prune_worktrees(Path(self.root.name) / 'repositories' / 'zettly', keep=1, active_job_id=1)
+
+        self.assertEqual(sorted(p.name for p in jobs.iterdir() if p.is_dir()), ['1', '5'])
+
+    def test_prune_ignores_non_numeric_entries(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        jobs = Path(self.root.name) / 'jobs'
+        (jobs / 'notes').mkdir(parents=True)
+        (jobs / '1').mkdir()
+        executor.run_command = lambda argv, **kwargs: CompletedProcess(argv, 0, stdout='')
+
+        executor.prune_worktrees(Path(self.root.name) / 'repositories' / 'zettly', keep=0, active_job_id=None)
+
+        self.assertTrue((jobs / 'notes').exists())
+        self.assertFalse((jobs / '1').exists())
 
     def test_execute_emits_worker_phases(self):
         executor = JobExecutor(Path(self.root.name), self.repositories)
