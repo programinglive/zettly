@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.43](https://github.com/programinglive/todo/compare/v0.12.42...v0.12.43) (2026-11-12)
+
+
+### ✨ Features
+
+* **agent:** migrate coding worker from Codex to OpenCode with Kenari provider ([e904547](https://github.com/programinglive/todo/commit/e90454729c2c1a0a4fae584e2cc7f1a6b2cbcb5f))
+
 ### [0.12.42](https://github.com/programinglive/todo/compare/v0.12.41...v0.12.42) (2026-11-11)
 
 
