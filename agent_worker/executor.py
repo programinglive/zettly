@@ -181,6 +181,17 @@ class JobExecutor:
         except Exception:
             pass
 
+    def _capture(self, argv, cwd=None):
+        try:
+            result = self.run_command(
+                argv, cwd=cwd, text=True, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL, check=False,
+                env=self.command_environment(cwd=cwd),
+            )
+            return (result.stdout or '').strip()
+        except Exception:
+            return ''
+
     def prune_worktrees(self, cache, keep=None, active_job_id=None):
         """Remove finished job worktrees and their branches, keeping the newest ones."""
         jobs_dir = self.root / 'jobs'
@@ -208,6 +219,20 @@ class JobExecutor:
             self._try_run(['git', '-C', str(cache), 'branch', '-D', f'agent/job-{job_id}'], cwd=self.root)
             shutil.rmtree(path, ignore_errors=True)
             removed.append(job_id)
+        # A worktree directory removed outside the worker leaves a stale
+        # registration and an orphan branch behind. Clean both.
+        self._try_run(['git', '-C', str(cache), 'worktree', 'prune'], cwd=self.root)
+        for line in self._capture(['git', '-C', str(cache), 'branch', '--list', 'agent/job-*'], cwd=self.root).splitlines():
+            name = line.strip().lstrip('*+ ').strip()
+            if not name.startswith('agent/job-'):
+                continue
+            try:
+                job_id = int(name.rsplit('-', 1)[1])
+            except ValueError:
+                continue
+            if job_id in keep_ids:
+                continue
+            self._try_run(['git', '-C', str(cache), 'branch', '-D', name], cwd=self.root)
         return removed
 
     def _worktree(self, job, config, checkpoint):

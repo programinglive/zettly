@@ -304,6 +304,40 @@ class JobExecutorTest(unittest.TestCase):
         self.assertTrue((jobs / 'notes').exists())
         self.assertFalse((jobs / '1').exists())
 
+    def test_prune_runs_worktree_prune(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        jobs = Path(self.root.name) / 'jobs'
+        (jobs / '1').mkdir(parents=True)
+        commands = []
+
+        def fake_run(argv, **kwargs):
+            commands.append(list(argv))
+            return CompletedProcess(argv, 0, stdout='')
+
+        executor.run_command = fake_run
+        executor.prune_worktrees(Path(self.root.name) / 'repositories' / 'zettly', keep=1, active_job_id=1)
+
+        self.assertTrue(any('worktree' in command and 'prune' in command for command in commands))
+
+    def test_prune_deletes_orphan_agent_branches(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        jobs = Path(self.root.name) / 'jobs'
+        (jobs / '10').mkdir(parents=True)
+        commands = []
+
+        def fake_run(argv, **kwargs):
+            commands.append(list(argv))
+            if 'branch' in argv and '--list' in argv:
+                return CompletedProcess(argv, 0, stdout='  agent/job-7\n+ agent/job-10\n')
+            return CompletedProcess(argv, 0, stdout='')
+
+        executor.run_command = fake_run
+        executor.prune_worktrees(Path(self.root.name) / 'repositories' / 'zettly', keep=1, active_job_id=10)
+
+        deleted = [command[-1] for command in commands if 'branch' in command and '-D' in command]
+        self.assertIn('agent/job-7', deleted)
+        self.assertNotIn('agent/job-10', deleted)
+
     def test_execute_emits_worker_phases(self):
         executor = JobExecutor(Path(self.root.name), self.repositories)
         worktree = Path(self.root.name) / 'jobs' / '101'
