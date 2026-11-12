@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.2](https://github.com/programinglive/todo/compare/v1.0.1...v1.0.2) (2026-11-12)
+
+
+### 🐛 Bug Fixes
+
+* **agent:** prune stale worktree registrations and orphan agent branches ([740db74](https://github.com/programinglive/todo/commit/740db74b7d96a7cb36df39b26d5913d19aa4b86a))
+
 ### [1.0.1](https://github.com/programinglive/todo/compare/v1.0.0...v1.0.1) (2026-11-12)
 
 
