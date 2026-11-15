@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/programinglive/todo/compare/v1.0.2...v1.1.0) (2026-11-15)
+
+
+### 🧹 Chores
+
+* **release:** adopt commiter release v2 ([8445f43](https://github.com/programinglive/todo/commit/8445f43e4d0779471af2ee0ebdfe07d4ac9a0e8a))
+
+
+### 📝 Documentation
+
+* **release:** record the missing 0.12.42 entry ([6b18624](https://github.com/programinglive/todo/commit/6b18624cee4ca5233b772d466e376a3efaa2f7e7))
+
+
+### ✨ Features
+
+* upgrade @programinglive/zettly-editor to v1.0.0 modern-only ([#47](https://github.com/programinglive/todo/issues/47)) ([d60d62d](https://github.com/programinglive/todo/commit/d60d62da825d256ec39e5a30b566451aa3f41774))
+
+
+### 🐛 Bug Fixes
+
+* sync CodingAgentJob default model with config and remediate brace-expansion advisory ([#48](https://github.com/programinglive/todo/issues/48)) ([a4ebc75](https://github.com/programinglive/todo/commit/a4ebc75805e7ad50e76292ca83bf65548efd25a1))
+
+
+### 👷 Continuous Integration
+
+* **release:** add protected-tag preflight, concurrency, and GitHub App token support ([#49](https://github.com/programinglive/todo/issues/49)) ([db89e05](https://github.com/programinglive/todo/commit/db89e05302e32188aa19117d3732e4d50a9dfd3a))
+
 ### [1.0.2](https://github.com/programinglive/todo/compare/v1.0.1...v1.0.2) (2026-11-12)
 
 

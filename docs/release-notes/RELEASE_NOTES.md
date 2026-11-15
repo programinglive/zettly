@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.1.0 | 2026-11-15 | **release:** adopt commiter release v2 (8445f43) |
 | 0.12.42 | 2026-11-11 | **release:** record v0.12.41 release notes (97b9c1f) |
 | 0.12.41 | 2026-11-11 | **focus:** list every active focus on the dashboard (fe28824) |
 | 0.12.40 | 2026-11-11 | **deploy:** chown storage in whichever stage runs, not only the reset stage (81b1ffe) |
@@ -102,6 +103,19 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.1.0
+
+Released on **2026-11-15**.
+
+- **release:** adopt commiter release v2 (8445f43)
+- **release:** record the missing 0.12.42 entry (6b18624)
+- upgrade @programinglive/zettly-editor to v1.0.0 modern-only (#47) (d60d62d)
+- sync CodingAgentJob default model with config and remediate brace-expansion advisory (#48) (a4ebc75)
+- **release:** add protected-tag preflight, concurrency, and GitHub App token support (#49) (db89e05)
+- **agent:** prune stale worktree registrations and orphan agent branches (740db74)
+- **agent:** prune finished job worktrees and guard the free model allowlist at claim (19866b6)
 
 ## 0.12.42 – 📝 Documentation
 
