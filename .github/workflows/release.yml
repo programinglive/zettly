@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-tag-${{ github.ref }}
+  cancel-in-progress: false
+
 # Fleet standard: every job runs on the bw-tools self-hosted runner
 # (100.77.138.14) with the explicit `bw-tools` label.
 jobs:
