@@ -185,4 +185,18 @@ class CodingAgentWorkerTest extends TestCase
         $this->assertNull($job->fresh()->lease_token_hash);
         $this->assertNull($job->fresh()->commit_sha);
     }
+
+    public function test_job_defaults_to_configured_default_model_when_omitted(): void
+    {
+        config()->set('coding_agent.default_model', 'north-mini-code:free');
+        config()->set('coding_agent.models', ['north-mini-code:free']);
+        [$owner, $job] = $this->setupJob();
+
+        $this->assertSame('north-mini-code:free', $job->fresh()->model);
+
+        $token = $owner->createToken('agent-worker', ['coding-agent:worker'])->plainTextToken;
+        $this->withToken($token)->postJson('/api/v1/coding-agent/claim')
+            ->assertOk()
+            ->assertJsonPath('data.model', 'north-mini-code:free');
+    }
 }

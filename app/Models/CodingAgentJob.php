@@ -20,6 +20,15 @@ class CodingAgentJob extends Model
 
     protected $hidden = ['lease_token_hash'];
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $job): void {
+            if (empty($job->model)) {
+                $job->model = config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
