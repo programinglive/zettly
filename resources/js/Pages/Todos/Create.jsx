@@ -64,16 +64,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
 
     const [attachmentFiles, setAttachmentFiles] = useState([]);
 
-    const [debugEnabled, setDebugEnabled] = useState(false);
-
-    const handleDebugEvent = React.useCallback((event) => {
-        if (!debugEnabled) {
-            return;
-        }
-
-        console.log('zettly debug event', event);
-    }, [debugEnabled]);
-
     const isNote = data.type === 'note';
 
     const checklistErrors = Object.keys(errors)
@@ -201,9 +191,6 @@ export default function Create({ tags, todos, defaultType = 'todo' }) {
                                             <ZettlyEditor
                                                 value={data.description || ''}
                                                 onChange={(value) => setData('description', value)}
-                                                debug={debugEnabled}
-                                                onDebugToggle={setDebugEnabled}
-                                                onDebugEvent={handleDebugEvent}
                                             />
                                         </div>
                                         {errors.description && (

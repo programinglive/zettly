@@ -60,18 +60,6 @@ export default defineConfig({
             }
         }),
     ],
-    resolve: {
-        alias: [
-            {
-                find: '@programinglive/zettly-editor/styles',
-                replacement: path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.css'),
-            },
-            {
-                find: '@programinglive/zettly-editor',
-                replacement: path.resolve(__dirname, 'node_modules/@programinglive/zettly-editor/dist/index.js'),
-            },
-        ],
-    },
     build: {
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
