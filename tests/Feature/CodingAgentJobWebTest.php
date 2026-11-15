@@ -154,6 +154,7 @@ class CodingAgentJobWebTest extends TestCase
     public function test_claim_includes_model_in_job_payload(): void
     {
         $owner = $this->owner();
+        config()->set('coding_agent.models', ['gpt-4o-mini:free']);
         $todo = Todo::factory()->asTask()->create(['user_id' => $owner->id]);
         CodingAgentJob::create([
             'user_id' => $owner->id, 'todo_id' => $todo->id, 'repository' => 'zettly',
