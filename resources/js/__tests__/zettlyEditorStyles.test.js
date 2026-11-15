@@ -10,11 +10,18 @@ const __dirname = dirname(__filename);
 const cssPath = join(__dirname, '..', '..', 'css', 'app.css');
 const cssContent = readFileSync(cssPath, 'utf8');
 
-test('light theme keeps editor toolbar active state styled', () => {
-    const snippetPattern = /:root:not\(\.dark\)\s*\[data-zettly-editor-toolbar\]\s*button\[data-state=on\],\s*\.light\s*\[data-zettly-editor-toolbar\]\s*button\[data-state=on\]\s*\{\s*background:\s*var\(--zettly-editor-menu-selected\);\s*color:\s*var\(--zettly-editor-menu-accent\);\s*\}/;
-
+test('modern editor root styles are present without obsolete classic toolbar selectors', () => {
     assert.ok(
-        snippetPattern.test(cssContent),
-        'Expected light-mode active toolbar rule to match the bundled CSS overrides.'
+        /\[data-zettly-editor-root\]\s*\{/.test(cssContent),
+        'Expected [data-zettly-editor-root] styling rules in app.css.'
+    );
+    assert.ok(
+        /\[data-zettly-editor-root\]:focus-within\s*\{/.test(cssContent),
+        'Expected [data-zettly-editor-root]:focus-within styling rules in app.css.'
+    );
+    assert.equal(
+        /\[data-zettly-editor-toolbar\]/.test(cssContent),
+        false,
+        'Expected obsolete [data-zettly-editor-toolbar] rules to be removed from app.css.'
     );
 });
