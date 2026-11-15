@@ -18,12 +18,17 @@ on:
 
 permissions:
   contents: write
+  actions: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 # Fleet standard: every job runs on the bw-tools self-hosted runner
 # (100.77.138.14). The explicit `bw-tools` label is required; a bare
 # [self-hosted, linux, x64] set can land on any host, including a retired one.
 jobs:
-  auto-release:
+  preflight:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.merged == true &&
@@ -41,12 +46,56 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Verify CI status and protected-tag release authorization
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
+          HAS_APP_CREDENTIALS: ${{ secrets.RELEASE_APP_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+          HAS_RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
+        run: |
+          CI_CONCLUSION="$(gh run list --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --workflow tests.yml --limit 1 --json conclusion --jq '.[0].conclusion // "none"')"
+          if [ "$CI_CONCLUSION" != "success" ]; then
+            echo "CI status for $GITHUB_SHA is '$CI_CONCLUSION' (expected 'success')."
+            CI_PASSED=false
+          else
+            CI_PASSED=true
+          fi
+          PROTECTED_TAG_RULESET_ACTIVE=true CI_PASSED="$CI_PASSED" node scripts/release-preflight.mjs
+
+  auto-release:
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, bw-tools]
+    steps:
+      - name: Create GitHub App token (when configured)
+        if: ${{ secrets.RELEASE_APP_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token || secrets.RELEASE_TOKEN || github.token }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
           cache: 'npm'
 
       - name: Configure Git User
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "${{ steps.app-token.outputs.token }}" ]; then
+            git config user.name "zettly-release[bot]"
+            git config user.email "zettly-release[bot]@users.noreply.github.com"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+          fi
 
       - name: Install dependencies
         run: npm ci

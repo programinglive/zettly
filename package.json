@@ -19,7 +19,7 @@
         "release:major": "commiter release major",
         "test": "npm run test:js && npm run test:cli",
         "test:js": "node --test resources/js/**/*.test.js",
-        "test:cli": "node --test cli/tests/*.test.js",
+        "test:cli": "node --test cli/tests/*.test.js scripts/tests/*.test.js",
         "test:php": "php artisan test",
         "prepare": "husky",
         "release:first": "commiter release --first-release"
