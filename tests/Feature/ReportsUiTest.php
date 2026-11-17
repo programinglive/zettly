@@ -24,6 +24,30 @@ class ReportsUiTest extends TestCase
         $this->withoutVite();
     }
 
+    public function test_reports_page_exposes_the_additive_weekly_digest_prop(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/reports')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Reports/Index')
+                ->has('reports')
+                ->has('channels')
+                ->has('periodKind')
+                ->has('kinds')
+                ->has('page')
+                ->has('has_more')
+                ->has('weeklyDigest.sections.completed_work.provenance')
+                ->has('weeklyDigest.sections.blocked_work.provenance')
+                ->has('weeklyDigest.sections.important_decisions.provenance')
+                ->has('weeklyDigest.sections.knowledge_captured.provenance')
+                ->has('weeklyDigest.sections.next_actions.provenance')
+                ->where('weeklyDigest.metrics.machines.value', 'Not measured')
+            );
+    }
+
     public function test_unauthenticated_users_are_redirected_to_login(): void
     {
         $this->get('/reports')->assertRedirect('/login');

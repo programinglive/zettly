@@ -9,6 +9,7 @@ use App\Models\ReportSummary;
 use App\Models\UserReportChannel;
 use App\Services\ReportDeliveryService;
 use App\Services\ReportGenerator;
+use App\Services\WeeklyDigestService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,9 @@ class ReportsController extends Controller
             ->values()
             ->all();
 
+        $today = today('Asia/Jakarta')->startOfDay();
+        [$digestStart, $digestEnd] = ReportGenerator::periodFor(Report::KIND_WEEKLY, CarbonImmutable::instance($today));
+
         return inertia('Reports/Index', [
             'reports' => $reports,
             'channels' => $channels,
@@ -82,6 +86,7 @@ class ReportsController extends Controller
             'kinds' => self::KINDS,
             'page' => $page,
             'has_more' => $hasMore,
+            'weeklyDigest' => app(WeeklyDigestService::class)->forUser(Auth::user(), $digestStart, $digestEnd),
         ]);
     }
 
