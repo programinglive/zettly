@@ -176,6 +176,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('reports/generate', [App\Http\Controllers\Api\ReportController::class, 'generate'])->name('api.v1.reports.generate');
     Route::post('reports/deliver', [App\Http\Controllers\Api\ReportController::class, 'deliver'])->name('api.v1.reports.deliver');
     Route::get('reports', [App\Http\Controllers\Api\ReportController::class, 'index'])->name('api.v1.reports.index');
+    Route::get('reports/weekly-digest', [App\Http\Controllers\Api\ReportController::class, 'weeklyDigest'])->name('api.v1.reports.weekly-digest');
     Route::get('report-channels', [App\Http\Controllers\Api\ReportController::class, 'channels'])->name('api.v1.report-channels.index');
     Route::post('report-channels', [App\Http\Controllers\Api\ReportController::class, 'storeChannel'])->name('api.v1.report-channels.store');
     Route::delete('report-channels/{channel}', [App\Http\Controllers\Api\ReportController::class, 'destroyChannel'])->name('api.v1.report-channels.destroy');
