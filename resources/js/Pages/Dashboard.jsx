@@ -12,7 +12,9 @@ export default function Dashboard({
     notes = [],
     tasks = { open: 0, completed: 0 },
     preferences = {},
+    today = {},
 }) {
+    const hasToday = Boolean(today && typeof today === 'object' && Object.keys(today).length > 0);
     const { props: pageProps } = usePage();
     const authUser = pageProps?.auth?.user;
     const mustVerifyEmail = Boolean(authUser) && authUser.email_verified_at === null;
@@ -72,12 +74,87 @@ export default function Dashboard({
                     {/* Header */}
                     <div className="mb-16">
                         <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                            Dashboard
+                            Today
                         </h1>
                         <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
                             Stay focused and track your progress through the day.
                         </p>
                     </div>
+
+                    {hasToday ? (
+                        <div className="mb-12 grid gap-6 lg:grid-cols-2">
+                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
+                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Current work</h2>
+                                {today?.current_work?.status === 'no_data' ? (
+                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.current_work.message}</p>
+                                ) : (
+                                    <ul className="mt-3 space-y-2">
+                                        {today.current_work.items.map((item) => (
+                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
+                                                <span className="font-semibold">{item.title}</span>
+                                                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{item.status}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </section>
+
+                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
+                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Open tasks</h2>
+                                {today?.open_tasks?.status === 'no_data' ? (
+                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.open_tasks.message}</p>
+                                ) : (
+                                    <>
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open in total</p>
+                                        <ul className="mt-3 space-y-2">
+                                            {today.open_tasks.items.map((item) => (
+                                                <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
+                                                    <span className="font-semibold">{item.title}</span>
+                                                    {item.due_date && <span className="ml-2 text-xs text-gray-500">due {item.due_date}</span>}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                            </section>
+
+                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
+                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Recent activity</h2>
+                                {today?.recent_activity?.status === 'no_data' ? (
+                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.recent_activity.message}</p>
+                                ) : (
+                                    <ul className="mt-3 space-y-2">
+                                        {today.recent_activity.items.map((item) => (
+                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
+                                                <span className="text-xs font-semibold uppercase">{item.kind}</span>
+                                                <span className="ml-2 text-xs text-gray-500">{item.entry_date}</span>
+                                                <p className="mt-1 text-gray-600 dark:text-gray-300">{item.excerpt}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </section>
+
+                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
+                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Linked notes</h2>
+                                {today?.linked_notes?.status === 'no_data' ? (
+                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.linked_notes.message}</p>
+                                ) : (
+                                    <ul className="mt-3 space-y-2">
+                                        {today.linked_notes.items.map((item) => (
+                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
+                                                <Link href={`/todos/${item.id}`} className="font-semibold hover:underline">{item.title}</Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </section>
+                        </div>
+                    ) : (
+                        <div className="mb-12 rounded-lg border border-gray-200 dark:border-slate-800 p-5">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Today data unavailable. Reload the page to retry.</p>
+                        </div>
+                    )}
 
                     {/* Open/completed counts: computed server-side, so the page no longer ships the todo list */}
                     <div className="mb-10 flex flex-wrap items-center gap-3">
