@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Focus;
+use App\Models\JournalEntry;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,6 +50,60 @@ class DashboardPayloadTest extends TestCase
             $large - $small,
             '20 extra todos added '.($large - $small).' bytes of props; the list is still being shipped.'
         );
+    }
+
+    public function test_today_prop_contains_all_four_sourced_blocks(): void
+    {
+        $user = User::factory()->create();
+        Focus::factory()->for($user)->count(2)->create();
+        Todo::factory()->for($user)->asTask()->count(3)->create();
+        Todo::factory()->for($user)->asNote()->create();
+        JournalEntry::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->has('today.current_work.items', 2)
+                ->has('today.open_tasks.items', 3)
+                ->has('today.recent_activity.items', 1)
+                ->has('today.linked_notes.items', 1)
+                ->etc()
+            );
+    }
+
+    public function test_today_does_not_infer_a_main_work_from_multiple_foci(): void
+    {
+        $user = User::factory()->create();
+        Focus::factory()->for($user)->count(2)->create();
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('today.current_work.main_work', null)
+                ->has('today.current_work.items', 2)
+                ->etc()
+            );
+    }
+
+    public function test_existing_dashboard_props_remain_unchanged(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('tasks.open')
+                ->has('tasks.completed')
+                ->has('filters.tags')
+                ->has('availableTags')
+                ->has('notes')
+                ->has('preferences.workspace_view')
+                ->etc()
+            );
     }
 
     private function propsSize(User $user): int

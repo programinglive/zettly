@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Todo;
+use App\Services\AgentSessionIngestor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -44,6 +45,75 @@ class DashboardController extends Controller
             ->limit(20)
             ->get();
 
+        $activeFoci = $user->activeFoci()
+            ->orderByDesc('started_at')
+            ->limit(5)
+            ->get(['id', 'title', 'status']);
+
+        $openTaskItems = (clone $tasksQuery)
+            ->where('is_completed', false)
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get(['id', 'title', 'due_date', 'priority', 'importance']);
+
+        $recentJournal = $user->journalEntries()
+            ->orderByDesc('entry_date')
+            ->limit(5)
+            ->get(['id', 'kind', 'entry_date', 'content']);
+
+        $today = [
+            'current_work' => [
+                'status' => $activeFoci->isNotEmpty() ? 'ok' : 'no_data',
+                // No Main Work column exists in P0. Never infer one from several foci.
+                'main_work' => null,
+                'items' => $activeFoci->map(fn ($focus) => [
+                    'id' => $focus->id,
+                    'title' => $focus->title,
+                    'status' => $focus->status,
+                ])->values()->all(),
+                'message' => $activeFoci->isNotEmpty()
+                    ? null
+                    : 'No active focus is recorded. Open Tasks to start one.',
+            ],
+            'open_tasks' => [
+                'status' => $openTaskItems->isNotEmpty() ? 'ok' : 'no_data',
+                'items' => $openTaskItems->map(fn ($todo) => [
+                    'id' => $todo->id,
+                    'title' => $todo->title,
+                    'due_date' => $todo->due_date?->toDateString(),
+                    'priority' => $todo->priority,
+                    'importance' => $todo->importance,
+                ])->values()->all(),
+                'total_open' => (clone $tasksQuery)->where('is_completed', false)->count(),
+                'message' => $openTaskItems->isNotEmpty()
+                    ? null
+                    : 'No open tasks are recorded in this workspace.',
+            ],
+            'recent_activity' => [
+                'status' => $recentJournal->isNotEmpty() ? 'ok' : 'no_data',
+                'items' => $recentJournal->map(fn ($entry) => [
+                    'id' => $entry->id,
+                    'kind' => $entry->kind,
+                    'entry_date' => $entry->entry_date?->toDateString(),
+                    'excerpt' => AgentSessionIngestor::redact((string) $entry->content, 200),
+                ])->values()->all(),
+                'message' => $recentJournal->isNotEmpty()
+                    ? null
+                    : 'No journal entries have been recorded yet.',
+            ],
+            'linked_notes' => [
+                'status' => $notes->isNotEmpty() ? 'ok' : 'no_data',
+                'items' => $notes->take(5)->map(fn ($note) => [
+                    'id' => $note->id,
+                    'title' => $note->title,
+                    'updated_at' => $note->updated_at?->toDateTimeString(),
+                ])->values()->all(),
+                'message' => $notes->isNotEmpty()
+                    ? null
+                    : 'No notes are linked to this workspace yet.',
+            ],
+        ];
+
         return Inertia::render('Dashboard', [
             'tasks' => [
                 'open' => (clone $tasksQuery)->where('is_completed', false)->count(),
@@ -57,6 +127,7 @@ class DashboardController extends Controller
             'preferences' => [
                 'workspace_view' => $user->workspace_view ?? null,
             ],
+            'today' => $today,
         ]);
     }
 }
