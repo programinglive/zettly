@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.4](https://github.com/programinglive/todo/compare/v1.4.3...v1.4.4) (2026-11-18)
+
+
+### ✅ Tests
+
+* **ai:** explicitly configure coding_agent.models in CodingAgentPromptTest ca0c4a5
+
+
+### ✨ Features
+
+* **agent:** enforce dependency guard and integrate priority-aware dispatch UI ddb2746
+* **ai:** add feature-flagged human-reviewed AI Todo triage d805255
+* **ai:** extract shared KenariClient with free-model allowlist and refactor prompt controller 518bc12
+
 ### [1.4.3](https://github.com/programinglive/todo/compare/v1.4.2...v1.4.3) (2026-11-18)
 
 
