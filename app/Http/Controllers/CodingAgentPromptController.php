@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Todo;
+use App\Services\Ai\KenariClient;
+use App\Services\Ai\KenariConfigurationException;
+use App\Services\Ai\KenariModelNotAllowedException;
+use App\Services\Ai\KenariRequestException;
 use App\Support\CodingAgentRepositoryRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class CodingAgentPromptController extends Controller
 {
+    public function __construct(private readonly KenariClient $kenariClient)
+    {
+    }
+
     public function generate(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -41,16 +48,7 @@ class CodingAgentPromptController extends Controller
         $roughInstruction = trim((string) ($validated['instruction'] ?? ''));
         $repository = (string) ($validated['repository'] ?? 'zettly');
         $repoMeta = CodingAgentRepositoryRegistry::find($repository);
-        $model = (string) ($validated['model'] ?? config('coding_agent.default_model', 'qwen3-5-397b-a17b:free'));
-
-        $apiKey = config('coding_agent.kenari_api_key');
-        $baseUrl = rtrim(config('coding_agent.kenari_base_url', 'https://kenari.id/v1'), '/');
-
-        if (! $apiKey) {
-            return response()->json([
-                'error' => 'Kenari API key is not configured in CODING_AGENT_KENARI_API_KEY.',
-            ], 503);
-        }
+        $model = $validated['model'] ?? null;
 
         $promptContext = [];
         if ($todoTitle !== '') {
@@ -96,40 +94,44 @@ CRITICAL: Return ONLY the raw prompt text for the coding agent. Do NOT include m
 PROMPT;
 
         try {
-            $response = Http::timeout(30)->withToken($apiKey)->post("{$baseUrl}/chat/completions", [
-                'model' => $model,
-                'messages' => [
+            $result = $this->kenariClient->chat(
+                messages: [
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userContent],
                 ],
-                'temperature' => 0.4,
-            ]);
+                model: is_string($model) ? $model : null,
+                options: ['temperature' => 0.4]
+            );
 
-            if ($response->successful()) {
-                $content = $response->json('choices.0.message.content');
-                $generated = trim((string) $content);
-                if ($generated !== '') {
-                    // Truncate to job instruction max length (5000 chars) with a safe margin.
-                    // Prefer cutting at a paragraph boundary to preserve readability.
-                    $maxLen = 4900;
-                    if (mb_strlen($generated) > $maxLen) {
-                        $truncated = mb_substr($generated, 0, $maxLen);
-                        // Try to cut at the last paragraph break for clean output.
-                        $lastPara = mb_strrpos($truncated, "\n\n");
-                        if ($lastPara !== false && $lastPara > $maxLen / 2) {
-                            $truncated = mb_substr($truncated, 0, $lastPara);
-                        }
-                        $generated = rtrim($truncated) . "\n\n[Prompt truncated to fit instruction limit]";
-                    }
-
-                    return response()->json(['prompt' => $generated]);
+            $generated = $result['content'];
+            // Truncate to job instruction max length (5000 chars) with a safe margin.
+            // Prefer cutting at a paragraph boundary to preserve readability.
+            $maxLen = 4900;
+            if (mb_strlen($generated) > $maxLen) {
+                $truncated = mb_substr($generated, 0, $maxLen);
+                // Try to cut at the last paragraph break for clean output.
+                $lastPara = mb_strrpos($truncated, "\n\n");
+                if ($lastPara !== false && $lastPara > $maxLen / 2) {
+                    $truncated = mb_substr($truncated, 0, $lastPara);
                 }
+                $generated = rtrim($truncated) . "\n\n[Prompt truncated to fit instruction limit]";
             }
 
-            Log::warning('Kenari prompt generation failed: ' . $response->body());
+            return response()->json(['prompt' => $generated]);
+        } catch (KenariConfigurationException $e) {
+            return response()->json(['error' => $e->getMessage()], 503);
+        } catch (KenariModelNotAllowedException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (KenariRequestException $e) {
+            Log::warning('Kenari prompt generation failed', [
+                'status' => $e->statusCode(),
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json(['error' => 'AI prompt generation returned an empty or failed response.'], 502);
         } catch (\Throwable $e) {
             Log::error('Kenari prompt generation exception: ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to connect to AI provider: ' . $e->getMessage()], 500);
         }
     }
