@@ -4,6 +4,7 @@ import { homedir, platform } from 'node:os';
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 import { addShape, deleteShape, listShapes, updateShape } from './drawing-document.js';
+import { createAuthBroker } from './auth-broker.js';
 
 const homeConfig = join(homedir(), '.zettly', 'config.json');
 const vaultPath = join(homedir(), '.zettly', 'token.dpapi');
@@ -576,6 +577,30 @@ export async function run(argv) {
       await verifyEmailUrl(signedUrl, flags); return;
     }
     if (rawSub === 'login') {
+      const broker = createAuthBroker();
+      if (flags.browser) {
+        const cfg = await config();
+        const targetOrigin = flags.url ? hostOrigin(flags.url) : cfg.host;
+        if (flags['state-file']) {
+          const state = JSON.parse(await readFile(flags['state-file'], 'utf8'));
+          const saved = await broker.saveBrowserSession({ origin: targetOrigin, storageState: state });
+          print(saved, flags.json); return;
+        }
+        const pw = await import('playwright').catch(() => null);
+        if (!pw?.chromium) throw new Error('Playwright is required for interactive --browser login. Install playwright or pass --state-file.');
+        const browser = await pw.chromium.launch({ headless: false });
+        try {
+          const context = await browser.newContext();
+          const page = await context.newPage();
+          await page.goto(`${targetOrigin}/login`, { waitUntil: 'domcontentloaded' });
+          await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 180_000 });
+          const state = await context.storageState();
+          const saved = await broker.saveBrowserSession({ origin: targetOrigin, storageState: state });
+          print(saved, flags.json); return;
+        } finally {
+          await browser.close();
+        }
+      }
       if (process.env.ZETTLY_TOKEN_SOURCE === 'env' && !process.env.ZETTLY_API_TOKEN) throw new Error('ZETTLY_TOKEN_SOURCE=env requires ZETTLY_API_TOKEN.');
       if (flags.token) {
         if (process.env.ZETTLY_TOKEN_SOURCE === 'env') throw new Error('Unset ZETTLY_TOKEN_SOURCE=env or set it to stored to save this PAT securely.');
@@ -599,12 +624,15 @@ export async function run(argv) {
       print({ user: result.user, abilities: result.abilities, token_stored_securely: true }, flags.json); return;
     }
     if (rawSub === 'logout') {
+      const broker = createAuthBroker();
       if (platform() === 'win32') { const { unlink } = await import('node:fs/promises'); await unlink(vaultPath).catch(() => {}); }
+      await broker.logout();
       const envRemainsActive = Boolean(process.env.ZETTLY_API_TOKEN) && process.env.ZETTLY_TOKEN_SOURCE !== 'stored';
       await setTokenSource(envRemainsActive ? 'env' : 'auto');
-      print(envRemainsActive ? 'Stored token removed; environment token remains active.' : 'Stored token removed.', flags.json); return;
+      print(envRemainsActive ? 'Stored token and browser vault removed; environment token remains active.' : 'Stored token and browser vault removed.', flags.json); return;
     }
     if (rawSub === 'status') {
+      const broker = createAuthBroker();
       const cfg = await config(); const preference = tokenSource(cfg);
       const hasStored = Boolean(await storedToken()); const hasEnv = Boolean(process.env.ZETTLY_API_TOKEN);
       const source = preference === 'auto'
@@ -612,7 +640,26 @@ export async function run(argv) {
         : preference === 'env'
           ? (hasEnv ? 'env' : 'none')
           : hasStored ? 'stored' : 'none';
-      print({ authenticated: source !== 'none', host: cfg.host, token_source: source }, flags.json); return;
+      const browserSession = await broker.status();
+      print({ authenticated: source !== 'none', host: cfg.host, token_source: source, browser_session: browserSession }, flags.json); return;
+    }
+    if (rawSub === 'grant') {
+      const broker = createAuthBroker();
+      const granted = await broker.grant({ agent: flags.agent, scope: flags.scope || 'browser:read', ttl: flags.ttl || '8h' });
+      print(granted, flags.json); return;
+    }
+    if (rawSub === 'revoke') {
+      const broker = createAuthBroker();
+      const revoked = await broker.revoke(flags.agent);
+      print(revoked, flags.json); return;
+    }
+    if (rawSub === 'run') {
+      const broker = createAuthBroker();
+      const dashDash = process.argv.indexOf('--');
+      const commandArgs = dashDash >= 0 ? process.argv.slice(dashDash + 1) : rest;
+      const { exitCode } = await broker.runWithGrant({ agent: flags.agent, commandArgs });
+      if (exitCode !== 0) process.exitCode = exitCode;
+      return;
     }
     if (rawSub === 'issue-token') {
       const result = await api('auth/token', 'POST', { name: flags.name || 'zettly-cli' }, flags);

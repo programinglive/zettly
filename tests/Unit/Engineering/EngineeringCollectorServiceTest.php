@@ -141,4 +141,45 @@ class EngineeringCollectorServiceTest extends TestCase
         $event = EngineeringPipelineEvent::first();
         $this->assertSame(EngineeringProject::STATUS_FAILED, $event->status);
     }
+
+    public function test_plain_text_deploy_marker_and_annotated_tag_resolution_eliminate_false_drift(): void
+    {
+        config(['services.github.token' => 'ghp_test_token']);
+
+        $markerFile = tempnam(sys_get_temp_dir(), 'zettly-marker-');
+        file_put_contents($markerFile, "v1.3.1\n14f0b74b42ded8d6271a741faa01481f78bb832b\n");
+        config(['services.deploy.marker_path' => $markerFile]);
+
+        try {
+            $user = User::factory()->create();
+            $project = (new EngineeringProjectRegistry())->ensureDefaultProjects($user)->firstWhere('slug', 'zettly-app');
+            $this->assertNull($project->deployed_tag);
+
+            Http::fake([
+                'https://api.github.com/repos/programinglive/zettly/releases/latest' => Http::response([
+                    'tag_name' => 'v1.3.1',
+                    'target_commitish' => 'main',
+                    'published_at' => '2026-11-18T07:00:00Z',
+                ], 200),
+                'https://api.github.com/repos/programinglive/zettly/git/ref/tags/v1.3.1' => Http::response([
+                    'object' => ['type' => 'tag', 'sha' => '0e510807e99870894c89f7a44dca549ac8d98bef'],
+                ], 200),
+                'https://api.github.com/repos/programinglive/zettly/git/tags/0e510807e99870894c89f7a44dca549ac8d98bef' => Http::response([
+                    'object' => ['type' => 'commit', 'sha' => '14f0b74b42ded8d6271a741faa01481f78bb832b'],
+                ], 200),
+                'https://api.github.com/repos/programinglive/zettly/actions/runs*' => Http::response(['workflow_runs' => []], 200),
+                'https://api.github.com/repos/programinglive/zettly/pulls*' => Http::response([], 200),
+            ]);
+
+            $synced = (new EngineeringCollectorService())->syncProject($project);
+            $summary = (new EngineeringProjectRegistry())->summarize($synced);
+
+            $this->assertSame('v1.3.1', $synced->deployed_tag);
+            $this->assertSame('14f0b74b42ded8d6271a741faa01481f78bb832b', $synced->deployed_commit);
+            $this->assertSame('14f0b74b42ded8d6271a741faa01481f78bb832b', $synced->latest_release_sha);
+            $this->assertFalse($summary['drift']['has_drift']);
+        } finally {
+            @unlink($markerFile);
+        }
+    }
 }

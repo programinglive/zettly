@@ -13,3 +13,4 @@ Artisan::command('inspire', function () {
 // `php artisan queue:work` running for the delivery jobs to execute.
 Schedule::command('journal:generate-reports')->dailyAt('23:55')->timezone('Asia/Jakarta');
 Schedule::command('journal:deliver-reports')->everyFifteenMinutes();
+Schedule::command('zettly:engineering-sync')->everyFiveMinutes()->withoutOverlapping();
