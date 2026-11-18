@@ -33,6 +33,7 @@ export default function FocusGreeting() {
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
     const autoOpenRef = useRef(false);
     const tabletDetectionRef = useRef(false);
 
@@ -312,132 +313,111 @@ export default function FocusGreeting() {
 
     if (isLoading) {
         return (
-            <div className="bg-gray-100 dark:bg-slate-900 rounded-lg p-6 border border-gray-300 dark:border-slate-800">
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-300 dark:bg-slate-700 rounded w-1/3 mb-4"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-2/3"></div>
+            <div className="rounded-md border border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/50 px-3.5 py-2.5">
+                <div className="animate-pulse flex items-center gap-3">
+                    <div className="h-3 bg-gray-300 dark:bg-slate-700 rounded w-1/3"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-slate-800 rounded w-1/4"></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-16">
-            <div className="relative">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
-                    <div>
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                            {getGreeting()}, {authUser?.name?.split(' ')[0] || 'there'}! 👋
-                        </h2>
-                        <p className="mt-2 text-gray-500 dark:text-gray-400">
-                            Here's what's happening with your focus today.
-                        </p>
-                    </div>
-                </div>
+        <div className="space-y-4">
+            <div>
+                <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {getGreeting()}, {authUser?.name?.split(' ')[0] || 'there'} 👋
+                </p>
 
                 {activeFocuses.length > 1 ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="divide-y divide-gray-200 dark:divide-slate-800 rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                         {activeFocuses.map((active) => (
                             <a
                                 key={active.id}
                                 href={`/focus/${active.id}`}
-                                className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-500"
+                                className="flex items-center justify-between gap-3 px-3 py-2 text-sm transition hover:bg-gray-50 dark:hover:bg-slate-800/60"
                             >
-                                <div
-                                    className="absolute inset-x-0 top-0 h-1"
-                                    style={{ backgroundColor: active.color || '#6366F1' }}
-                                />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
-                                    Active focus
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <span
+                                        className="h-2 w-2 rounded-full shrink-0"
+                                        style={{ backgroundColor: active.color || '#6366F1' }}
+                                    />
+                                    <span className="truncate font-medium text-gray-900 dark:text-white">
+                                        {active.title}
+                                    </span>
+                                </div>
+                                <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                                    {active.open_todos} open
                                 </span>
-                                <h3 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-                                    {active.title}
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                    {active.open_todos} open {active.open_todos === 1 ? 'todo' : 'todos'}
-                                </p>
                             </a>
                         ))}
                     </div>
                 ) : currentFocus ? (
-                    <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-15 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
-                        <div className="relative bg-white dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-800 rounded-2xl p-8 sm:p-10 shadow-xl overflow-hidden">
-                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-indigo-50 dark:bg-indigo-900/10 blur-3xl"></div>
-
-                            <div className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-8">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                                            Current Focus
-                                        </span>
-                                    </div>
-
-                                    <h3 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                                        {currentFocus.title}
-                                    </h3>
-
-                                    {currentFocus.description && (
-                                        <p className="mt-6 text-xl text-gray-600 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                                            {currentFocus.description}
-                                        </p>
-                                    )}
-
-                                    <div className="mt-8 flex items-center gap-4 text-sm text-gray-400 dark:text-gray-500">
-                                        <div className="flex items-center gap-1.5">
-                                            <AlertCircle className="w-4 h-4" />
-                                            <span>Started {new Date(currentFocus.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
-                                        <a
-                                            href={`/focus/${currentFocus.id}`}
-                                            className="font-semibold text-indigo-600 underline-offset-2 hover:underline dark:text-indigo-400"
-                                        >
-                                            Open board
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-3 shrink-0">
-                                    <button
-                                        onClick={handleRequestCompleteFocus}
-                                        disabled={isSubmitting}
-                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:translate-y-0"
+                    <div className="rounded-md border border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/60 px-3.5 py-2.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                        Current Focus
+                                    </span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                                        · {new Date(currentFocus.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                    <a
+                                        href={`/focus/${currentFocus.id}`}
+                                        className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
                                     >
-                                        <CheckCircle2 className="w-5 h-5" />
-                                        Complete Focus
-                                    </button>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={handleRequestEditFocus}
-                                            disabled={isSubmitting}
-                                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={handleDeleteFocus}
-                                            disabled={isSubmitting}
-                                            className="inline-flex items-center justify-center p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
+                                        Open board
+                                    </a>
                                 </div>
+                                <h3 className="mt-1 text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                    {currentFocus.title}
+                                </h3>
+                                {currentFocus.description && (
+                                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                        {currentFocus.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                    onClick={handleRequestCompleteFocus}
+                                    disabled={isSubmitting}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded text-xs font-semibold transition-colors"
+                                >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Complete Focus
+                                </button>
+                                <button
+                                    onClick={handleRequestEditFocus}
+                                    disabled={isSubmitting}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 rounded text-xs font-medium hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    <Edit className="w-3.5 h-3.5" />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDeleteFocus}
+                                    disabled={isSubmitting}
+                                    className="inline-flex items-center justify-center p-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-red-600 dark:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        <p className="text-gray-600 dark:text-gray-300 font-medium text-lg">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-gray-200 dark:border-slate-800 px-3.5 py-2.5">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                             What would you like to focus on today?
                         </p>
 
                         <Dialog open={showDialog} onOpenChange={setShowDialog}>
                             <DialogTrigger asChild>
-                                <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30">
-                                    <Plus className="w-5 h-5" />
+                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition-colors">
+                                    <Plus className="w-3.5 h-3.5" />
                                     Set Focus
                                 </button>
                             </DialogTrigger>
@@ -506,17 +486,20 @@ export default function FocusGreeting() {
                 )}
             </div>
 
-            <div className="border-t border-gray-100 dark:border-slate-800 pt-16">
-                <div className="max-w-4xl">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                Recent Focus History
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Review your past accomplishments.
-                            </p>
-                        </div>
+            <div className="border-t border-gray-200 dark:border-slate-800 pt-3">
+                <div className="flex items-center justify-between gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setShowHistory((prev) => !prev)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    >
+                        <span>{showHistory ? '▼' : '▶'}</span>
+                        <span>Recent Focus History</span>
+                        {statusEvents.length > 0 && (
+                            <span className="text-gray-400 dark:text-gray-500">({statusEvents.length})</span>
+                        )}
+                    </button>
+                    {showHistory && (
                         <div className="flex items-center gap-2">
                             <input
                                 id="focus-history-date"
@@ -524,45 +507,44 @@ export default function FocusGreeting() {
                                 value={historyDate}
                                 onChange={handleHistoryDateChange}
                                 max={getTodayDateString()}
-                                className="h-9 rounded-lg border-gray-200 bg-white px-3 text-sm font-semibold text-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300"
+                                className="h-7 rounded border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300"
                             />
                             {isHistoryLoading && (
-                                <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
                             )}
-                        </div>
-                    </div>
-
-                    {statusEvents.length > 0 ? (
-                        <div className="grid gap-6 sm:grid-cols-2">
-                            {statusEvents.map((event) => (
-                                <div key={event.id} className="relative bg-white dark:bg-slate-900/40 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 group hover:border-indigo-500/30 dark:hover:border-indigo-400/20 transition-all shadow-sm">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
-                                            {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-500 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-full">
-                                            Completed
-                                        </span>
-                                    </div>
-
-                                    <p className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug">
-                                        {event.focus?.title}
-                                    </p>
-
-                                    {event.reason && (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 italic leading-relaxed">
-                                            &ldquo;{event.reason}&rdquo;
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex h-48 items-center justify-center rounded-3xl border-2 border-dashed border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-900/20">
-                            <p className="text-lg font-medium text-gray-400 dark:text-gray-500 italic">No activity recorded for this day.</p>
                         </div>
                     )}
                 </div>
+
+                {showHistory && (
+                    <div className="mt-2.5">
+                        {statusEvents.length > 0 ? (
+                            <div className="divide-y divide-gray-200 dark:divide-slate-800 rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+                                {statusEvents.map((event) => (
+                                    <div key={event.id} className="px-3 py-2 flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                {event.focus?.title}
+                                            </p>
+                                            {event.reason && (
+                                                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                                                    {event.reason}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <span className="shrink-0 text-[11px] text-gray-400 dark:text-gray-500">
+                                            {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="py-2 text-xs text-gray-400 dark:text-gray-500 italic">
+                                No activity recorded for this day.
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
 
             {error && !showDialog && (
