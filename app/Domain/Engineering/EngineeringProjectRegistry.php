@@ -94,7 +94,7 @@ class EngineeringProjectRegistry
             ->whereIn('status', ['queued', 'running', 'awaiting_approval', 'release_pending'])
             ->orderByDesc('updated_at')
             ->limit(5)
-            ->get(['id', 'title', 'status', 'branch_name', 'pr_number', 'updated_at']);
+            ->get(['id', 'repository', 'instruction', 'status', 'branch', 'pr_url', 'updated_at']);
 
         $recentBlockers = Todo::where('user_id', $project->user_id)
             ->where('is_completed', false)

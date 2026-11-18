@@ -3,8 +3,10 @@
 namespace Tests\Feature\Engineering;
 
 use App\Models\AgentSession;
+use App\Models\CodingAgentJob;
 use App\Models\EngineeringPipelineEvent;
 use App\Models\EngineeringProject;
+use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -77,6 +79,22 @@ class EngineeringControlCenterTest extends TestCase
             'status' => AgentSession::STATUS_IN_PROGRESS,
             'started_at' => now()->subMinutes(15),
             'last_activity_at' => now(),
+        ]);
+
+        $todo = Todo::create([
+            'user_id' => $admin->id,
+            'title' => 'Test ECC Todo',
+            'type' => Todo::TYPE_TODO,
+        ]);
+
+        CodingAgentJob::create([
+            'user_id' => $admin->id,
+            'todo_id' => $todo->id,
+            'repository' => 'programinglive/zettly',
+            'instruction' => 'Verify Engineering Control Center columns',
+            'client_request_id' => 'req-ecc-1',
+            'status' => 'running',
+            'branch' => 'main',
         ]);
 
         $this->actingAs($admin)
