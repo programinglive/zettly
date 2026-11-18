@@ -36,6 +36,8 @@ jobs:
       startsWith(github.event.pull_request.title, 'feat(agent):') ||
       startsWith(github.event.pull_request.title, 'fix(agent):')))
     runs-on: [self-hosted, linux, x64, bw-tools]
+    outputs:
+      has_app_credentials: ${{ steps.preflight.outputs.has_app_credentials }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,12 +50,14 @@ jobs:
           node-version: '22'
 
       - name: Verify CI status and protected-tag release authorization
+        id: preflight
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
           HAS_APP_CREDENTIALS: ${{ secrets.RELEASE_APP_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
           HAS_RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
         run: |
+          echo "has_app_credentials=${HAS_APP_CREDENTIALS}" >> "$GITHUB_OUTPUT"
           CI_CONCLUSION="$(gh run list --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --workflow tests.yml --limit 1 --json conclusion --jq '.[0].conclusion // "none"')"
           if [ "$CI_CONCLUSION" != "success" ]; then
             echo "CI status for $GITHUB_SHA is '$CI_CONCLUSION' (expected 'success')."
@@ -68,7 +72,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, bw-tools]
     steps:
       - name: Create GitHub App token (when configured)
-        if: ${{ secrets.RELEASE_APP_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+        if: ${{ needs.preflight.outputs.has_app_credentials == 'true' }}
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
