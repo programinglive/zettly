@@ -106,6 +106,42 @@ class DashboardPayloadTest extends TestCase
             );
     }
 
+    public function test_today_uses_priority_engine_for_main_work_and_open_tasks_order(): void
+    {
+        $user = User::factory()->create();
+        $focus = Focus::factory()->for($user)->create(['title' => 'Primary Focus']);
+
+        $regular = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Newer Regular Task',
+            'focus_id' => $focus->id,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'created_at' => now(),
+        ]);
+
+        $p0 = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Older P0 Task',
+            'focus_id' => $focus->id,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'is_p0' => true,
+            'p0_reason' => 'Production outage',
+            'p0_since' => now()->subHour(),
+            'p0_expires_at' => now()->addHours(12),
+            'created_at' => now()->subDay(),
+        ]);
+
+        (new \App\Domain\Priority\MainWorkService($user->id))->set('focus', $focus->id, 'Main priority focus', 'test', $user->id);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('today.current_work.main_work.target_id', $focus->id)
+                ->where('today.open_tasks.items.0.id', $p0->id)
+                ->where('today.open_tasks.items.1.id', $regular->id)
+                ->etc()
+            );
+    }
+
     private function propsSize(User $user): int
     {
         $response = $this->actingAs($user)->get('/dashboard')->assertOk();

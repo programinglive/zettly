@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Priority\PriorityQueueBuilder;
+use App\Domain\Priority\PrioritySettingsService;
 use App\Models\Todo;
 use App\Services\AgentSessionIngestor;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -50,11 +53,44 @@ class DashboardController extends Controller
             ->limit(5)
             ->get(['id', 'title', 'status']);
 
-        $openTaskItems = (clone $tasksQuery)
-            ->where('is_completed', false)
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get(['id', 'title', 'due_date', 'priority', 'importance']);
+        $priorityQueue = (new PriorityQueueBuilder(
+            (int) $user->id,
+            (new PrioritySettingsService((int) $user->id))->get(),
+            CarbonImmutable::now()->startOfDay(),
+        ))->build(5);
+
+        $prioritizedItems = collect(array_merge($priorityQueue['today'] ?? [], $priorityQueue['next'] ?? []));
+        if (! empty($selectedTagIds)) {
+            $matchingIds = (clone $tasksQuery)->where('is_completed', false)->pluck('id')->all();
+            $prioritizedItems = $prioritizedItems->filter(fn ($item) => in_array((int) $item['id'], $matchingIds, true))->values();
+        }
+        $prioritizedItems = $prioritizedItems->take(5);
+        $prioritizedIds = $prioritizedItems->pluck('id')->all();
+
+        $remainingSlots = max(0, 5 - $prioritizedItems->count());
+        $fallbackItems = $remainingSlots > 0
+            ? (clone $tasksQuery)
+                ->where('is_completed', false)
+                ->when(! empty($prioritizedIds), fn ($q) => $q->whereNotIn('id', $prioritizedIds))
+                ->orderByDesc('created_at')
+                ->limit($remainingSlots)
+                ->get(['id', 'title', 'due_date', 'priority', 'importance'])
+                ->map(fn ($todo) => [
+                    'id' => $todo->id,
+                    'title' => $todo->title,
+                    'due_date' => $todo->due_date?->toDateString(),
+                    'priority' => $todo->priority,
+                    'importance' => $todo->importance,
+                ])
+            : collect();
+
+        $openTaskItems = $prioritizedItems->map(fn ($item) => [
+            'id' => $item['id'],
+            'title' => $item['title'],
+            'due_date' => $item['due_date'] ?? null,
+            'priority' => $item['priority'] ?? null,
+            'importance' => $item['importance'] ?? null,
+        ])->concat($fallbackItems)->values();
 
         $recentJournal = $user->journalEntries()
             ->orderByDesc('entry_date')
@@ -63,27 +99,20 @@ class DashboardController extends Controller
 
         $today = [
             'current_work' => [
-                'status' => $activeFoci->isNotEmpty() ? 'ok' : 'no_data',
-                // No Main Work column exists in P0. Never infer one from several foci.
-                'main_work' => null,
+                'status' => ($activeFoci->isNotEmpty() || $priorityQueue['main_work'] !== null) ? 'ok' : 'no_data',
+                'main_work' => $priorityQueue['main_work'],
                 'items' => $activeFoci->map(fn ($focus) => [
                     'id' => $focus->id,
                     'title' => $focus->title,
                     'status' => $focus->status,
                 ])->values()->all(),
-                'message' => $activeFoci->isNotEmpty()
+                'message' => ($activeFoci->isNotEmpty() || $priorityQueue['main_work'] !== null)
                     ? null
                     : 'No active focus is recorded. Open Tasks to start one.',
             ],
             'open_tasks' => [
                 'status' => $openTaskItems->isNotEmpty() ? 'ok' : 'no_data',
-                'items' => $openTaskItems->map(fn ($todo) => [
-                    'id' => $todo->id,
-                    'title' => $todo->title,
-                    'due_date' => $todo->due_date?->toDateString(),
-                    'priority' => $todo->priority,
-                    'importance' => $todo->importance,
-                ])->values()->all(),
+                'items' => $openTaskItems->all(),
                 'total_open' => (clone $tasksQuery)->where('is_completed', false)->count(),
                 'message' => $openTaskItems->isNotEmpty()
                     ? null
