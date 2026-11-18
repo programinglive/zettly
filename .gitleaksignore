@@ -1,0 +1,19 @@
+# Historical findings that are acknowledged and remediated.
+# Each entry is a known false-positive or an already-revoked credential.
+# Format: <commit-sha>:<file>:<rule-id>:<line-number>
+# These stay ignored only until the history is rewritten; new findings are
+# NOT ignored and will fail the Secret Scan workflow.
+
+# Revoked Gemini API key committed in .env.testing on 2025-12-28.
+# Verified invalid (API_KEY_INVALID); all GCP API keys deleted 2026-11-18.
+982f1aae18f74bcc75269c93fe11fbcce251eac8:.env.testing:gcp-api-key:7
+
+# Illustrative/truncated Sentry token in setup docs (placeholder, not a credential).
+d7999566d59d25920f92707d0f35001ca39f06eb:docs/reference/SENTRY_INTEGRATION_SETUP.md:generic-api-key:53
+9167c64ff75a37f871e0e647c2bc5b4dfc190d49:SENTRY_INTEGRATION_SETUP.md:generic-api-key:53
+
+# Documentation examples using the literal placeholder YOUR_TOKEN_HERE.
+fb31ce26113c5fae112bf5894d545fa61b786436:resources/js/Pages/Home/Index.jsx:curl-auth-header:183
+fb31ce26113c5fae112bf5894d545fa61b786436:resources/js/Pages/Home/Index.jsx:curl-auth-header:191
+b6ff5fc43b9010f1bdf5132646a09212360006c0:resources/js/Pages/Developer.jsx:curl-auth-header:210
+aa7b71a7e81adbe7468e08b878c4d1ed3b9fec9d:resources/js/Pages/Developer.jsx:curl-auth-header:104
