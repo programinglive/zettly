@@ -48,6 +48,7 @@ return [
 
     'github' => [
         'token' => env('CODING_AGENT_GITHUB_TOKEN', env('GITHUB_TOKEN')),
+        'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
     ],
 
 ];

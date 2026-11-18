@@ -225,7 +225,15 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::get('report-channels', [App\Http\Controllers\Api\ReportController::class, 'channels'])->name('api.v1.report-channels.index');
     Route::post('report-channels', [App\Http\Controllers\Api\ReportController::class, 'storeChannel'])->name('api.v1.report-channels.store');
     Route::delete('report-channels/{channel}', [App\Http\Controllers\Api\ReportController::class, 'destroyChannel'])->name('api.v1.report-channels.destroy');
+
+    Route::middleware('super-admin')->prefix('engineering')->group(function () {
+        Route::get('projects', [App\Http\Controllers\Api\EngineeringController::class, 'index'])->name('api.v1.engineering.projects.index');
+        Route::get('projects/{project}', [App\Http\Controllers\Api\EngineeringController::class, 'show'])->name('api.v1.engineering.projects.show');
+        Route::post('projects/{project}/sync', [App\Http\Controllers\Api\EngineeringController::class, 'sync'])->name('api.v1.engineering.projects.sync');
+    });
 });
+
+Route::post('webhooks/github', [App\Http\Controllers\Api\GitHubWebhookController::class, 'handle'])->name('api.webhooks.github');
 
 // Push routes with session auth (for web clients)
 Route::middleware('auth')->group(function () {
