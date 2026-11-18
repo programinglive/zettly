@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.4.3 | 2026-11-18 | **ci:** add gitleaks secret scanning to prevent credential leaks 113eff7 |
 | 1.4.2 | 2026-11-18 | **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3 |
 | 1.4.1 | 2026-11-18 | **broadcasting:** re-enable authenticated /broadcasting/auth route 0eb55aa |
 | 1.4.0 | 2026-11-18 | **ops:** add deploy marker accuracy, scheduled CI/CD sync, and CLI Auth Broker fd533bf |
@@ -116,6 +117,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.4.3
+
+Released on **2026-11-18**.
+
+- **ci:** add gitleaks secret scanning to prevent credential leaks 113eff7
+- **deps:** update graph-service lockfile to resolve dependency advisories 98250e4
+- **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3
+- **today:** surface FocusGreeting above Today grid and make items actionable links 6d29961
+- **broadcasting:** re-enable authenticated /broadcasting/auth route 0eb55aa
 
 ## 1.4.2
 
