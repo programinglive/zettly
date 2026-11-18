@@ -155,6 +155,7 @@ class CodingAgentDependencyGuardAndPriorityTest extends TestCase
             'archived' => false,
             'priority' => Todo::PRIORITY_NOT_URGENT,
             'importance' => Todo::IMPORTANCE_NOT_IMPORTANT,
+            'due_date' => null,
             'queue_state' => Todo::QUEUE_BACKLOG,
         ]);
         $q1 = Todo::factory()->for($this->owner)->create([
@@ -164,6 +165,7 @@ class CodingAgentDependencyGuardAndPriorityTest extends TestCase
             'archived' => false,
             'priority' => Todo::PRIORITY_URGENT,
             'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'due_date' => null,
             'queue_state' => Todo::QUEUE_BACKLOG,
         ]);
         $p0 = Todo::factory()->for($this->owner)->create([
@@ -171,6 +173,7 @@ class CodingAgentDependencyGuardAndPriorityTest extends TestCase
             'type' => Todo::TYPE_TODO,
             'is_completed' => false,
             'archived' => false,
+            'due_date' => null,
             'is_p0' => true,
             'p0_reason' => 'Outage',
             'p0_since' => now(),
