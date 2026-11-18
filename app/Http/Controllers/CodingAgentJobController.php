@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Priority\DependencyGraph;
+use App\Domain\Priority\PriorityContextFactory;
+use App\Domain\Priority\PriorityEngine;
+use App\Domain\Priority\PrioritySettingsService;
+use App\Domain\Priority\ReadinessGate;
 use App\Models\AgentSession;
 use App\Models\CodingAgentJob;
 use App\Models\Todo;
 use App\Services\CodingAgentJobTransitions;
 use App\Support\CodingAgentRepositoryRegistry;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,23 +43,62 @@ class CodingAgentJobController extends Controller
                 'updated_at' => $job->updated_at?->toIso8601String(),
             ]);
 
-        $todos = Todo::query()->where('user_id', $userId)
+        $today = CarbonImmutable::today();
+        $settings = (new PrioritySettingsService($userId))->get();
+        $priorityContext = PriorityContextFactory::forUser($userId, $settings, $today);
+        $blockedMap = (new DependencyGraph($userId))->blockedIds();
+
+        $rawTodos = Todo::query()->where('user_id', $userId)
             ->whereNull('organization_id')->where('type', Todo::TYPE_TODO)
-            ->where('is_completed', false)->orderBy('title')->limit(100)
-            ->with(['checklistItems:id,todo_id,title,is_completed,position', 'tags:id,name'])
-            ->get(['id', 'title', 'description', 'priority'])
-            ->map(fn (Todo $todo) => [
-                'id' => $todo->id,
-                'title' => $todo->title,
-                'description' => $todo->description,
-                'priority' => $todo->priority,
-                'checklist_items' => $todo->checklistItems->map(fn ($item) => [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'is_completed' => (bool) $item->is_completed,
-                ])->values()->all(),
-                'tags' => $todo->tags->pluck('name')->values()->all(),
-            ]);
+            ->where('is_completed', false)->where('archived', false)
+            ->with(['checklistItems:id,todo_id,title,is_completed,position', 'tags:id,name', 'focus:id,title'])
+            ->get();
+
+        $allBlockerIds = collect($blockedMap)->flatten()->unique()->values()->all();
+        $blockerTitles = $allBlockerIds === []
+            ? collect()
+            : Todo::query()->where('user_id', $userId)->whereIn('id', $allBlockerIds)->pluck('title', 'id');
+
+        $rankedTodos = PriorityEngine::rank($rawTodos, $priorityContext);
+        $todos = collect(array_slice($rankedTodos, 0, 100))
+            ->values()
+            ->map(function ($ranked, int $index) use ($rankedTodos, $priorityContext, $blockedMap, $blockerTitles, $today) {
+                $todo = $ranked->todo;
+                $gate = ReadinessGate::evaluate($todo, $priorityContext);
+                $blockingIds = $blockedMap[(int) $todo->id] ?? [];
+                $nextLower = $rankedTodos[$index + 1] ?? null;
+                $explanation = $nextLower !== null
+                    ? PriorityEngine::explain($nextLower, $ranked)['detail']
+                    : ($ranked->reasons[0] ?? 'Canonical queue order');
+
+                return [
+                    'id' => $todo->id,
+                    'title' => $todo->title,
+                    'description' => $todo->description,
+                    'priority' => $todo->priority,
+                    'importance' => $todo->importance,
+                    'due_date' => $todo->due_date?->toDateString(),
+                    'queue_state' => $todo->queue_state,
+                    'priority_rank' => $index + 1,
+                    'is_p0' => $todo->isP0Live($today),
+                    'is_main_work' => $priorityContext->isMainWork($todo),
+                    'ready' => $gate['ready'],
+                    'readiness_reasons' => $gate['reasons'],
+                    'blocked_by' => $blockingIds,
+                    'blocking_titles' => array_map(
+                        fn (int $id) => ['id' => $id, 'title' => (string) ($blockerTitles[$id] ?? "#{$id}")],
+                        $blockingIds
+                    ),
+                    'executable' => $blockingIds === [],
+                    'rank_explanation' => $explanation,
+                    'checklist_items' => $todo->checklistItems->map(fn ($item) => [
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'is_completed' => (bool) $item->is_completed,
+                    ])->values()->all(),
+                    'tags' => $todo->tags->pluck('name')->values()->all(),
+                ];
+            })->values();
 
         $repositoryRegistry = CodingAgentRepositoryRegistry::all();
         $selectedTodoId = $request->query('todo_id') ? (int) $request->query('todo_id') : null;
@@ -193,7 +239,7 @@ class CodingAgentJobController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'todo_id' => ['required', 'integer'],
@@ -203,9 +249,25 @@ class CodingAgentJobController extends Controller
             'model' => ['nullable', 'string', Rule::in(config('coding_agent.models', ['qwen3-5-397b-a17b:free']))],
         ]);
 
-        Todo::query()->whereKey($data['todo_id'])
-            ->where('user_id', $request->user()->id)
+        $userId = $request->user()->id;
+
+        $todo = Todo::query()->whereKey($data['todo_id'])
+            ->where('user_id', $userId)
             ->whereNull('organization_id')->firstOrFail();
+
+        $blockingIds = (new DependencyGraph($userId))->blockedIds()[(int) $todo->id] ?? [];
+        if ($blockingIds !== []) {
+            $message = 'Todo is blocked by unresolved dependencies: #'.implode(', #', $blockingIds).'.';
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'error_code' => 'todo_blocked_by_dependencies',
+                    'blocking_todo_ids' => $blockingIds,
+                ], 422);
+            }
+
+            throw ValidationException::withMessages(['todo_id' => $message]);
+        }
 
         $model = $data['model'] ?? config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 

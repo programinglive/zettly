@@ -202,15 +202,18 @@ export default function ContextPanel({ selectedTask = null, linkedTodos = [], cl
                                     {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)}
                                 </span>
                             )}
-                            {selectedTask.importance && (
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    selectedTask.importance === 'high'
-                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                                }`}>
-                                    {selectedTask.importance === 'high' ? '⭐ Important' : 'Regular'}
-                                </span>
-                            )}
+                            {selectedTask.importance && (() => {
+                                const isImportant = selectedTask.importance === 'important' || selectedTask.importance === 'high';
+                                return (
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                        isImportant
+                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                                    }`}>
+                                        {isImportant ? '⭐ Important' : 'Regular'}
+                                    </span>
+                                );
+                            })()}
                         </div>
                     </div>
 
