@@ -109,6 +109,7 @@ export default function AppLayout({
     const adminNavigation = [];
     if (isSuperAdmin) {
         adminNavigation.push({ href: '/admin/system-monitor', label: 'System Monitor', icon: Monitor, group: 'admin' });
+        adminNavigation.push({ href: '/engineering', label: 'Engineering Control Center', icon: Monitor, group: 'admin' });
     }
 
     const moreNavigation = [...secondaryNavigation, ...developerNavigation, ...adminNavigation];

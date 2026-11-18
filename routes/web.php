@@ -82,6 +82,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('super-admin')
         ->name('system.status');
 
+    Route::get('/engineering', [\App\Http\Controllers\EngineeringControlCenterController::class, 'index'])
+        ->middleware('super-admin')
+        ->name('engineering.index');
+
     Route::get('notes', [TodoController::class, 'notes'])->name('notes.index');
     Route::get('journal', [App\Http\Controllers\JournalController::class, 'index'])->name('journal.index');
     Route::get('journal/{entry}', [App\Http\Controllers\JournalController::class, 'show'])
