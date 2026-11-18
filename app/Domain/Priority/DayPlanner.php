@@ -76,7 +76,7 @@ final class DayPlanner
             throw PriorityException::blocked($blocking);
         }
 
-        $liveP0 = $todo->isP0Live();
+        $liveP0 = $todo->isP0Live($this->today);
         $active = $this->todayItems();
         $override = false;
 
@@ -127,7 +127,7 @@ final class DayPlanner
                     'plan_date' => $plan->plan_date?->toDateString(),
                     'state' => $item->state,
                     'override' => $override,
-                    'live_p0' => $todo->isP0Live(),
+                    'live_p0' => $todo->isP0Live($this->today),
                 ],
             );
 

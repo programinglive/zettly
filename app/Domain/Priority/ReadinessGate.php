@@ -25,7 +25,7 @@ final class ReadinessGate
      */
     public static function evaluate(Todo $todo, PriorityContext $context): array
     {
-        if ($todo->isP0Live()) {
+        if ($todo->isP0Live($context->today)) {
             return ['ready' => true, 'reasons' => ['p0']];
         }
 

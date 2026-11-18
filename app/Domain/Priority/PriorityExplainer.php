@@ -65,7 +65,7 @@ final class PriorityExplainer
                 'due_date' => $todo->due_date?->toDateString(),
                 'queue_state' => $todo->queue_state,
                 'estimate_minutes' => $todo->estimate_minutes,
-                'is_p0' => $todo->isP0Live(),
+                'is_p0' => $todo->isP0Live($context->today),
                 'is_main_work' => $context->isMainWork($todo),
             ],
             'ready' => $gate['ready'],

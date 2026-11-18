@@ -213,13 +213,17 @@ class Todo extends Model
      * A P0 declaration carries an expiry, so "production critical" cannot become
      * a permanent label. An expired row reads as not-P0 without a timer job.
      */
-    public function isP0Live(): bool
+    public function isP0Live(?\Carbon\CarbonInterface $now = null): bool
     {
         if (! $this->is_p0) {
             return false;
         }
 
-        return $this->p0_expires_at === null || $this->p0_expires_at->isFuture();
+        if ($this->p0_expires_at === null) {
+            return true;
+        }
+
+        return $now ? $this->p0_expires_at->isAfter($now) : $this->p0_expires_at->isFuture();
     }
 
     public function isOfferable(): bool

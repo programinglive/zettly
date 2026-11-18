@@ -96,7 +96,7 @@ final class PriorityEngine
 
     private static function rankOne(Todo $todo, PriorityContext $context): RankedTodo
     {
-        $isP0 = $todo->isP0Live();
+        $isP0 = $todo->isP0Live($context->today);
         $isMain = $context->isMainWork($todo);
         $parts = [];
 

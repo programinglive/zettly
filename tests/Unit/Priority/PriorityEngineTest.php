@@ -7,6 +7,7 @@ use App\Domain\Priority\PriorityEngine;
 use App\Models\MainWork;
 use App\Models\Todo;
 use App\Models\UserPrioritySetting;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Tests\TestCase;
 
@@ -22,6 +23,13 @@ class PriorityEngineTest extends TestCase
     {
         parent::setUp();
         $this->today = CarbonImmutable::parse('2026-11-17', 'Asia/Jakarta');
+        Carbon::setTestNow($this->today);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     private function todo(int $id, array $attributes = []): Todo
