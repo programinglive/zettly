@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.3.0 | 2026-11-18 | **engineering:** add Engineering Control Center with drift and CI/CD timeline e86a703 |
 | 1.2.0 | 2026-11-18 | **plan:** record approved Work Memory consolidation design and P0 implementation plan 09e6bfe |
 | 1.1.0 | 2026-11-15 | **release:** adopt commiter release v2 (8445f43) |
 | 0.12.42 | 2026-11-11 | **release:** record v0.12.41 release notes (97b9c1f) |
@@ -106,6 +107,15 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.3.0
+
+Released on **2026-11-18**.
+
+- **engineering:** add Engineering Control Center with drift and CI/CD timeline e86a703
+- **ci:** pass app credential flag via preflight job output instead of step if secrets ba3e7c9
+- **engineering:** preserve deployed tag when local marker is absent 0b89854
 
 ## 1.2.0
 

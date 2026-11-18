@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/programinglive/todo/compare/v1.2.0...v1.3.0) (2026-11-18)
+
+
+### ✨ Features
+
+* **engineering:** add Engineering Control Center with drift and CI/CD timeline e86a703
+
+
+### 🐛 Bug Fixes
+
+* **ci:** pass app credential flag via preflight job output instead of step if secrets ba3e7c9
+* **engineering:** preserve deployed tag when local marker is absent 0b89854
+
 ## [1.2.0](https://github.com/programinglive/todo/compare/v1.1.0...v1.2.0) (2026-11-18)
 
 
