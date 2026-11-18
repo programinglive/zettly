@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.2](https://github.com/programinglive/todo/compare/v1.4.1...v1.4.2) (2026-11-18)
+
+
+### ♻️ Refactors
+
+* **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3
+* **today:** surface FocusGreeting above Today grid and make items actionable links 6d29961
+
 ### [1.4.1](https://github.com/programinglive/todo/compare/v1.4.0...v1.4.1) (2026-11-18)
 
 

@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.4.2 | 2026-11-18 | **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3 |
 | 1.4.1 | 2026-11-18 | **broadcasting:** re-enable authenticated /broadcasting/auth route 0eb55aa |
 | 1.4.0 | 2026-11-18 | **ops:** add deploy marker accuracy, scheduled CI/CD sync, and CLI Auth Broker fd533bf |
 | 1.3.1 | 2026-11-18 | **engineering:** select actual CodingAgentJob columns in registry c881eb1 |
@@ -114,6 +115,15 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.4.2
+
+Released on **2026-11-18**.
+
+- **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3
+- **today:** surface FocusGreeting above Today grid and make items actionable links 6d29961
+- **broadcasting:** re-enable authenticated /broadcasting/auth route 0eb55aa
 
 ## 1.4.1
 
