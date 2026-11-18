@@ -53,19 +53,28 @@ class DashboardController extends Controller
             ->limit(5)
             ->get(['id', 'title', 'status']);
 
-        $priorityQueue = (new PriorityQueueBuilder(
-            (int) $user->id,
-            (new PrioritySettingsService((int) $user->id))->get(),
-            CarbonImmutable::now()->startOfDay(),
-        ))->build(5);
+        $prioritySettings = (new PrioritySettingsService((int) $user->id))->get();
 
-        $prioritizedItems = collect(array_merge($priorityQueue['today'] ?? [], $priorityQueue['next'] ?? []));
-        if (! empty($selectedTagIds)) {
-            $matchingIds = (clone $tasksQuery)->where('is_completed', false)->pluck('id')->all();
-            $prioritizedItems = $prioritizedItems->filter(fn ($item) => in_array((int) $item['id'], $matchingIds, true))->values();
+        if ($prioritySettings->enabled) {
+            $priorityQueue = (new PriorityQueueBuilder(
+                (int) $user->id,
+                $prioritySettings,
+                CarbonImmutable::now()->startOfDay(),
+            ))->build(5);
+
+            $mainWork = $priorityQueue['main_work'];
+            $prioritizedItems = collect(array_merge($priorityQueue['today'] ?? [], $priorityQueue['next'] ?? []));
+            if (! empty($selectedTagIds)) {
+                $matchingIds = (clone $tasksQuery)->where('is_completed', false)->pluck('id')->all();
+                $prioritizedItems = $prioritizedItems->filter(fn ($item) => in_array((int) $item['id'], $matchingIds, true))->values();
+            }
+            $prioritizedItems = $prioritizedItems->take(5);
+            $prioritizedIds = $prioritizedItems->pluck('id')->all();
+        } else {
+            $mainWork = null;
+            $prioritizedItems = collect();
+            $prioritizedIds = [];
         }
-        $prioritizedItems = $prioritizedItems->take(5);
-        $prioritizedIds = $prioritizedItems->pluck('id')->all();
 
         $remainingSlots = max(0, 5 - $prioritizedItems->count());
         $fallbackItems = $remainingSlots > 0
@@ -99,14 +108,14 @@ class DashboardController extends Controller
 
         $today = [
             'current_work' => [
-                'status' => ($activeFoci->isNotEmpty() || $priorityQueue['main_work'] !== null) ? 'ok' : 'no_data',
-                'main_work' => $priorityQueue['main_work'],
+                'status' => ($activeFoci->isNotEmpty() || $mainWork !== null) ? 'ok' : 'no_data',
+                'main_work' => $mainWork,
                 'items' => $activeFoci->map(fn ($focus) => [
                     'id' => $focus->id,
                     'title' => $focus->title,
                     'status' => $focus->status,
                 ])->values()->all(),
-                'message' => ($activeFoci->isNotEmpty() || $priorityQueue['main_work'] !== null)
+                'message' => ($activeFoci->isNotEmpty() || $mainWork !== null)
                     ? null
                     : 'No active focus is recorded. Open Tasks to start one.',
             ],

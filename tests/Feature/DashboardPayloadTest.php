@@ -111,6 +111,8 @@ class DashboardPayloadTest extends TestCase
         $user = User::factory()->create();
         $focus = Focus::factory()->for($user)->create(['title' => 'Primary Focus']);
 
+        $settings = (new \App\Domain\Priority\PrioritySettingsService($user->id))->update(['enabled' => true], 'test', $user->id);
+
         $regular = Todo::factory()->for($user)->asTask()->create([
             'title' => 'Newer Regular Task',
             'focus_id' => $focus->id,
@@ -122,13 +124,10 @@ class DashboardPayloadTest extends TestCase
             'title' => 'Older P0 Task',
             'focus_id' => $focus->id,
             'queue_state' => Todo::QUEUE_BACKLOG,
-            'is_p0' => true,
-            'p0_reason' => 'Production outage',
-            'p0_since' => now()->subHour(),
-            'p0_expires_at' => now()->addHours(12),
             'created_at' => now()->subDay(),
         ]);
 
+        (new \App\Domain\Priority\P0Service($user->id, $settings))->declare($p0, 'Production outage', \Carbon\CarbonImmutable::now()->addHours(12), 'test', $user->id);
         (new \App\Domain\Priority\MainWorkService($user->id))->set('focus', $focus->id, 'Main priority focus', 'test', $user->id);
 
         $this->actingAs($user)
@@ -138,6 +137,61 @@ class DashboardPayloadTest extends TestCase
                 ->where('today.current_work.main_work.target_id', $focus->id)
                 ->where('today.open_tasks.items.0.id', $p0->id)
                 ->where('today.open_tasks.items.1.id', $regular->id)
+                ->etc()
+            );
+    }
+
+    public function test_legacy_user_without_priority_settings_keeps_legacy_order_and_null_main_work(): void
+    {
+        $user = User::factory()->create();
+        $focus = Focus::factory()->for($user)->create(['title' => 'Legacy Focus']);
+
+        $older = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Older Task',
+            'focus_id' => $focus->id,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'created_at' => now()->subDay(),
+        ]);
+
+        $newer = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Newer Task',
+            'focus_id' => $focus->id,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('today.current_work.main_work', null)
+                ->where('today.open_tasks.items.0.id', $newer->id)
+                ->where('today.open_tasks.items.1.id', $older->id)
+                ->etc()
+            );
+
+        $this->assertDatabaseCount('user_priority_settings', 0);
+    }
+
+    public function test_priority_opt_in_is_isolated_per_user(): void
+    {
+        $optedIn = User::factory()->create();
+        $legacyUser = User::factory()->create();
+
+        \App\Models\UserPrioritySetting::create(['user_id' => $optedIn->id, 'enabled' => true]);
+        $focusA = Focus::factory()->for($optedIn)->create(['title' => 'User A Focus']);
+        (new \App\Domain\Priority\MainWorkService($optedIn->id))->set('focus', $focusA->id, 'User A main work', 'test', $optedIn->id);
+
+        $olderB = Todo::factory()->for($legacyUser)->asTask()->create(['title' => 'Legacy Older', 'created_at' => now()->subDay()]);
+        $newerB = Todo::factory()->for($legacyUser)->asTask()->create(['title' => 'Legacy Newer', 'created_at' => now()]);
+
+        $this->actingAs($legacyUser)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('today.current_work.main_work', null)
+                ->where('today.open_tasks.items.0.id', $newerB->id)
+                ->where('today.open_tasks.items.1.id', $olderB->id)
                 ->etc()
             );
     }

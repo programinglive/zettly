@@ -53,11 +53,6 @@ class Todo extends Model
         'queue_state',
         'estimate_minutes',
         'triaged_at',
-        'is_p0',
-        'p0_reason',
-        'p0_since',
-        'p0_expires_at',
-        'p0_by',
     ];
 
     protected $casts = [

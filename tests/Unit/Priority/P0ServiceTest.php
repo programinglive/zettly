@@ -167,4 +167,36 @@ class P0ServiceTest extends TestCase
 
         $this->service()->declare($foreign, 'Not mine to flag', null, 'cli', $this->user->id);
     }
+
+    public function test_p0_fields_cannot_be_mass_assigned_directly(): void
+    {
+        $created = Todo::create([
+            'user_id' => $this->user->id,
+            'title' => 'Bypass via create',
+            'type' => Todo::TYPE_TODO,
+            'is_p0' => true,
+            'p0_reason' => 'bypass',
+            'p0_since' => now(),
+            'p0_expires_at' => now()->addHour(),
+            'p0_by' => 'attacker',
+        ]);
+
+        $this->assertFalse((bool) $created->fresh()->is_p0);
+        $this->assertNull($created->fresh()->p0_reason);
+        $this->assertNull($created->fresh()->p0_since);
+        $this->assertNull($created->fresh()->p0_expires_at);
+        $this->assertNull($created->fresh()->p0_by);
+
+        $created->fill([
+            'is_p0' => true,
+            'p0_reason' => 'bypass via fill',
+        ])->save();
+
+        $this->assertFalse((bool) $created->fresh()->is_p0);
+        $this->assertNull($created->fresh()->p0_reason);
+
+        $declared = $this->service()->declare($created->fresh(), 'Legitimate production incident', null, 'cli', $this->user->id);
+        $this->assertTrue((bool) $declared->is_p0);
+        $this->assertSame('Legitimate production incident', $declared->p0_reason);
+    }
 }

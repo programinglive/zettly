@@ -428,4 +428,20 @@ class PriorityApiTest extends TestCase
         $response->assertJsonPath('data.0.action', PriorityDecision::ACTION_COMMIT);
         $response->assertJsonPath('data.0.todo_id', $todo->id);
     }
+
+    public function test_todo_patch_cannot_mass_assign_p0_fields(): void
+    {
+        $todo = $this->todo('Normal task');
+
+        $this->patchJson("/api/v1/todos/{$todo->id}", [
+            'title' => 'Updated normal task',
+            'is_p0' => true,
+            'p0_reason' => 'bypass',
+        ])->assertOk();
+
+        $fresh = $todo->fresh();
+        $this->assertSame('Updated normal task', $fresh->title);
+        $this->assertFalse((bool) $fresh->is_p0);
+        $this->assertNull($fresh->p0_reason);
+    }
 }

@@ -109,4 +109,59 @@ class WeeklyDigestApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
     }
+
+    public function test_large_dataset_across_all_sections_preserves_exact_totals_and_caps_at_50(): void
+    {
+        $user = User::factory()->create();
+        $completedAt = now('Asia/Jakarta')->setDate(2026, 11, 17)->setTime(10, 0)->utc();
+
+        Todo::factory()->for($user)->asTask()->count(65)->create([
+            'is_completed' => true,
+            'completed_at' => $completedAt,
+        ]);
+
+        JournalEntry::factory()->for($user)->count(60)->create([
+            'kind' => JournalEntry::KIND_BLOCKER,
+            'entry_date' => '2026-11-17',
+        ]);
+
+        JournalEntry::factory()->for($user)->count(55)->create([
+            'kind' => JournalEntry::KIND_DECISION,
+            'entry_date' => '2026-11-17',
+        ]);
+
+        Todo::factory()->for($user)->count(58)->create([
+            'type' => Todo::TYPE_NOTE,
+            'is_completed' => false,
+            'completed_at' => null,
+            'archived' => false,
+            'created_at' => $completedAt,
+            'updated_at' => $completedAt,
+        ]);
+
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $response = $this->getJson('/api/v1/reports/weekly-digest?date=2026-11-17')->assertOk();
+
+        $response->assertJsonPath('data.metrics.tasks_completed.value', 65);
+        $response->assertJsonPath('data.sections.completed_work.total', 65);
+        $response->assertJsonPath('data.sections.completed_work.shown', 50);
+        $response->assertJsonPath('data.sections.completed_work.truncated', true);
+        $this->assertCount(50, $response->json('data.sections.completed_work.items'));
+
+        $response->assertJsonPath('data.sections.blocked_work.total', 60);
+        $response->assertJsonPath('data.sections.blocked_work.shown', 50);
+        $response->assertJsonPath('data.sections.blocked_work.truncated', true);
+        $this->assertCount(50, $response->json('data.sections.blocked_work.items'));
+
+        $response->assertJsonPath('data.sections.important_decisions.total', 55);
+        $response->assertJsonPath('data.sections.important_decisions.shown', 50);
+        $response->assertJsonPath('data.sections.important_decisions.truncated', true);
+        $this->assertCount(50, $response->json('data.sections.important_decisions.items'));
+
+        $response->assertJsonPath('data.sections.knowledge_captured.total', 58);
+        $response->assertJsonPath('data.sections.knowledge_captured.shown', 50);
+        $response->assertJsonPath('data.sections.knowledge_captured.truncated', true);
+        $this->assertCount(50, $response->json('data.sections.knowledge_captured.items'));
+    }
 }

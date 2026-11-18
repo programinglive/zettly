@@ -26,57 +26,86 @@ class WeeklyDigestService
         $endDate = $end->toDateString();
         $horizon = $end->addDays(7)->toDateString();
 
-        $completed = Todo::where('user_id', $user->id)
+        $completedQuery = Todo::where('user_id', $user->id)
             ->where('is_completed', true)
-            ->whereBetween('completed_at', [$startUtc, $endUtc])
+            ->whereBetween('completed_at', [$startUtc, $endUtc]);
+        $completedTotal = (clone $completedQuery)->count();
+        $completed = $completedQuery
             ->orderBy('completed_at')
+            ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'title', 'completed_at']);
 
-        $blocked = Todo::where('user_id', $user->id)
+        $blockedQuery = Todo::where('user_id', $user->id)
             ->where('is_completed', false)
             ->where('archived', false)
-            ->whereHas('tags', fn ($query) => $query->whereRaw('LOWER(tags.name) IN (?, ?)', ['blocked', 'waiting']))
+            ->whereHas('tags', fn ($query) => $query->whereRaw('LOWER(tags.name) IN (?, ?)', ['blocked', 'waiting']));
+        $blockedTotal = (clone $blockedQuery)->count();
+        $blocked = $blockedQuery
             ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'title']);
 
-        $blockers = JournalEntry::where('user_id', $user->id)
+        $blockersQuery = JournalEntry::where('user_id', $user->id)
             ->where('kind', JournalEntry::KIND_BLOCKER)
-            ->whereBetween('entry_date', [$startDate, $endDate])
-            ->orderBy('entry_date')
-            ->get(['id', 'content', 'entry_date']);
+            ->whereBetween('entry_date', [$startDate, $endDate]);
+        $blockersTotal = (clone $blockersQuery)->count();
+        $remainingBlockedSlots = max(0, self::SECTION_ITEM_LIMIT - $blocked->count());
+        $blockers = $remainingBlockedSlots > 0
+            ? $blockersQuery
+                ->orderBy('entry_date')
+                ->orderBy('id')
+                ->limit($remainingBlockedSlots)
+                ->get(['id', 'content', 'entry_date'])
+            : collect();
 
-        $decisions = JournalEntry::where('user_id', $user->id)
+        $decisionsQuery = JournalEntry::where('user_id', $user->id)
             ->where('kind', JournalEntry::KIND_DECISION)
-            ->whereBetween('entry_date', [$startDate, $endDate])
+            ->whereBetween('entry_date', [$startDate, $endDate]);
+        $decisionsTotal = (clone $decisionsQuery)->count();
+        $decisions = $decisionsQuery
             ->orderBy('entry_date')
+            ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'content', 'entry_date', 'kind']);
 
-        $notes = Todo::where('user_id', $user->id)
+        $notesQuery = Todo::where('user_id', $user->id)
             ->where('type', 'note')
             ->where('archived', false)
             ->where(function ($query) use ($startUtc, $endUtc) {
                 $query->whereBetween('created_at', [$startUtc, $endUtc])
                     ->orWhereBetween('updated_at', [$startUtc, $endUtc]);
-            })
+            });
+        $notesTotal = (clone $notesQuery)->count();
+        $notes = $notesQuery
             ->orderBy('updated_at')
+            ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'title', 'updated_at']);
 
-        $dated = Todo::where('user_id', $user->id)
+        $datedQuery = Todo::where('user_id', $user->id)
             ->where('type', 'todo')
             ->where('is_completed', false)
             ->where('archived', false)
             ->whereNotNull('due_date')
             // Overdue work from earlier weeks stays actionable; only completed,
             // archived and undated items are excluded above.
-            ->where('due_date', '<=', $horizon)
+            ->where('due_date', '<=', $horizon);
+        $datedTotal = (clone $datedQuery)->count();
+        $dated = $datedQuery
             ->orderBy('due_date')
             ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'title', 'due_date']);
 
-        $handoffs = JournalEntry::where('user_id', $user->id)
+        $handoffsQuery = JournalEntry::where('user_id', $user->id)
             ->where('kind', JournalEntry::KIND_HANDOFF)
-            ->whereBetween('entry_date', [$startDate, $endDate])
+            ->whereBetween('entry_date', [$startDate, $endDate]);
+        $handoffsTotal = (clone $handoffsQuery)->count();
+        $handoffs = $handoffsQuery
             ->orderBy('entry_date')
+            ->orderBy('id')
+            ->limit(self::SECTION_ITEM_LIMIT)
             ->get(['id', 'content', 'entry_date']);
 
         $undatedCompletions = Todo::where('user_id', $user->id)
@@ -140,28 +169,33 @@ class WeeklyDigestService
             'sections' => [
                 'completed_work' => $this->section(
                     'Completed Work', 'todos.completed_at', $completedItems,
-                    'No todos were completed with a recorded completion date in this period.'
+                    'No todos were completed with a recorded completion date in this period.',
+                    $completedTotal,
                 ),
                 'blocked_work' => $this->section(
                     'Blocked Work', 'todos.tag(blocked|waiting), journal_entries.kind=blocker', $blockedItems,
-                    'No blocked work was recorded in this period.'
+                    'No blocked work was recorded in this period.',
+                    $blockedTotal + $blockersTotal,
                 ),
                 'important_decisions' => $this->section(
                     'Important Decisions', 'journal_entries.kind=decision', $decisionItems,
-                    'No decisions were recorded in this period.'
+                    'No decisions were recorded in this period.',
+                    $decisionsTotal,
                 ),
                 'knowledge_captured' => $this->section(
                     'Knowledge Captured', 'todos.type=note', $noteItems,
-                    'No notes were captured in this period.'
+                    'No notes were captured in this period.',
+                    $notesTotal,
                 ),
                 'next_actions' => $this->section(
                     'Next Actions', 'todos.due_date, journal_entries.kind=handoff', $nextItems,
-                    'No sourced next actions in this period.'
+                    'No sourced next actions in this period.',
+                    $datedTotal + $handoffsTotal,
                 ),
             ],
             'metrics' => [
                 'tasks_completed' => [
-                    'value' => $completed->count(),
+                    'value' => $completedTotal,
                     'provenance' => 'todos.completed_at',
                 ],
                 // No valid source is read for these values in P0: never render 0 or "Unavailable".
@@ -184,11 +218,11 @@ class WeeklyDigestService
         ];
     }
 
-    private function section(string $label, string $provenance, array $items, string $message): array
+    private function section(string $label, string $provenance, array $items, string $message, ?int $totalOverride = null): array
     {
-        $total = count($items);
         $visible = array_slice($items, 0, self::SECTION_ITEM_LIMIT);
         $shown = count($visible);
+        $total = $totalOverride ?? count($items);
         $truncated = $total > $shown;
 
         return [
