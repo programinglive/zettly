@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.4.0 | 2026-11-18 | **ops:** add deploy marker accuracy, scheduled CI/CD sync, and CLI Auth Broker fd533bf |
 | 1.3.1 | 2026-11-18 | **engineering:** select actual CodingAgentJob columns in registry c881eb1 |
 | 1.3.0 | 2026-11-18 | **engineering:** add Engineering Control Center with drift and CI/CD timeline e86a703 |
 | 1.2.0 | 2026-11-18 | **plan:** record approved Work Memory consolidation design and P0 implementation plan 09e6bfe |
@@ -110,6 +111,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.4.0
+
+Released on **2026-11-18**.
+
+- **ops:** add deploy marker accuracy, scheduled CI/CD sync, and CLI Auth Broker fd533bf
+- **engineering:** select actual CodingAgentJob columns in registry c881eb1
 
 ## 1.3.1
 
