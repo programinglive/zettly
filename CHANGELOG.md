@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/programinglive/todo/compare/v1.4.5...v1.5.0) (2026-11-18)
+
+
+### ✨ Features
+
+* **calendar:** add weekly focus allocation calendar, CLI, and compact Notion UI ([4cde6a3](https://github.com/programinglive/todo/commit/4cde6a33e107b2a7a8f1f88b5cd528b36f80713b))
+
 ### [1.4.5](https://github.com/programinglive/todo/compare/v1.4.4...v1.4.5) (2026-11-18)
 
 

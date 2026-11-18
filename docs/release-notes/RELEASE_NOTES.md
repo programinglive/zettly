@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.5.0 | 2026-11-18 | **calendar:** add weekly focus allocation calendar, CLI, and compact Notion UI (4cde6a3) |
 | 1.4.5 | 2026-11-18 | **security:** resolve all npm audit vulnerabilities in graph-service (e8b5d3c) |
 | 1.4.4 | 2026-11-18 | **ai:** explicitly configure coding_agent.models in CodingAgentPromptTest ca0c4a5 |
 | 1.4.3 | 2026-11-18 | **ci:** add gitleaks secret scanning to prevent credential leaks 113eff7 |
@@ -122,6 +123,24 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.5.0
+
+Released on **2026-11-18**.
+
+- **calendar:** add weekly focus allocation calendar, CLI, and compact Notion UI (4cde6a3)
+- **security:** resolve all npm audit vulnerabilities in graph-service (e8b5d3c)
+- **agent:** pin due_date null in priority ordering test to prevent Faker date flakiness (11b8b46)
+- **ai:** explicitly configure coding_agent.models in CodingAgentPromptTest ca0c4a5
+- **agent:** enforce dependency guard and integrate priority-aware dispatch UI ddb2746
+- **ai:** add feature-flagged human-reviewed AI Todo triage d805255
+- **ai:** extract shared KenariClient with free-model allowlist and refactor prompt controller 518bc12
+- **ci:** add gitleaks secret scanning to prevent credential leaks 113eff7
+- **deps:** update graph-service lockfile to resolve dependency advisories 98250e4
+- **today:** apply Notion-style compact layout to Today and FocusGreeting f4612e3
+- **today:** surface FocusGreeting above Today grid and make items actionable links 6d29961
+- **broadcasting:** re-enable authenticated /broadcasting/auth route 0eb55aa
 
 ## 1.4.5
 
