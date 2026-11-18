@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.5.1 | 2026-11-18 | **api:** support tag name in byTag, make event append idempotent, and fix auto-release cli flag (90c6e96) |
 | 1.5.0 | 2026-11-18 | **calendar:** add weekly focus allocation calendar, CLI, and compact Notion UI (4cde6a3) |
 | 1.4.5 | 2026-11-18 | **security:** resolve all npm audit vulnerabilities in graph-service (e8b5d3c) |
 | 1.4.4 | 2026-11-18 | **ai:** explicitly configure coding_agent.models in CodingAgentPromptTest ca0c4a5 |
@@ -124,6 +125,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.5.1
+
+Released on **2026-11-18**.
+
+- **api:** support tag name in byTag, make event append idempotent, and fix auto-release cli flag (90c6e96)
 
 ## 1.5.0
 
