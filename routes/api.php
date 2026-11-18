@@ -162,6 +162,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::patch('todos/{todo}/queue-state', [App\Http\Controllers\Api\TodoPriorityController::class, 'updateQueueState'])->name('api.v1.todos.queue-state');
     Route::post('todos/{todo}/p0', [App\Http\Controllers\Api\TodoPriorityController::class, 'declareP0'])->name('api.v1.todos.p0.declare');
     Route::delete('todos/{todo}/p0', [App\Http\Controllers\Api\TodoPriorityController::class, 'clearP0'])->name('api.v1.todos.p0.clear');
+    Route::get('calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('api.v1.calendar.index');
+    Route::put('calendar/allocations', [App\Http\Controllers\CalendarController::class, 'updateAllocations'])->name('api.v1.calendar.allocations.update');
+    Route::patch('calendar/todos/{todo}/schedule', [App\Http\Controllers\CalendarController::class, 'scheduleTodo'])->name('api.v1.calendar.todos.schedule');
 
     Route::get('tags/search', [TagController::class, 'search'])->name('api.v1.tags.search');
     Route::apiResource('tags', TagController::class)->except(['create', 'edit'])->names([

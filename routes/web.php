@@ -91,6 +91,9 @@ Route::middleware('auth')->group(function () {
     Route::get('journal/{entry}', [App\Http\Controllers\JournalController::class, 'show'])
         ->where('entry', '\d+')->name('journal.show');
     Route::get('todos/board', [TodoController::class, 'board'])->name('todos.board');
+    Route::get('calendar', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
+    Route::put('calendar/allocations', [\App\Http\Controllers\CalendarController::class, 'updateAllocations'])->name('calendar.allocations.update');
+    Route::patch('calendar/todos/{todo}/schedule', [\App\Http\Controllers\CalendarController::class, 'scheduleTodo'])->name('calendar.todos.schedule');
     Route::resource('todos', TodoController::class);
     Route::post('todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('todos.toggle');
     Route::post('todos/{todo}/update-priority', [TodoController::class, 'updatePriority'])->name('todos.update-priority');

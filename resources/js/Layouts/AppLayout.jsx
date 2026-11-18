@@ -19,6 +19,7 @@ import {
     BookOpen,
     ScrollText,
     Bot,
+    Calendar,
     MoreHorizontal
 } from 'lucide-react';
 
@@ -89,6 +90,7 @@ export default function AppLayout({
     ];
 
     const secondaryNavigation = [
+        { href: '/calendar', label: 'Calendar', icon: Calendar, group: 'main' },
         { href: '/priority', label: 'Priority Queue', icon: LayoutList, group: 'main' },
         { href: '/todos/board', label: 'Todo Board', icon: LayoutDashboard, group: 'main' },
         { href: '/draw', label: 'Draw', icon: PenTool, group: 'main' },

@@ -40,6 +40,8 @@ class PriorityDecision extends Model
 
     public const ACTION_P0_CLEAR = 'p0_clear';
 
+    public const ACTION_WEEKLY_FOCUS = 'weekly_focus_allocation';
+
     public const UPDATED_AT = null;
 
     protected $fillable = [
