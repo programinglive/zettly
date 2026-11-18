@@ -72,13 +72,70 @@ export default function Dashboard({
             <div className="min-h-screen pb-48 lg:pb-0">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     {/* Header */}
-                    <div className="mb-16">
-                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                            Today
-                        </h1>
-                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                            Stay focused and track your progress through the day.
-                        </p>
+                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                Today
+                            </h1>
+                            <p className="mt-2 text-lg text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                                Stay focused and track your progress through the day.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <span className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                {tasks.open} open · {tasks.completed} completed
+                            </span>
+                            <Link
+                                href="/priority"
+                                className="text-xs font-semibold text-gray-700 underline-offset-4 hover:underline dark:text-gray-200"
+                            >
+                                Priority
+                            </Link>
+                            <Link
+                                href="/todos"
+                                className="text-xs font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                            >
+                                View all todos
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Focus Greeting & Email Verification */}
+                    <div className="mb-10 space-y-4">
+                        {mustVerifyEmail && (
+                            <div className="py-4 border-b border-amber-200/50 dark:border-amber-500/20 mb-6">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <MailWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                                        <div>
+                                            <h2 className="text-sm font-bold tracking-tight text-amber-900 dark:text-amber-100">
+                                                Email Verification Required
+                                            </h2>
+                                            <p className="text-sm text-amber-800/80 dark:text-amber-200/60">
+                                                Check your inbox to unlock all features.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <form
+                                        onSubmit={(event) => {
+                                            event.preventDefault();
+                                            resendVerification(route('verification.send'));
+                                        }}
+                                    >
+                                        <button
+                                            type="submit"
+                                            className="text-sm font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 transition-colors underline decoration-2 underline-offset-4"
+                                            disabled={isSendingVerification}
+                                        >
+                                            {isSendingVerification ? 'Sending...' : 'Resend link'}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+
+                        <FocusGreeting tasks={tasks} />
                     </div>
 
                     {hasToday ? (
@@ -91,7 +148,9 @@ export default function Dashboard({
                                     <ul className="mt-3 space-y-2">
                                         {today.current_work.items.map((item) => (
                                             <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                <span className="font-semibold">{item.title}</span>
+                                                <Link href={`/focus/${item.id}`} className="font-semibold hover:underline">
+                                                    {item.title}
+                                                </Link>
                                                 <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{item.status}</span>
                                             </li>
                                         ))}
@@ -109,7 +168,9 @@ export default function Dashboard({
                                         <ul className="mt-3 space-y-2">
                                             {today.open_tasks.items.map((item) => (
                                                 <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                    <span className="font-semibold">{item.title}</span>
+                                                    <Link href={`/todos/${item.id}`} className="font-semibold hover:underline">
+                                                        {item.title}
+                                                    </Link>
                                                     {item.due_date && <span className="ml-2 text-xs text-gray-500">due {item.due_date}</span>}
                                                 </li>
                                             ))}
@@ -155,60 +216,6 @@ export default function Dashboard({
                             <p className="text-sm text-gray-500 dark:text-gray-400">Today data unavailable. Reload the page to retry.</p>
                         </div>
                     )}
-
-                    {/* Open/completed counts: computed server-side, so the page no longer ships the todo list */}
-                    <div className="mb-10 flex flex-wrap items-center gap-3">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                            {tasks.open} open
-                        </span>
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                            {tasks.completed} completed
-                        </span>
-                        <Link
-                            href="/todos"
-                            className="text-xs font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
-                        >
-                            View all todos
-                        </Link>
-                    </div>
-
-                    {/* Focus Greeting */}
-                    <div className="mb-12 space-y-4">
-                        {mustVerifyEmail && (
-                            <div className="py-4 border-b border-amber-200/50 dark:border-amber-500/20 mb-8">
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <MailWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                                        <div>
-                                            <h2 className="text-sm font-bold tracking-tight text-amber-900 dark:text-amber-100">
-                                                Email Verification Required
-                                            </h2>
-                                            <p className="text-sm text-amber-800/80 dark:text-amber-200/60">
-                                                Check your inbox to unlock all features.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <form
-                                        onSubmit={(event) => {
-                                            event.preventDefault();
-                                            resendVerification(route('verification.send'));
-                                        }}
-                                    >
-                                        <button
-                                            type="submit"
-                                            className="text-sm font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 transition-colors underline decoration-2 underline-offset-4"
-                                            disabled={isSendingVerification}
-                                        >
-                                            {isSendingVerification ? 'Sending...' : 'Resend link'}
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        )}
-
-                        <FocusGreeting tasks={tasks} />
-                    </div>
                 </div>
             </div>
 
