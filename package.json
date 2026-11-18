@@ -49,6 +49,8 @@
         "@radix-ui/react-slot": "^1.2.3",
         "@sentry/react": "^10.22.0",
         "@sentry/tracing": "^7.120.4",
+        "@tiptap/extension-code-block": "3.34.0",
+        "@tiptap/extensions": "3.34.0",
         "@tldraw/sync": "^4.1.1",
         "@types/react-beautiful-dnd": "^13.1.8",
         "@vitejs/plugin-react": "^5.0.4",
