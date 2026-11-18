@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.5](https://github.com/programinglive/todo/compare/v1.4.4...v1.4.5) (2026-11-18)
+
+
+### 🐛 Bug Fixes
+
+* **security:** resolve all npm audit vulnerabilities in graph-service ([e8b5d3c](https://github.com/programinglive/todo/commit/e8b5d3cba5aae8e3b08f9fdd2b7d49d72daaa070))
+
+
+### ✅ Tests
+
+* **agent:** pin due_date null in priority ordering test to prevent Faker date flakiness ([11b8b46](https://github.com/programinglive/todo/commit/11b8b4629559763f5931fc66c2d41b640faa2b4d))
+
 ### [1.4.4](https://github.com/programinglive/todo/compare/v1.4.3...v1.4.4) (2026-11-18)
 
 
