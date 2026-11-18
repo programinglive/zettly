@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\JournalEntry;
 use App\Models\Report;
 use App\Models\ReportDelivery;
+use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -79,6 +80,23 @@ class WeeklyDigestApiTest extends TestCase
 
         $this->assertSame(0, Report::count());
         $this->assertSame(0, ReportDelivery::count());
+    }
+
+    public function test_large_dataset_response_is_bounded_and_reports_truncation(): void
+    {
+        $user = User::factory()->create();
+        Todo::factory()->for($user)->asTask()->count(80)->sequence(
+            fn ($sequence) => ['title' => "Endpoint task {$sequence->index}", 'due_date' => '2026-11-19']
+        )->create();
+        Sanctum::actingAs($user, ['zettly:cli']);
+
+        $response = $this->getJson('/api/v1/reports/weekly-digest?date=2026-11-17')->assertOk();
+
+        $response->assertJsonPath('data.sections.next_actions.total', 80);
+        $response->assertJsonPath('data.sections.next_actions.shown', 50);
+        $response->assertJsonPath('data.sections.next_actions.truncated', true);
+        $this->assertCount(50, $response->json('data.sections.next_actions.items'));
+        $this->assertLessThan(30000, strlen($response->getContent()));
     }
 
     public function test_legacy_reports_endpoint_still_works(): void
