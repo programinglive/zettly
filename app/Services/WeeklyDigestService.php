@@ -16,6 +16,8 @@ use Carbon\CarbonImmutable;
  */
 class WeeklyDigestService
 {
+    private const SECTION_ITEM_LIMIT = 50;
+
     public function forUser(User $user, CarbonImmutable $start, CarbonImmutable $end): array
     {
         $startUtc = $start->setTimezone('UTC')->format('Y-m-d H:i:s');
@@ -33,7 +35,7 @@ class WeeklyDigestService
         $blocked = Todo::where('user_id', $user->id)
             ->where('is_completed', false)
             ->where('archived', false)
-            ->whereHas('tags', fn ($query) => $query->whereIn('tags.name', ['blocked', 'waiting']))
+            ->whereHas('tags', fn ($query) => $query->whereRaw('LOWER(tags.name) IN (?, ?)', ['blocked', 'waiting']))
             ->orderBy('id')
             ->get(['id', 'title']);
 
@@ -64,7 +66,9 @@ class WeeklyDigestService
             ->where('is_completed', false)
             ->where('archived', false)
             ->whereNotNull('due_date')
-            ->whereBetween('due_date', [$startDate, $horizon])
+            // Overdue work from earlier weeks stays actionable; only completed,
+            // archived and undated items are excluded above.
+            ->where('due_date', '<=', $horizon)
             ->orderBy('due_date')
             ->orderBy('id')
             ->get(['id', 'title', 'due_date']);
@@ -182,12 +186,22 @@ class WeeklyDigestService
 
     private function section(string $label, string $provenance, array $items, string $message): array
     {
+        $total = count($items);
+        $visible = array_slice($items, 0, self::SECTION_ITEM_LIMIT);
+        $shown = count($visible);
+        $truncated = $total > $shown;
+
         return [
             'label' => $label,
             'provenance' => $provenance,
-            'status' => $items === [] ? 'no_data' : 'ok',
-            'items' => $items,
-            'message' => $items === [] ? $message : null,
+            'status' => $total === 0 ? 'no_data' : 'ok',
+            'items' => $visible,
+            'total' => $total,
+            'shown' => $shown,
+            'truncated' => $truncated,
+            'message' => $total === 0
+                ? $message
+                : ($truncated ? sprintf('Showing %d of %d items.', $shown, $total) : null),
         ];
     }
 }

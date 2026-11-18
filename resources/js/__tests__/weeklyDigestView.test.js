@@ -32,6 +32,11 @@ test('missing metrics render the literal Not measured and empty sections use the
   assert.match(source, /\.message/);
 });
 
+test('truncation is surfaced explicitly instead of silently dropping items', () => {
+  assert.match(source, /section\.truncated/);
+  assert.match(source, /section\.message/);
+});
+
 test('legacy report list and detail links remain intact', () => {
   assert.match(source, /Show older reports/);
   assert.match(source, /\/reports\/view\//);

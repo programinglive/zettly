@@ -155,6 +155,9 @@ function WeeklyDigest({ digest }) {
                                 ))}
                             </ul>
                         )}
+                        {section.truncated ? (
+                            <p className="mt-1 text-[11px] text-gray-500 dark:text-slate-400">{section.message}</p>
+                        ) : null}
                     </div>
                 );
             })}
