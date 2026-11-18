@@ -146,20 +146,24 @@ class AgentSessionIngestor
     {
         $key = (string) $attributes['event_key'];
 
-        if (AgentEvent::where('event_key', $key)->exists()) {
+        try {
+            $event = AgentEvent::firstOrCreate(
+                ['event_key' => $key],
+                [
+                    'user_id' => $user->id,
+                    'agent_session_id' => $session->id,
+                    'kind' => (string) $attributes['kind'],
+                    'occurred_at' => $attributes['occurred_at'] ?? ($now ?? now()),
+                    'detail' => isset($attributes['detail'])
+                        ? self::redact((string) $attributes['detail'], 300)
+                        : null,
+                ]
+            );
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
             return null;
         }
 
-        return AgentEvent::create([
-            'user_id' => $user->id,
-            'agent_session_id' => $session->id,
-            'event_key' => $key,
-            'kind' => (string) $attributes['kind'],
-            'occurred_at' => $attributes['occurred_at'] ?? ($now ?? now()),
-            'detail' => isset($attributes['detail'])
-                ? self::redact((string) $attributes['detail'], 300)
-                : null,
-        ]);
+        return $event->wasRecentlyCreated ? $event : null;
     }
 
     /**

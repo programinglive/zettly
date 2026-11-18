@@ -84,15 +84,29 @@ class TodoController extends Controller
     }
 
     /**
-     * List the todos linked to a single tag, paginated.
+     * List the todos linked to a single tag (resolved by numeric ID or tag name), paginated.
      */
-    public function byTag(Request $request, Tag $tag): JsonResponse
+    public function byTag(Request $request, string $tag): JsonResponse
     {
-        if ($tag->user_id !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 403);
+        if (ctype_digit($tag)) {
+            $resolvedTag = Tag::query()->find((int) $tag);
+            if (! $resolvedTag) {
+                abort(404);
+            }
+            if ((int) $resolvedTag->user_id !== (int) Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+        } else {
+            $resolvedTag = Tag::query()
+                ->where('user_id', Auth::id())
+                ->where('name', urldecode($tag))
+                ->first();
+            if (! $resolvedTag) {
+                abort(404);
+            }
         }
 
         $requestedType = $request->get('type');
@@ -103,7 +117,7 @@ class TodoController extends Controller
         $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
         $page = max((int) $request->input('page', 1), 1);
 
-        $query = $tag->todos()
+        $query = $resolvedTag->todos()
             ->where('todos.user_id', Auth::id())
             ->with(['tags', 'checklistItems', 'relatedTodos:id,title']);
 
