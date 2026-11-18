@@ -69,54 +69,52 @@ export default function Dashboard({
     return (
         <DashboardLayout title="Dashboard">
             <Head title="Dashboard" />
-            <div className="min-h-screen pb-48 lg:pb-0">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    {/* Header */}
-                    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+            <div className="min-h-screen pb-32 lg:pb-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+                    {/* Compact Notion-style Header */}
+                    <div className="mb-5 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-baseline gap-3">
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
                                 Today
                             </h1>
-                            <p className="mt-2 text-lg text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
-                                Stay focused and track your progress through the day.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <span className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {tasks.open} open · {tasks.completed} completed
                             </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs font-medium">
+                            <Link
+                                href="/todos/create"
+                                className="inline-flex items-center gap-1 rounded bg-gray-900 px-2.5 py-1 text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                            >
+                                <Plus className="h-3 w-3" />
+                                New Todo
+                            </Link>
                             <Link
                                 href="/priority"
-                                className="text-xs font-semibold text-gray-700 underline-offset-4 hover:underline dark:text-gray-200"
+                                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                             >
                                 Priority
                             </Link>
                             <Link
                                 href="/todos"
-                                className="text-xs font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                             >
-                                View all todos
+                                All tasks
                             </Link>
                         </div>
                     </div>
 
-                    {/* Focus Greeting & Email Verification */}
-                    <div className="mb-10 space-y-4">
+                    {/* Focus Callout & Email Verification */}
+                    <div className="mb-6 space-y-3">
                         {mustVerifyEmail && (
-                            <div className="py-4 border-b border-amber-200/50 dark:border-amber-500/20 mb-6">
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <MailWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                                        <div>
-                                            <h2 className="text-sm font-bold tracking-tight text-amber-900 dark:text-amber-100">
-                                                Email Verification Required
-                                            </h2>
-                                            <p className="text-sm text-amber-800/80 dark:text-amber-200/60">
-                                                Check your inbox to unlock all features.
-                                            </p>
-                                        </div>
+                            <div className="py-2.5 px-3 rounded-md border border-amber-200 bg-amber-50/70 dark:border-amber-500/30 dark:bg-amber-950/20">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <MailWarning className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                                        <span className="text-xs font-semibold text-amber-900 dark:text-amber-100">
+                                            Email Verification Required — Check your inbox.
+                                        </span>
                                     </div>
-
                                     <form
                                         onSubmit={(event) => {
                                             event.preventDefault();
@@ -125,7 +123,7 @@ export default function Dashboard({
                                     >
                                         <button
                                             type="submit"
-                                            className="text-sm font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 transition-colors underline decoration-2 underline-offset-4"
+                                            className="text-xs font-semibold text-amber-700 hover:underline dark:text-amber-400"
                                             disabled={isSendingVerification}
                                         >
                                             {isSendingVerification ? 'Sending...' : 'Resend link'}
@@ -139,81 +137,104 @@ export default function Dashboard({
                     </div>
 
                     {hasToday ? (
-                        <div className="mb-12 grid gap-6 lg:grid-cols-2">
-                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
-                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Current work</h2>
-                                {today?.current_work?.status === 'no_data' ? (
-                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.current_work.message}</p>
+                        <div className="space-y-4">
+                            <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+                                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Open tasks</h2>
+                                    {today?.open_tasks?.status !== 'no_data' && (
+                                        <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open</span>
+                                    )}
+                                </div>
+                                {today?.open_tasks?.status === 'no_data' ? (
+                                    <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.open_tasks.message}</p>
                                 ) : (
-                                    <ul className="mt-3 space-y-2">
-                                        {today.current_work.items.map((item) => (
-                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                <Link href={`/focus/${item.id}`} className="font-semibold hover:underline">
-                                                    {item.title}
+                                    <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
+                                        {today.open_tasks.items.map((item) => (
+                                            <li key={item.id}>
+                                                <Link
+                                                    href={`/todos/${item.id}`}
+                                                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40"
+                                                >
+                                                    <span className="truncate font-medium">{item.title}</span>
+                                                    {item.due_date && <span className="shrink-0 text-xs text-gray-400">due {item.due_date}</span>}
                                                 </Link>
-                                                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{item.status}</span>
                                             </li>
                                         ))}
                                     </ul>
                                 )}
                             </section>
 
-                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
-                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Open tasks</h2>
-                                {today?.open_tasks?.status === 'no_data' ? (
-                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.open_tasks.message}</p>
+                            <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
+                                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Current work</h2>
+                                </div>
+                                {today?.current_work?.status === 'no_data' ? (
+                                    <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.current_work.message}</p>
                                 ) : (
-                                    <>
-                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open in total</p>
-                                        <ul className="mt-3 space-y-2">
-                                            {today.open_tasks.items.map((item) => (
-                                                <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                    <Link href={`/todos/${item.id}`} className="font-semibold hover:underline">
-                                                        {item.title}
-                                                    </Link>
-                                                    {item.due_date && <span className="ml-2 text-xs text-gray-500">due {item.due_date}</span>}
+                                    <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
+                                        {today.current_work.items.map((item) => (
+                                            <li key={item.id}>
+                                                <Link
+                                                    href={`/focus/${item.id}`}
+                                                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40"
+                                                >
+                                                    <span className="truncate font-medium">{item.title}</span>
+                                                    <span className="shrink-0 text-xs text-gray-400">{item.status}</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </section>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
+                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Recent activity</h2>
+                                    </div>
+                                    {today?.recent_activity?.status === 'no_data' ? (
+                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.recent_activity.message}</p>
+                                    ) : (
+                                        <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
+                                            {today.recent_activity.items.map((item) => (
+                                                <li key={item.id} className="px-3 py-2 text-xs text-gray-800 dark:text-gray-100">
+                                                    <div className="flex items-center justify-between text-gray-400">
+                                                        <span className="font-semibold uppercase">{item.kind}</span>
+                                                        <span>{item.entry_date}</span>
+                                                    </div>
+                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2">{item.excerpt}</p>
                                                 </li>
                                             ))}
                                         </ul>
-                                    </>
-                                )}
-                            </section>
+                                    )}
+                                </section>
 
-                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
-                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Recent activity</h2>
-                                {today?.recent_activity?.status === 'no_data' ? (
-                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.recent_activity.message}</p>
-                                ) : (
-                                    <ul className="mt-3 space-y-2">
-                                        {today.recent_activity.items.map((item) => (
-                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                <span className="text-xs font-semibold uppercase">{item.kind}</span>
-                                                <span className="ml-2 text-xs text-gray-500">{item.entry_date}</span>
-                                                <p className="mt-1 text-gray-600 dark:text-gray-300">{item.excerpt}</p>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </section>
-
-                            <section className="rounded-lg border border-gray-200 dark:border-slate-800 p-5">
-                                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">Linked notes</h2>
-                                {today?.linked_notes?.status === 'no_data' ? (
-                                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{today.linked_notes.message}</p>
-                                ) : (
-                                    <ul className="mt-3 space-y-2">
-                                        {today.linked_notes.items.map((item) => (
-                                            <li key={item.id} className="text-sm text-gray-800 dark:text-gray-100">
-                                                <Link href={`/todos/${item.id}`} className="font-semibold hover:underline">{item.title}</Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </section>
+                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
+                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Linked notes</h2>
+                                    </div>
+                                    {today?.linked_notes?.status === 'no_data' ? (
+                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.linked_notes.message}</p>
+                                    ) : (
+                                        <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
+                                            {today.linked_notes.items.map((item) => (
+                                                <li key={item.id}>
+                                                    <Link
+                                                        href={`/todos/${item.id}`}
+                                                        className="block px-3 py-2 text-xs font-medium text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40 truncate"
+                                                    >
+                                                        {item.title}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </section>
+                            </div>
                         </div>
                     ) : (
-                        <div className="mb-12 rounded-lg border border-gray-200 dark:border-slate-800 p-5">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Today data unavailable. Reload the page to retry.</p>
+                        <div className="rounded-md border border-gray-200 dark:border-slate-800 px-3.5 py-2.5">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Today data unavailable. Reload the page to retry.</p>
                         </div>
                     )}
                 </div>
