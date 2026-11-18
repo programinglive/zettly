@@ -20,6 +20,8 @@ class CodingAgentPromptTest extends TestCase
         config()->set('coding_agent.owner_email', $owner->email);
         config()->set('coding_agent.kenari_api_key', 'test-kenari-key');
         config()->set('coding_agent.kenari_base_url', 'https://kenari.id/v1');
+        config()->set('coding_agent.models', ['qwen3-5-397b-a17b:free', 'agnes-3-0-flash:free']);
+        config()->set('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 
         $todo = Todo::factory()->asTask()->create([
             'user_id' => $owner->id,
