@@ -12,10 +12,9 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Don't register Laravel's default broadcast routes.
-        // (routes/test-broadcasting.php dihapus 29 Okt 2026: rute debug
-        //  broadcasting tanpa auth. Lihat docs/SECURITY-DEBUG-ROUTES.)
-        // Broadcast::routes(['middleware' => ['web', 'auth']]);
+        // Register authenticated broadcast channel auth route (/broadcasting/auth).
+        // Unauthenticated debug routes (routes/test-broadcasting.php) remain removed.
+        Broadcast::routes(['middleware' => ['web', 'auth']]);
 
         require base_path('routes/channels.php');
     }
