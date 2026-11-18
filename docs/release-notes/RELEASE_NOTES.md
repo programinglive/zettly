@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.3.1 | 2026-11-18 | **engineering:** select actual CodingAgentJob columns in registry c881eb1 |
 | 1.3.0 | 2026-11-18 | **engineering:** add Engineering Control Center with drift and CI/CD timeline e86a703 |
 | 1.2.0 | 2026-11-18 | **plan:** record approved Work Memory consolidation design and P0 implementation plan 09e6bfe |
 | 1.1.0 | 2026-11-15 | **release:** adopt commiter release v2 (8445f43) |
@@ -108,6 +109,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.3.1
+
+Released on **2026-11-18**.
+
+- **engineering:** select actual CodingAgentJob columns in registry c881eb1
 
 ## 1.3.0
 
