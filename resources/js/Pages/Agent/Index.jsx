@@ -272,11 +272,19 @@ export default function Index({
                     <label className="block text-sm font-medium sm:col-span-1">Todo
                         <select className="mt-1 w-full rounded-lg border p-3 text-sm dark:border-gray-700 dark:bg-gray-900" value={form.data.todo_id} onChange={(e) => form.setData('todo_id', e.target.value)} required>
                             <option value="">Select a Todo</option>
-                            {todos.map((todo) => (
-                                <option key={todo.id} value={todo.id}>
-                                    #{todo.id} — {todo.title}
-                                </option>
-                            ))}
+                            {todos.map((todo) => {
+                                const prefix = [
+                                    todo.priority_rank ? `[#${todo.priority_rank}]` : null,
+                                    todo.is_p0 ? '[P0]' : null,
+                                    todo.is_main_work ? '[Main]' : null,
+                                    todo.executable === false ? '[Blocked]' : null,
+                                ].filter(Boolean).join(' ');
+                                return (
+                                    <option key={todo.id} value={todo.id}>
+                                        {prefix ? `${prefix} ` : ''}#{todo.id} — {todo.title}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </label>
 
@@ -313,6 +321,32 @@ export default function Index({
                                     ☑️ DoD Checklist: <strong>{selectedTodo.checklist_items.length} items</strong>
                                 </span>
                             )}
+                            {selectedTodo && (
+                                <span className="inline-flex flex-wrap items-center gap-2">
+                                    {selectedTodo.priority_rank && (
+                                        <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                                            Rank #{selectedTodo.priority_rank}
+                                        </span>
+                                    )}
+                                    <span className={`rounded px-1.5 py-0.5 font-semibold ${
+                                        selectedTodo.executable !== false
+                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                            : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300'
+                                    }`}>
+                                        {selectedTodo.executable !== false ? 'Executable' : 'Blocked'}
+                                    </span>
+                                    {!selectedTodo.ready && selectedTodo.executable !== false && (
+                                        <span className="rounded bg-amber-50 px-1.5 py-0.5 font-medium text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                                            Prioritized (triage: {(selectedTodo.readiness_reasons ?? []).join(', ')})
+                                        </span>
+                                    )}
+                                    {selectedTodo.rank_explanation && (
+                                        <span className="text-gray-500 dark:text-gray-400">
+                                            Why: {selectedTodo.rank_explanation}
+                                        </span>
+                                    )}
+                                </span>
+                            )}
                         </div>
                         {selectedTodo && (
                             <button
@@ -323,6 +357,13 @@ export default function Index({
                                 📋 Load Todo Spec & DoD
                             </button>
                         )}
+                    </div>
+                )}
+
+                {selectedTodo && selectedTodo.executable === false && (
+                    <div className="rounded-xl border border-red-200 bg-red-50/70 px-3.5 py-2.5 text-xs text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+                        <strong>Blocked by unresolved dependencies:</strong>{' '}
+                        {(selectedTodo.blocking_titles ?? []).map((b) => `#${b.id} (${b.title})`).join(', ') || `#${(selectedTodo.blocked_by ?? []).join(', #')}`}
                     </div>
                 )}
 
@@ -355,7 +396,7 @@ export default function Index({
                     {promptError && <p className="text-xs text-red-600">{promptError}</p>}
                 </div>
                 {Object.values(form.errors).map((error, index) => <p key={index} className="text-sm text-red-600">{error}</p>)}
-                <button type="submit" disabled={form.processing || !online || !todos.length || !repositories.length} className="w-full rounded-lg bg-blue-700 px-4 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50">{form.processing ? 'Creating…' : 'Create job'}</button>
+                <button type="submit" disabled={form.processing || !online || !todos.length || !repositories.length || (selectedTodo && selectedTodo.executable === false)} className="w-full rounded-lg bg-blue-700 px-4 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50">{form.processing ? 'Creating…' : 'Create job'}</button>
             </form>
 
             {/* Pipeline Filter & Jobs List */}

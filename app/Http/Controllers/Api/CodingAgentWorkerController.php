@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Priority\DependencyGraph;
 use App\Models\CodingAgentJob;
 use App\Services\AgentSessionIngestor;
 use Illuminate\Http\JsonResponse;
@@ -19,11 +20,16 @@ class CodingAgentWorkerController
             $allowedModels = config('coding_agent.models', []);
             $defaultModel = config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 
+            $blockedTodoIds = array_keys((new DependencyGraph($request->user()->id))->blockedIds());
+
             // A job created before the free allowlist changed can still be
             // queued with a paid model. Fail it here instead of handing it to
             // the worker, so no paid model can ever start.
+            // Jobs whose Todo is blocked by unresolved dependencies are skipped
+            // (left queued) so they resume automatically once unblocked.
             for ($attempt = 0; $attempt < 10; $attempt++) {
                 $job = CodingAgentJob::query()->where('user_id', $request->user()->id)
+                    ->when($blockedTodoIds !== [], fn ($q) => $q->whereNotIn('todo_id', $blockedTodoIds))
                     ->where(function ($query) {
                         $query->where('status', 'queued')
                             ->orWhere(function ($expired) {
