@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\CliApiController;
 use App\Http\Controllers\Api\CliAuthController;
+use App\Http\Controllers\Api\PriorityController;
 use App\Http\Controllers\Api\TodoController;
+use App\Http\Controllers\Api\TodoPriorityController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\FocusController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -30,6 +32,27 @@ Route::middleware('auth:sanctum')->group(function () {
     // Literal segments must be declared before the resource wildcard, otherwise
     // /api/todos/priorities matches todos/{todo} and 404s on route-model binding.
     Route::get('todos/priorities', [TodoController::class, 'priorities'])->name('api.todos.priorities');
+
+    // Priority API routes
+    Route::get('priority/queue', [PriorityController::class, 'queue'])->name('api.priority.queue');
+    Route::get('priority/explain/{todo}', [PriorityController::class, 'explain'])->name('api.priority.explain');
+    Route::post('priority/plan', [PriorityController::class, 'ensurePlan'])->name('api.priority.plan');
+    Route::post('priority/plan/items', [PriorityController::class, 'commitItem'])->name('api.priority.plan.items');
+    Route::delete('priority/plan/items/{todo}', [PriorityController::class, 'uncommitItem'])->name('api.priority.plan.items.delete');
+    Route::get('priority/main-work', [PriorityController::class, 'mainWork'])->name('api.priority.main-work');
+    Route::post('priority/main-work', [PriorityController::class, 'setMainWork'])->name('api.priority.main-work.set');
+    Route::delete('priority/main-work', [PriorityController::class, 'clearMainWork'])->name('api.priority.main-work.clear');
+    Route::get('priority/settings', [PriorityController::class, 'settings'])->name('api.priority.settings');
+    Route::patch('priority/settings', [PriorityController::class, 'updateSettings'])->name('api.priority.settings.update');
+    Route::get('priority/history', [PriorityController::class, 'history'])->name('api.priority.history');
+
+    // Todo priority endpoints (dependencies, queue state, P0)
+    Route::get('todos/{todo}/dependencies', [TodoPriorityController::class, 'dependencies'])->name('api.todos.dependencies');
+    Route::post('todos/{todo}/dependencies', [TodoPriorityController::class, 'addDependency'])->name('api.todos.dependencies.add');
+    Route::delete('todos/{todo}/dependencies/{dependency}', [TodoPriorityController::class, 'removeDependency'])->name('api.todos.dependencies.remove');
+    Route::patch('todos/{todo}/queue-state', [TodoPriorityController::class, 'updateQueueState'])->name('api.todos.queue-state');
+    Route::post('todos/{todo}/p0', [TodoPriorityController::class, 'declareP0'])->name('api.todos.p0.declare');
+    Route::delete('todos/{todo}/p0', [TodoPriorityController::class, 'clearP0'])->name('api.todos.p0.clear');
 
     // Todo API Routes
     Route::apiResource('todos', TodoController::class)->names([
@@ -118,6 +141,28 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('todos/{todo}/unlink', [App\Http\Controllers\TodoController::class, 'unlink'])->name('api.v1.todos.unlink');
     Route::post('todos/reorder', [App\Http\Controllers\TodoController::class, 'reorder'])->name('api.v1.todos.reorder');
     Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [App\Http\Controllers\TodoController::class, 'toggleChecklistItem'])->name('api.v1.todos.checklist.toggle');
+
+    // Priority API routes (same surface for CLI, API and UI)
+    Route::get('priority/queue', [PriorityController::class, 'queue'])->name('api.v1.priority.queue');
+    Route::get('priority/explain/{todo}', [PriorityController::class, 'explain'])->name('api.v1.priority.explain');
+    Route::post('priority/plan', [PriorityController::class, 'ensurePlan'])->name('api.v1.priority.plan');
+    Route::post('priority/plan/items', [PriorityController::class, 'commitItem'])->name('api.v1.priority.plan.items');
+    Route::delete('priority/plan/items/{todo}', [PriorityController::class, 'uncommitItem'])->name('api.v1.priority.plan.items.delete');
+    Route::get('priority/main-work', [PriorityController::class, 'mainWork'])->name('api.v1.priority.main-work');
+    Route::post('priority/main-work', [PriorityController::class, 'setMainWork'])->name('api.v1.priority.main-work.set');
+    Route::delete('priority/main-work', [PriorityController::class, 'clearMainWork'])->name('api.v1.priority.main-work.clear');
+    Route::get('priority/settings', [PriorityController::class, 'settings'])->name('api.v1.priority.settings');
+    Route::patch('priority/settings', [PriorityController::class, 'updateSettings'])->name('api.v1.priority.settings.update');
+    Route::get('priority/history', [PriorityController::class, 'history'])->name('api.v1.priority.history');
+
+    // Todo priority endpoints
+    Route::get('todos/{todo}/dependencies', [App\Http\Controllers\Api\TodoPriorityController::class, 'dependencies'])->name('api.v1.todos.dependencies');
+    Route::post('todos/{todo}/dependencies', [App\Http\Controllers\Api\TodoPriorityController::class, 'addDependency'])->name('api.v1.todos.dependencies.add');
+    Route::delete('todos/{todo}/dependencies/{dependency}', [App\Http\Controllers\Api\TodoPriorityController::class, 'removeDependency'])->name('api.v1.todos.dependencies.remove');
+    Route::patch('todos/{todo}/queue-state', [App\Http\Controllers\Api\TodoPriorityController::class, 'updateQueueState'])->name('api.v1.todos.queue-state');
+    Route::post('todos/{todo}/p0', [App\Http\Controllers\Api\TodoPriorityController::class, 'declareP0'])->name('api.v1.todos.p0.declare');
+    Route::delete('todos/{todo}/p0', [App\Http\Controllers\Api\TodoPriorityController::class, 'clearP0'])->name('api.v1.todos.p0.clear');
+
     Route::get('tags/search', [TagController::class, 'search'])->name('api.v1.tags.search');
     Route::apiResource('tags', TagController::class)->except(['create', 'edit'])->names([
         'index' => 'api.v1.tags.index', 'store' => 'api.v1.tags.store', 'show' => 'api.v1.tags.show',
@@ -176,6 +221,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
     Route::post('reports/generate', [App\Http\Controllers\Api\ReportController::class, 'generate'])->name('api.v1.reports.generate');
     Route::post('reports/deliver', [App\Http\Controllers\Api\ReportController::class, 'deliver'])->name('api.v1.reports.deliver');
     Route::get('reports', [App\Http\Controllers\Api\ReportController::class, 'index'])->name('api.v1.reports.index');
+    Route::get('reports/weekly-digest', [App\Http\Controllers\Api\ReportController::class, 'weeklyDigest'])->name('api.v1.reports.weekly-digest');
     Route::get('report-channels', [App\Http\Controllers\Api\ReportController::class, 'channels'])->name('api.v1.report-channels.index');
     Route::post('report-channels', [App\Http\Controllers\Api\ReportController::class, 'storeChannel'])->name('api.v1.report-channels.store');
     Route::delete('report-channels/{channel}', [App\Http\Controllers\Api\ReportController::class, 'destroyChannel'])->name('api.v1.report-channels.destroy');

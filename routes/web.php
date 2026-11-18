@@ -9,6 +9,7 @@ use App\Http\Controllers\HabitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
@@ -43,6 +44,13 @@ Route::get('/legal/privacy', function () {
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth'])
     ->name('dashboard');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/priority', [PriorityController::class, 'index'])->name('priority.index');
+    Route::post('/priority/plan/items', [PriorityController::class, 'commitItem'])->name('priority.plan.commit');
+    Route::delete('/priority/plan/items/{todo}', [PriorityController::class, 'uncommitItem'])->name('priority.plan.uncommit');
+    Route::get('/priority/explain/{todo}', [PriorityController::class, 'explain'])->name('priority.explain');
+});
 
 Route::middleware('auth')->group(function () {
     Route::middleware('coding-agent-owner:provision')->prefix('agent')->name('agent.')->group(function () {

@@ -8,6 +8,7 @@ use App\Models\ReportDelivery;
 use App\Models\UserReportChannel;
 use App\Services\ReportDeliveryService;
 use App\Services\ReportGenerator;
+use App\Services\WeeklyDigestService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -83,6 +84,27 @@ class ReportController
         $created->each(fn (ReportDelivery $row) => DeliverReport::dispatch($row->id));
 
         return (object) ['enqueued' => $created->count()];
+    }
+
+    /**
+     * Read-only weekly digest assembled from real user data.
+     *
+     * Deliberately separate from the legacy report generation and delivery
+     * pipeline: no rows are written and the fixed markdown shape is untouched.
+     */
+    public function weeklyDigest(Request $request, WeeklyDigestService $digest): JsonResponse
+    {
+        $payload = $request->validate([
+            'date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $date = CarbonImmutable::parse($payload['date'] ?? today('Asia/Jakarta'), 'Asia/Jakarta')->startOfDay();
+        [$start, $end] = ReportGenerator::periodFor(Report::KIND_WEEKLY, $date);
+
+        return response()->json([
+            'success' => true,
+            'data' => $digest->forUser(Auth::user(), $start, $end),
+        ]);
     }
 
     /**

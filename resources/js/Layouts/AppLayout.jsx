@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     LayoutDashboard,
+    LayoutList,
     CheckSquare,
     FileText,
     PenTool,
@@ -14,9 +15,11 @@ import {
     PanelLeftOpen,
     Monitor,
     Hash,
+    Network,
     BookOpen,
     ScrollText,
-    Bot
+    Bot,
+    MoreHorizontal
 } from 'lucide-react';
 
 import { ModeToggle } from '../Components/mode-toggle';
@@ -40,33 +43,28 @@ export default function AppLayout({
     const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
+    const [moreOpen, setMoreOpen] = React.useState(false);
 
     const isAuthenticated = Boolean(auth?.user);
     const brandHref = isAuthenticated ? '/dashboard' : '/';
 
-    // Sidebar navigation items
-    const sidebarNavigation = [
+    // Primary destinations are intentionally short; every other feature stays reachable under More.
+    const primaryNavigation = [
         {
             href: '/dashboard',
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            group: 'main',
-        },
-        {
-            href: '/todos/board',
-            label: 'Todo Board',
+            label: 'Today',
             icon: LayoutDashboard,
             group: 'main',
         },
         {
             href: '/todos',
-            label: 'My Todos',
+            label: 'Tasks',
             icon: CheckSquare,
             group: 'main',
         },
         {
             href: '/notes',
-            label: 'My Notes',
+            label: 'Notes',
             icon: FileText,
             group: 'main',
         },
@@ -77,57 +75,44 @@ export default function AppLayout({
             group: 'main',
         },
         {
-            href: '/draw',
-            label: 'Draw',
-            icon: PenTool,
-            group: 'main',
-        },
-        {
-            href: '/habits',
-            label: 'Habits',
-            icon: Target,
-            group: 'main',
-        },
-        {
             href: '/reports',
             label: 'Reports',
             icon: ScrollText,
             group: 'main',
         },
         {
-            href: '/manage/tags',
-            label: 'Tags',
-            icon: Hash,
+            href: '/profile',
+            label: 'Settings',
+            icon: Settings,
             group: 'main',
         },
     ];
 
+    const secondaryNavigation = [
+        { href: '/priority', label: 'Priority Queue', icon: LayoutList, group: 'main' },
+        { href: '/todos/board', label: 'Todo Board', icon: LayoutDashboard, group: 'main' },
+        { href: '/draw', label: 'Draw', icon: PenTool, group: 'main' },
+        { href: '/habits', label: 'Habits', icon: Target, group: 'main' },
+        { href: '/graph', label: 'Graph', icon: Network, group: 'main' },
+        { href: '/manage/tags', label: 'Tags', icon: Hash, group: 'main' },
+    ];
+
+    const developerNavigation = [];
     if (canUseCodingAgent) {
-        sidebarNavigation.push({
-            href: '/agent/jobs',
-            label: 'Coding Agent',
-            icon: Bot,
-            group: 'main',
-        });
+        developerNavigation.push({ href: '/agent/jobs', label: 'Coding Agent', icon: Bot, group: 'main' });
     }
 
     if (canProvisionCodingAgent && !canUseCodingAgent) {
-        sidebarNavigation.push({
-            href: '/agent/setup',
-            label: 'Coding Agent Setup',
-            icon: Bot,
-            group: 'main',
-        });
+        developerNavigation.push({ href: '/agent/setup', label: 'Coding Agent Setup', icon: Bot, group: 'main' });
     }
 
+    const adminNavigation = [];
     if (isSuperAdmin) {
-        sidebarNavigation.unshift({
-            href: '/admin/system-monitor',
-            label: 'System Monitor',
-            icon: Monitor,
-            group: 'admin',
-        });
+        adminNavigation.push({ href: '/admin/system-monitor', label: 'System Monitor', icon: Monitor, group: 'admin' });
     }
+
+    const moreNavigation = [...secondaryNavigation, ...developerNavigation, ...adminNavigation];
+    const allNavigation = [...primaryNavigation, ...moreNavigation];
 
     // Profile menu items
     const profileMenuItems = [
@@ -155,7 +140,7 @@ export default function AppLayout({
         if (url === href) return true;
         if (url.startsWith(href + '/')) {
             // Check if there is a more specific link in the sidebar that also matches the current URL
-            return !sidebarNavigation.some(item =>
+            return !allNavigation.some(item =>
                 item.href !== href &&
                 (url === item.href || url.startsWith(item.href + '/')) &&
                 item.href.length > href.length
@@ -267,7 +252,7 @@ export default function AppLayout({
                                 {/* Sidebar Navigation */}
                                 <nav className="flex-1 overflow-y-auto py-4 px-3">
                                     <div className="space-y-1">
-                                        {sidebarNavigation.map((item) => {
+                                        {primaryNavigation.map((item) => {
                                             const Icon = item.icon;
                                             const active = isActive(item.href);
 
@@ -289,6 +274,40 @@ export default function AppLayout({
                                                 </Link>
                                             );
                                         })}
+                                    </div>
+                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMoreOpen(!moreOpen)}
+                                            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white transition-all"
+                                            title={!sidebarOpen ? 'More' : undefined}
+                                            aria-expanded={moreOpen}
+                                        >
+                                            <MoreHorizontal className="w-5 h-5 flex-shrink-0" />
+                                            {sidebarOpen && <span className="font-semibold tracking-tight opacity-80">More</span>}
+                                        </button>
+                                        {moreOpen && (
+                                            <div className="space-y-1 mt-1">
+                                                {moreNavigation.map((item) => {
+                                                    const Icon = item.icon;
+                                                    const active = isActive(item.href);
+                                                    return (
+                                                        <Link
+                                                            key={item.href}
+                                                            href={item.href}
+                                                            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all ${active
+                                                                ? 'bg-gray-50/80 dark:bg-slate-800/40 text-gray-900 dark:text-white'
+                                                                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white'
+                                                                }`}
+                                                            title={!sidebarOpen ? item.label : undefined}
+                                                        >
+                                                            <Icon className="w-4 h-4 flex-shrink-0" />
+                                                            {sidebarOpen && <span className="text-sm">{item.label}</span>}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 </nav>
                             </aside>
@@ -316,7 +335,7 @@ export default function AppLayout({
 
                                         <nav className="py-4 px-3">
                                             <div className="space-y-1">
-                                                {sidebarNavigation.map((item) => {
+                                                {primaryNavigation.map((item) => {
                                                     const Icon = item.icon;
                                                     const active = isActive(item.href);
 
@@ -335,6 +354,39 @@ export default function AppLayout({
                                                         </Link>
                                                     );
                                                 })}
+                                            </div>
+                                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-800">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMoreOpen(!moreOpen)}
+                                                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                    aria-expanded={moreOpen}
+                                                >
+                                                    <MoreHorizontal className="w-5 h-5" />
+                                                    <span className="font-medium">More</span>
+                                                </button>
+                                                {moreOpen && (
+                                                    <div className="space-y-1 mt-1">
+                                                        {moreNavigation.map((item) => {
+                                                            const Icon = item.icon;
+                                                            const active = isActive(item.href);
+                                                            return (
+                                                                <Link
+                                                                    key={item.href}
+                                                                    href={item.href}
+                                                                    onClick={() => setMobileSidebarOpen(false)}
+                                                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${active
+                                                                        ? 'bg-gray-900 dark:bg-slate-700 text-white'
+                                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                                        }`}
+                                                                >
+                                                                    <Icon className="w-4 h-4" />
+                                                                    <span className="text-sm">{item.label}</span>
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
                                             </div>
                                         </nav>
                                     </aside>

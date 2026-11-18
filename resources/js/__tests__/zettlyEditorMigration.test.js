@@ -8,16 +8,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..', '..', '..');
 
-test('package.json uses zettly-editor 1.0.0 without direct tiptap dependencies', () => {
+const PERMITTED_TIPTAP_PEERS = new Map([
+    ['@tiptap/extension-code-block', '3.34.0'],
+    ['@tiptap/extensions', '3.34.0'],
+]);
+
+test('package.json uses zettly-editor 1.0.0 with only the narrow required Tiptap peer exceptions', () => {
     const pkg = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf8'));
     const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
     assert.match(allDeps['@programinglive/zettly-editor'] ?? '', /\^?1\.0\.0/);
-    for (const dep of Object.keys(allDeps)) {
+    for (const [dep, version] of Object.entries(allDeps)) {
+        if (!dep.startsWith('@tiptap/')) continue;
+
         assert.equal(
-            dep.startsWith('@tiptap/'),
-            false,
+            PERMITTED_TIPTAP_PEERS.has(dep),
+            true,
             `Unexpected direct TipTap dependency: ${dep}`
+        );
+        assert.equal(
+            version,
+            PERMITTED_TIPTAP_PEERS.get(dep),
+            `Permitted TipTap peer ${dep} must stay pinned to ${PERMITTED_TIPTAP_PEERS.get(dep)}`
         );
     }
 });

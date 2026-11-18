@@ -103,7 +103,69 @@ function ReportGroup({ group, open, onToggle }) {
     );
 }
 
-export default function ReportsIndex({ reports, channels, periodKind, kinds, page, has_more }) {
+const DIGEST_SECTIONS = [
+    ['completed_work', 'Completed Work'],
+    ['blocked_work', 'Blocked Work'],
+    ['important_decisions', 'Important Decisions'],
+    ['knowledge_captured', 'Knowledge Captured'],
+    ['next_actions', 'Next Actions'],
+];
+
+function WeeklyDigest({ digest }) {
+    if (!digest || !digest.sections) {
+        return (
+            <section className="rounded-lg border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <p className="text-sm text-gray-500 dark:text-slate-400">Weekly digest unavailable. Reload to retry.</p>
+            </section>
+        );
+    }
+
+    return (
+        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <header>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Weekly digest</h2>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                    {digest.period.start} – {digest.period.end} · sourced from workspace data
+                </p>
+            </header>
+
+            <div className="flex flex-wrap gap-2 text-[11px] text-gray-500 dark:text-slate-400">
+                {Object.entries(digest.metrics || {}).map(([key, metric]) => (
+                    <span key={key} className="rounded-full border border-gray-200 px-2 py-0.5 dark:border-slate-700">
+                        {key}: {metric.value === 'Not measured' ? 'Not measured' : metric.value}
+                    </span>
+                ))}
+            </div>
+
+            {DIGEST_SECTIONS.map(([key, label]) => {
+                const section = digest.sections[key] || {};
+                return (
+                    <div key={key} className="border-t border-gray-100 pt-2 dark:border-slate-800">
+                        <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">{label}</h3>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-500">Source: {section.provenance}</p>
+                        {section.status === 'no_data' ? (
+                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{section.message}</p>
+                        ) : (
+                            <ul className="mt-1 space-y-1">
+                                {(section.items || []).map((item) => (
+                                    <li key={`${key}-${item.id}`} className="text-xs text-gray-700 dark:text-gray-300">
+                                        <span className="font-medium">{item.title}</span>
+                                        {item.date ? <span className="ml-2 text-gray-400">{item.date}</span> : null}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        {section.truncated ? (
+                            <p className="mt-1 text-[11px] text-gray-500 dark:text-slate-400">{section.message}</p>
+                        ) : null}
+                    </div>
+                );
+            })}
+        </section>
+    );
+}
+
+export default function ReportsIndex({ reports, channels, periodKind, kinds, page, has_more, weeklyDigest }) {
     const activeKind = periodKind || 'all';
     const generateForm = useForm();
     const [expandedGroups, setExpandedGroups] = useState(null);
@@ -181,6 +243,8 @@ export default function ReportsIndex({ reports, channels, periodKind, kinds, pag
                         {generateForm.processing ? 'Generating…' : 'Generate now'}
                     </Button>
                 </header>
+
+                <WeeklyDigest digest={weeklyDigest} />
 
                 {Array.isArray(channels) && channels.length > 0 ? (
                     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
