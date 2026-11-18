@@ -45,9 +45,12 @@ Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth'])
     ->name('dashboard');
 
-Route::get('/priority', [PriorityController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('priority.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/priority', [PriorityController::class, 'index'])->name('priority.index');
+    Route::post('/priority/plan/items', [PriorityController::class, 'commitItem'])->name('priority.plan.commit');
+    Route::delete('/priority/plan/items/{todo}', [PriorityController::class, 'uncommitItem'])->name('priority.plan.uncommit');
+    Route::get('/priority/explain/{todo}', [PriorityController::class, 'explain'])->name('priority.explain');
+});
 
 Route::middleware('auth')->group(function () {
     Route::middleware('coding-agent-owner:provision')->prefix('agent')->name('agent.')->group(function () {

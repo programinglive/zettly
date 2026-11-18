@@ -73,11 +73,46 @@ class PriorityWebTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonStructure([
+            'date',
+            'capacity',
+            'main_work',
             'today',
             'next',
             'proposal',
             'triage',
             'warnings',
+            'counts',
         ]);
+    }
+
+    public function test_authenticated_user_can_commit_uncommit_and_explain_via_web_routes(): void
+    {
+        $todo = Todo::create([
+            'user_id' => $this->user->id,
+            'title' => 'Web Commit Task',
+            'type' => Todo::TYPE_TODO,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'is_completed' => false,
+            'archived' => false,
+        ]);
+
+        $this->actingAs($this->user)
+            ->post('/priority/plan/items', [
+                'todo_id' => $todo->id,
+                'reason' => 'Committing from Priority Queue UI',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($this->user)
+            ->getJson("/priority/explain/{$todo->id}")
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.todo.id', $todo->id);
+
+        $this->actingAs($this->user)
+            ->delete("/priority/plan/items/{$todo->id}", [
+                'reason' => 'Removing from today plan in UI',
+            ])
+            ->assertRedirect();
     }
 }
