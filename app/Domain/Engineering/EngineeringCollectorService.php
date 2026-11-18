@@ -130,6 +130,8 @@ class EngineeringCollectorService
                 }
             }
 
+            $this->collectLocalRuntimeEvidence($project);
+
             $project->github_status = 'ok';
             $project->last_sync_error = null;
             $project->last_synced_at = now();
@@ -285,5 +287,49 @@ class EngineeringCollectorService
         }
 
         return CarbonImmutable::parse($value);
+    }
+
+    private function collectLocalRuntimeEvidence(EngineeringProject $project): void
+    {
+        if ($project->slug !== 'zettly-app') {
+            return;
+        }
+
+        $markerPath = '/var/lib/deploy-tags/deployed/zettly';
+        if (@is_readable($markerPath)) {
+            $raw = @file_get_contents($markerPath);
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            if (is_array($decoded)) {
+                $project->deployed_tag = $decoded['tag'] ?? $project->deployed_tag;
+                $project->deployed_commit = $decoded['commit'] ?? $decoded['head'] ?? $project->deployed_commit;
+            }
+        } elseif ($project->deployed_tag === null && @is_readable(base_path('package.json'))) {
+            $pkg = json_decode((string) @file_get_contents(base_path('package.json')), true);
+            if (is_array($pkg) && ! empty($pkg['version'])) {
+                $project->deployed_tag = 'v' . ltrim((string) $pkg['version'], 'v');
+            }
+        }
+
+        if ($project->deployed_tag && $project->deployed_commit) {
+            $this->upsertEvent($project, [
+                'external_event_id' => 'deploy:' . $project->deployed_tag,
+                'stage' => EngineeringPipelineEvent::STAGE_DEPLOY,
+                'status' => EngineeringProject::STATUS_SUCCESS,
+                'commit_sha' => $project->deployed_commit,
+                'ref_name' => $project->deployed_tag,
+                'workflow_name' => 'Deployed ' . $project->deployed_tag,
+                'source_provenance' => 'runtime_marker',
+                'occurred_at' => now(),
+            ]);
+        }
+
+        if ($project->target_url) {
+            try {
+                $healthRes = Http::timeout(4)->get(rtrim($project->target_url, '/') . '/login');
+                $project->runtime_health_status = $healthRes->status() < 500 ? 'ok' : 'degraded';
+            } catch (\Throwable) {
+                $project->runtime_health_status = 'unknown';
+            }
+        }
     }
 }
