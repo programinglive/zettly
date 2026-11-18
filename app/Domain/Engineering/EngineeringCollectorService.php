@@ -44,6 +44,7 @@ class EngineeringCollectorService
         try {
             $releaseRes = Http::withHeaders($headers)
                 ->timeout(self::HTTP_TIMEOUT_SECONDS)
+                ->retry(2, 200, null, false)
                 ->get("https://api.github.com/repos/{$repo}/releases/latest");
 
             if ($this->isRateLimited($releaseRes->status())) {
@@ -54,6 +55,9 @@ class EngineeringCollectorService
                 $rel = $releaseRes->json();
                 $tag = $rel['tag_name'] ?? null;
                 $sha = $rel['target_commitish'] ?? null;
+                if ($tag && (! is_string($sha) || ! preg_match('/^[0-9a-f]{40}$/i', $sha))) {
+                    $sha = $this->resolveTagCommitSha($headers, $repo, (string) $tag, is_string($sha) ? $sha : null);
+                }
                 $project->latest_release_tag = $tag;
                 $project->latest_release_sha = $sha;
 
@@ -289,24 +293,54 @@ class EngineeringCollectorService
         return CarbonImmutable::parse($value);
     }
 
+    private function resolveTagCommitSha(array $headers, string $repo, string $tag, ?string $fallback): ?string
+    {
+        $refRes = Http::withHeaders($headers)
+            ->timeout(self::HTTP_TIMEOUT_SECONDS)
+            ->get("https://api.github.com/repos/{$repo}/git/ref/tags/{$tag}");
+
+        if (! $refRes->successful()) {
+            return $fallback;
+        }
+
+        $obj = $refRes->json('object');
+        if (! is_array($obj) || empty($obj['sha'])) {
+            return $fallback;
+        }
+
+        if (($obj['type'] ?? '') === 'tag') {
+            $tagRes = Http::withHeaders($headers)
+                ->timeout(self::HTTP_TIMEOUT_SECONDS)
+                ->get("https://api.github.com/repos/{$repo}/git/tags/{$obj['sha']}");
+            if ($tagRes->successful() && is_string($tagRes->json('object.sha'))) {
+                return $tagRes->json('object.sha');
+            }
+        }
+
+        return (string) $obj['sha'];
+    }
+
     private function collectLocalRuntimeEvidence(EngineeringProject $project): void
     {
         if ($project->slug !== 'zettly-app') {
             return;
         }
 
-        $markerPath = '/var/lib/deploy-tags/deployed/zettly';
-        if (@is_readable($markerPath)) {
-            $raw = @file_get_contents($markerPath);
-            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+        $markerPath = (string) config('services.deploy.marker_path', '/var/lib/deploy-tags/deployed/zettly');
+        if ($markerPath !== '' && @is_readable($markerPath)) {
+            $raw = trim((string) @file_get_contents($markerPath));
+            $decoded = $raw !== '' ? json_decode($raw, true) : null;
             if (is_array($decoded)) {
                 $project->deployed_tag = $decoded['tag'] ?? $project->deployed_tag;
                 $project->deployed_commit = $decoded['commit'] ?? $decoded['head'] ?? $project->deployed_commit;
-            }
-        } elseif ($project->deployed_tag === null && @is_readable(base_path('package.json'))) {
-            $pkg = json_decode((string) @file_get_contents(base_path('package.json')), true);
-            if (is_array($pkg) && ! empty($pkg['version'])) {
-                $project->deployed_tag = 'v' . ltrim((string) $pkg['version'], 'v');
+            } elseif ($raw !== '') {
+                $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $raw) ?: [])));
+                if (isset($lines[0]) && $lines[0] !== '') {
+                    $project->deployed_tag = $lines[0];
+                }
+                if (isset($lines[1]) && preg_match('/^[0-9a-f]{7,40}$/i', $lines[1])) {
+                    $project->deployed_commit = $lines[1];
+                }
             }
         }
 
