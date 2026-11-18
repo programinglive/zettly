@@ -9,6 +9,7 @@ use App\Http\Controllers\HabitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SystemStatusController;
 use App\Http\Controllers\TagController;
@@ -43,6 +44,10 @@ Route::get('/legal/privacy', function () {
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth'])
     ->name('dashboard');
+
+Route::get('/priority', [PriorityController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('priority.index');
 
 Route::middleware('auth')->group(function () {
     Route::middleware('coding-agent-owner:provision')->prefix('agent')->name('agent.')->group(function () {

@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     LayoutDashboard,
+    LayoutList,
     CheckSquare,
     FileText,
     PenTool,
@@ -88,6 +89,7 @@ export default function AppLayout({
     ];
 
     const secondaryNavigation = [
+        { href: '/priority', label: 'Priority Queue', icon: LayoutList, group: 'main' },
         { href: '/todos/board', label: 'Todo Board', icon: LayoutDashboard, group: 'main' },
         { href: '/draw', label: 'Draw', icon: PenTool, group: 'main' },
         { href: '/habits', label: 'Habits', icon: Target, group: 'main' },

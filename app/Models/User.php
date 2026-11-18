@@ -119,6 +119,20 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The priority policy for this account. A missing row means the engine is
+     * off for this user; defaults are read, never written implicitly.
+     */
+    public function userPrioritySetting()
+    {
+        return $this->hasOne(UserPrioritySetting::class);
+    }
+
+    public function mainWork()
+    {
+        return $this->hasOne(MainWork::class);
+    }
+
+    /**
      * Every focus that is running right now. Several may be open at once: a
      * single-focus limit is a human attention limit, not a system rule.
      */

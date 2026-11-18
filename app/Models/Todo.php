@@ -27,6 +27,14 @@ class Todo extends Model
 
     const IMPORTANCE_IMPORTANT = 'important';
 
+    const QUEUE_INBOX = 'inbox';
+
+    const QUEUE_BACKLOG = 'backlog';
+
+    const QUEUE_COMMITTED = 'committed';
+
+    const QUEUE_STATES = [self::QUEUE_INBOX, self::QUEUE_BACKLOG, self::QUEUE_COMMITTED];
+
     protected $fillable = [
         'user_id',
         'organization_id',
@@ -42,6 +50,14 @@ class Todo extends Model
         'kanban_order',
         'archived',
         'archived_at',
+        'queue_state',
+        'estimate_minutes',
+        'triaged_at',
+        'is_p0',
+        'p0_reason',
+        'p0_since',
+        'p0_expires_at',
+        'p0_by',
     ];
 
     protected $casts = [
@@ -51,6 +67,11 @@ class Todo extends Model
         'kanban_order' => 'integer',
         'archived' => 'boolean',
         'archived_at' => 'datetime',
+        'estimate_minutes' => 'integer',
+        'triaged_at' => 'datetime',
+        'is_p0' => 'boolean',
+        'p0_since' => 'datetime',
+        'p0_expires_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -165,6 +186,52 @@ class Todo extends Model
     public function statusEvents()
     {
         return $this->hasMany(TodoStatusEvent::class);
+    }
+
+    /**
+     * Edges where this todo waits for another one.
+     */
+    public function dependencies(): HasMany
+    {
+        return $this->hasMany(TodoDependency::class, 'todo_id');
+    }
+
+    /**
+     * Edges where other todos wait for this one.
+     */
+    public function dependents(): HasMany
+    {
+        return $this->hasMany(TodoDependency::class, 'depends_on_todo_id');
+    }
+
+    public function planItems(): HasMany
+    {
+        return $this->hasMany(DailyPlanItem::class);
+    }
+
+    /**
+     * A P0 declaration carries an expiry, so "production critical" cannot become
+     * a permanent label. An expired row reads as not-P0 without a timer job.
+     */
+    public function isP0Live(?\Carbon\CarbonInterface $now = null): bool
+    {
+        if (! $this->is_p0) {
+            return false;
+        }
+
+        if ($this->p0_expires_at === null) {
+            return true;
+        }
+
+        return $now ? $this->p0_expires_at->isAfter($now) : $this->p0_expires_at->isFuture();
+    }
+
+    public function isOfferable(): bool
+    {
+        return $this->type === self::TYPE_TODO
+            && ! $this->is_completed
+            && ! $this->archived
+            && $this->deleted_at === null;
     }
 
     /**
