@@ -20,6 +20,8 @@ class CodingAgentPromptTest extends TestCase
         config()->set('coding_agent.owner_email', $owner->email);
         config()->set('coding_agent.kenari_api_key', 'test-kenari-key');
         config()->set('coding_agent.kenari_base_url', 'https://kenari.id/v1');
+        config()->set('coding_agent.models', ['qwen3-5-397b-a17b:free', 'agnes-3-0-flash:free']);
+        config()->set('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
 
         $todo = Todo::factory()->asTask()->create([
             'user_id' => $owner->id,
@@ -65,7 +67,7 @@ class CodingAgentPromptTest extends TestCase
             'todo_id' => $todo->id,
             'instruction' => '',
             'repository' => 'zettly',
-            'model' => 'agnes-3-0-flash:free',
+            'model' => 'qwen3-5-397b-a17b:free',
         ]);
 
         $response->assertOk();
@@ -126,5 +128,20 @@ class CodingAgentPromptTest extends TestCase
 
         $response->assertStatus(503);
         $response->assertJsonStructure(['error']);
+    }
+
+    public function test_disallowed_or_paid_model_is_rejected_with_422(): void
+    {
+        [$owner, $todo] = $this->setupOwner();
+        Http::fake();
+
+        $response = $this->actingAs($owner)->postJson('/agent/generate-prompt', [
+            'todo_id' => $todo->id,
+            'model' => 'gpt-4o',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonStructure(['error']);
+        Http::assertNothingSent();
     }
 }
