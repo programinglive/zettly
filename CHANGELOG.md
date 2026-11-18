@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/programinglive/todo/compare/v1.1.0...v1.2.0) (2026-11-18)
+
+
+### 📝 Documentation
+
+* **plan:** record approved Work Memory consolidation design and P0 implementation plan 09e6bfe
+
+
+### ✨ Features
+
+* **api:** expose read-only weekly digest without changing report contracts f4523ce
+* **nav:** regroup primary sidebar into six destinations without removing routes d8aebf4
+* **priority:** implement artisan priority command, dynamic date handling, and parity tests 406889d
+* **priority:** implement domain priority engine, models, migrations, api, and tests f0a9ce4
+* **reports:** add headless weekly digest with provenance and not-measured metrics 46cba2f
+* **reports:** show sourced weekly digest above legacy reports d836069
+* **today:** add read-only aggregation props without changing dashboard contract 0d8e672
+* **today:** render sourced work memory blocks with honest empty states 80f8835
+
+
+### ✅ Tests
+
+* **reports:** pin bounded weekly digest response with large dataset 6014cca
+
+
+### 🐛 Bug Fixes
+
+* **deps:** align Tiptap lockfile versions to 3.34.0 for reproducible npm ci 55491bf
+* **deps:** declare Tiptap peer packages required by zettly-editor fc3097b
+* **deps:** regenerate package-lock.json with npm 10 for CI parity a88cc6c
+* **deps:** regenerate package-lock.json with strict peer resolution for CI b239264
+* **integration:** wire Today dashboard to PriorityQueueBuilder and fix TodoPriorityController import 5bc87eb
+* **priority:** remediate PR [#50](https://github.com/programinglive/todo/issues/50) release blockers ddb670e
+* **priority:** replace Vue page with React Inertia Index.jsx and validate Tiptap peer contract 1a9f7fe
+* **reports:** include overdue actions, match tags case-insensitively, bound digest payloads 99a2602
+
 ## [1.1.0](https://github.com/programinglive/todo/compare/v1.0.2...v1.1.0) (2026-11-15)
 
 
