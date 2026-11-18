@@ -8,7 +8,9 @@ use Tests\Concerns\SkipsViteWhenUnbuilt;
 
 spl_autoload_register(function ($class) {
     if (str_starts_with($class, 'App\\')) {
-        $path = dirname(__DIR__).'/app/'.str_replace('\\', '/', substr($class, 4)).'.php';
+        // Use the zettly directory as base, not the temp directory
+        $baseDir = dirname(__DIR__) . '/..';
+        $path = $baseDir . '/app/'.str_replace('\\', '/', substr($class, 4)).'.php';
         if (file_exists($path)) {
             require_once $path;
 

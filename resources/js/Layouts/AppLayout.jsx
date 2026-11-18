@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     LayoutDashboard,
+    LayoutList,
     CheckSquare,
     FileText,
     PenTool,
@@ -50,6 +51,12 @@ export default function AppLayout({
             href: '/dashboard',
             label: 'Dashboard',
             icon: LayoutDashboard,
+            group: 'main',
+        },
+        {
+            href: '/priority',
+            label: 'Priority Queue',
+            icon: LayoutList,
             group: 'main',
         },
         {
