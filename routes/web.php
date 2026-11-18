@@ -99,6 +99,8 @@ Route::middleware('auth')->group(function () {
     Route::post('todos/{todo}/link', [TodoController::class, 'link'])->name('todos.link');
     Route::post('todos/{todo}/unlink', [TodoController::class, 'unlink'])->name('todos.unlink');
     Route::post('todos/{todo}/archive', [TodoController::class, 'archive'])->name('todos.archive');
+    Route::post('todos/{todo}/ai-triage', [App\Http\Controllers\TodoAiTriageController::class, 'suggest'])->name('todos.ai-triage.suggest');
+    Route::post('todos/{todo}/ai-triage/apply', [App\Http\Controllers\TodoAiTriageController::class, 'apply'])->name('todos.ai-triage.apply');
     Route::get('/graph', [App\Http\Controllers\GraphController::class, 'index'])->name('graph.index');
     Route::patch('todos/{todo}/checklist/{checklistItem}/toggle', [TodoController::class, 'toggleChecklistItem'])->name('todos.checklist.toggle');
 

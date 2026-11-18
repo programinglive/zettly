@@ -11,6 +11,7 @@ import { Checkbox } from '../../Components/ui/checkbox';
 import TagSelector from '../../Components/TagSelector';
 import TodoSelector from '../../Components/TodoSelector';
 import PrioritySelector from '../../Components/PrioritySelector';
+import AiTodoTriageCard from '../../Components/AiTodoTriageCard';
 import FormFileUpload from '../../Components/FormFileUpload';
 import AttachmentList from '../../Components/AttachmentList';
 import ChecklistEditor from '../../Components/ChecklistEditor';
@@ -50,7 +51,7 @@ const normalizeDateForInput = (value) => {
     return '';
 };
 
-export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [] }) {
+export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLinkedTodos = [], aiTriageEnabled = false }) {
     // Build initial linked ids from both directions (supports camelCase and snake_case)
     const relatedList = (todo.relatedTodos || todo.related_todos || []);
     const linkedByList = (todo.linkedByTodos || todo.linked_by_todos || []);
@@ -360,6 +361,22 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
                                                     error={errors.priority || errors.importance}
                                                 />
                                             </div>
+
+                                            {aiTriageEnabled && (
+                                                <AiTodoTriageCard
+                                                    todoId={todo.id}
+                                                    initialUpdatedAt={todo.updated_at}
+                                                    availableTodos={todos}
+                                                    onApplied={(updated) => {
+                                                        setData((prev) => ({
+                                                            ...prev,
+                                                            priority: updated.priority ?? null,
+                                                            importance: updated.importance ?? null,
+                                                            due_date: updated.due_date ?? '',
+                                                        }));
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </div>

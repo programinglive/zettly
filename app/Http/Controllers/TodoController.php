@@ -485,6 +485,7 @@ class TodoController extends Controller
             'todos' => $todos,
             'linkedTodoIds' => $linkedTodoIds,
             'selectedLinkedTodos' => $selectedLinkedTodos,
+            'aiTriageEnabled' => (bool) config('coding_agent.ai_triage_enabled', false),
         ]);
     }
 

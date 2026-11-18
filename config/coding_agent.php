@@ -40,6 +40,7 @@ $defaultRepositories = [
 
 return [
     'enabled' => (bool) env('CODING_AGENT_ENABLED', false),
+    'ai_triage_enabled' => (bool) env('CODING_AGENT_AI_TRIAGE_ENABLED', false),
     'owner_user_id' => (int) env('CODING_AGENT_OWNER_USER_ID', 1),
     'owner_email' => env('CODING_AGENT_OWNER_EMAIL', 'mahatma.mahardhika@programinglive.com'),
     'repositories' => json_decode(env('CODING_AGENT_REPOSITORIES', ''), true) ?: $defaultRepositories,
