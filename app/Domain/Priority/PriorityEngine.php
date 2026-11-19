@@ -29,6 +29,8 @@ final class PriorityEngine
 
     public const LABEL_DUE = 'due';
 
+    public const LABEL_DAY_THEME = 'day_theme';
+
     public const LABEL_IMPORTANCE = 'importance';
 
     public const LABEL_UNBLOCKS = 'unblocks';
@@ -121,6 +123,15 @@ final class PriorityEngine
             $parts[] = $mainPart;
         }
 
+        $matchesDayTheme = $context->matchesDayTheme($todo);
+        $parts[] = [
+            'label' => self::LABEL_DAY_THEME,
+            'value' => ($context->dayAllocation === null || $matchesDayTheme) ? 0 : 1,
+            'reason' => (! $isP0 && $matchesDayTheme && $context->dayAllocation !== null)
+                ? 'Matches '.$context->dayThemeLabel()
+                : null,
+        ];
+
         $parts[] = self::importancePart($todo);
 
         $unblocks = $context->unblockCountFor($todo);
@@ -155,6 +166,7 @@ final class PriorityEngine
             isP0: $isP0,
             isMainWork: $isMain,
             blockedBy: $context->blockingIdsFor($todo),
+            matchesDayTheme: $matchesDayTheme,
         );
     }
 
@@ -231,6 +243,7 @@ final class PriorityEngine
             self::LABEL_P0 => 'Production critical',
             self::LABEL_MAIN_WORK => 'Main work',
             self::LABEL_DUE => 'Due date',
+            self::LABEL_DAY_THEME => 'Day focus theme',
             self::LABEL_IMPORTANCE => 'Importance',
             self::LABEL_UNBLOCKS => 'Unblocked work',
             self::LABEL_AGE => 'Age',

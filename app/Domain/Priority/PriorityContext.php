@@ -19,6 +19,7 @@ final class PriorityContext
      * @param  array<int, array<int, int>>  $blockedIds  todo id => open blocking ids
      * @param  array<int, int>  $unblockCounts  todo id => open tasks waiting on it
      * @param  array<int, int>  $committedIds  todo ids already in today's plan
+     * @param  array{day: string, label: string, theme: string, tags: array<int, string>, color: string, description: string}|null  $dayAllocation
      */
     public function __construct(
         public readonly CarbonImmutable $today,
@@ -28,6 +29,7 @@ final class PriorityContext
         public readonly array $blockedIds = [],
         public readonly array $unblockCounts = [],
         public readonly array $committedIds = [],
+        public readonly ?array $dayAllocation = null,
     ) {}
 
     public function hasMainWork(): bool
@@ -73,5 +75,23 @@ final class PriorityContext
     public function mainWorkLabel(): ?string
     {
         return $this->mainWorkLabel;
+    }
+
+    public function matchesDayTheme(Todo $todo): bool
+    {
+        if ($this->dayAllocation === null) {
+            return false;
+        }
+
+        return (new WeeklyFocusAllocationService)->matchesTodo($todo, $this->dayAllocation, $this->today);
+    }
+
+    public function dayThemeLabel(): ?string
+    {
+        if ($this->dayAllocation === null) {
+            return null;
+        }
+
+        return trim(($this->dayAllocation['label'] ?? '').' theme: '.($this->dayAllocation['theme'] ?? ''));
     }
 }

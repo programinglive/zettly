@@ -150,12 +150,12 @@ final class WeeklyFocusAllocationService
             }
         }
 
-        $haystack = strtolower($todo->title . ' ' . strip_tags((string) ($todo->description ?? '')));
+        $haystack = strtolower($todo->title.' '.strip_tags((string) ($todo->description ?? '')));
         foreach ($targetTags as $targetTag) {
             $keyword = str_contains($targetTag, ':')
                 ? substr($targetTag, strpos($targetTag, ':') + 1)
                 : $targetTag;
-            if ($keyword !== '' && str_contains($haystack, $keyword)) {
+            if ($keyword !== '' && preg_match('/\b'.preg_quote($keyword, '/').'\b/', $haystack) === 1) {
                 return true;
             }
         }
@@ -166,7 +166,7 @@ final class WeeklyFocusAllocationService
         );
 
         foreach ($themeWords as $word) {
-            if (str_contains($haystack, $word)) {
+            if (preg_match('/\b'.preg_quote($word, '/').'\b/', $haystack) === 1) {
                 return true;
             }
         }

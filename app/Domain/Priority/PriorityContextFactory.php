@@ -34,6 +34,7 @@ final class PriorityContextFactory
             blockedIds: $graph->blockedIds(),
             unblockCounts: $graph->unblockCounts(),
             committedIds: $this->committedIds($today),
+            dayAllocation: (new WeeklyFocusAllocationService)->forDate($this->userId, $today),
         );
     }
 

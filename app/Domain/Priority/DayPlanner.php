@@ -71,6 +71,7 @@ final class DayPlanner
         }
 
         $context = PriorityContextFactory::forUser($this->userId, $this->settings, $this->today);
+        $todo->loadMissing('tags:id,name,color');
         $blocking = $context->blockingIdsFor($todo);
         if ($blocking !== []) {
             throw PriorityException::blocked($blocking);
@@ -102,7 +103,10 @@ final class DayPlanner
             }
         }
 
-        return DB::transaction(function () use ($plan, $todo, $reason, $source, $override, $existing) {
+        $matchesDayTheme = $context->matchesDayTheme($todo);
+        $dayAllocationTheme = $context->dayAllocation['theme'] ?? null;
+
+        return DB::transaction(function () use ($plan, $todo, $reason, $source, $override, $existing, $matchesDayTheme, $dayAllocationTheme) {
             $item = $existing ?? $plan->items()->create([
                 'todo_id' => $todo->id,
                 'position' => (int) $plan->items()->max('position') + 1,
@@ -128,6 +132,8 @@ final class DayPlanner
                     'state' => $item->state,
                     'override' => $override,
                     'live_p0' => $todo->isP0Live($this->today),
+                    'day_allocation_theme' => $dayAllocationTheme,
+                    'matches_day_theme' => $matchesDayTheme,
                 ],
             );
 
