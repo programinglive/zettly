@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.5.2 | 2026-11-19 | **priority:** integrate weekly focus day-theme allocation into PriorityEngine, PriorityQueueBuilder, and DayPlanner (8e55bb6) |
 | 1.5.1 | 2026-11-18 | **api:** support tag name in byTag, make event append idempotent, and fix auto-release cli flag (90c6e96) |
 | 1.5.0 | 2026-11-18 | **calendar:** add weekly focus allocation calendar, CLI, and compact Notion UI (4cde6a3) |
 | 1.4.5 | 2026-11-18 | **security:** resolve all npm audit vulnerabilities in graph-service (e8b5d3c) |
@@ -126,6 +127,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.5.2
+
+Released on **2026-11-19**.
+
+- **priority:** integrate weekly focus day-theme allocation into PriorityEngine, PriorityQueueBuilder, and DayPlanner (8e55bb6)
+- **api:** support tag name in byTag, make event append idempotent, and fix auto-release cli flag (90c6e96)
 
 ## 1.5.1
 
