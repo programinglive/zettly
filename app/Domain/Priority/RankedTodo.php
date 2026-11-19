@@ -25,6 +25,7 @@ final class RankedTodo
         public readonly bool $isP0 = false,
         public readonly bool $isMainWork = false,
         public readonly array $blockedBy = [],
+        public readonly bool $matchesDayTheme = false,
     ) {
         $this->reasons = array_values(array_filter(
             array_map(fn (array $part) => $part['reason'], $parts),

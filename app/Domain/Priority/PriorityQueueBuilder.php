@@ -6,7 +6,6 @@ use App\Models\DailyPlan;
 use App\Models\Todo;
 use App\Models\UserPrioritySetting;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 
 /**
  * Assembles the one queue every client renders.
@@ -39,7 +38,7 @@ final class PriorityQueueBuilder
             ->where('type', Todo::TYPE_TODO)
             ->where('is_completed', false)
             ->where('archived', false)
-            ->with('focus:id,title')
+            ->with(['focus:id,title', 'tags:id,name,color'])
             ->get();
 
         $ready = [];
@@ -107,6 +106,7 @@ final class PriorityQueueBuilder
 
         return [
             'date' => $this->today->toDateString(),
+            'day_allocation' => $context->dayAllocation,
             'settings' => [
                 'wip_limit' => $this->settings->wip_limit,
                 'daily_capacity_minutes' => $this->settings->daily_capacity_minutes,
@@ -167,6 +167,7 @@ final class PriorityQueueBuilder
             'queue_state' => $todo->queue_state,
             'is_p0' => $item->isP0,
             'is_main_work' => $item->isMainWork,
+            'matches_day_theme' => $item->matchesDayTheme,
             'blocked_by' => $item->blockedBy,
             'reasons' => $item->reasons,
             'key' => $item->key(),
