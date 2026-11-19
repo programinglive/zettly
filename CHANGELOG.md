@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.3](https://github.com/programinglive/todo/compare/v1.5.2...v1.5.3) (2026-11-19)
+
+
+### 🐛 Bug Fixes
+
+* **security:** patch Dependabot alerts [#300](https://github.com/programinglive/todo/issues/300), [#299](https://github.com/programinglive/todo/issues/299), [#297](https://github.com/programinglive/todo/issues/297) and composer advisories ([#64](https://github.com/programinglive/todo/issues/64)) ([41ce6ca](https://github.com/programinglive/todo/commit/41ce6caeb65815e0de3c1a12e6f0d95b557a250c))
+
 ### [1.5.2](https://github.com/programinglive/todo/compare/v1.5.1...v1.5.2) (2026-11-19)
 
 
