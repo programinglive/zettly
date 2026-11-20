@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/programinglive/todo/compare/v1.5.3...v1.5.4) (2026-11-20)
+
+
+### 🐛 Bug Fixes
+
+* **build:** make npm run build atomic to prevent missing Vite manifest during deploy ([#65](https://github.com/programinglive/todo/issues/65)) ([ece16e9](https://github.com/programinglive/todo/commit/ece16e9e7fd83cfccecc1836708373d950e86ee6))
+
 ### [1.5.3](https://github.com/programinglive/todo/compare/v1.5.2...v1.5.3) (2026-11-19)
 
 
