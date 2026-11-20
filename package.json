@@ -10,8 +10,9 @@
         "npm": ">=9"
     },
     "scripts": {
-        "build:atomic": "bash scripts/build-assets.sh",
-        "build": "vite build",
+        "build:atomic": "node scripts/build-assets.mjs",
+        "build": "node scripts/build-assets.mjs",
+        "build:raw": "vite build",
         "dev": "vite",
         "release": "commiter release",
         "release:patch": "commiter release patch",
