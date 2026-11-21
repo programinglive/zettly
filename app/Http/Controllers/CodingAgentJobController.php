@@ -193,6 +193,44 @@ class CodingAgentJobController extends Controller
         ]);
     }
 
+    public function monitor(Request $request, CodingAgentJob $job): Response
+    {
+        $job = $this->ownedJob($request, $job)->load('todo:id,title');
+
+        return Inertia::render('Agent/Monitor', [
+            'job' => [
+                'id' => $job->id,
+                'todo_id' => $job->todo_id,
+                'todo_title' => $job->todo?->title,
+                'repository' => $job->repository,
+                'instruction' => $job->instruction,
+                'model' => $job->model,
+                'status' => $job->status,
+                'branch' => $job->branch,
+                'commit_sha' => $job->commit_sha,
+                'pr_url' => $job->pr_url,
+                'test_summary' => $job->test_summary,
+                'tests_passed' => $job->tests_passed,
+                'target_environment' => $job->target_environment,
+                'last_heartbeat_at' => $job->last_heartbeat_at?->toIso8601String(),
+                'created_at' => $job->created_at?->toIso8601String(),
+                'updated_at' => $job->updated_at?->toIso8601String(),
+                'approved' => $job->hasCurrentApproval(),
+            ],
+            'events' => $job->events()
+                ->latest('occurred_at')
+                ->limit(50)
+                ->get(['id', 'event_key', 'kind', 'detail', 'occurred_at'])
+                ->map(fn ($e) => [
+                    'id' => $e->id,
+                    'event_key' => $e->event_key,
+                    'kind' => $e->kind,
+                    'detail' => $e->detail,
+                    'occurred_at' => $e->occurred_at?->toIso8601String(),
+                ])->values()->all(),
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
