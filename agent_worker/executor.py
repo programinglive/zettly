@@ -6,7 +6,11 @@ import re
 import shutil
 import signal
 import subprocess
+import urllib.error
+import urllib.request
 from pathlib import Path
+
+VALID_EXECUTION_MODES = ('code_write', 'read_only', 'review')
 
 
 
@@ -17,6 +21,7 @@ SENSITIVE_PATH = re.compile(r'(^|/)(\.env(?:\..*)?|\.ssh|\.aws|\.config|auth\.js
 MODEL_PROVIDER = 'kenari'
 DEFAULT_MODEL = 'qwen3-5-397b-a17b:free'
 FREE_MODELS = (
+    'hy4-flash:free',
     'qwen3-5-397b-a17b:free',
     'north-mini-code:free',
     'qwen3-8-27b:free',
@@ -88,14 +93,28 @@ class JobExecutor:
         if any(SENSITIVE_PATH.search(path.replace('\\', '/')) for path in paths):
             raise ValueError('A sensitive file was staged')
 
-    def command_environment(self, allow_github=False, allow_model=False, cwd=None):
+    def mode_for(self, job):
+        mode = job.get('mode') or 'code_write'
+        if mode not in VALID_EXECUTION_MODES:
+            raise ValueError(f'Unsupported execution mode: {mode}')
+        return mode
+
+    def command_environment(self, allow_github=False, allow_model=False, cwd=None, allow_model_api=False):
         environment = os.environ.copy()
         for name in WORKER_CREDENTIALS:
             environment.pop(name, None)
         if allow_github and os.environ.get('GH_TOKEN'):
             environment['GH_TOKEN'] = os.environ['GH_TOKEN']
-        if allow_model and os.environ.get(MODEL_CREDENTIAL):
+        if (allow_model or allow_model_api) and os.environ.get(MODEL_CREDENTIAL):
             environment[MODEL_CREDENTIAL] = os.environ[MODEL_CREDENTIAL]
+        if allow_model_api:
+            model_key = (
+                os.environ.get('CODEX_API_KEY')
+                or os.environ.get('KENARI_API_KEY')
+                or os.environ.get('OPENAI_API_KEY')
+            )
+            if model_key:
+                environment['CODEX_API_KEY'] = model_key
         if cwd is not None:
             # Popen(cwd=...) does not update PWD, and OpenCode resolves its
             # project directory from PWD. Without this the agent edits the
@@ -250,11 +269,82 @@ class JobExecutor:
             raise RuntimeError('Repository cache is not a Git checkout')
         self.prune_worktrees(cache, active_job_id=job['id'])
         if worktree.exists():
-            raise RuntimeError('Job worktree already exists; inspect it before retrying')
+            try:
+                self._run(['git', '-C', str(cache), 'worktree', 'remove', '--force', str(worktree)], cwd=self.root)
+            except RuntimeError:
+                shutil.rmtree(worktree, ignore_errors=True)
+            try:
+                self._run(['git', '-C', str(cache), 'worktree', 'prune'], cwd=self.root)
+            except RuntimeError:
+                pass
+        try:
+            self._run(['git', '-C', str(cache), 'branch', '-D', branch], cwd=self.root)
+        except RuntimeError:
+            pass
         self._run_with_heartbeat(['git', '-C', str(cache), 'fetch', 'origin', config['base']], self.root, checkpoint, env=self.command_environment(True))
         checkpoint()
         self._run_with_heartbeat(['git', '-C', str(cache), 'worktree', 'add', '-b', branch, str(worktree), f"origin/{config['base']}"], self.root, checkpoint)
         return worktree, branch
+
+    @staticmethod
+    def verify_provider(base_url=None, api_key=None, model=None, timeout=15):
+        """Verify an OpenAI-compatible provider (e.g. Kenari) using env vars without printing secrets."""
+        resolved_base = (
+            base_url
+            or os.environ.get('CODING_AGENT_KENARI_BASE_URL')
+            or os.environ.get('KENARI_BASE_URL')
+            or 'https://kenari.id/v1'
+        ).rstrip('/')
+        resolved_key = (
+            api_key
+            or os.environ.get('CODING_AGENT_KENARI_API_KEY')
+            or os.environ.get('KENARI_API_KEY')
+            or os.environ.get('CODEX_API_KEY')
+            or os.environ.get('OPENAI_API_KEY')
+        )
+        resolved_model = model or os.environ.get('AGENT_CODEX_MODEL', 'agnes-3-0-flash:free')
+        if not resolved_key:
+            raise ValueError('Provider API key is required (set KENARI_API_KEY or CODEX_API_KEY)')
+
+        payload = json.dumps({
+            'model': resolved_model,
+            'messages': [{'role': 'user', 'content': 'ping'}],
+            'max_tokens': 1,
+        }).encode('utf-8')
+        request = urllib.request.Request(
+            f'{resolved_base}/chat/completions',
+            data=payload,
+            method='POST',
+            headers={
+                'Authorization': f'Bearer {resolved_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return {
+                    'ok': 200 <= response.status < 300,
+                    'status': response.status,
+                    'base_url': resolved_base,
+                    'model': resolved_model,
+                }
+        except urllib.error.HTTPError as error:
+            return {
+                'ok': False,
+                'status': error.code,
+                'base_url': resolved_base,
+                'model': resolved_model,
+                'error': f'HTTP {error.code}',
+            }
+        except urllib.error.URLError as error:
+            return {
+                'ok': False,
+                'status': None,
+                'base_url': resolved_base,
+                'model': resolved_model,
+                'error': str(error.reason),
+            }
 
     def preflight(self):
         if not os.environ.get('GH_TOKEN'):
@@ -274,7 +364,11 @@ class JobExecutor:
 
         config = self.repository_for(job)
         branch = self.branch_for(job)
-        emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}`...')
+        mode = self.mode_for(job)
+        is_read_only = mode in ('read_only', 'review')
+        sandbox_mode = 'read-only' if is_read_only else 'workspace-write'
+
+        emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}` (mode: `{mode}`)...')
         worktree, branch = self._worktree(job, config, checkpoint)
         setup_environment = self.command_environment(cwd=worktree)
         for command in config.get('setup', []):
@@ -290,7 +384,7 @@ class JobExecutor:
         model = self.model_reference(job)
         agent_log = self.root / 'jobs' / f'{job["id"]}-agent.log'
 
-        emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (model: `{model}`)...')
+        emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (model: `{model}`, mode: `{mode}`)...')
         for index, prompt in enumerate(turns):
             argv = ['opencode', 'run', '--standalone', '--auto', '--model', model]
             if index:
@@ -306,6 +400,18 @@ class JobExecutor:
                 ['opencode', 'run', '--standalone', '--auto', '--continue', '--model', model, '\n'.join(pending)],
                 worktree, checkpoint, env=agent_environment, log_path=agent_log,
             )
+
+        if is_read_only:
+            emit('worker_phase', f'Read-only/review job #{job["id"]} completed without code mutations.')
+            return {
+                'branch': branch,
+                'commit_sha': None,
+                'pr_url': None,
+                'test_summary': f'{mode} mode completed (no code changes expected)',
+                'tests_passed': True,
+                'target_environment': self.target_environment,
+                'mode': mode,
+            }
 
         summary = []
         emit('worker_phase', 'OpenCode agent finished code changes. Executing automated test suite...')
@@ -324,10 +430,12 @@ class JobExecutor:
         if not staged:
             raise RuntimeError('Agent produced no code changes')
         self.check_staged_paths(staged)
+        author_name = os.environ.get('AGENT_GIT_AUTHOR_NAME', 'Zettly Coding Agent')
+        author_email = os.environ.get('AGENT_GIT_AUTHOR_EMAIL', 'technology@edmeeclinic.com')
         self._run([
             'git', '-c', 'core.hooksPath=/dev/null',
-            '-c', 'user.name=Zettly Coding Agent',
-            '-c', 'user.email=technology@edmeeclinic.com',
+            '-c', f'user.name={author_name}',
+            '-c', f'user.email={author_email}',
             'commit', '-m', f'feat(agent): complete coding job {job["id"]}',
         ], cwd=worktree)
         sha = self._run(['git', 'rev-parse', 'HEAD'], cwd=worktree, capture=True)
@@ -353,4 +461,14 @@ class JobExecutor:
             'test_summary': '; '.join(summary),
             'tests_passed': True,
             'target_environment': self.target_environment,
+            'mode': mode,
         }
+
+
+if __name__ == '__main__':
+    import sys
+
+    if '--verify-provider' in sys.argv:
+        result = JobExecutor.verify_provider()
+        print(json.dumps(result))
+        sys.exit(0 if result.get('ok') else 1)

@@ -1,6 +1,5 @@
-const CACHE_NAME = 'zettly-cache-v1';
+const CACHE_NAME = 'zettly-cache-v2';
 const STATIC_ASSETS = [
-    '/',
     '/site.webmanifest',
     '/favicon.ico',
     '/favicon-16x16.png',
@@ -43,18 +42,39 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
 
     if (
+        request.mode === 'navigate' ||
+        request.headers.get('X-Inertia') === 'true' ||
         url.pathname.startsWith('/api') ||
         url.pathname.startsWith('/sanctum') ||
         url.pathname.startsWith('/broadcasting') ||
+        url.pathname.startsWith('/login') ||
+        url.pathname.startsWith('/logout') ||
+        url.pathname.startsWith('/register') ||
+        url.pathname.startsWith('/agent') ||
         url.origin !== self.location.origin
     ) {
+        return;
+    }
+
+    const isStaticAsset =
+        url.pathname.startsWith('/build/') ||
+        STATIC_ASSETS.includes(url.pathname);
+
+    if (!isStaticAsset) {
         return;
     }
 
     event.respondWith(
         fetch(request)
             .then((response) => {
-                if (response && response.status === 200) {
+                const cacheControl = (response.headers.get('Cache-Control') || '').toLowerCase();
+                if (
+                    response &&
+                    response.status === 200 &&
+                    !cacheControl.includes('no-store') &&
+                    !cacheControl.includes('no-cache') &&
+                    !cacheControl.includes('private')
+                ) {
                     const responseClone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(request, responseClone).catch(() => {});
@@ -66,12 +86,6 @@ self.addEventListener('fetch', (event) => {
                 const cached = await caches.match(request);
                 if (cached) {
                     return cached;
-                }
-                if (request.mode === 'navigate') {
-                    const rootCached = await caches.match('/');
-                    if (rootCached) {
-                        return rootCached;
-                    }
                 }
                 throw new Error('Offline and not cached');
             })

@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('coding-agent-owner')->prefix('agent')->name('agent.')->group(function () {
         Route::get('jobs', [\App\Http\Controllers\CodingAgentJobController::class, 'index'])->name('jobs.index');
         Route::get('jobs/{job}', [\App\Http\Controllers\CodingAgentJobController::class, 'show'])->name('jobs.show');
+        Route::get('jobs/{job}/monitor', [\App\Http\Controllers\CodingAgentJobController::class, 'monitor'])->name('jobs.monitor');
         Route::post('jobs', [\App\Http\Controllers\CodingAgentJobController::class, 'store'])->name('jobs.store');
         Route::post('jobs/{job}/instructions', [\App\Http\Controllers\CodingAgentJobController::class, 'instruction'])->name('jobs.instructions');
         Route::post('jobs/{job}/pause', [\App\Http\Controllers\CodingAgentJobController::class, 'pause'])->name('jobs.pause');

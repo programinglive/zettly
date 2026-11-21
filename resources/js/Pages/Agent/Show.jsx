@@ -66,9 +66,17 @@ export default function Show({ job, events }) {
                 <Link href="/agent/jobs" className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400">
                     <span aria-hidden="true">←</span> Back to all jobs
                 </Link>
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                    Job #{job.id}
-                </span>
+                <div className="flex items-center gap-2">
+                    <Link
+                        href={`/agent/jobs/${job.id}/monitor`}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+                    >
+                        <span>📡</span> Live Monitor
+                    </Link>
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                        Job #{job.id}
+                    </span>
+                </div>
             </div>
 
             <header className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">

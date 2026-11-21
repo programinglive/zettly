@@ -423,10 +423,10 @@ export default function Index({
 
                 {filteredJobs.length === 0 && <p className="text-sm text-gray-500">No jobs in this pipeline stage.</p>}
                 {filteredJobs.map((job) => (
-                    <Link key={job.id} href={`/agent/jobs/${job.id}`} className="block rounded-2xl border bg-white p-4 shadow-sm transition hover:border-blue-300 dark:border-gray-800 dark:bg-gray-900">
+                    <div key={job.id} className="rounded-2xl border bg-white p-4 shadow-sm transition hover:border-blue-300 dark:border-gray-800 dark:bg-gray-900">
                         <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <div className="font-medium text-gray-900 dark:text-white">
+                            <Link href={`/agent/jobs/${job.id}`} className="flex-1">
+                                <div className="font-medium text-gray-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-400">
                                     <span className="mr-2 font-mono text-xs text-gray-400">#{job.id}</span>
                                     {job.todo_title || `Todo #${job.todo_id}`}
                                 </div>
@@ -435,12 +435,20 @@ export default function Index({
                                     {job.branch && <span>· branch <code className="font-mono">{job.branch}</code></span>}
                                     {job.last_heartbeat_at && <span>· {heartbeatLabel(job.last_heartbeat_at)}</span>}
                                 </div>
+                            </Link>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href={`/agent/jobs/${job.id}/monitor`}
+                                    className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                                >
+                                    <span>📡</span> Monitor
+                                </Link>
+                                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">
+                                    {statusLabel(job.status)}
+                                </span>
                             </div>
-                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">
-                                {statusLabel(job.status)}
-                            </span>
                         </div>
-                    </Link>
+                    </div>
                 ))}
                 {jobs.links?.length > 3 && <nav className="flex flex-wrap gap-2" aria-label="Job pages">{jobs.links.map((link, index) => link.url ? <Link key={index} href={link.url} className="rounded-lg border px-3 py-2 text-sm">{link.label.replace(/<[^>]*>/g, '').replace('&laquo;', '‹').replace('&raquo;', '›')}</Link> : null)}</nav>}
             </section>
