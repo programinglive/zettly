@@ -11,6 +11,10 @@ class CodingAgentRoleRegistry
     public const STATUS_BLOCKED = 'BLOCKED';
     public const STATUS_NOT_IMPLEMENTED = 'NOT_IMPLEMENTED';
 
+    public const PROFILE_FAST = 'FAST';
+    public const PROFILE_STANDARD = 'STANDARD';
+    public const PROFILE_FULL = 'FULL';
+
     /**
      * Return all 12 logical AI Engineering Organization role profiles.
      *
@@ -27,32 +31,68 @@ class CodingAgentRoleRegistry
     }
 
     /**
-     * Return the 6 Minimum Viable Team (MVT) ordered pipeline roles.
+     * Return the 6 Minimum Viable Team (MVT / FULL profile) ordered pipeline roles.
      *
      * @return array<int, string>
      */
     public static function mvtPipelineOrder(): array
     {
-        return [
-            'ai_cto',
-            'software_architect',
-            'developer',
-            'qa_engineer',
-            'security_code_reviewer',
-            'release_manager',
-        ];
+        return self::rolesForRoutingProfile(self::PROFILE_FULL);
     }
 
     /**
-     * Find a single role profile by slug.
+     * Return the ordered role pipeline for a given Adaptive Role Routing profile.
+     *
+     * Profile 1 — FAST (Low Risk): Developer -> Release Manager
+     * Profile 2 — STANDARD (Normal Feature / Bug Fix): Developer -> QA Engineer -> Security & Code Reviewer -> Release Manager
+     * Profile 3 — FULL (Medium / High Risk): AI CTO -> Software Architect -> Developer -> QA Engineer -> Security & Code Reviewer -> Release Manager
+     *
+     * @return array<int, string>
+     */
+    public static function rolesForRoutingProfile(string $profile): array
+    {
+        $normalized = strtoupper(trim($profile));
+
+        return match ($normalized) {
+            self::PROFILE_FAST => [
+                'developer',
+                'release_manager',
+            ],
+            self::PROFILE_STANDARD => [
+                'developer',
+                'qa_engineer',
+                'security_code_reviewer',
+                'release_manager',
+            ],
+            self::PROFILE_FULL => [
+                'ai_cto',
+                'software_architect',
+                'developer',
+                'qa_engineer',
+                'security_code_reviewer',
+                'release_manager',
+            ],
+            default => throw new InvalidArgumentException("Unsupported role routing profile: {$profile}"),
+        };
+    }
+
+    /**
+     * Find a single role profile by slug (resolving legacy/specialized aliases).
      *
      * @return array<string, mixed>|null
      */
     public static function find(string $role): ?array
     {
         $all = self::all();
+        if (isset($all[$role])) {
+            return $all[$role];
+        }
 
-        return $all[$role] ?? null;
+        if ($role === 'independent_code_reviewer') {
+            return $all['security_code_reviewer'] ?? null;
+        }
+
+        return null;
     }
 
     /**
@@ -521,47 +561,6 @@ class CodingAgentRoleRegistry
                 'contract' => [
                     'required_inputs' => ['commit_sha', 'changed_files', 'diff_text', 'qa_verdict'],
                     'required_outputs' => ['security_verdict', 'review_verdict', 'findings'],
-                ],
-                'handoff' => [
-                    'next_role' => 'release_manager',
-                ],
-            ],
-
-            'independent_code_reviewer' => [
-                'role' => 'independent_code_reviewer',
-                'title' => 'Independent Code Reviewer',
-                'description' => 'Evaluate maintainability, test coverage, and architectural conformance of pull requests.',
-                'mvt_member' => false,
-                'readiness_status' => self::STATUS_READY,
-                'execution_mode' => 'review',
-                'model_policy' => [
-                    'tier' => 'review',
-                    'provider' => 'kenari',
-                    'default_model' => $defaultModel,
-                    'fallback' => 'qwen3-5-397b-a17b:free',
-                ],
-                'permissions' => [
-                    'repository_read' => true,
-                    'repository_write' => false,
-                    'create_branch' => false,
-                    'create_pull_request' => false,
-                    'merge_pull_request' => false,
-                    'production_deploy' => false,
-                ],
-                'execution' => [
-                    'isolated_workspace' => 'required',
-                    'concurrency_limit' => 1,
-                    'max_runtime_seconds' => 600,
-                ],
-                'quality_requirements' => [
-                    'tests_required' => true,
-                    'lint_required' => true,
-                    'typecheck_required' => 'when_applicable',
-                    'independent_review' => 'required',
-                ],
-                'contract' => [
-                    'required_inputs' => ['commit_sha', 'changed_files', 'diff_text'],
-                    'required_outputs' => ['review_verdict', 'findings'],
                 ],
                 'handoff' => [
                     'next_role' => 'release_manager',

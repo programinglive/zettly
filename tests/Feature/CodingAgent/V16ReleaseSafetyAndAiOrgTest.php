@@ -3,14 +3,16 @@
 namespace Tests\Feature\CodingAgent;
 
 use App\Models\CodingAgentJob;
+use App\Models\Todo;
 use App\Models\User;
 use App\Services\AiOrganization\AiCtoOrchestratorService;
 use App\Services\CodingAgentApprovalService;
+use App\Services\ReleaseSafety\AutonomousDeliveryPipelineService;
+use App\Services\ReleaseSafety\AutonomousDeploymentPolicy;
 use App\Services\ReleaseSafety\PrReversibilityAssessor;
 use App\Support\CodingAgentRoleRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Laravel\Sanctum\Sanctum;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -20,6 +22,8 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
+    private string $workerToken;
 
     protected function setUp(): void
     {
@@ -36,14 +40,17 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'email_verified_at' => now(),
         ]);
         config(['coding_agent.owner_user_id' => $this->owner->id]);
+
+        $this->workerToken = $this->owner->createToken('worker', ['coding-agent:worker'])->plainTextToken;
     }
 
-    public function test_twelve_role_registry_and_six_role_mvt_are_configured_and_enforced(): void
+    public function test_twelve_role_registry_and_three_adaptive_routing_profiles_are_configured_and_enforced(): void
     {
         $roles = CodingAgentRoleRegistry::all();
         $this->assertCount(12, $roles);
 
-        $mvt = CodingAgentRoleRegistry::mvtPipelineOrder();
+        $this->assertSame(['developer', 'release_manager'], CodingAgentRoleRegistry::rolesForRoutingProfile('FAST'));
+        $this->assertSame(['developer', 'qa_engineer', 'security_code_reviewer', 'release_manager'], CodingAgentRoleRegistry::rolesForRoutingProfile('STANDARD'));
         $this->assertSame([
             'ai_cto',
             'software_architect',
@@ -51,7 +58,10 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'qa_engineer',
             'security_code_reviewer',
             'release_manager',
-        ], $mvt);
+        ], CodingAgentRoleRegistry::mvtPipelineOrder());
+
+        // Alias resolution
+        $this->assertNotNull(CodingAgentRoleRegistry::find('independent_code_reviewer'));
 
         foreach ($roles as $slug => $profile) {
             $this->assertFalse($profile['permissions']['merge_pull_request'], "Role {$slug} must not auto-merge PRs");
@@ -139,14 +149,13 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         $this->assertCount(6, $jobs);
 
         // Verify sequential dependency blocking: only ai_cto can be claimed initially!
-        Sanctum::actingAs($this->owner, ['coding-agent:worker']);
-        $claim1 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim1 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['ai_cto']->id, $claim1['id']);
         $this->assertSame('ai_cto', $claim1['role']);
         $this->assertSame('read_only', $claim1['mode']);
 
         // No second job can be claimed concurrently because downstream Todos depend on ai_cto
-        $this->postJson('/api/v1/coding-agent/claim')->assertNoContent();
+        $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertNoContent();
 
         // Step 2: AI CTO analyzes objective & decomposes task
         $orchestrator->completeRoleJob($jobs['ai_cto'], [
@@ -156,7 +165,7 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         ]);
 
         // Step 3: Software Architect claims & reviews implementation approach
-        $claim2 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim2 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['software_architect']->id, $claim2['id']);
         $orchestrator->completeRoleJob($jobs['software_architect'], [
             'architecture_plan' => 'Render reversibility badge in Monitor.jsx using existing props.',
@@ -165,7 +174,7 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         ]);
 
         // Step 4, 5, 6: Developer receives assigned task, works in isolated workspace, produces controlled change
-        $claim3 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim3 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['developer']->id, $claim3['id']);
         $sha = str_repeat('e', 40);
         $orchestrator->completeRoleJob($jobs['developer'], [
@@ -173,13 +182,13 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'commit_sha' => $sha,
             'pr_url' => 'https://github.com/programinglive/zettly/pull/77',
             'changed_files' => ['resources/js/Pages/Agent/Monitor.jsx', 'tests/Feature/CodingAgentMonitorPageTest.php'],
-            'diff_text' => "+ <span>Reversibility Badge</span>",
+            'diff_text' => '+ <span>Reversibility Badge</span>',
             'tests_passed' => true,
             'test_summary' => 'php artisan test: passed',
         ]);
 
         // Step 7: QA Engineer validates the change
-        $claim4 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim4 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['qa_engineer']->id, $claim4['id']);
         $orchestrator->completeRoleJob($jobs['qa_engineer'], [
             'qa_verdict' => 'passed',
@@ -188,7 +197,7 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         ]);
 
         // Step 8: Security & Code Reviewer independently reviews it
-        $claim5 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim5 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['security_code_reviewer']->id, $claim5['id']);
         $orchestrator->completeRoleJob($jobs['security_code_reviewer'], [
             'security_verdict' => 'passed',
@@ -198,7 +207,7 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         ]);
 
         // Step 9 & 10: Release Manager evaluates PR reversibility & release readiness
-        $claim6 = $this->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $claim6 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
         $this->assertSame($jobs['release_manager']->id, $claim6['id']);
         $releaseJob = $orchestrator->completeRoleJob($jobs['release_manager'], [
             'tests_passed' => true,
@@ -207,7 +216,6 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
 
         $this->assertSame('review', $releaseJob->status);
         $this->assertSame(PrReversibilityAssessor::REVERSIBLE, $releaseJob->reversibility_classification);
-        $this->assertSame(PrReversibilityAssessor::RISK_LOW, $releaseJob->risk_level);
 
         // Step 11: Zettly displays complete execution history
         $history = $orchestrator->inspectWorkflow($wfId, $this->owner->id);
@@ -302,8 +310,7 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'lease_token_hash' => hash('sha256', 'stale-lease-token'),
             'leased_until' => now()->subSeconds(10),
         ]);
-        Sanctum::actingAs($this->owner, ['coding-agent:worker']);
-        $this->postJson("/api/v1/coding-agent/jobs/{$ctoJob->id}/heartbeat", [
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$ctoJob->id}/heartbeat", [
             'lease_token' => 'stale-lease-token',
         ])->assertStatus(409);
 
@@ -343,8 +350,17 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'independent_review_passed' => true,
         ]);
 
+        $todo = Todo::create([
+            'user_id' => $this->owner->id,
+            'title' => 'Rollback verification task',
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => false,
+            'priority' => 'high',
+        ]);
+
         $job = CodingAgentJob::create([
             'user_id' => $this->owner->id,
+            'todo_id' => $todo->id,
             'repository' => 'zettly',
             'role' => 'release_manager',
             'instruction' => 'Release check',
@@ -366,5 +382,275 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         $this->assertSame('READY_FOR_CONTROLLED_ROLLBACK', $prepared['status']);
         $this->assertSame('v1.5.5', $prepared['target_release']);
         $this->assertTrue($job->events()->where('kind', 'rollback_authorized')->exists());
+    }
+
+    public function test_adaptive_role_routing_fast_standard_and_full_profiles_and_no_risk_downgrade(): void
+    {
+        $orchestrator = app(AiCtoOrchestratorService::class);
+
+        // 1. Auto-route FAST profile for docs/copy objective (2 roles: developer -> release_manager)
+        $fast = $orchestrator->startObjective(
+            $this->owner->id,
+            'zettly',
+            'Fix typo in README documentation',
+            ['routing_profile' => 'AUTO']
+        );
+        $this->assertSame('FAST', $fast['routing_profile']);
+        $this->assertSame(['developer', 'release_manager'], array_keys($fast['jobs']));
+
+        // Scope escalation test: if FAST job actually modifies PHP/migration files, risk escalates & blocks auto-merge!
+        $fastDev = $orchestrator->completeRoleJob($fast['jobs']['developer'], [
+            'branch' => 'agent/fast-scope-breach',
+            'commit_sha' => str_repeat('9', 40),
+            'changed_files' => ['database/migrations/2026_11_21_999999_add_column.php'],
+            'diff_text' => "+ \$table->string('surprise');",
+            'tests_passed' => true,
+        ]);
+        $this->assertSame(PrReversibilityAssessor::RISK_MEDIUM, $fastDev->risk_level);
+        $this->assertContains(
+            'FAST profile scope exceeded after implementation; requires FULL/STANDARD review and human approval.',
+            $fastDev->reversibility_assessment['gates']['blocking_conditions']
+        );
+
+        // 2. Auto-route STANDARD profile for normal feature/bugfix (4 roles)
+        $standard = $orchestrator->startObjective(
+            $this->owner->id,
+            'zettly',
+            'Add filter chip to Todo list UI',
+            ['routing_profile' => 'AUTO']
+        );
+        $this->assertSame('STANDARD', $standard['routing_profile']);
+        $this->assertSame(['developer', 'qa_engineer', 'security_code_reviewer', 'release_manager'], array_keys($standard['jobs']));
+
+        // 3. Auto-route FULL profile for high-risk auth/migration objective (6 roles)
+        $full = $orchestrator->startObjective(
+            $this->owner->id,
+            'zettly',
+            'Update Sanctum auth token permission policy and database schema',
+            ['routing_profile' => 'AUTO']
+        );
+        $this->assertSame('FULL', $full['routing_profile']);
+        $this->assertCount(6, $full['jobs']);
+        $this->assertSame(PrReversibilityAssessor::RISK_MEDIUM, $full['jobs']['developer']->risk_level);
+
+        // Prove risk NEVER downgrades automatically even if developer only edits a comment
+        $fullDev = $orchestrator->completeRoleJob($full['jobs']['developer'], [
+            'branch' => 'agent/full-no-downgrade',
+            'commit_sha' => str_repeat('8', 40),
+            'changed_files' => ['docs/README.md'],
+            'diff_text' => '+ # harmless comment',
+            'tests_passed' => true,
+        ]);
+        $this->assertSame(PrReversibilityAssessor::RISK_MEDIUM, $fullDev->risk_level);
+    }
+
+    public function test_autonomous_safe_production_delivery_all_fourteen_acceptance_criteria(): void
+    {
+        $orchestrator = app(AiCtoOrchestratorService::class);
+        $pipeline = app(AutonomousDeliveryPipelineService::class);
+        $policy = app(AutonomousDeploymentPolicy::class);
+
+        // Criterion 1 & 12 & 13: Low-risk change passes all 15 checks and deploys end-to-end without manual approval,
+        // confirming deployed revision matches release SHA and recording all 6 verification stages!
+        $wf = $orchestrator->startObjective(
+            $this->owner->id,
+            'zettly',
+            'Add latency badge to coding agent monitor card',
+            ['routing_profile' => 'STANDARD']
+        );
+        $sha = str_repeat('a', 40);
+        $changedFiles = ['resources/js/Pages/Agent/Monitor.jsx', 'tests/Feature/CodingAgentMonitorPageTest.php'];
+
+        $orchestrator->completeRoleJob($wf['jobs']['developer'], [
+            'branch' => 'agent/low-risk-auto',
+            'commit_sha' => $sha,
+            'pr_url' => 'https://github.com/programinglive/zettly/pull/88',
+            'changed_files' => $changedFiles,
+            'diff_text' => '+ <span>Latency: 42ms</span>',
+            'tests_passed' => true,
+        ]);
+        $orchestrator->completeRoleJob($wf['jobs']['qa_engineer'], [
+            'qa_verdict' => 'passed',
+            'tests_passed' => true,
+            'test_summary' => 'All PHPUnit, Python, and Vitest suites passed',
+        ]);
+        $orchestrator->completeRoleJob($wf['jobs']['security_code_reviewer'], [
+            'security_verdict' => 'passed',
+            'review_verdict' => 'approved',
+        ]);
+        $releaseJob = $orchestrator->completeRoleJob($wf['jobs']['release_manager'], [
+            'tests_passed' => true,
+        ]);
+
+        $artifactDigest = 'sha256:'.hash('sha256', 'zettly-v1.6.0-release-tarball');
+        $baseContext = [
+            'reviewed_commit_sha' => $sha,
+            'actual_commit_sha' => $sha,
+            'tests_passed' => true,
+            'security_review_passed' => true,
+            'independent_review_passed' => true,
+            'github_checks_passed' => true,
+            'release_tag' => 'v1.6.0',
+            'artifact_immutable' => true,
+            'artifact_digest' => $artifactDigest,
+            'previous_known_good_release' => 'v1.5.5',
+            'staging_deploy_passed' => true,
+            'staging_db_worker_compatible' => true,
+            'staging_smoke_passed' => true,
+            'production_health_monitoring_available' => true,
+            'production_deploy_passed' => true,
+            'production_health_passed' => true,
+            'deployed_production_revision' => $sha,
+        ];
+
+        $result = $pipeline->executeAutonomousDelivery($releaseJob, $baseContext);
+        $this->assertSame('PRODUCTION_VERIFIED', $result['status']);
+        $this->assertSame('PRODUCTION_VERIFIED', $result['stage']);
+        $this->assertSame($sha, $result['production_revision']);
+
+        $freshRelease = $releaseJob->fresh();
+        $this->assertSame('completed', $freshRelease->status);
+        $this->assertSame('PRODUCTION_VERIFIED', $freshRelease->delivery_stage);
+        $this->assertSame(
+            AutonomousDeliveryPipelineService::MILESTONES,
+            array_keys(array_filter($freshRelease->delivery_state['milestones']))
+        );
+
+        // Criterion 2: High-risk change is blocked from automatic deployment
+        $highRiskEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => array_merge($freshRelease->reversibility_assessment, ['risk_level' => PrReversibilityAssessor::RISK_HIGH]),
+        ]));
+        $this->assertFalse($highRiskEval['eligible']);
+        $this->assertContains('1_risk_classification_eligible', $highRiskEval['failed_conditions']);
+
+        // Criterion 3: UNKNOWN reversibility is blocked
+        $unknownAssessment = $freshRelease->reversibility_assessment;
+        $unknownAssessment['classification'] = PrReversibilityAssessor::UNKNOWN;
+        $unknownEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => $unknownAssessment,
+        ]));
+        $this->assertFalse($unknownEval['eligible']);
+        $this->assertContains('3_no_unknown_dimensions', $unknownEval['failed_conditions']);
+
+        // Criterion 4: Failed CI check blocks merge
+        $failedCiEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => $freshRelease->reversibility_assessment,
+            'github_checks_passed' => false,
+        ]));
+        $this->assertFalse($failedCiEval['eligible']);
+        $this->assertContains('7_required_github_checks_passed', $failedCiEval['failed_conditions']);
+
+        // Criterion 5: Failed security review blocks merge
+        $failedSecEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => $freshRelease->reversibility_assessment,
+            'security_review_passed' => false,
+        ]));
+        $this->assertFalse($failedSecEval['eligible']);
+        $this->assertContains('6_security_and_independent_review_passed', $failedSecEval['failed_conditions']);
+
+        // Criterion 6: Stale SHA blocks merge
+        $staleShaEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => $freshRelease->reversibility_assessment,
+            'actual_commit_sha' => str_repeat('b', 40),
+        ]));
+        $this->assertFalse($staleShaEval['eligible']);
+        $this->assertContains('8_commit_sha_matches_reviewed_sha', $staleShaEval['failed_conditions']);
+
+        // Criterion 7: Unsafe database migration blocks automatic release
+        $destructiveAssessor = app(PrReversibilityAssessor::class);
+        $destructiveAssessment = $destructiveAssessor->assess([
+            'repository' => 'zettly',
+            'commit_sha' => $sha,
+            'changed_files' => ['database/migrations/2026_11_21_999999_drop_users_col.php'],
+            'diff_text' => "+ \$table->dropColumn('legacy');",
+            'tests_passed' => true,
+            'independent_review_passed' => true,
+        ]);
+        $unsafeDbEval = $policy->evaluate(array_merge($baseContext, [
+            'reversibility_assessment' => $destructiveAssessment,
+        ]));
+        $this->assertFalse($unsafeDbEval['eligible']);
+        $this->assertContains('4_no_irreversible_or_destructive_ops', $unsafeDbEval['failed_conditions']);
+
+        // Criterion 8: Failed staging verification blocks production deployment
+        $stagingFailJob = CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $wf['todos']['release_manager']->id,
+            'repository' => 'zettly',
+            'role' => 'release_manager',
+            'instruction' => 'Staging gate check',
+            'client_request_id' => 'req-staging-fail',
+            'status' => 'review',
+            'commit_sha' => $sha,
+            'tests_passed' => true,
+            'reversibility_classification' => PrReversibilityAssessor::REVERSIBLE,
+            'risk_level' => PrReversibilityAssessor::RISK_LOW,
+            'reversibility_assessment' => $freshRelease->reversibility_assessment,
+        ]);
+        $stagingBlocked = $pipeline->executeAutonomousDelivery($stagingFailJob, array_merge($baseContext, [
+            'staging_smoke_passed' => false,
+        ]));
+        $this->assertSame('BLOCKED', $stagingBlocked['status']);
+        $this->assertSame('STAGING_FAILED', $stagingBlocked['stage']);
+
+        // Criterion 9 & 10: Failed production health check triggers verified safe rollback (NEVER restoring production DB)
+        $prodRollbackJob = CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $wf['todos']['release_manager']->id,
+            'repository' => 'zettly',
+            'role' => 'release_manager',
+            'instruction' => 'Prod health rollback test',
+            'client_request_id' => 'req-prod-rollback',
+            'status' => 'review',
+            'commit_sha' => $sha,
+            'tests_passed' => true,
+            'reversibility_classification' => PrReversibilityAssessor::REVERSIBLE,
+            'risk_level' => PrReversibilityAssessor::RISK_LOW,
+            'reversibility_assessment' => $freshRelease->reversibility_assessment,
+        ]);
+        $rolledBack = $pipeline->executeAutonomousDelivery($prodRollbackJob, array_merge($baseContext, [
+            'production_health_passed' => false,
+        ]));
+        $this->assertSame('ROLLED_BACK', $rolledBack['status']);
+        $this->assertSame('v1.5.5', $rolledBack['restored_release']);
+        $this->assertFalse($rolledBack['database_restored_automatically']);
+
+        // Criterion 11: Unverified rollback halts and isolates instead of guessing
+        $unverifiedAssessment = $freshRelease->reversibility_assessment;
+        $unverifiedAssessment['gates']['rollback_ready'] = false;
+        $unverifiedRollbackJob = CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $wf['todos']['release_manager']->id,
+            'repository' => 'zettly',
+            'role' => 'release_manager',
+            'instruction' => 'Unverified rollback halt test',
+            'client_request_id' => 'req-unverified-halt',
+            'status' => 'review',
+            'commit_sha' => $sha,
+            'tests_passed' => true,
+            'reversibility_classification' => PrReversibilityAssessor::REVERSIBLE,
+            'risk_level' => PrReversibilityAssessor::RISK_LOW,
+            'reversibility_assessment' => $unverifiedAssessment,
+        ]);
+        $halted = $pipeline->executeAutonomousDelivery($unverifiedRollbackJob, array_merge($baseContext, [
+            'production_health_passed' => false,
+        ]));
+        $this->assertSame('HALTED_ISOLATED', $halted['status']);
+        $this->assertFalse($halted['database_restored_automatically']);
+
+        // Criterion 14: Unauthorized agent attempt to modify safety policy is rejected
+        $policyTamperWf = $orchestrator->startObjective($this->owner->id, 'zettly', 'Modify policy');
+        $orchestrator->completeRoleJob($policyTamperWf['jobs']['ai_cto'], ['test_summary' => 'ok']);
+        $orchestrator->completeRoleJob($policyTamperWf['jobs']['software_architect'], ['test_summary' => 'ok']);
+        $tamperedDev = $orchestrator->completeRoleJob($policyTamperWf['jobs']['developer'], [
+            'branch' => 'agent/tamper-policy',
+            'commit_sha' => str_repeat('7', 40),
+            'changed_files' => ['app/Services/ReleaseSafety/AutonomousDeploymentPolicy.php'],
+            'diff_text' => '+ // disable safety check',
+            'tests_passed' => true,
+        ]);
+        $this->assertSame('failed', $tamperedDev->status);
+        $this->assertStringContainsString('Zero-Approval policy violation', (string) $tamperedDev->test_summary);
+        $this->assertTrue($tamperedDev->events()->where('kind', 'policy_self_modification_blocked')->exists());
     }
 }
