@@ -1,0 +1,17 @@
+version: "2.0"
+scope:
+  - documentation
+standards:
+  - id: ZET-DOC-001
+    title: Synchronized architectural and operational documentation
+    description: Significant architectural, API, or release-safety changes must update AGENTS.md or canonical engineering documentation.
+    rationale: Outdated instructions cause AI coding agents and developers to repeat historical mistakes.
+    principle: Living Documentation
+    source: The Pragmatic Programmer
+    scope: [documentation]
+    severity: low
+    enforcement: advisory
+    detection: doc-drift-analysis
+    autofix: proposal-only
+    verification: devworkflow.audit_standards
+    exception_process: Waive with explicit justification when changes are purely internal.

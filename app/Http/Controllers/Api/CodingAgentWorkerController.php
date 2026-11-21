@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Priority\DependencyGraph;
 use App\Models\CodingAgentJob;
 use App\Services\AgentSessionIngestor;
+use App\Services\AiOrganization\AiCtoOrchestratorService;
+use App\Support\CodingAgentRoleRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +55,10 @@ class CodingAgentWorkerController
                     continue;
                 }
 
+                $role = $job->role ?? 'developer';
+                $roleProfile = CodingAgentRoleRegistry::find($role);
+                $fallbackModel = $roleProfile['model_policy']['fallback'] ?? 'hy4-flash:free';
+
                 $leaseToken = Str::random(64);
                 $job->update([
                     'status' => 'running',
@@ -64,10 +70,15 @@ class CodingAgentWorkerController
                 return [
                     'id' => $job->id,
                     'repository' => $job->repository,
-                    'role' => $job->role ?? 'developer',
+                    'role' => $role,
+                    'routing_profile' => $job->routing_profile ?? 'STANDARD',
                     'mode' => $job->execution_mode ?? 'code_write',
                     'instruction' => $job->instruction,
                     'model' => $model,
+                    'fallback_model' => $fallbackModel,
+                    'branch' => $job->branch,
+                    'commit_sha' => $job->commit_sha,
+                    'pr_url' => $job->pr_url,
                     'lease_token' => $leaseToken,
                     'leased_until' => $job->leased_until->toIso8601String(),
                 ];
@@ -127,22 +138,51 @@ class CodingAgentWorkerController
         return response()->json(['data' => $instructions]);
     }
 
-    public function result(Request $request, CodingAgentJob $job): JsonResponse
+    public function result(Request $request, CodingAgentJob $job, AiCtoOrchestratorService $orchestrator): JsonResponse
     {
+        $job = $this->leasedJob($request, $job, (string) $request->input('lease_token', ''));
+        $isReadOnlyRole = in_array($job->execution_mode, ['read_only', 'review'], true);
+
         $data = $request->validate([
             'lease_token' => ['required', 'string'],
             'branch' => ['required', 'string', 'max:191'],
-            'commit_sha' => ['required', 'string', 'regex:/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/'],
+            'commit_sha' => $isReadOnlyRole
+                ? ['nullable', 'string', 'regex:/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/']
+                : ['required', 'string', 'regex:/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/'],
             'pr_url' => ['nullable', 'url', 'max:2048'],
             'test_summary' => ['required', 'string', 'max:2000'],
             'tests_passed' => ['required', 'boolean'],
             'target_environment' => ['required', 'string', 'in:development,staging,production'],
+            'changed_files' => ['sometimes', 'array'],
+            'changed_files.*' => ['string', 'max:500'],
+            'diff_text' => ['sometimes', 'nullable', 'string', 'max:25000'],
+            'telemetry' => ['sometimes', 'nullable', 'array'],
+            'output_summary' => ['sometimes', 'nullable', 'string', 'max:4000'],
+            'qa_verdict' => ['sometimes', 'string', 'in:passed,failed'],
+            'security_verdict' => ['sometimes', 'string', 'in:passed,failed'],
+            'review_verdict' => ['sometimes', 'string', 'in:approved,rejected'],
         ]);
-        $job = $this->leasedJob($request, $job, $data['lease_token']);
+
         unset($data['lease_token']);
         $data['test_summary'] = AgentSessionIngestor::redact($data['test_summary'], 2000);
+        if (isset($data['output_summary'])) {
+            $data['output_summary'] = AgentSessionIngestor::redact($data['output_summary'], 2000);
+        }
+
+        if ($job->workflow_task_id !== null) {
+            $orchestrator->completeRoleJob($job, $data);
+
+            return response()->json(['success' => true]);
+        }
+
         $job->update([
-            ...$data,
+            'branch' => $data['branch'],
+            'commit_sha' => $data['commit_sha'] ?? $job->commit_sha,
+            'pr_url' => $data['pr_url'] ?? $job->pr_url,
+            'test_summary' => $data['test_summary'],
+            'tests_passed' => $data['tests_passed'],
+            'target_environment' => $data['target_environment'],
+            'artifact_output' => $data,
             'status' => $data['tests_passed'] ? 'review' : 'failed',
             'lease_token_hash' => null,
             'leased_until' => null,
@@ -151,16 +191,24 @@ class CodingAgentWorkerController
         return response()->json(['success' => true]);
     }
 
-    public function fail(Request $request, CodingAgentJob $job): JsonResponse
+    public function fail(Request $request, CodingAgentJob $job, AiCtoOrchestratorService $orchestrator): JsonResponse
     {
         $data = $request->validate([
             'lease_token' => ['required', 'string'],
             'summary' => ['required', 'string', 'max:2000'],
         ]);
         $job = $this->leasedJob($request, $job, $data['lease_token']);
+        $redacted = AgentSessionIngestor::redact($data['summary'], 2000);
+
+        if ($job->workflow_task_id !== null) {
+            $orchestrator->failRoleJob($job, $redacted);
+
+            return response()->json(['success' => true]);
+        }
+
         $job->update([
             'status' => 'failed',
-            'test_summary' => AgentSessionIngestor::redact($data['summary'], 2000),
+            'test_summary' => $redacted,
             'tests_passed' => false,
             'lease_token_hash' => null,
             'leased_until' => null,

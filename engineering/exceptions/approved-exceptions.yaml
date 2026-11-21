@@ -1,0 +1,9 @@
+version: "2.0"
+approved_exceptions:
+  - id: EXC-2026-001
+    rule_id: ZET-DB-001
+    file: database/migrations/2026_11_21_000001_add_v16_role_and_reversibility_to_coding_agent_jobs_table.php
+    reason: "down() method uses dropColumn solely for controlled N-1 rollback of newly added nullable V1.6 columns; up() is 100% additive."
+    approved_by: mahatma.mahardhika@programinglive.com
+    approved_at: "2026-11-21T16:00:00Z"
+    expires_at: "2027-11-21T16:00:00Z"

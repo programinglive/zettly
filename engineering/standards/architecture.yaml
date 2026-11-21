@@ -1,0 +1,34 @@
+version: "2.0"
+scope:
+  - backend
+  - frontend
+  - agent_worker
+standards:
+  - id: ZET-ARCH-001
+    title: Deep modules with clear responsibility boundaries and no controller-to-DB bypass
+    description: Controllers and Inertia pages must delegate domain orchestration to dedicated Services or Domain classes rather than embedding multi-step transaction or raw SQL logic.
+    rationale: Deep modules hide internal complexity behind simple interfaces and reduce cognitive load.
+    principle: Deep Modules & Information Hiding
+    source: A Philosophy of Software Design (John Ousterhout)
+    scope: [backend]
+    severity: medium
+    enforcement: advisory
+    detection: static-pattern
+    pattern: "DB::raw\\(|mysqli_query\\("
+    autofix: proposal-only
+    verification: php artisan test
+    exception_process: Record approved exception in engineering/exceptions/approved-exceptions.yaml with owner and expiry.
+
+  - id: ZET-ARCH-002
+    title: Enforce role permission and release safety boundaries in code
+    description: Autonomous coding agent roles and worker endpoints must enforce read-only, review, and protected-path boundaries in server code, never relying on prompt instructions alone.
+    rationale: Prompt-only security boundaries can be bypassed by model hallucinations or tool output injection.
+    principle: Design by Contract & Least Privilege
+    source: The Pragmatic Programmer (David Thomas & Andrew Hunt)
+    scope: [backend, agent_worker]
+    severity: critical
+    enforcement: blocking
+    detection: architecture-boundary
+    autofix: disabled
+    verification: php artisan test tests/Feature/CodingAgent/V16ReleaseSafetyAndAiOrgTest.php
+    exception_process: No exceptions permitted for blocking security boundary rules.

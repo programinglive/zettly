@@ -44,6 +44,10 @@ class JobExecutorTest(unittest.TestCase):
         executor = JobExecutor(Path(self.root.name), self.repositories)
         with self.assertRaisesRegex(ValueError, 'sensitive'):
             executor.check_staged_paths(['app.py', '.env.production'])
+        with self.assertRaisesRegex(ValueError, 'Protected release/security policy path'):
+            executor.check_staged_paths(['app/Services/ReleaseSafety/AutonomousDeploymentPolicy.php'])
+        with self.assertRaisesRegex(ValueError, 'Protected release/security policy path'):
+            executor.check_staged_paths(['.github/workflows/release.yml'])
         executor.check_staged_paths(['app.py', 'tests/test_app.py'])
 
     def test_repository_commands_do_not_inherit_worker_credentials(self):
@@ -401,8 +405,53 @@ class JobExecutorTest(unittest.TestCase):
         self.assertIsNone(res['pr_url'])
         self.assertTrue(res['tests_passed'])
         self.assertEqual(res['mode'], 'read_only')
+        self.assertIn('telemetry', res)
+        self.assertGreaterEqual(res['telemetry']['total_tokens'], 1)
         mock_run.assert_not_called()
         self.assertTrue(any(c and c[0] == 'opencode' for c in captured_hb_calls))
+
+    def test_execute_read_only_mode_rejects_unauthorized_worktree_mutations(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        worktree = Path(self.root.name) / 'jobs' / '107'
+        worktree.mkdir(parents=True, exist_ok=True)
+
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-107')), \
+             patch.object(executor, '_run_with_heartbeat'), \
+             patch.object(executor, '_capture', return_value=' M app/Models/Todo.php'):
+            job = {'id': 107, 'repository': 'zettly', 'instruction': 'Audit only', 'mode': 'read_only', 'role': 'ai_cto'}
+            with self.assertRaisesRegex(RuntimeError, 'Permission violation'):
+                executor.execute(job, lambda: None)
+
+    def test_execute_retries_with_approved_fallback_model_when_primary_fails(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        worktree = Path(self.root.name) / 'jobs' / '108'
+        worktree.mkdir(parents=True, exist_ok=True)
+        models_tried = []
+
+        def fake_hb(argv, cwd, checkpoint, env=None, log_path=None):
+            if argv and argv[0] == 'opencode':
+                model_used = argv[argv.index('--model') + 1]
+                models_tried.append(model_used)
+                if model_used == 'kenari/north-mini-code:free':
+                    raise RuntimeError('Primary model rate-limited')
+
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-108')), \
+             patch.object(executor, '_run_with_heartbeat', side_effect=fake_hb), \
+             patch.object(executor, '_capture', return_value=''):
+            job = {
+                'id': 108,
+                'repository': 'zettly',
+                'instruction': 'Review architecture',
+                'mode': 'read_only',
+                'role': 'software_architect',
+                'model': 'north-mini-code:free',
+                'fallback_model': 'hy4-flash:free',
+            }
+            res = executor.execute(job, lambda: None)
+
+        self.assertEqual(models_tried, ['kenari/north-mini-code:free', 'kenari/hy4-flash:free'])
+        self.assertTrue(res['telemetry']['fallback_used'])
+        self.assertEqual(res['telemetry']['retries'], 1)
 
     def test_invalid_execution_mode_is_rejected(self):
         executor = JobExecutor(Path(self.root.name), self.repositories)

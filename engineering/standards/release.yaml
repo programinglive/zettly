@@ -1,0 +1,17 @@
+version: "2.0"
+scope:
+  - release
+standards:
+  - id: ZET-REL-001
+    title: 8-Dimension PR Reversibility & 15-Condition Autonomous Release Gate
+    description: Every release must be evaluated across 8 independent reversibility dimensions; UNKNOWN is never treated as low risk, and production cutover requires staging verification plus exact commit/tag OID matching.
+    rationale: git revert alone never proves production rollback safety.
+    principle: Continuous Integration & Sustainable Release Practices
+    source: Extreme Programming Explained & Zettly V1.6 Policy
+    scope: [release]
+    severity: critical
+    enforcement: blocking
+    detection: release-readiness-check
+    autofix: disabled
+    verification: php artisan coding-agent:safety assess
+    exception_process: Explicit human owner override with verified recovery runbook.

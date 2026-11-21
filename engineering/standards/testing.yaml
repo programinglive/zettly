@@ -1,0 +1,19 @@
+version: "2.0"
+scope:
+  - backend
+  - frontend
+  - agent_worker
+standards:
+  - id: ZET-TEST-001
+    title: Protect critical behavior with characterization and regression tests before risky changes
+    description: Any modification to release safety, authentication, database migrations, or coding-agent orchestration must include automated regression test coverage.
+    rationale: Legacy and critical code without test seams cannot be refactored or deployed autonomously with confidence.
+    principle: Legacy Code Safety & Characterization Tests
+    source: Working Effectively with Legacy Code (Michael Feathers)
+    scope: [backend, frontend, agent_worker]
+    severity: high
+    enforcement: conditional
+    detection: change-impact-analysis
+    autofix: proposal-only
+    verification: php artisan test && npm run test:js
+    exception_process: Requires explicit waiver reason in task Definition of Done.

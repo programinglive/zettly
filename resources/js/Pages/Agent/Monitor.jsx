@@ -113,13 +113,68 @@ export default function Monitor({ job, events = [] }) {
                         <span className="rounded-lg bg-indigo-50 px-2.5 py-1 font-mono text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
                             Role: {job.role || 'developer'} ({job.execution_mode || 'code_write'})
                         </span>
+                        <span className="rounded-lg bg-amber-50 px-2.5 py-1 font-mono font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                            Profile: {job.routing_profile || job.workflow?.routing_profile || 'STANDARD'}
+                        </span>
                         <span className="rounded-lg bg-purple-50 px-2.5 py-1 font-mono text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
                             Model: {job.model || 'hy4-flash:free'}
                         </span>
+                        {job.delivery_stage && (
+                            <span className="rounded-lg bg-emerald-50 px-2.5 py-1 font-mono font-semibold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                Stage: {job.delivery_stage}
+                            </span>
+                        )}
+                        {job.production_revision && (
+                            <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                                Prod Rev: {String(job.production_revision).slice(0, 10)}
+                            </span>
+                        )}
+                        {job.telemetry && (
+                            <span className="rounded-lg bg-teal-50 px-2.5 py-1 font-mono text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
+                                Tokens: {job.telemetry.total_tokens ?? 0} · {Math.round((job.telemetry.duration_ms ?? 0) / 1000)}s
+                            </span>
+                        )}
                         <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                             Heartbeat: {heartbeatLabel(job.last_heartbeat_at, now)}
                         </span>
                     </div>
+
+                    {/* Multi-Role Workflow Pipeline Strip (Objective I) */}
+                    {job.workflow?.steps?.length > 0 && (
+                        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-gray-950/40">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                    AI Engineering Workflow ({job.workflow.routing_profile}) · {job.workflow.overall_status}
+                                </span>
+                                {job.workflow.telemetry_totals && (
+                                    <span className="font-mono text-[11px] text-gray-600 dark:text-gray-400">
+                                        Total Tokens: {job.workflow.telemetry_totals.total_tokens} · Duration: {Math.round((job.workflow.telemetry_totals.total_duration_ms || 0) / 1000)}s
+                                    </span>
+                                )}
+                            </div>
+                            <div className="mt-2.5 flex flex-wrap gap-2">
+                                {job.workflow.steps.map((step, idx) => (
+                                    <Link
+                                        key={step.job_id}
+                                        href={`/agent/jobs/${step.job_id}/monitor`}
+                                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium ${
+                                            step.status === 'completed'
+                                                ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                : step.status === 'failed'
+                                                    ? 'border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
+                                                    : step.status === 'running' || step.status === 'review'
+                                                        ? 'border-blue-400 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                                                        : 'border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400'
+                                        }`}
+                                    >
+                                        <span className="font-mono text-[10px]">{idx + 1}.</span>
+                                        <span>{step.role}</span>
+                                        <span className="text-[10px] opacity-75">({step.status})</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Current Activity Highlight */}
                     <div className="mt-5 rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">

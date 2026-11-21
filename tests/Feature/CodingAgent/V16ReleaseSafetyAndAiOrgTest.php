@@ -70,6 +70,10 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
 
         $this->artisan('coding-agent:safety', ['action' => 'roles'])
             ->assertExitCode(0);
+        $this->artisan('coding-agent:safety', ['action' => 'standards'])
+            ->assertExitCode(0);
+        $this->artisan('coding-agent:safety', ['action' => 'recover-stalled'])
+            ->assertExitCode(0);
     }
 
     public function test_pr_reversibility_assessor_evaluates_eight_dimensions_and_never_treats_unknown_as_low_risk(): void
@@ -398,7 +402,8 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         $this->assertSame('FAST', $fast['routing_profile']);
         $this->assertSame(['developer', 'release_manager'], array_keys($fast['jobs']));
 
-        // Scope escalation test: if FAST job actually modifies PHP/migration files, risk escalates & blocks auto-merge!
+        // Scope escalation test: if FAST job actually modifies PHP/migration files, risk escalates, blocks auto-merge,
+        // and dynamically inserts qa_engineer & security_code_reviewer before release_manager!
         $fastDev = $orchestrator->completeRoleJob($fast['jobs']['developer'], [
             'branch' => 'agent/fast-scope-breach',
             'commit_sha' => str_repeat('9', 40),
@@ -411,6 +416,9 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
             'FAST profile scope exceeded after implementation; requires FULL/STANDARD review and human approval.',
             $fastDev->reversibility_assessment['gates']['blocking_conditions']
         );
+        $escalatedHistory = $orchestrator->inspectWorkflow($fast['workflow_task_id'], $this->owner->id);
+        $this->assertSame(4, $escalatedHistory['roles_count']);
+        $this->assertSame('FULL', $escalatedHistory['routing_profile']);
 
         // 2. Auto-route STANDARD profile for normal feature/bugfix (4 roles)
         $standard = $orchestrator->startObjective(
@@ -652,5 +660,211 @@ class V16ReleaseSafetyAndAiOrgTest extends TestCase
         $this->assertSame('failed', $tamperedDev->status);
         $this->assertStringContainsString('Zero-Approval policy violation', (string) $tamperedDev->test_summary);
         $this->assertTrue($tamperedDev->events()->where('kind', 'policy_self_modification_blocked')->exists());
+    }
+
+    public function test_v161_live_worker_api_six_role_execution_telemetry_and_all_twenty_failure_scenarios(): void
+    {
+        $orchestrator = app(AiCtoOrchestratorService::class);
+        $pipeline = app(AutonomousDeliveryPipelineService::class);
+        $policy = app(AutonomousDeploymentPolicy::class);
+
+        // Scenarios 1, 2, 3: Valid FAST, STANDARD, and FULL workflows executed through Worker HTTP API
+        // (/api/v1/coding-agent/claim -> /api/v1/coding-agent/jobs/{id}/result) with persisted handoffs & telemetry!
+        $full = $orchestrator->startObjective(
+            $this->owner->id,
+            'zettly',
+            'Implement release telemetry badge in Live Monitor view',
+            ['routing_profile' => 'FULL']
+        );
+        $wfId = $full['workflow_task_id'];
+        $sha = str_repeat('c', 40);
+
+        // 1. AI CTO (read_only, null commit_sha via Worker HTTP API)
+        $c1 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('ai_cto', $c1['role']);
+        $this->assertSame('read_only', $c1['mode']);
+
+        // Scenario 11: Duplicate task claim returns 204 while active job is leased and downstream jobs are dependency-blocked
+        $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertNoContent();
+
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c1['id']}/result", [
+            'lease_token' => $c1['lease_token'],
+            'branch' => "agent/job-{$c1['id']}",
+            'commit_sha' => null,
+            'pr_url' => null,
+            'test_summary' => 'ai_cto (read_only) completed successfully',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 420, 'duration_ms' => 3100, 'retries' => 0, 'fallback_used' => false],
+            'output_summary' => 'Structured 6-step execution plan generated.',
+        ])->assertOk();
+
+        // 2. Software Architect (read_only via Worker HTTP API)
+        $c2 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('software_architect', $c2['role']);
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c2['id']}/result", [
+            'lease_token' => $c2['lease_token'],
+            'branch' => "agent/job-{$c2['id']}",
+            'commit_sha' => null,
+            'pr_url' => null,
+            'test_summary' => 'software_architect (read_only) completed successfully',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 510, 'duration_ms' => 3400, 'retries' => 0, 'fallback_used' => false],
+            'output_summary' => 'Component design for Monitor.jsx telemetry pill.',
+        ])->assertOk();
+
+        // 3. Developer (code_write via Worker HTTP API)
+        $c3 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('developer', $c3['role']);
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c3['id']}/result", [
+            'lease_token' => $c3['lease_token'],
+            'branch' => "agent/job-{$c3['id']}",
+            'commit_sha' => $sha,
+            'pr_url' => 'https://github.com/programinglive/zettly/pull/99',
+            'changed_files' => ['resources/js/Pages/Agent/Monitor.jsx'],
+            'diff_text' => '+ <span>Tokens: {job.telemetry.total_tokens}</span>',
+            'test_summary' => 'php artisan test --compact: passed',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 1280, 'duration_ms' => 14200, 'retries' => 0, 'fallback_used' => false],
+            'output_summary' => 'Added token telemetry badge to Monitor.jsx.',
+        ])->assertOk();
+
+        // 4. QA Engineer (read_only via Worker HTTP API, receives commit_sha & compact handoff)
+        $c4 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('qa_engineer', $c4['role']);
+        $this->assertSame($sha, $c4['commit_sha']);
+        $this->assertStringContainsString('[Upstream Handoff from developer]', $c4['instruction']);
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c4['id']}/result", [
+            'lease_token' => $c4['lease_token'],
+            'branch' => $c4['branch'],
+            'commit_sha' => $c4['commit_sha'],
+            'pr_url' => $c4['pr_url'],
+            'qa_verdict' => 'passed',
+            'test_summary' => '69 passed (445 assertions)',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 390, 'duration_ms' => 4500, 'retries' => 0, 'fallback_used' => false],
+        ])->assertOk();
+
+        // 5. Security & Code Reviewer (review via Worker HTTP API)
+        $c5 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('security_code_reviewer', $c5['role']);
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c5['id']}/result", [
+            'lease_token' => $c5['lease_token'],
+            'branch' => $c5['branch'],
+            'commit_sha' => $c5['commit_sha'],
+            'pr_url' => $c5['pr_url'],
+            'security_verdict' => 'passed',
+            'review_verdict' => 'approved',
+            'test_summary' => 'Security & code quality review passed',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 460, 'duration_ms' => 3800, 'retries' => 0, 'fallback_used' => false],
+        ])->assertOk();
+
+        // 6. Release Manager (read_only via Worker HTTP API)
+        $c6 = $this->withToken($this->workerToken)->postJson('/api/v1/coding-agent/claim')->assertOk()->json('data');
+        $this->assertSame('release_manager', $c6['role']);
+        $this->withToken($this->workerToken)->postJson("/api/v1/coding-agent/jobs/{$c6['id']}/result", [
+            'lease_token' => $c6['lease_token'],
+            'branch' => $c6['branch'],
+            'commit_sha' => $c6['commit_sha'],
+            'pr_url' => $c6['pr_url'],
+            'test_summary' => '8-dimension reversibility assessment REVERSIBLE',
+            'tests_passed' => true,
+            'target_environment' => 'staging',
+            'telemetry' => ['total_tokens' => 340, 'duration_ms' => 2900, 'retries' => 0, 'fallback_used' => false],
+        ])->assertOk();
+
+        $wfReport = $orchestrator->inspectWorkflow($wfId, $this->owner->id);
+        $this->assertSame('awaiting_human_approval', $wfReport['overall_status']);
+        $this->assertSame(3400, $wfReport['telemetry_totals']['total_tokens']);
+        $this->assertSame(31900, $wfReport['telemetry_totals']['total_duration_ms']);
+
+        // Verify Live Monitor Inertia page exposes workflow, routing_profile, and telemetry
+        $this->actingAs($this->owner)
+            ->get("/agent/jobs/{$c6['id']}/monitor")
+            ->assertOk();
+
+        // Scenario 17: Unauthorized production deployment attempt by coding-agent worker identity is rejected
+        $releaseJob = CodingAgentJob::findOrFail($c6['id']);
+        try {
+            $pipeline->executeAutonomousDelivery($releaseJob, [
+                'actor_identity' => 'coding-agent:worker-1',
+                'reviewed_commit_sha' => $sha,
+                'actual_commit_sha' => $sha,
+                'github_checks_passed' => true,
+                'security_review_passed' => true,
+                'independent_review_passed' => true,
+                'release_tag' => 'v1.6.1',
+                'artifact_digest' => 'sha256:'.hash('sha256', 'tarball'),
+            ]);
+            $this->fail('Expected RuntimeException when coding-agent identity attempts self-approval/deployment.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('Agent self-approval is forbidden', $e->getMessage());
+        }
+
+        // Scenario 18: Missing or invalid release artifact digest blocks release stage
+        $missingArtifactEval = $policy->evaluate([
+            'reversibility_assessment' => $releaseJob->reversibility_assessment,
+            'initial_risk_level' => PrReversibilityAssessor::RISK_LOW,
+            'reviewed_commit_sha' => $sha,
+            'actual_commit_sha' => $sha,
+            'tests_passed' => true,
+            'security_review_passed' => true,
+            'independent_review_passed' => true,
+            'github_checks_passed' => true,
+            'artifact_digest' => '',
+            'artifact_immutable' => false,
+            'staging_verified' => true,
+            'previous_known_good_release' => 'v1.6.0',
+            'data_worker_compatible' => true,
+            'health_monitoring_available' => true,
+            'changed_files' => ['resources/js/Pages/Agent/Monitor.jsx'],
+        ]);
+        $this->assertFalse($missingArtifactEval['eligible']);
+        $this->assertContains('9_immutable_artifact_integrity_verified', $missingArtifactEval['failed_conditions']);
+
+        // Scenario 19: Database/worker incompatibility blocks promotion
+        $dbIncompatResult = $pipeline->executeAutonomousDelivery($releaseJob, [
+            'reviewed_commit_sha' => $sha,
+            'actual_commit_sha' => $sha,
+            'github_checks_passed' => true,
+            'security_review_passed' => true,
+            'independent_review_passed' => true,
+            'release_tag' => 'v1.6.1',
+            'artifact_digest' => 'sha256:'.hash('sha256', 'tarball'),
+            'staging_db_worker_compatible' => false,
+        ]);
+        $this->assertSame('BLOCKED', $dbIncompatResult['status']);
+        $this->assertSame('STAGING_FAILED', $dbIncompatResult['stage']);
+
+        // Scenario 9, 10, 20: Stalled lease expiration & broken agent handoff recovery
+        $stalledWf = $orchestrator->startObjective($this->owner->id, 'zettly', 'Stalled handoff test', ['routing_profile' => 'FAST']);
+        $stalledDev = $stalledWf['jobs']['developer'];
+        $stalledRel = $stalledWf['jobs']['release_manager'];
+
+        // Simulate expired lease on developer first
+        $stalledDev->update([
+            'status' => 'running',
+            'lease_token_hash' => hash('sha256', 'expired-token'),
+            'leased_until' => now()->subMinutes(5),
+        ]);
+        $recovery1 = $orchestrator->detectAndRecoverStalledWorkflows($this->owner->id);
+        $this->assertContains($stalledDev->id, $recovery1['reclaimed_jobs']);
+        $this->assertSame('queued', $stalledDev->fresh()->status);
+
+        // Simulate broken handoff where developer completed with commit_sha, but release_manager missed commit_sha/branch
+        $stalledDev->update([
+            'status' => 'completed',
+            'branch' => 'agent/stalled-recover',
+            'commit_sha' => $sha,
+        ]);
+        $recovery2 = $orchestrator->detectAndRecoverStalledWorkflows($this->owner->id);
+        $this->assertContains($stalledRel->id, $recovery2['repaired_handoffs']);
+        $this->assertSame($sha, $stalledRel->fresh()->commit_sha);
+        $this->assertTrue((bool) $stalledDev->todo->fresh()->is_completed);
     }
 }
