@@ -21,17 +21,61 @@ class CodingAgentWorkerController
         $claim = DB::transaction(function () use ($request): ?array {
             $allowedModels = config('coding_agent.models', []);
             $defaultModel = config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
+            $maxConcurrent = max(1, (int) config('coding_agent.max_concurrent_jobs', 2));
+            $userId = (int) $request->user()->id;
 
-            $blockedTodoIds = array_keys((new DependencyGraph($request->user()->id))->blockedIds());
+            // Enforce configurable daily token budget before claiming new work
+            $dailyBudget = (int) config('coding_agent.budgets.daily_tokens', 500000);
+            $todayJobs = CodingAgentJob::query()
+                ->where('user_id', $userId)
+                ->where('updated_at', '>=', now()->startOfDay())
+                ->get(['artifact_output']);
+            $dailyTokensUsed = 0;
+            foreach ($todayJobs as $tj) {
+                $art = is_array($tj->artifact_output) ? $tj->artifact_output : [];
+                $dailyTokensUsed += (int) ($art['telemetry']['total_tokens'] ?? 0);
+            }
+            if ($dailyBudget > 0 && $dailyTokensUsed >= $dailyBudget) {
+                return null;
+            }
+
+            // Inspect currently active (non-expired running) jobs to enforce concurrency slots and file-overlap isolation
+            $activeRunning = CodingAgentJob::query()
+                ->where('user_id', $userId)
+                ->where('status', 'running')
+                ->where('leased_until', '>', now())
+                ->lockForUpdate()
+                ->get();
+
+            if ($activeRunning->count() >= $maxConcurrent) {
+                return null;
+            }
+
+            $activeExpectedFiles = [];
+            $usedSlots = [];
+            foreach ($activeRunning as $runningJob) {
+                if ($runningJob->worktree_slot) {
+                    $usedSlots[] = $runningJob->worktree_slot;
+                }
+                if (is_array($runningJob->expected_files)) {
+                    foreach ($runningJob->expected_files as $f) {
+                        $activeExpectedFiles[] = ltrim(str_replace('\\', '/', (string) $f), '/');
+                    }
+                }
+            }
+
+            $blockedTodoIds = array_keys((new DependencyGraph($userId))->blockedIds());
+            $skippedIds = [];
 
             // A job created before the free allowlist changed can still be
             // queued with a paid model. Fail it here instead of handing it to
             // the worker, so no paid model can ever start.
-            // Jobs whose Todo is blocked by unresolved dependencies are skipped
+            // Jobs whose Todo is blocked by unresolved dependencies or file overlap are skipped
             // (left queued) so they resume automatically once unblocked.
-            for ($attempt = 0; $attempt < 10; $attempt++) {
-                $job = CodingAgentJob::query()->where('user_id', $request->user()->id)
+            for ($attempt = 0; $attempt < 15; $attempt++) {
+                $job = CodingAgentJob::query()->where('user_id', $userId)
                     ->when($blockedTodoIds !== [], fn ($q) => $q->whereNotIn('todo_id', $blockedTodoIds))
+                    ->when($skippedIds !== [], fn ($q) => $q->whereNotIn('id', $skippedIds))
                     ->where(function ($query) {
                         $query->where('status', 'queued')
                             ->orWhere(function ($expired) {
@@ -41,6 +85,16 @@ class CodingAgentWorkerController
 
                 if (! $job) {
                     return null;
+                }
+
+                // Parallel execution eligibility check: if another active job has overlapping expected_files, skip this job for now
+                $candidateFiles = is_array($job->expected_files)
+                    ? array_map(fn ($f) => ltrim(str_replace('\\', '/', (string) $f), '/'), $job->expected_files)
+                    : [];
+                if ($activeExpectedFiles !== [] && $candidateFiles !== [] && array_intersect($activeExpectedFiles, $candidateFiles) !== []) {
+                    $skippedIds[] = $job->id;
+
+                    continue;
                 }
 
                 $model = $job->model ?? $defaultModel;
@@ -59,9 +113,19 @@ class CodingAgentWorkerController
                 $roleProfile = CodingAgentRoleRegistry::find($role);
                 $fallbackModel = $roleProfile['model_policy']['fallback'] ?? 'hy4-flash:free';
 
+                $slotIndex = 1;
+                while (in_array("slot-{$slotIndex}", $usedSlots, true)) {
+                    $slotIndex++;
+                }
+                $worktreeSlot = $job->worktree_slot ?: "slot-{$slotIndex}";
+                $worktreeName = $job->workflow_task_id
+                    ? "wf-{$job->workflow_task_id}-{$role}-{$job->id}"
+                    : "job-{$job->id}-{$role}";
+
                 $leaseToken = Str::random(64);
                 $job->update([
                     'status' => 'running',
+                    'worktree_slot' => $worktreeSlot,
                     'lease_token_hash' => hash('sha256', $leaseToken),
                     'leased_until' => now()->addSeconds(self::LEASE_SECONDS),
                     'last_heartbeat_at' => now(),
@@ -76,6 +140,10 @@ class CodingAgentWorkerController
                     'instruction' => $job->instruction,
                     'model' => $model,
                     'fallback_model' => $fallbackModel,
+                    'worktree_slot' => $worktreeSlot,
+                    'worktree_name' => $worktreeName,
+                    'expected_files' => $candidateFiles,
+                    'token_budget' => $job->token_budget ?? (int) config('coding_agent.budgets.per_job_tokens', 25000),
                     'branch' => $job->branch,
                     'commit_sha' => $job->commit_sha,
                     'pr_url' => $job->pr_url,

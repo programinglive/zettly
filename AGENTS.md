@@ -40,4 +40,8 @@ Zettly enforces version-controlled standards in `engineering/`:
    - PHPUnit: `php artisan test`
    - Python Worker: `python -m unittest discover -s agent_worker -p "test_*.py"`
    - Frontend / CLI JS: `npm test`
-3. Evaluate `ci_quality_gate` and `release_readiness` before committing or requesting release.
+## 4. Zettly V1.7 — Parallel DAG Execution, Integration Queue & Engineering Intelligence
+- **Parallel Multi-Agent Scheduler (`max_concurrent_jobs = 2`):** `AiCtoOrchestratorService::startParallelObjective()` decomposes objectives into a DAG (`ai_cto` → `software_architect` → parallel implementation tracks → `qa_engineer` convergence → `security_code_reviewer` → `release_manager`). `CodingAgentWorkerController::claim()` enforces 2 concurrent isolated worktree slots (`slot-1`, `slot-2`), skips queued jobs whose `expected_files` overlap with any active running job, and enforces daily/per-job token budgets.
+- **Integration & Merge Queue (`IntegrationQueueService`):** Verifies combined tests across parallel branches, runs `EngineeringStandardsAuditorService` against the 11 Zettly Engineering Standards, blocks automatic resolution of any conflict touching sensitive paths (`SENSITIVE_CONFLICT_PREFIXES`), and computes an 8-dimension PR reversibility assessment.
+- **Engineering Intelligence & Retrospectives (`EngineeringIntelligenceService`):** Automatically generates idempotent, versioned Daily (`00:10 WIB`), Weekly (`Monday 08:00 WIB`), and Monthly (`1st 09:00 WIB`) retrospectives in `Asia/Jakarta`, detects recurring problems into the 11-state Continuous Improvement Backlog (`EngineeringImprovement`), records deduplicated lessons (`EngineeringLesson`), and evaluates `AgentPerformanceScorecardService` at `/agent/intelligence` and `php artisan engineering:retrospective`.
+

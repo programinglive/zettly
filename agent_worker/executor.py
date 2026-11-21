@@ -304,7 +304,9 @@ class JobExecutor:
         key = job['repository']
         branch = self.branch_for(job)
         cache = self.root / 'repositories' / key
-        worktree = self.root / 'jobs' / str(job['id'])
+        raw_wt_name = str(job.get('worktree_name') or job['id']).strip()
+        safe_wt_name = raw_wt_name if SAFE_REF.fullmatch(raw_wt_name) and '..' not in raw_wt_name else str(job['id'])
+        worktree = self.root / 'jobs' / safe_wt_name
         self.root.mkdir(parents=True, exist_ok=True)
         cache.parent.mkdir(parents=True, exist_ok=True)
         worktree.parent.mkdir(parents=True, exist_ok=True)

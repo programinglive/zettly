@@ -14,3 +14,8 @@ Artisan::command('inspire', function () {
 Schedule::command('journal:generate-reports')->dailyAt('23:55')->timezone('Asia/Jakarta');
 Schedule::command('journal:deliver-reports')->everyFifteenMinutes();
 Schedule::command('zettly:engineering-sync')->everyFiveMinutes()->withoutOverlapping();
+
+// Zettly V1.7 Engineering Intelligence Retrospectives (Asia/Jakarta)
+Schedule::command('engineering:retrospective daily')->dailyAt('00:10')->timezone('Asia/Jakarta')->withoutOverlapping();
+Schedule::command('engineering:retrospective weekly')->weeklyOn(1, '08:00')->timezone('Asia/Jakarta')->withoutOverlapping();
+Schedule::command('engineering:retrospective monthly')->monthlyOn(1, '09:00')->timezone('Asia/Jakarta')->withoutOverlapping();

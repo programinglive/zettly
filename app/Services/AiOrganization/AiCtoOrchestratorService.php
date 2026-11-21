@@ -280,7 +280,19 @@ class AiCtoOrchestratorService
                 }
             }
 
-            // 2. Role-specific verification & failure gates
+                $budgetLimit = (int) ($locked->token_budget ?: config('coding_agent.budgets.per_job_tokens', 25000));
+                $reportedTokens = (int) ($payload['telemetry']['total_tokens'] ?? 0);
+                if ($budgetLimit > 0 && $reportedTokens > $budgetLimit) {
+                    $this->failRoleJob(
+                        $locked,
+                        "Execution token budget exceeded for role '{$role}': used {$reportedTokens} tokens (budget: {$budgetLimit}).",
+                        'token_budget_exceeded'
+                    );
+
+                    return $locked->fresh();
+                }
+
+                // 2. Role-specific verification & failure gates
             if ($role === 'qa_engineer') {
                 $qaPassed = (bool) ($payload['tests_passed'] ?? false)
                     && (($payload['qa_verdict'] ?? 'passed') === 'passed');
@@ -376,10 +388,12 @@ class AiCtoOrchestratorService
                 $reversibilityAssessment = $assessment;
             }
 
-            // Determine next role dynamically from the workflow's ordered role chain
+            // Determine next role dynamically from the workflow's ordered role chain or parallel DAG
             $nextJob = $this->findNextWorkflowJob($locked);
-            $nextRole = $nextJob?->role;
-            $isFinalGate = $nextJob === null || $role === 'release_manager';
+            $hasDownstreamDependency = $locked->todo_id
+                ? TodoDependency::query()->where('depends_on_todo_id', $locked->todo_id)->exists()
+                : false;
+            $isFinalGate = $role === 'release_manager' || ($nextJob === null && ! $hasDownstreamDependency);
 
             $locked->update([
                 'branch' => $payload['branch'] ?? $locked->branch,
@@ -404,28 +418,30 @@ class AiCtoOrchestratorService
                 'occurred_at' => now(),
             ]);
 
-            if (! $isFinalGate && $nextJob) {
+            if (! $isFinalGate) {
                 $locked->todo?->update(['is_completed' => true]);
 
-                $compactHandoff = $this->buildCompactHandoffSummary($role, $payload, $reversibilityClassification, $riskLevel);
-                $updatedInstruction = $nextJob->instruction;
-                if ($compactHandoff !== '' && ! str_contains($updatedInstruction, '[Upstream Handoff')) {
-                    $updatedInstruction .= "\n\n[Upstream Handoff from {$role}]\n{$compactHandoff}";
-                }
+                if ($nextJob) {
+                    $compactHandoff = $this->buildCompactHandoffSummary($role, $payload, $reversibilityClassification, $riskLevel);
+                    $updatedInstruction = $nextJob->instruction;
+                    if ($compactHandoff !== '' && ! str_contains($updatedInstruction, "[Upstream Handoff from {$role}]")) {
+                        $updatedInstruction .= "\n\n[Upstream Handoff from {$role}]\n{$compactHandoff}";
+                    }
 
-                $nextJob->update([
-                    'branch' => $locked->branch ?? $nextJob->branch,
-                    'commit_sha' => $locked->commit_sha ?? $nextJob->commit_sha,
-                    'pr_url' => $locked->pr_url ?? $nextJob->pr_url,
-                    'instruction' => $updatedInstruction,
-                    'risk_level' => $this->autonomousPolicy->maxRisk((string) $nextJob->risk_level, (string) $riskLevel),
-                ]);
-                $nextJob->events()->create([
-                    'event_key' => (string) Str::uuid(),
-                    'kind' => 'role_handoff',
-                    'detail' => "Handoff received from '{$role}' (job #{$locked->id}). Dependencies unblocked.",
-                    'occurred_at' => now(),
-                ]);
+                    $nextJob->update([
+                        'branch' => $locked->branch ?? $nextJob->branch,
+                        'commit_sha' => $locked->commit_sha ?? $nextJob->commit_sha,
+                        'pr_url' => $locked->pr_url ?? $nextJob->pr_url,
+                        'instruction' => $updatedInstruction,
+                        'risk_level' => $this->autonomousPolicy->maxRisk((string) $nextJob->risk_level, (string) $riskLevel),
+                    ]);
+                    $nextJob->events()->create([
+                        'event_key' => (string) Str::uuid(),
+                        'kind' => 'role_handoff',
+                        'detail' => "Handoff received from '{$role}' (job #{$locked->id}). Dependencies unblocked.",
+                        'occurred_at' => now(),
+                    ]);
+                }
             }
 
             return $locked->fresh();
@@ -744,6 +760,132 @@ class AiCtoOrchestratorService
         }
 
         return Str::limit(implode("\n", $parts), 750);
+    }
+
+    /**
+     * Launch a DAG-based parallel multi-agent objective where implementation tracks
+     * (e.g. backend_engineer, frontend_engineer, documentation_research_agent) can run concurrently
+     * in isolated Git worktrees once software_architect completes, then converge into qa_engineer ->
+     * security_code_reviewer -> release_manager.
+     *
+     * @param  array<int, array{role: string, expected_files?: array<int, string>, instruction?: string}>  $parallelTracks
+     * @param  array<string, mixed>  $options
+     * @return array{workflow_task_id: string, routing_profile: string, jobs: array<string, CodingAgentJob>, todos: array<string, Todo>}
+     */
+    public function startParallelObjective(
+        int $userId,
+        string $repository,
+        string $objective,
+        array $parallelTracks,
+        array $options = []
+    ): array {
+        if (! in_array($repository, CodingAgentRepositoryRegistry::slugs(), true)) {
+            throw new InvalidArgumentException("Repository '{$repository}' is not allowlisted.");
+        }
+        if ($parallelTracks === []) {
+            throw new InvalidArgumentException('At least one parallel implementation track is required.');
+        }
+
+        $workflowTaskId = (string) ($options['workflow_task_id'] ?? Str::uuid());
+
+        return DB::transaction(function () use ($userId, $repository, $objective, $parallelTracks, $workflowTaskId, $options): array {
+            $todosByRole = [];
+            $jobsByRole = [];
+
+            $createNode = function (
+                string $roleSlug,
+                string $stepLabel,
+                array $dependsOnTodos,
+                ?int $parentJobId,
+                ?int $handoffFromId,
+                array $expectedFiles = [],
+                ?string $customInstruction = null
+            ) use ($userId, $repository, $objective, $workflowTaskId, $options, &$todosByRole, &$jobsByRole): array {
+                $profile = CodingAgentRoleRegistry::getOrFail($roleSlug);
+                $modelPolicy = CodingAgentRoleRegistry::selectModelPolicyForRole($roleSlug, 'MEDIUM');
+
+                $todo = Todo::create([
+                    'user_id' => $userId,
+                    'title' => "[AI Org Parallel · {$stepLabel} · {$profile['title']}] ".Str::limit($objective, 95),
+                    'description' => "Profile: PARALLEL_FULL\nRole: {$roleSlug}\nRepository: {$repository}\nObjective: {$objective}",
+                    'type' => Todo::TYPE_TODO,
+                    'is_completed' => false,
+                    'priority' => 'urgent',
+                ]);
+
+                foreach ($dependsOnTodos as $depTodo) {
+                    TodoDependency::create([
+                        'user_id' => $userId,
+                        'todo_id' => $todo->id,
+                        'depends_on_todo_id' => $depTodo->id,
+                        'source' => 'ai_cto_parallel_dag',
+                    ]);
+                }
+
+                $job = CodingAgentJob::create([
+                    'user_id' => $userId,
+                    'todo_id' => $todo->id,
+                    'workflow_task_id' => $workflowTaskId,
+                    'parent_job_id' => $parentJobId,
+                    'handoff_from_job_id' => $handoffFromId,
+                    'repository' => $repository,
+                    'role' => $roleSlug,
+                    'routing_profile' => CodingAgentRoleRegistry::PROFILE_PARALLEL_FULL,
+                    'execution_mode' => (string) ($profile['execution_mode'] ?? 'read_only'),
+                    'instruction' => $customInstruction
+                        ?: "[Profile: PARALLEL_FULL | Role: {$profile['title']}] {$profile['description']}\n\nObjective: {$objective}",
+                    'model' => $options['model'] ?? $modelPolicy['primary_model'],
+                    'client_request_id' => "wf-{$workflowTaskId}-{$roleSlug}",
+                    'status' => 'queued',
+                    'risk_level' => PrReversibilityAssessor::RISK_MEDIUM,
+                    'target_environment' => (string) ($options['target_environment'] ?? 'staging'),
+                    'expected_files' => $expectedFiles,
+                    'token_budget' => (int) ($options['token_budget'] ?? $modelPolicy['token_budget']),
+                ]);
+
+                $todosByRole[$roleSlug] = $todo;
+                $jobsByRole[$roleSlug] = $job;
+
+                return [$todo, $job];
+            };
+
+            // 1. Leadership & Architecture root
+            [$ctoTodo, $ctoJob] = $createNode('ai_cto', '1/DAG', [], null, null);
+            [$archTodo, $archJob] = $createNode('software_architect', '2/DAG', [$ctoTodo], $ctoJob->id, $ctoJob->id);
+
+            // 2. Parallel Implementation Tracks (all depend ONLY on software_architect!)
+            $trackTodos = [];
+            $lastTrackJob = $archJob;
+            foreach ($parallelTracks as $idx => $track) {
+                $roleSlug = (string) $track['role'];
+                $expectedFiles = isset($track['expected_files']) && is_array($track['expected_files'])
+                    ? array_values($track['expected_files'])
+                    : [];
+                [$tTodo, $tJob] = $createNode(
+                    $roleSlug,
+                    '3.'.($idx + 1).'/Parallel',
+                    [$archTodo],
+                    $ctoJob->id,
+                    $archJob->id,
+                    $expectedFiles,
+                    $track['instruction'] ?? null
+                );
+                $trackTodos[] = $tTodo;
+                $lastTrackJob = $tJob;
+            }
+
+            // 3. Convergence Gate: QA Engineer depends on ALL parallel track Todos completing!
+            [$qaTodo, $qaJob] = $createNode('qa_engineer', '4/Convergence', $trackTodos, $ctoJob->id, $lastTrackJob->id);
+            [$secTodo, $secJob] = $createNode('security_code_reviewer', '5/Review', [$qaTodo], $ctoJob->id, $qaJob->id);
+            [, $relJob] = $createNode('release_manager', '6/Release', [$secTodo], $ctoJob->id, $secJob->id);
+
+            return [
+                'workflow_task_id' => $workflowTaskId,
+                'routing_profile' => CodingAgentRoleRegistry::PROFILE_PARALLEL_FULL,
+                'jobs' => $jobsByRole,
+                'todos' => $todosByRole,
+            ];
+        });
     }
 
     private function findWorkflowRoleJob(?string $workflowTaskId, string $role): ?CodingAgentJob

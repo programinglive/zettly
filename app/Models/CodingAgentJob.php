@@ -20,6 +20,7 @@ class CodingAgentJob extends Model
         'reversibility_classification', 'risk_level', 'reversibility_assessment',
         'delivery_stage', 'merge_sha', 'release_tag', 'artifact_digest',
         'production_revision', 'delivery_state',
+        'expected_files', 'worktree_slot', 'integration_status', 'token_budget',
     ];
 
     protected $hidden = ['lease_token_hash'];
@@ -51,6 +52,8 @@ class CodingAgentJob extends Model
             'artifact_output' => 'array',
             'reversibility_assessment' => 'array',
             'delivery_state' => 'array',
+            'expected_files' => 'array',
+            'token_budget' => 'integer',
         ];
     }
 
