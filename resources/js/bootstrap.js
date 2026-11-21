@@ -3,10 +3,9 @@ window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true;
-const token = document.head.querySelector('meta[name="csrf-token"]');
-if (token) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
-}
+// Rely on Laravel's fresh XSRF-TOKEN cookie (X-XSRF-TOKEN) rather than freezing
+// the initial <meta name="csrf-token"> value, which becomes stale after session
+// regeneration, Inertia SPA redirects, or idle expiry and causes login/419 loops.
 
 
 // Initialize Sentry if DSN is provided

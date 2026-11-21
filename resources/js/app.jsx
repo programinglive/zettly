@@ -94,20 +94,36 @@ createInertiaApp({
     },
     setup({ el, App, props }) {
         if (!csrfListenerRegistered) {
+            router.on('navigate', (event) => {
+                const freshToken = event?.detail?.page?.props?.csrf_token;
+                if (freshToken && typeof document !== 'undefined') {
+                    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (tokenMeta) {
+                        tokenMeta.setAttribute('content', freshToken);
+                    }
+                }
+            });
+
             router.on('before', (event) => {
                 const cookieToken = getCookieCsrfToken();
                 const headerToken = router?.page?.props?.csrf_token ?? getMetaCsrfToken();
 
+                // Prefer the live XSRF-TOKEN cookie (X-XSRF-TOKEN) when present.
+                // Sending a stale X-CSRF-TOKEN or _token overrides X-XSRF-TOKEN in
+                // Laravel's VerifyCsrfToken middleware and triggers 419/login loops.
                 event.detail.visit.headers = {
                     ...(event.detail.visit.headers ?? {}),
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(headerToken ? { 'X-CSRF-TOKEN': headerToken } : {}),
-                    ...(cookieToken ? { 'X-XSRF-TOKEN': cookieToken } : {}),
+                    ...(cookieToken
+                        ? { 'X-XSRF-TOKEN': cookieToken }
+                        : headerToken
+                            ? { 'X-CSRF-TOKEN': headerToken }
+                            : {}),
                 };
 
                 const method = (event.detail.visit.method ?? 'get').toLowerCase();
 
-                if (method === 'get') {
+                if (method === 'get' || cookieToken) {
                     return;
                 }
 
