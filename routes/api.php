@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CliApiController;
 use App\Http\Controllers\Api\CliAuthController;
 use App\Http\Controllers\Api\PriorityController;
 use App\Http\Controllers\Api\TodoController;
+use App\Http\Controllers\Api\TodoPriorityController;
 use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\FocusController;
 use App\Http\Controllers\PushSubscriptionController;

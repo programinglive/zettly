@@ -15,16 +15,16 @@ $defaultRepositories = [
         'stack' => 'Laravel',
         'checks' => 'vendor/bin/paratest --processes=4 --runner=WrapperRunner',
     ],
-    'dev-workflow-mcp-server' => [
-        'name' => 'programinglive/dev-workflow-mcp-server',
-        'remote' => 'programinglive/dev-workflow-mcp-server',
+    'dev-workflow' => [
+        'name' => 'programinglive/dev-workflow',
+        'remote' => 'programinglive/dev-workflow',
         'base' => 'main',
         'stack' => 'Node.js',
         'checks' => 'npm test',
     ],
-    'infra-knowledge-mcp-server' => [
-        'name' => 'programinglive/infra-knowledge-mcp-server',
-        'remote' => 'programinglive/infra-knowledge-mcp-server',
+    'central-mcp-gateway' => [
+        'name' => 'programinglive/central-mcp-gateway',
+        'remote' => 'programinglive/central-mcp-gateway',
         'base' => 'main',
         'stack' => 'Node.js',
         'checks' => 'npm test',

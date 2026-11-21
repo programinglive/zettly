@@ -200,6 +200,113 @@ class JobExecutorTest(unittest.TestCase):
         self.assertTrue(any(kind == 'worker_phase' and 'automated test' in detail for kind, detail in emitted_phases))
         self.assertTrue(any(kind == 'worker_phase' and 'Pull request created' in detail for kind, detail in emitted_phases))
 
+    def test_command_environment_strips_model_keys_unless_explicitly_allowed(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        with patch.dict(os.environ, {
+            'KENARI_API_KEY': 'kenari-secret',
+            'CODEX_API_KEY': 'codex-secret',
+            'OPENAI_API_KEY': 'openai-secret',
+        }):
+            safe = executor.command_environment()
+            model_env = executor.command_environment(allow_model_api=True)
+        self.assertNotIn('KENARI_API_KEY', safe)
+        self.assertNotIn('CODEX_API_KEY', safe)
+        self.assertNotIn('OPENAI_API_KEY', safe)
+        self.assertEqual(model_env['CODEX_API_KEY'], 'codex-secret')
+        self.assertNotIn('KENARI_API_KEY', model_env)
+
+    def test_execute_read_only_mode_uses_readonly_sandbox_and_skips_git_commit(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        worktree = Path(self.root.name) / 'jobs' / '102'
+        worktree.mkdir(parents=True, exist_ok=True)
+        captured_hb_calls = []
+
+        def capture_hb(argv, cwd, checkpoint, env=None):
+            captured_hb_calls.append(list(argv))
+
+        with patch.object(executor, '_worktree', return_value=(worktree, 'agent/job-102')), \
+             patch.object(executor, '_run_with_heartbeat', side_effect=capture_hb), \
+             patch.object(executor, '_run') as mock_run:
+            job = {'id': 102, 'repository': 'zettly', 'instruction': 'Audit architecture', 'mode': 'read_only'}
+            res = executor.execute(job, lambda: None)
+
+        self.assertIsNone(res['commit_sha'])
+        self.assertIsNone(res['pr_url'])
+        self.assertTrue(res['tests_passed'])
+        self.assertEqual(res['mode'], 'read_only')
+        mock_run.assert_not_called()
+        self.assertTrue(any('--sandbox' in c and 'read-only' in c for c in captured_hb_calls))
+
+    def test_invalid_execution_mode_is_rejected(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        with self.assertRaisesRegex(ValueError, 'Unsupported execution mode'):
+            executor.mode_for({'id': 103, 'repository': 'zettly', 'mode': 'root_shell'})
+
+    def test_worktree_recovers_stale_directory_on_retry(self):
+        executor = JobExecutor(Path(self.root.name), self.repositories)
+        cache = Path(self.root.name) / 'repositories' / 'zettly'
+        (cache / '.git').mkdir(parents=True, exist_ok=True)
+        stale_worktree = Path(self.root.name) / 'jobs' / '104'
+        stale_worktree.mkdir(parents=True, exist_ok=True)
+        (stale_worktree / 'leftover.txt').write_text('stale', encoding='utf-8')
+
+        run_calls = []
+
+        def fake_run(argv, cwd=None, capture=False, allow_github=False):
+            run_calls.append(list(argv))
+            if 'remove' in argv:
+                raise RuntimeError('not a registered worktree')
+            return ''
+
+        with patch.object(executor, '_run', side_effect=fake_run), \
+             patch.object(executor, '_run_with_heartbeat'):
+            worktree, branch = executor._worktree(
+                {'id': 104, 'repository': 'zettly'},
+                self.repositories['zettly'],
+                lambda: None,
+            )
+
+        self.assertEqual(branch, 'agent/job-104')
+        self.assertFalse(stale_worktree.exists())
+        self.assertTrue(any('worktree' in c and 'remove' in c for c in run_calls))
+
+    def test_verify_provider_requires_api_key_and_handles_http_status(self):
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(ValueError, 'API key is required'):
+                JobExecutor.verify_provider()
+
+        class FakeResponse:
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        with patch('agent_worker.executor.urllib.request.urlopen', return_value=FakeResponse()):
+            result = JobExecutor.verify_provider(
+                base_url='https://kenari.id/v1',
+                api_key='test-only-key',
+                model='agnes-3-0-flash:free',
+            )
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['status'], 200)
+        self.assertNotIn('test-only-key', str(result))
+
+        import urllib.error
+        with patch(
+            'agent_worker.executor.urllib.request.urlopen',
+            side_effect=urllib.error.HTTPError('https://kenari.id/v1/chat/completions', 401, 'Unauthorized', {}, None),
+        ):
+            failed = JobExecutor.verify_provider(
+                base_url='https://kenari.id/v1',
+                api_key='test-only-key',
+                model='agnes-3-0-flash:free',
+            )
+        self.assertFalse(failed['ok'])
+        self.assertEqual(failed['status'], 401)
+        self.assertNotIn('test-only-key', str(failed))
 
 
 if __name__ == '__main__':
