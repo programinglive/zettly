@@ -174,6 +174,8 @@ class TodoController extends Controller
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
             'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
+            'queue_state' => 'sometimes|string|in:'.implode(',', Todo::QUEUE_STATES),
+            'estimate_minutes' => 'sometimes|nullable|integer|min:1|max:1440',
         ]);
 
         $validator->sometimes('due_date', 'after_or_equal:today', function ($input) {
@@ -196,6 +198,9 @@ class TodoController extends Controller
         if ($type === Todo::TYPE_TODO) {
             $validated['priority'] = $validated['priority'] ?? Todo::PRIORITY_NOT_URGENT;
             $validated['importance'] = $validated['importance'] ?? Todo::IMPORTANCE_NOT_IMPORTANT;
+            if (($validated['queue_state'] ?? null) === Todo::QUEUE_BACKLOG) {
+                $validated['triaged_at'] = now();
+            }
         } else {
             $validated['priority'] = null;
             $validated['importance'] = null;
@@ -291,6 +296,8 @@ class TodoController extends Controller
             'checklist_items.*.title' => 'required|string|max:255',
             'checklist_items.*.is_completed' => 'nullable|boolean',
             'focus_id' => ['sometimes', 'nullable', 'integer', $this->ownedFocusRule()],
+            'queue_state' => 'sometimes|string|in:'.implode(',', Todo::QUEUE_STATES),
+            'estimate_minutes' => 'sometimes|nullable|integer|min:1|max:1440',
         ]);
 
         $validator->sometimes('due_date', 'after_or_equal:today', function ($input) use ($todo) {
@@ -334,6 +341,9 @@ class TodoController extends Controller
         } elseif ($type === Todo::TYPE_TODO) {
             $validated['priority'] = $validated['priority'] ?? ($todo->priority ?? Todo::PRIORITY_NOT_URGENT);
             $validated['importance'] = $validated['importance'] ?? ($todo->importance ?? Todo::IMPORTANCE_NOT_IMPORTANT);
+            if (($validated['queue_state'] ?? null) === Todo::QUEUE_BACKLOG && ! $todo->triaged_at) {
+                $validated['triaged_at'] = now();
+            }
         } else {
             $validated['priority'] = null;
             $validated['importance'] = null;

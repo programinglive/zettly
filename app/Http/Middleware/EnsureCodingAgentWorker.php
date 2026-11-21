@@ -17,8 +17,11 @@ class EnsureCodingAgentWorker
 
         $user = $request->user();
         $token = $user?->currentAccessToken();
+        $abilities = $token instanceof PersonalAccessToken && is_array($token->abilities)
+            ? $token->abilities
+            : [];
         if (! $user || ! $token instanceof PersonalAccessToken
-            || ! in_array('coding-agent:worker', $token->abilities, true)
+            || ! in_array('coding-agent:worker', $abilities, true)
             || $user->id !== (int) config('coding_agent.owner_user_id')
             || $user->email !== (string) config('coding_agent.owner_email')
             || ! $user->hasVerifiedEmail()) {

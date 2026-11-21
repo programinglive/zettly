@@ -110,6 +110,9 @@ export default function Monitor({ job, events = [] }) {
                         <span className="rounded-lg bg-gray-100 px-2.5 py-1 font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                             Repo: {job.repository}
                         </span>
+                        <span className="rounded-lg bg-indigo-50 px-2.5 py-1 font-mono text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+                            Role: {job.role || 'developer'} ({job.execution_mode || 'code_write'})
+                        </span>
                         <span className="rounded-lg bg-purple-50 px-2.5 py-1 font-mono text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
                             Model: {job.model || 'hy4-flash:free'}
                         </span>
@@ -217,6 +220,74 @@ export default function Monitor({ job, events = [] }) {
                                 </div>
                             )}
                         </dl>
+                    </section>
+                )}
+
+                {/* PR & Deployment Reversibility Assessment Card (Part B.6) */}
+                {job.reversibility_assessment && (
+                    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3 dark:border-gray-800">
+                            <div>
+                                <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                    PR & Deployment Reversibility Assessment
+                                </h2>
+                                <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+                                    {job.reversibility_assessment.summary}
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+                                <span className="rounded-full bg-indigo-100 px-3 py-1 text-indigo-900 dark:bg-indigo-950/70 dark:text-indigo-200">
+                                    {job.reversibility_classification}
+                                </span>
+                                <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
+                                    Risk: {job.risk_level}
+                                </span>
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                                    Rollback: {job.reversibility_assessment.rollback_status}
+                                </span>
+                            </div>
+                        </div>
+
+                        {job.reversibility_assessment.gates?.blocking_conditions?.length > 0 && (
+                            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                                <p className="font-semibold">Blocking Conditions:</p>
+                                <ul className="mt-1 list-disc pl-4 space-y-0.5">
+                                    {job.reversibility_assessment.gates.blocking_conditions.map((b, i) => (
+                                        <li key={i}>{b}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {job.reversibility_assessment.dimensions && (
+                            <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                                {Object.entries(job.reversibility_assessment.dimensions).map(([dimKey, dim]) => (
+                                    <div key={dimKey} className="rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-950/60">
+                                        <div className="flex items-center justify-between font-semibold text-gray-800 dark:text-gray-200">
+                                            <span className="font-mono text-[11px]">{dimKey}</span>
+                                            <span className="text-[11px]">{dim.status} ({dim.risk_level})</span>
+                                        </div>
+                                        <p className="mt-1 text-[11px] text-gray-600 dark:text-gray-400">{dim.evidence}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {job.reversibility_assessment.rollback_plan && (
+                            <div className="mt-4 rounded-xl bg-gray-50 p-3 text-xs dark:bg-gray-950/60">
+                                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                    Recovery Plan (Target: {job.reversibility_assessment.rollback_plan.previous_known_good_release})
+                                </p>
+                                <ul className="mt-1.5 space-y-1 text-gray-700 dark:text-gray-300">
+                                    {(job.reversibility_assessment.rollback_plan.step_by_step_recovery_procedure || []).map((s, idx) => (
+                                        <li key={idx}>{s}</li>
+                                    ))}
+                                </ul>
+                                <p className="mt-2 text-[11px] text-gray-500">
+                                    Required Approvals: {(job.reversibility_assessment.gates?.required_approvals || []).join(', ')}
+                                </p>
+                            </div>
+                        )}
                     </section>
                 )}
 

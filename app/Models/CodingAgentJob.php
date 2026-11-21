@@ -12,10 +12,14 @@ class CodingAgentJob extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'todo_id', 'workflow_task_id', 'repository', 'instruction', 'model',
+        'user_id', 'todo_id', 'workflow_task_id', 'parent_job_id', 'handoff_from_job_id',
+        'repository', 'role', 'execution_mode', 'routing_profile', 'instruction', 'model',
         'client_request_id', 'status', 'lease_token_hash', 'leased_until',
         'last_heartbeat_at', 'branch', 'commit_sha', 'pr_url', 'test_summary',
-        'tests_passed', 'target_environment',
+        'tests_passed', 'target_environment', 'artifact_output',
+        'reversibility_classification', 'risk_level', 'reversibility_assessment',
+        'delivery_stage', 'merge_sha', 'release_tag', 'artifact_digest',
+        'production_revision', 'delivery_state',
     ];
 
     protected $hidden = ['lease_token_hash'];
@@ -26,6 +30,15 @@ class CodingAgentJob extends Model
             if (empty($job->model)) {
                 $job->model = config('coding_agent.default_model', 'qwen3-5-397b-a17b:free');
             }
+            if (empty($job->role)) {
+                $job->role = 'developer';
+            }
+            if (empty($job->execution_mode)) {
+                $job->execution_mode = 'code_write';
+            }
+            if (empty($job->routing_profile)) {
+                $job->routing_profile = 'STANDARD';
+            }
         });
     }
 
@@ -35,6 +48,9 @@ class CodingAgentJob extends Model
             'leased_until' => 'datetime',
             'last_heartbeat_at' => 'datetime',
             'tests_passed' => 'boolean',
+            'artifact_output' => 'array',
+            'reversibility_assessment' => 'array',
+            'delivery_state' => 'array',
         ];
     }
 
