@@ -1,0 +1,30 @@
+version: "2.0"
+policy:
+  baseline_aware: true
+  block_on_new_critical: true
+  block_on_new_high: true
+  allow_autonomous_policy_weakening: false
+  protected_governance_paths:
+    - engineering/standards/
+    - engineering/policies/
+    - engineering/exceptions/
+    - app/Services/ReleaseSafety/
+    - .github/workflows/
+  autofix_classes:
+    AF-0:
+      name: Deterministic Mechanical Fix
+      auto_apply_allowed: true
+      description: Trailing whitespace removal, newline normalization, safe mechanical formatting.
+    AF-1:
+      name: Low-Risk Structural Fix
+      auto_apply_allowed: true
+      requires_verification: true
+      description: Removing leftover debug calls (var_dump/dd/console.debug) in non-test files with automatic rollback on verification failure.
+    AF-2:
+      name: Behavior-Sensitive Refactoring
+      auto_apply_allowed: false
+      description: Proposal or reviewed PR only.
+    AF-3:
+      name: High-Risk Change
+      auto_apply_allowed: false
+      description: Auth, permissions, migrations, financial logic, infrastructure — never auto-applied.

@@ -85,12 +85,33 @@ export default function Show({ job, events }) {
                     <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 font-mono dark:bg-gray-800">
                         📁 {job.repository}
                     </span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 font-mono text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+                        👤 {job.role || 'developer'} ({job.execution_mode || 'code_write'})
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 font-mono font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                        🧭 Profile: {job.routing_profile || job.workflow?.routing_profile || 'STANDARD'}
+                    </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2 py-1 font-medium text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
                         🤖 {job.model || 'agnes-3-0-flash:free'}
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                         ⚡ {statusLabel(job.status)}
                     </span>
+                    {job.delivery_stage && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-mono font-semibold text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                            🚀 {job.delivery_stage}
+                        </span>
+                    )}
+                    {job.production_revision && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 font-mono text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                            📌 Rev: {String(job.production_revision).slice(0, 10)}
+                        </span>
+                    )}
+                    {job.telemetry && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-1 font-mono text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
+                            📊 {job.telemetry.total_tokens ?? 0} tok · {Math.round((job.telemetry.duration_ms ?? 0) / 1000)}s
+                        </span>
+                    )}
                 </div>
             </header>
 

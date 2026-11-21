@@ -6,18 +6,33 @@ import re
 import shutil
 import signal
 import subprocess
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 VALID_EXECUTION_MODES = ('code_write', 'read_only', 'review')
 
-
-
 REPOSITORY_NAME = re.compile(r'\A[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+\Z')
 SAFE_REF = re.compile(r'\A[a-zA-Z0-9_.-]+\Z')
 SAFE_MODEL = re.compile(r'\A[a-zA-Z0-9_.:-]+\Z')
-SENSITIVE_PATH = re.compile(r'(^|/)(\.env(?:\..*)?|\.ssh|\.aws|\.config|auth\.json|.*(?:secret|credential|token|private.key).*)$', re.I)
+SENSITIVE_PATH = re.compile(
+    r'(^|/)(\.env(?:\..*)?|\.ssh|\.aws|\.config|auth\.json|.*(?:secret|credential|token|private.key).*)$',
+    re.I,
+)
+PROTECTED_POLICY_PREFIXES = (
+    'app/Services/ReleaseSafety/',
+    'app/Services/CodingAgentApprovalService.php',
+    'app/Support/CodingAgentRoleRegistry.php',
+    'app/Http/Middleware/EnsureCodingAgentOwner.php',
+    'app/Http/Middleware/EnsureCodingAgentWorker.php',
+    'app/Http/Middleware/EnsureSuperAdmin.php',
+    'config/coding_agent.php',
+    '.github/workflows/',
+    '.env',
+    '.ssh',
+    '.aws',
+)
 MODEL_PROVIDER = 'kenari'
 DEFAULT_MODEL = 'qwen3-5-397b-a17b:free'
 FREE_MODELS = (
@@ -35,6 +50,7 @@ FREE_MODELS = (
 )
 MODEL_CREDENTIAL = 'KENARI_API_KEY'
 WORKER_CREDENTIALS = ('ZETTLY_WORKER_TOKEN', 'GH_TOKEN', 'OPENAI_API_KEY', 'CODEX_API_KEY', MODEL_CREDENTIAL)
+TOKEN_USAGE_PATTERN = re.compile(r'(?:tokens?|usage)\s*[:=]\s*(\d+)', re.I)
 
 
 class JobExecutor:
@@ -90,8 +106,13 @@ class JobExecutor:
         return f'agent/job-{job_id}'
 
     def check_staged_paths(self, paths):
-        if any(SENSITIVE_PATH.search(path.replace('\\', '/')) for path in paths):
-            raise ValueError('A sensitive file was staged')
+        for raw in paths:
+            normalized = raw.replace('\\', '/').lstrip('/')
+            if SENSITIVE_PATH.search(normalized):
+                raise ValueError('A sensitive file was staged')
+            for prefix in PROTECTED_POLICY_PREFIXES:
+                if normalized == prefix or normalized.startswith(prefix):
+                    raise ValueError(f'Protected release/security policy path cannot be modified by agent: {normalized}')
 
     def mode_for(self, job):
         mode = job.get('mode') or 'code_write'
@@ -116,9 +137,6 @@ class JobExecutor:
             if model_key:
                 environment['CODEX_API_KEY'] = model_key
         if cwd is not None:
-            # Popen(cwd=...) does not update PWD, and OpenCode resolves its
-            # project directory from PWD. Without this the agent edits the
-            # service WorkingDirectory instead of the job worktree.
             environment['PWD'] = str(cwd)
         return environment
 
@@ -134,6 +152,12 @@ class JobExecutor:
         if model not in self.allowed_models():
             raise ValueError('Job model is not in the allowed free model list')
         return f'{MODEL_PROVIDER}/{model}'
+
+    def fallback_model_reference(self, job):
+        fallback = (job.get('fallback_model') or os.environ.get('AGENT_OPENCODE_FALLBACK_MODEL') or 'hy4-flash:free').strip()
+        if SAFE_MODEL.fullmatch(fallback) and fallback in self.allowed_models():
+            return f'{MODEL_PROVIDER}/{fallback}'
+        return f'{MODEL_PROVIDER}/{DEFAULT_MODEL}'
 
     def _run(self, argv, cwd=None, capture=False, allow_github=False):
         result = self.run_command(
@@ -153,6 +177,30 @@ class JobExecutor:
             return ''
         tail = data.strip()[-limit:]
         return f': {tail}' if tail else ''
+
+    @staticmethod
+    def _extract_telemetry(log_path, prompt_chars, elapsed_ms, retries=0, fallback_used=False):
+        output_text = ''
+        if log_path and Path(log_path).exists():
+            try:
+                output_text = Path(log_path).read_text(encoding='utf-8', errors='replace')
+            except OSError:
+                output_text = ''
+        matches = TOKEN_USAGE_PATTERN.findall(output_text)
+        reported_tokens = int(matches[-1]) if matches else None
+        estimated_prompt_tokens = max(1, prompt_chars // 4)
+        estimated_output_tokens = max(1, len(output_text) // 4) if output_text else 0
+        total_tokens = reported_tokens or (estimated_prompt_tokens + estimated_output_tokens)
+        return {
+            'duration_ms': int(max(0, elapsed_ms)),
+            'prompt_tokens_est': estimated_prompt_tokens,
+            'completion_tokens_est': estimated_output_tokens,
+            'total_tokens': total_tokens,
+            'token_source': 'provider_log' if reported_tokens is not None else 'char_estimate',
+            'retries': int(retries),
+            'fallback_used': bool(fallback_used),
+            'output_summary': output_text.strip()[-1200:] if output_text else '',
+        }
 
     def _run_with_heartbeat(self, argv, cwd, checkpoint, env=None, log_path=None):
         handle = open(log_path, 'ab') if log_path else None
@@ -238,8 +286,6 @@ class JobExecutor:
             self._try_run(['git', '-C', str(cache), 'branch', '-D', f'agent/job-{job_id}'], cwd=self.root)
             shutil.rmtree(path, ignore_errors=True)
             removed.append(job_id)
-        # A worktree directory removed outside the worker leaves a stale
-        # registration and an orphan branch behind. Clean both.
         self._try_run(['git', '-C', str(cache), 'worktree', 'prune'], cwd=self.root)
         for line in self._capture(['git', '-C', str(cache), 'branch', '--list', 'agent/job-*'], cwd=self.root).splitlines():
             name = line.strip().lstrip('*+ ').strip()
@@ -355,6 +401,8 @@ class JobExecutor:
         self._run(['opencode', '--version'])
 
     def execute(self, job, checkpoint, emit_event=None):
+        start_ns = time.monotonic_ns()
+
         def emit(kind, detail):
             if emit_event:
                 try:
@@ -365,10 +413,10 @@ class JobExecutor:
         config = self.repository_for(job)
         branch = self.branch_for(job)
         mode = self.mode_for(job)
+        role = job.get('role') or 'developer'
         is_read_only = mode in ('read_only', 'review')
-        sandbox_mode = 'read-only' if is_read_only else 'workspace-write'
 
-        emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}` (mode: `{mode}`)...')
+        emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}` (role: `{role}`, mode: `{mode}`)...')
         worktree, branch = self._worktree(job, config, checkpoint)
         setup_environment = self.command_environment(cwd=worktree)
         for command in config.get('setup', []):
@@ -382,15 +430,33 @@ class JobExecutor:
             turns.append('\n'.join(pending))
         agent_environment = self.command_environment(allow_model=True, cwd=worktree)
         model = self.model_reference(job)
+        fallback_model = self.fallback_model_reference(job)
         agent_log = self.root / 'jobs' / f'{job["id"]}-agent.log'
+        retries = 0
+        fallback_used = False
 
-        emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (model: `{model}`, mode: `{mode}`)...')
+        emit('worker_phase', f'OpenCode AI agent started reasoning and implementation (role: `{role}`, model: `{model}`, mode: `{mode}`)...')
         for index, prompt in enumerate(turns):
             argv = ['opencode', 'run', '--standalone', '--auto', '--model', model]
             if index:
                 argv.append('--continue')
             argv.append(prompt)
-            self._run_with_heartbeat(argv, worktree, checkpoint, env=agent_environment, log_path=agent_log)
+            try:
+                self._run_with_heartbeat(argv, worktree, checkpoint, env=agent_environment, log_path=agent_log)
+            except RuntimeError:
+                if fallback_model != model:
+                    retries += 1
+                    fallback_used = True
+                    emit('worker_phase', f'Primary model `{model}` failed; retrying with approved fallback `{fallback_model}`...')
+                    fallback_argv = ['opencode', 'run', '--standalone', '--auto', '--model', fallback_model]
+                    if index:
+                        fallback_argv.append('--continue')
+                    fallback_argv.append(prompt)
+                    self._run_with_heartbeat(fallback_argv, worktree, checkpoint, env=agent_environment, log_path=agent_log)
+                    model = fallback_model
+                else:
+                    raise
+
         for _ in range(3):
             pending = checkpoint()
             if not pending:
@@ -401,16 +467,28 @@ class JobExecutor:
                 worktree, checkpoint, env=agent_environment, log_path=agent_log,
             )
 
+        elapsed_ms = (time.monotonic_ns() - start_ns) // 1_000_000
+        prompt_chars = sum(len(t) for t in turns)
+        telemetry = self._extract_telemetry(agent_log, prompt_chars, elapsed_ms, retries=retries, fallback_used=fallback_used)
+
         if is_read_only:
-            emit('worker_phase', f'Read-only/review job #{job["id"]} completed without code mutations.')
+            dirty_status = self._capture(['git', 'status', '--porcelain'], cwd=worktree)
+            if dirty_status:
+                raise RuntimeError(f'Permission violation: read-only/review role `{role}` modified worktree files')
+            emit('worker_phase', f'Read-only/review job #{job["id"]} ({role}) completed without code mutations.')
             return {
                 'branch': branch,
-                'commit_sha': None,
-                'pr_url': None,
-                'test_summary': f'{mode} mode completed (no code changes expected)',
+                'commit_sha': job.get('commit_sha'),
+                'pr_url': job.get('pr_url'),
+                'test_summary': f'{role} ({mode}) completed successfully',
                 'tests_passed': True,
                 'target_environment': self.target_environment,
+                'role': role,
                 'mode': mode,
+                'changed_files': [],
+                'diff_text': '',
+                'telemetry': telemetry,
+                'output_summary': telemetry['output_summary'],
             }
 
         summary = []
@@ -430,6 +508,7 @@ class JobExecutor:
         if not staged:
             raise RuntimeError('Agent produced no code changes')
         self.check_staged_paths(staged)
+        diff_text = self._capture(['git', 'diff', '--cached'], cwd=worktree)[:20000]
         author_name = os.environ.get('AGENT_GIT_AUTHOR_NAME', 'Zettly Coding Agent')
         author_email = os.environ.get('AGENT_GIT_AUTHOR_EMAIL', 'technology@edmeeclinic.com')
         self._run([
@@ -446,7 +525,7 @@ class JobExecutor:
             worktree, checkpoint, env=self.command_environment(True),
         )
         body = self.root / 'jobs' / f'{job["id"]}-pull-request.md'
-        body.write_text(f'Automated coding job #{job["id"]}.\n\nTests: {"; ".join(summary)}\n', encoding='utf-8')
+        body.write_text(f'Automated coding job #{job["id"]} (role: {role}).\n\nTests: {"; ".join(summary)}\n', encoding='utf-8')
         checkpoint()
         emit('worker_phase', 'Branch pushed. Creating draft pull request on GitHub...')
         pr_url = self._run([
@@ -454,6 +533,8 @@ class JobExecutor:
             '--title', f'feat(agent): coding job {job["id"]}', '--body-file', str(body),
         ], cwd=worktree, capture=True, allow_github=True)
         emit('worker_phase', f'Pull request created: {pr_url}')
+        elapsed_ms = (time.monotonic_ns() - start_ns) // 1_000_000
+        telemetry = self._extract_telemetry(agent_log, prompt_chars, elapsed_ms, retries=retries, fallback_used=fallback_used)
         return {
             'branch': branch,
             'commit_sha': sha,
@@ -461,7 +542,12 @@ class JobExecutor:
             'test_summary': '; '.join(summary),
             'tests_passed': True,
             'target_environment': self.target_environment,
+            'role': role,
             'mode': mode,
+            'changed_files': staged,
+            'diff_text': diff_text,
+            'telemetry': telemetry,
+            'output_summary': telemetry['output_summary'],
         }
 
 

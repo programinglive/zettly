@@ -1,0 +1,18 @@
+version: "2.0"
+scope:
+  - backend
+  - frontend
+standards:
+  - id: ZET-API-001
+    title: Backward-compatible API contracts and defensive request validation
+    description: API controllers must validate all incoming inputs using explicit schemas/rules and preserve backward-compatible response envelopes.
+    rationale: Design by Contract prevents invalid state propagation across distributed workers and clients.
+    principle: Design by Contract
+    source: The Pragmatic Programmer
+    scope: [backend]
+    severity: high
+    enforcement: blocking
+    detection: api-contract-analysis
+    autofix: proposal-only
+    verification: php artisan test
+    exception_process: Versioned API endpoint migration plan required.

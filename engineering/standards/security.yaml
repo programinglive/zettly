@@ -1,0 +1,35 @@
+version: "2.0"
+scope:
+  - backend
+  - frontend
+  - agent_worker
+standards:
+  - id: ZET-SEC-001
+    title: No embedded credentials, private keys, or API tokens
+    description: Source code, configurations, and tests must never embed live API keys, private keys, or bearer tokens.
+    rationale: Embedded secrets in version control compromise production infrastructure permanently.
+    principle: Security by Design
+    source: The Pragmatic Programmer
+    scope: [backend, frontend, agent_worker]
+    severity: critical
+    enforcement: blocking
+    detection: secret-scanner
+    pattern: "(?:ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----)"
+    autofix: disabled
+    verification: gitleaks / security_audit
+    exception_process: Never allowed.
+
+  - id: ZET-SEC-002
+    title: No unrestricted shell execution or unsafe deserialization
+    description: Avoid unvalidated shell execution (eval, shell_exec, passthru, unserialize on untrusted input).
+    rationale: Arbitrary command execution and unsafe deserialization allow remote code execution.
+    principle: Defensive Input Validation
+    source: The Pragmatic Programmer
+    scope: [backend, agent_worker]
+    severity: high
+    enforcement: blocking
+    detection: regex
+    pattern: "\\b(?:shell_exec|passthru|unserialize)\\s*\\("
+    autofix: disabled
+    verification: php artisan test
+    exception_process: Requires security architect approval in approved-exceptions.yaml.

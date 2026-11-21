@@ -338,14 +338,37 @@ class AiCtoOrchestratorService
                 $reversibilityClassification = $assessment['classification'];
                 $riskLevel = $this->autonomousPolicy->maxRisk($previousRiskLevel, $assessment['risk_level']);
 
-                // If FAST profile touched non-doc/non-copy code or resulted in > LOW risk, escalate and record scope violation
+                // If FAST profile touched non-doc/non-copy code or resulted in > LOW risk, escalate profile dynamically!
                 if ($routingProfile === CodingAgentRoleRegistry::PROFILE_FAST && is_array($changedFiles) && $changedFiles !== []) {
                     $reEvaluated = $this->determineRoutingProfile($locked->instruction, $changedFiles, (string) $diffText);
                     if ($reEvaluated['profile'] !== CodingAgentRoleRegistry::PROFILE_FAST || $riskLevel !== PrReversibilityAssessor::RISK_LOW) {
+                        $escalatedProfile = $reEvaluated['profile'] === CodingAgentRoleRegistry::PROFILE_FAST
+                            ? CodingAgentRoleRegistry::PROFILE_STANDARD
+                            : $reEvaluated['profile'];
                         $riskLevel = $this->autonomousPolicy->maxRisk($riskLevel, PrReversibilityAssessor::RISK_MEDIUM);
                         $assessment['risk_level'] = $riskLevel;
                         $assessment['gates']['blocking_conditions'][] = 'FAST profile scope exceeded after implementation; requires FULL/STANDARD review and human approval.';
                         $assessment['gates']['allow_auto_merge'] = false;
+
+                        if ($role === 'developer' && $locked->workflow_task_id) {
+                            $this->escalateFastWorkflowToVerificationChain($locked, $escalatedProfile, $riskLevel);
+                        }
+                    }
+                } elseif ($routingProfile === CodingAgentRoleRegistry::PROFILE_STANDARD && is_array($changedFiles) && $changedFiles !== []) {
+                    $reEvaluated = $this->determineRoutingProfile($locked->instruction, $changedFiles, (string) $diffText);
+                    if ($reEvaluated['profile'] === CodingAgentRoleRegistry::PROFILE_FULL || in_array($riskLevel, [PrReversibilityAssessor::RISK_HIGH, PrReversibilityAssessor::RISK_CRITICAL], true)) {
+                        $riskLevel = $this->autonomousPolicy->maxRisk($riskLevel, PrReversibilityAssessor::RISK_MEDIUM);
+                        $locked->update(['routing_profile' => CodingAgentRoleRegistry::PROFILE_FULL]);
+                        if ($locked->workflow_task_id) {
+                            CodingAgentJob::query()->where('workflow_task_id', $locked->workflow_task_id)
+                                ->update(['routing_profile' => CodingAgentRoleRegistry::PROFILE_FULL]);
+                        }
+                        $locked->events()->create([
+                            'event_key' => (string) Str::uuid(),
+                            'kind' => 'routing_profile_escalated',
+                            'detail' => 'Escalated workflow profile from STANDARD to FULL due to high-risk diff detection.',
+                            'occurred_at' => now(),
+                        ]);
                     }
                 }
 
@@ -384,10 +407,17 @@ class AiCtoOrchestratorService
             if (! $isFinalGate && $nextJob) {
                 $locked->todo?->update(['is_completed' => true]);
 
+                $compactHandoff = $this->buildCompactHandoffSummary($role, $payload, $reversibilityClassification, $riskLevel);
+                $updatedInstruction = $nextJob->instruction;
+                if ($compactHandoff !== '' && ! str_contains($updatedInstruction, '[Upstream Handoff')) {
+                    $updatedInstruction .= "\n\n[Upstream Handoff from {$role}]\n{$compactHandoff}";
+                }
+
                 $nextJob->update([
                     'branch' => $locked->branch ?? $nextJob->branch,
                     'commit_sha' => $locked->commit_sha ?? $nextJob->commit_sha,
                     'pr_url' => $locked->pr_url ?? $nextJob->pr_url,
+                    'instruction' => $updatedInstruction,
                     'risk_level' => $this->autonomousPolicy->maxRisk((string) $nextJob->risk_level, (string) $riskLevel),
                 ]);
                 $nextJob->events()->create([
@@ -441,6 +471,14 @@ class AiCtoOrchestratorService
             ->get();
 
         $releaseJob = $jobs->firstWhere('role', 'release_manager') ?? $jobs->last();
+        $totalTokens = 0;
+        $totalDurationMs = 0;
+        foreach ($jobs as $j) {
+            $art = is_array($j->artifact_output) ? $j->artifact_output : [];
+            $tel = is_array($art['telemetry'] ?? null) ? $art['telemetry'] : [];
+            $totalTokens += (int) ($tel['total_tokens'] ?? 0);
+            $totalDurationMs += (int) ($tel['duration_ms'] ?? 0);
+        }
 
         return [
             'workflow_task_id' => $workflowTaskId,
@@ -448,30 +486,264 @@ class AiCtoOrchestratorService
             'roles_count' => $jobs->count(),
             'overall_status' => $this->deriveOverallWorkflowStatus($jobs->all()),
             'delivery_stage' => $releaseJob?->delivery_stage,
+            'production_revision' => $releaseJob?->production_revision,
             'reversibility_classification' => $releaseJob?->reversibility_classification,
             'risk_level' => $releaseJob?->risk_level,
             'reversibility_assessment' => $releaseJob?->reversibility_assessment,
             'human_approval_required' => true,
             'human_approved' => $releaseJob ? $releaseJob->hasCurrentApproval() : false,
-            'steps' => $jobs->map(fn (CodingAgentJob $j) => [
-                'job_id' => $j->id,
-                'role' => $j->role,
-                'routing_profile' => $j->routing_profile,
-                'execution_mode' => $j->execution_mode,
-                'status' => $j->status,
-                'delivery_stage' => $j->delivery_stage,
-                'todo_id' => $j->todo_id,
-                'todo_completed' => (bool) $j->todo?->is_completed,
-                'branch' => $j->branch,
-                'commit_sha' => $j->commit_sha,
-                'pr_url' => $j->pr_url,
-                'tests_passed' => $j->tests_passed,
-                'test_summary' => $j->test_summary,
-                'reversibility_classification' => $j->reversibility_classification,
-                'risk_level' => $j->risk_level,
-                'events_count' => $j->events->count(),
-            ])->values()->all(),
+            'telemetry_totals' => [
+                'total_tokens' => $totalTokens,
+                'total_duration_ms' => $totalDurationMs,
+            ],
+            'steps' => $jobs->map(function (CodingAgentJob $j): array {
+                $art = is_array($j->artifact_output) ? $j->artifact_output : [];
+                $tel = is_array($art['telemetry'] ?? null) ? $art['telemetry'] : [];
+
+                return [
+                    'job_id' => $j->id,
+                    'role' => $j->role,
+                    'routing_profile' => $j->routing_profile,
+                    'execution_mode' => $j->execution_mode,
+                    'status' => $j->status,
+                    'delivery_stage' => $j->delivery_stage,
+                    'todo_id' => $j->todo_id,
+                    'todo_completed' => (bool) $j->todo?->is_completed,
+                    'branch' => $j->branch,
+                    'commit_sha' => $j->commit_sha,
+                    'pr_url' => $j->pr_url,
+                    'tests_passed' => $j->tests_passed,
+                    'test_summary' => $j->test_summary,
+                    'output_summary' => $art['output_summary'] ?? null,
+                    'telemetry' => $tel,
+                    'reversibility_classification' => $j->reversibility_classification,
+                    'risk_level' => $j->risk_level,
+                    'events_count' => $j->events->count(),
+                ];
+            })->values()->all(),
         ];
+    }
+
+    /**
+     * Detect and recover stalled workflow objectives or broken handoffs.
+     *
+     * - Reclaims running jobs whose lease expired (`leased_until < now()`) back to `queued` with a `stalled_lease_recovered` event.
+     * - Repairs broken handoffs where an upstream job is `completed` (and its Todo is complete) but the downstream job is missing `branch`/`commit_sha`.
+     *
+     * @return array{reclaimed_jobs: array<int, int>, repaired_handoffs: array<int, int>, stalled_workflows: array<int, string>}
+     */
+    public function detectAndRecoverStalledWorkflows(int $userId): array
+    {
+        return DB::transaction(function () use ($userId): array {
+            $reclaimed = [];
+            $repaired = [];
+            $stalledWorkflows = [];
+
+            $expiredRunning = CodingAgentJob::query()
+                ->where('user_id', $userId)
+                ->where('status', 'running')
+                ->whereNotNull('leased_until')
+                ->where('leased_until', '<', now())
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($expiredRunning as $staleJob) {
+                $staleJob->update([
+                    'status' => 'queued',
+                    'lease_token_hash' => null,
+                    'leased_until' => null,
+                ]);
+                $staleJob->events()->create([
+                    'event_key' => (string) Str::uuid(),
+                    'kind' => 'stalled_lease_recovered',
+                    'detail' => "Recovered expired worker lease on job #{$staleJob->id} (role: {$staleJob->role}); re-queued for execution.",
+                    'occurred_at' => now(),
+                ]);
+                $reclaimed[] = $staleJob->id;
+                if ($staleJob->workflow_task_id) {
+                    $stalledWorkflows[] = $staleJob->workflow_task_id;
+                }
+            }
+
+            $workflowJobs = CodingAgentJob::query()
+                ->where('user_id', $userId)
+                ->whereNotNull('workflow_task_id')
+                ->whereNotNull('handoff_from_job_id')
+                ->where('status', 'queued')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($workflowJobs as $downstream) {
+                $upstream = CodingAgentJob::query()->find($downstream->handoff_from_job_id);
+                if (! $upstream || $upstream->status !== 'completed') {
+                    continue;
+                }
+
+                $needsRepair = ($upstream->commit_sha && ! $downstream->commit_sha)
+                    || ($upstream->branch && ! $downstream->branch)
+                    || ($upstream->todo && ! $upstream->todo->is_completed);
+
+                if ($needsRepair) {
+                    $upstream->todo?->update(['is_completed' => true]);
+                    $downstream->update([
+                        'branch' => $downstream->branch ?? $upstream->branch,
+                        'commit_sha' => $downstream->commit_sha ?? $upstream->commit_sha,
+                        'pr_url' => $downstream->pr_url ?? $upstream->pr_url,
+                    ]);
+                    $downstream->events()->create([
+                        'event_key' => (string) Str::uuid(),
+                        'kind' => 'handoff_recovered',
+                        'detail' => "Recovered missing handoff context from upstream job #{$upstream->id} ({$upstream->role}).",
+                        'occurred_at' => now(),
+                    ]);
+                    $repaired[] = $downstream->id;
+                }
+            }
+
+            return [
+                'reclaimed_jobs' => $reclaimed,
+                'repaired_handoffs' => $repaired,
+                'stalled_workflows' => array_values(array_unique($stalledWorkflows)),
+            ];
+        });
+    }
+
+    /**
+     * Dynamically escalate a FAST workflow (developer -> release_manager) by inserting
+     * qa_engineer and security_code_reviewer between developer and release_manager.
+     */
+    private function escalateFastWorkflowToVerificationChain(CodingAgentJob $devJob, string $targetProfile, string $riskLevel): void
+    {
+        $wfId = (string) $devJob->workflow_task_id;
+        $releaseJob = $this->findWorkflowRoleJob($wfId, 'release_manager');
+        if (! $releaseJob || $this->findWorkflowRoleJob($wfId, 'qa_engineer') !== null) {
+            return;
+        }
+
+        $qaProfile = CodingAgentRoleRegistry::getOrFail('qa_engineer');
+        $secProfile = CodingAgentRoleRegistry::getOrFail('security_code_reviewer');
+
+        $qaTodo = Todo::create([
+            'user_id' => $devJob->user_id,
+            'title' => "[AI Org Escalated · {$qaProfile['title']}] ".Str::limit($devJob->instruction, 90),
+            'description' => "Escalated Profile: {$targetProfile}\nRole: qa_engineer",
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => false,
+            'priority' => 'urgent',
+        ]);
+        if ($devJob->todo_id) {
+            TodoDependency::firstOrCreate([
+                'user_id' => $devJob->user_id,
+                'todo_id' => $qaTodo->id,
+                'depends_on_todo_id' => $devJob->todo_id,
+            ], ['source' => 'ai_cto_escalation']);
+        }
+
+        $secTodo = Todo::create([
+            'user_id' => $devJob->user_id,
+            'title' => "[AI Org Escalated · {$secProfile['title']}] ".Str::limit($devJob->instruction, 90),
+            'description' => "Escalated Profile: {$targetProfile}\nRole: security_code_reviewer",
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => false,
+            'priority' => 'urgent',
+        ]);
+        TodoDependency::firstOrCreate([
+            'user_id' => $devJob->user_id,
+            'todo_id' => $secTodo->id,
+            'depends_on_todo_id' => $qaTodo->id,
+        ], ['source' => 'ai_cto_escalation']);
+
+        if ($releaseJob->todo_id) {
+            TodoDependency::firstOrCreate([
+                'user_id' => $devJob->user_id,
+                'todo_id' => $releaseJob->todo_id,
+                'depends_on_todo_id' => $secTodo->id,
+            ], ['source' => 'ai_cto_escalation']);
+        }
+
+        $qaJob = CodingAgentJob::create([
+            'user_id' => $devJob->user_id,
+            'todo_id' => $qaTodo->id,
+            'workflow_task_id' => $wfId,
+            'parent_job_id' => $devJob->parent_job_id ?? $devJob->id,
+            'handoff_from_job_id' => $devJob->id,
+            'repository' => $devJob->repository,
+            'role' => 'qa_engineer',
+            'routing_profile' => $targetProfile,
+            'execution_mode' => 'read_only',
+            'instruction' => "[Profile: {$targetProfile} | Role: {$qaProfile['title']}] {$qaProfile['description']}",
+            'model' => $devJob->model,
+            'client_request_id' => "wf-{$wfId}-qa_engineer",
+            'status' => 'queued',
+            'risk_level' => $riskLevel,
+            'target_environment' => $devJob->target_environment ?? 'staging',
+        ]);
+
+        $secJob = CodingAgentJob::create([
+            'user_id' => $devJob->user_id,
+            'todo_id' => $secTodo->id,
+            'workflow_task_id' => $wfId,
+            'parent_job_id' => $devJob->parent_job_id ?? $devJob->id,
+            'handoff_from_job_id' => $qaJob->id,
+            'repository' => $devJob->repository,
+            'role' => 'security_code_reviewer',
+            'routing_profile' => $targetProfile,
+            'execution_mode' => 'review',
+            'instruction' => "[Profile: {$targetProfile} | Role: {$secProfile['title']}] {$secProfile['description']}",
+            'model' => $devJob->model,
+            'client_request_id' => "wf-{$wfId}-security_code_reviewer",
+            'status' => 'queued',
+            'risk_level' => $riskLevel,
+            'target_environment' => $devJob->target_environment ?? 'staging',
+        ]);
+
+        $releaseJob->update([
+            'handoff_from_job_id' => $secJob->id,
+            'routing_profile' => $targetProfile,
+            'risk_level' => $riskLevel,
+        ]);
+        $devJob->update(['routing_profile' => $targetProfile]);
+
+        $devJob->events()->create([
+            'event_key' => (string) Str::uuid(),
+            'kind' => 'routing_profile_escalated',
+            'detail' => "Escalated workflow profile from FAST to {$targetProfile}; inserted qa_engineer (#{$qaJob->id}) and security_code_reviewer (#{$secJob->id}) before release_manager (#{$releaseJob->id}).",
+            'occurred_at' => now(),
+        ]);
+    }
+
+    /**
+     * Build a compact (<800 char) structured handoff artifact so downstream roles reuse structured context
+     * without re-reading the entire repository.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function buildCompactHandoffSummary(string $role, array $payload, ?string $classification, ?string $riskLevel): string
+    {
+        $parts = [];
+        if (! empty($payload['objective_analysis'])) {
+            $parts[] = 'Analysis: '.Str::limit((string) $payload['objective_analysis'], 200);
+        }
+        if (! empty($payload['architecture_plan'])) {
+            $parts[] = 'Design: '.Str::limit((string) $payload['architecture_plan'], 200);
+        }
+        if (! empty($payload['target_files']) && is_array($payload['target_files'])) {
+            $parts[] = 'Target files: '.implode(', ', array_slice($payload['target_files'], 0, 8));
+        }
+        if (! empty($payload['changed_files']) && is_array($payload['changed_files'])) {
+            $parts[] = 'Changed files: '.implode(', ', array_slice($payload['changed_files'], 0, 8));
+        }
+        if (! empty($payload['commit_sha'])) {
+            $parts[] = 'Commit: '.substr((string) $payload['commit_sha'], 0, 12);
+        }
+        if (! empty($payload['test_summary'])) {
+            $parts[] = 'Tests: '.Str::limit((string) $payload['test_summary'], 160);
+        }
+        if ($classification) {
+            $parts[] = "Reversibility: {$classification} (Risk: {$riskLevel})";
+        }
+
+        return Str::limit(implode("\n", $parts), 750);
     }
 
     private function findWorkflowRoleJob(?string $workflowTaskId, string $role): ?CodingAgentJob

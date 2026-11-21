@@ -1,0 +1,18 @@
+version: "2.0"
+scope:
+  - database
+standards:
+  - id: ZET-DB-001
+    title: Additive N-1 compatible database migrations and no unapproved destructive schema changes
+    description: Database migrations must be N-1 compatible with the running application; destructive operations (dropColumn, dropIfExists on existing tables, raw DELETE/TRUNCATE) are blocked from autonomous release without verified pre-deploy backup and human approval.
+    rationale: Application rollback fails if a migration destructively mutates or drops columns still read by the previous release.
+    principle: Reversible Changes & Database Safety
+    source: The Pragmatic Programmer & Zettly V1.6 Release Safety Policy
+    scope: [database]
+    severity: critical
+    enforcement: blocking
+    detection: migration-safety-scanner
+    pattern: "\\b(?:dropColumn|dropIfExists|dropTable)\\s*\\("
+    autofix: disabled
+    verification: php artisan migrate --pretend
+    exception_process: Requires verified GCS backup sha256 and /etc/deploy/migration-approvals/<app>-<tag>.json.

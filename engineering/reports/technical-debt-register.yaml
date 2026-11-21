@@ -1,0 +1,41 @@
+version: "2.0"
+updated_at: "2026-11-22T00:25:00+07:00"
+items:
+  - id: DEBT-ZET-001
+    priority: P0
+    component: "Coding Agent Worker & API (CodingAgentWorkerController.php, agent_worker/executor.py)"
+    problem: "Worker result endpoint previously required a non-null 40-hex commit_sha even for read_only/review roles and updated job status directly instead of routing workflow jobs through AiCtoOrchestratorService::completeRoleJob()."
+    source_evidence: "app/Http/Controllers/Api/CodingAgentWorkerController.php:130-152, agent_worker/executor.py:404-414"
+    engineering_impact: "Prevented multi-role read_only steps (ai_cto, software_architect, qa_engineer, release_manager) from completing via HTTP worker API without synthetic SHAs."
+    business_impact: "Blocked autonomous 6-role workflow handoffs through the live worker endpoint."
+    severity: critical
+    estimated_risk: high
+    suggested_resolution: "Allow nullable commit_sha for read_only/review roles, verify clean worktree in executor.py, and delegate workflow_task_id jobs to AiCtoOrchestratorService::completeRoleJob()."
+    status: RESOLVED_IN_V1.6.1
+    related_commit_or_pr: "feat/v1.6.1-operational-validation-and-hardening"
+
+  - id: DEBT-ZET-002
+    priority: P1
+    component: "Staging Database Parity (/var/www/zettly-staging)"
+    problem: "Initial staging slot used SQLite while live production uses PostgreSQL 15 on 10.184.0.9 (prod_zettly)."
+    source_evidence: "bw-app:/var/www/zettly-staging/.env"
+    engineering_impact: "SQLite does not catch PostgreSQL-specific DDL/constraint/index behaviors during migration verification."
+    business_impact: "Potential migration discrepancy between staging and production."
+    severity: high
+    estimated_risk: medium
+    suggested_resolution: "Provision isolated PostgreSQL database dev_zettly owned by zettly_app on 10.184.0.9 and point /var/www/zettly-staging to pgsql/dev_zettly."
+    status: RESOLVED_IN_V1.6.1
+    related_commit_or_pr: "bw-server-clean:dev_zettly + bw-app:/var/www/zettly-staging"
+
+  - id: DEBT-ZET-003
+    priority: P2
+    component: "Large Controller Modules (app/Http/Controllers/TodoController.php, Api/TodoController.php)"
+    problem: "Web and API TodoController classes exceed 500 lines and mix HTTP request normalization with query construction."
+    source_evidence: "app/Http/Controllers/TodoController.php, app/Http/Controllers/Api/TodoController.php"
+    engineering_impact: "Higher cognitive load when modifying Todo filtering or priority queue behavior."
+    business_impact: "Slower feature iteration on core Todo views."
+    severity: medium
+    estimated_risk: low
+    suggested_resolution: "Extract shared query scopes and DTO builders into App\\Domain\\Todo services incrementally under characterization test coverage."
+    status: TRACKED_OPEN
+    related_commit_or_pr: "N/A"

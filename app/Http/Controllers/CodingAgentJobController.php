@@ -214,9 +214,13 @@ class CodingAgentJobController extends Controller
         ];
     }
 
-    public function show(Request $request, CodingAgentJob $job): Response
+    public function show(Request $request, CodingAgentJob $job, \App\Services\AiOrganization\AiCtoOrchestratorService $orchestrator): Response
     {
         $job = $this->ownedJob($request, $job)->load('todo:id,title');
+        $art = is_array($job->artifact_output) ? $job->artifact_output : [];
+        $workflow = $job->workflow_task_id
+            ? $orchestrator->inspectWorkflow($job->workflow_task_id, (int) $request->user()->id)
+            : null;
 
         return Inertia::render('Agent/Show', [
             'job' => [
@@ -225,6 +229,7 @@ class CodingAgentJobController extends Controller
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
                 'role' => $job->role ?? 'developer',
+                'routing_profile' => $job->routing_profile ?? 'STANDARD',
                 'execution_mode' => $job->execution_mode ?? 'code_write',
                 'workflow_task_id' => $job->workflow_task_id,
                 'instruction' => $job->instruction,
@@ -241,14 +246,27 @@ class CodingAgentJobController extends Controller
                 'reversibility_classification' => $job->reversibility_classification,
                 'risk_level' => $job->risk_level,
                 'reversibility_assessment' => $job->reversibility_assessment,
+                'delivery_stage' => $job->delivery_stage,
+                'merge_sha' => $job->merge_sha,
+                'release_tag' => $job->release_tag,
+                'artifact_digest' => $job->artifact_digest,
+                'production_revision' => $job->production_revision,
+                'delivery_state' => $job->delivery_state,
+                'telemetry' => $art['telemetry'] ?? null,
+                'output_summary' => $art['output_summary'] ?? null,
+                'workflow' => $workflow,
             ],
             'events' => $job->events()->latest('occurred_at')->paginate(20, ['id', 'event_key', 'kind', 'detail', 'occurred_at']),
         ]);
     }
 
-    public function monitor(Request $request, CodingAgentJob $job): Response
+    public function monitor(Request $request, CodingAgentJob $job, \App\Services\AiOrganization\AiCtoOrchestratorService $orchestrator): Response
     {
         $job = $this->ownedJob($request, $job)->load('todo:id,title');
+        $art = is_array($job->artifact_output) ? $job->artifact_output : [];
+        $workflow = $job->workflow_task_id
+            ? $orchestrator->inspectWorkflow($job->workflow_task_id, (int) $request->user()->id)
+            : null;
 
         return Inertia::render('Agent/Monitor', [
             'job' => [
@@ -257,6 +275,7 @@ class CodingAgentJobController extends Controller
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
                 'role' => $job->role ?? 'developer',
+                'routing_profile' => $job->routing_profile ?? 'STANDARD',
                 'execution_mode' => $job->execution_mode ?? 'code_write',
                 'workflow_task_id' => $job->workflow_task_id,
                 'instruction' => $job->instruction,
@@ -275,6 +294,15 @@ class CodingAgentJobController extends Controller
                 'reversibility_classification' => $job->reversibility_classification,
                 'risk_level' => $job->risk_level,
                 'reversibility_assessment' => $job->reversibility_assessment,
+                'delivery_stage' => $job->delivery_stage,
+                'merge_sha' => $job->merge_sha,
+                'release_tag' => $job->release_tag,
+                'artifact_digest' => $job->artifact_digest,
+                'production_revision' => $job->production_revision,
+                'delivery_state' => $job->delivery_state,
+                'telemetry' => $art['telemetry'] ?? null,
+                'output_summary' => $art['output_summary'] ?? null,
+                'workflow' => $workflow,
             ],
             'events' => $job->events()
                 ->latest('occurred_at')
