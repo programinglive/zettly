@@ -12,6 +12,7 @@ use App\Models\CodingAgentJob;
 use App\Models\Todo;
 use App\Services\CodingAgentJobTransitions;
 use App\Support\CodingAgentRepositoryRegistry;
+use App\Support\CodingAgentRoleRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -223,6 +224,9 @@ class CodingAgentJobController extends Controller
                 'todo_id' => $job->todo_id,
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
+                'role' => $job->role ?? 'developer',
+                'execution_mode' => $job->execution_mode ?? 'code_write',
+                'workflow_task_id' => $job->workflow_task_id,
                 'instruction' => $job->instruction,
                 'model' => $job->model,
                 'status' => $job->status,
@@ -234,6 +238,9 @@ class CodingAgentJobController extends Controller
                 'target_environment' => $job->target_environment,
                 'last_heartbeat_at' => $job->last_heartbeat_at?->toIso8601String(),
                 'approved' => $job->hasCurrentApproval(),
+                'reversibility_classification' => $job->reversibility_classification,
+                'risk_level' => $job->risk_level,
+                'reversibility_assessment' => $job->reversibility_assessment,
             ],
             'events' => $job->events()->latest('occurred_at')->paginate(20, ['id', 'event_key', 'kind', 'detail', 'occurred_at']),
         ]);
@@ -249,6 +256,9 @@ class CodingAgentJobController extends Controller
                 'todo_id' => $job->todo_id,
                 'todo_title' => $job->todo?->title,
                 'repository' => $job->repository,
+                'role' => $job->role ?? 'developer',
+                'execution_mode' => $job->execution_mode ?? 'code_write',
+                'workflow_task_id' => $job->workflow_task_id,
                 'instruction' => $job->instruction,
                 'model' => $job->model,
                 'status' => $job->status,
@@ -262,6 +272,9 @@ class CodingAgentJobController extends Controller
                 'created_at' => $job->created_at?->toIso8601String(),
                 'updated_at' => $job->updated_at?->toIso8601String(),
                 'approved' => $job->hasCurrentApproval(),
+                'reversibility_classification' => $job->reversibility_classification,
+                'risk_level' => $job->risk_level,
+                'reversibility_assessment' => $job->reversibility_assessment,
             ],
             'events' => $job->events()
                 ->latest('occurred_at')

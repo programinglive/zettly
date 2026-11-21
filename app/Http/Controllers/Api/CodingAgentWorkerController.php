@@ -64,6 +64,8 @@ class CodingAgentWorkerController
                 return [
                     'id' => $job->id,
                     'repository' => $job->repository,
+                    'role' => $job->role ?? 'developer',
+                    'mode' => $job->execution_mode ?? 'code_write',
                     'instruction' => $job->instruction,
                     'model' => $model,
                     'lease_token' => $leaseToken,

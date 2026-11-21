@@ -272,6 +272,53 @@ export default function Show({ job, events }) {
                 {approvalReady && <button disabled={!online} onClick={() => router.post(`/agent/jobs/${job.id}/approve-release`, { commit_sha: job.commit_sha, target_environment: job.target_environment })} className="w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50">Approve this commit for release</button>}
             </section>}
 
+            {/* PR & Deployment Reversibility Assessment (Part B.6) */}
+            {job.reversibility_assessment && (
+                <section className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3 dark:border-gray-800">
+                        <div>
+                            <h2 className="font-semibold text-gray-900 dark:text-gray-100">PR & Deployment Reversibility</h2>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">{job.reversibility_assessment.summary}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+                            <span className="rounded-full bg-indigo-100 px-3 py-1 text-indigo-900 dark:bg-indigo-950/70 dark:text-indigo-200">
+                                {job.reversibility_classification}
+                            </span>
+                            <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
+                                Risk: {job.risk_level}
+                            </span>
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                                Rollback: {job.reversibility_assessment.rollback_status}
+                            </span>
+                        </div>
+                    </div>
+
+                    {job.reversibility_assessment.gates?.blocking_conditions?.length > 0 && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                            <p className="font-semibold">Blocking Conditions:</p>
+                            <ul className="mt-1 list-disc pl-4 space-y-0.5">
+                                {job.reversibility_assessment.gates.blocking_conditions.map((b, i) => (
+                                    <li key={i}>{b}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {job.reversibility_assessment.rollback_plan && (
+                        <div className="rounded-xl bg-gray-50 p-3 text-xs dark:bg-gray-950/60">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                Recovery Plan (Target: {job.reversibility_assessment.rollback_plan.previous_known_good_release})
+                            </p>
+                            <ul className="mt-1.5 space-y-1 text-gray-700 dark:text-gray-300">
+                                {(job.reversibility_assessment.rollback_plan.step_by_step_recovery_procedure || []).map((s, idx) => (
+                                    <li key={idx}>{s}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </section>
+            )}
+
             {/* Activity Stream */}
             <section className="space-y-3">
                 <h2 className="font-semibold text-gray-900 dark:text-gray-100">Activity Stream</h2>
