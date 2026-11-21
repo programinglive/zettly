@@ -14,6 +14,41 @@ class CodingAgentRoleRegistry
     public const PROFILE_FAST = 'FAST';
     public const PROFILE_STANDARD = 'STANDARD';
     public const PROFILE_FULL = 'FULL';
+    public const PROFILE_PARALLEL_FULL = 'PARALLEL_FULL';
+
+    public const TIER_FAST = 'FAST';
+    public const TIER_CODING = 'CODING';
+    public const TIER_REASONING = 'REASONING';
+    public const TIER_REVIEW = 'REVIEW';
+
+    /**
+     * Resolve the optimal Kenari primary and fallback model for a role & risk level
+     * using task-aware model tiers (FAST, CODING, REASONING, REVIEW).
+     *
+     * @return array{tier: string, primary_model: string, fallback_model: string, token_budget: int}
+     */
+    public static function selectModelPolicyForRole(string $role, string $riskLevel = 'LOW'): array
+    {
+        $profile = self::getOrFail($role);
+        $rawTier = strtolower((string) ($profile['model_policy']['tier'] ?? 'coding'));
+
+        $tier = match (true) {
+            in_array($rawTier, ['research', 'fast'], true) && $riskLevel === 'LOW' => self::TIER_FAST,
+            in_array($rawTier, ['planning', 'architecture'], true) || in_array($riskLevel, ['HIGH', 'CRITICAL'], true) => self::TIER_REASONING,
+            in_array($rawTier, ['review', 'verification', 'release_safety'], true) => self::TIER_REVIEW,
+            default => self::TIER_CODING,
+        };
+
+        $tiersConfig = config('coding_agent.model_tiers', []);
+        $tierSpec = is_array($tiersConfig[$tier] ?? null) ? $tiersConfig[$tier] : [];
+
+        return [
+            'tier' => $tier,
+            'primary_model' => (string) ($tierSpec['primary'] ?? $profile['model_policy']['default_model'] ?? 'hy4-flash:free'),
+            'fallback_model' => (string) ($tierSpec['fallback'] ?? $profile['model_policy']['fallback'] ?? 'qwen3-5-397b-a17b:free'),
+            'token_budget' => (int) config('coding_agent.budgets.per_job_tokens', 25000),
+        ];
+    }
 
     /**
      * Return all 12 logical AI Engineering Organization role profiles.

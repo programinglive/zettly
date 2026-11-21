@@ -12,7 +12,7 @@ class AgentSessionIngestor
     /**
      * Canonical secret pattern, ported verbatim from scripts/codex_journal.py.
      */
-    public const SECRET_PATTERN = '#https://discord(?:app)?\.com/api/webhooks/\S+|bearer\s+\S+|(?:api[_-]?key|token|password|secret|webhook)\s*[:=]\s*\S+#i';
+    public const SECRET_PATTERN = '#https://discord(?:app)?\.com/api/webhooks/\S+|bearer\s+\S+|(?:api[_-]?key|token|password|secret|webhook)\s*[:=]\s*\S+|\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16})\b#i';
 
     /**
      * Category vocabulary, in match order, ported verbatim from scripts/codex_journal.py.
