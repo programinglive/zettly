@@ -53,6 +53,13 @@ class DashboardController extends Controller
             ->values()
             ->all();
 
+        $taskSort = in_array($request->input('sort'), ['priority', 'due_date'], true)
+            ? $request->input('sort')
+            : 'priority';
+        $focusSort = in_array($request->input('focus_sort'), ['priority', 'open_tasks', 'progress'], true)
+            ? $request->input('focus_sort')
+            : 'priority';
+
         $tasksQuery = $user->todos()->notArchived()->tasks();
 
         if (! empty($selectedTagIds)) {
@@ -143,6 +150,21 @@ class DashboardController extends Controller
             'focus_title' => isset($item['focus_id']) ? ($focusTitlesById[$item['focus_id']] ?? null) : null,
         ], fn ($v) => $v !== null))->concat($fallbackItems)->values();
 
+        $tierRank = ['P0' => 0, 'P1' => 1, 'P2' => 2, 'P3' => 3, 'UNPRIORITIZED' => 4];
+        if ($taskSort === 'due_date') {
+            $openTaskItems = $openTaskItems->sortBy(fn ($item) => [
+                empty($item['due_date']) ? 1 : 0,
+                $item['due_date'] ?? '9999-12-31',
+                $tierRank[$item['priority_tier'] ?? 'UNPRIORITIZED'] ?? 4,
+            ])->values();
+        } elseif ($prioritySettings->enabled) {
+            $openTaskItems = $openTaskItems->sortBy(fn ($item) => [
+                $tierRank[$item['priority_tier'] ?? 'UNPRIORITIZED'] ?? 4,
+                empty($item['due_date']) ? 1 : 0,
+                $item['due_date'] ?? '9999-12-31',
+            ])->values();
+        }
+
         $openOverallCount = (clone $tasksQuery)->where('is_completed', false)->count();
         $completedCount = (clone $tasksQuery)->where('is_completed', true)->count();
         $openTodayCount = (clone $tasksQuery)
@@ -197,7 +219,26 @@ class DashboardController extends Controller
                 'work_state' => $workState,
                 'priority_tier' => $priorityTier,
             ];
-        })->values()->all();
+        });
+
+        $focusItems = match ($focusSort) {
+            'open_tasks' => $focusItems->sortBy(fn ($item) => [
+                -$item['open_tasks_count'],
+                $tierRank[$item['priority_tier']] ?? 4,
+                -$item['id'],
+            ]),
+            'progress' => $focusItems->sortBy(fn ($item) => [
+                $item['progress_percent'] === null ? 2 : ($item['progress_percent'] >= 100 ? 1 : 0),
+                $item['progress_percent'] ?? 101,
+                $tierRank[$item['priority_tier']] ?? 4,
+            ]),
+            default => $focusItems->sortBy(fn ($item) => [
+                $tierRank[$item['priority_tier']] ?? 4,
+                -$item['open_tasks_count'],
+                -$item['id'],
+            ]),
+        };
+        $focusItems = $focusItems->values()->all();
 
         $emptyOpenTasksMessage = $totalActiveFoci > 0
             ? 'Your active Focuses need actionable tasks. Create or select the next step.'
@@ -262,6 +303,8 @@ class DashboardController extends Controller
             ],
             'filters' => [
                 'tags' => $selectedTagIds,
+                'sort' => $taskSort,
+                'focus_sort' => $focusSort,
             ],
             'availableTags' => $availableTags,
             'notes' => $notes,

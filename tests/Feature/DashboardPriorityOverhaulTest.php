@@ -78,4 +78,60 @@ class DashboardPriorityOverhaulTest extends TestCase
                 ->etc()
             );
     }
+
+    public function test_dashboard_sorts_current_work_by_priority_and_respects_server_sort_params(): void
+    {
+        $user = User::factory()->create();
+
+        // Older focus with a P1 (urgent + important) open task
+        $p1Focus = Focus::factory()->for($user)->create([
+            'title' => 'P1 Older Active Focus',
+            'started_at' => now()->subDays(2),
+        ]);
+        Todo::factory()->for($user)->asTask()->create([
+            'focus_id' => $p1Focus->id,
+            'title' => 'Urgent Important Task',
+            'is_completed' => false,
+            'priority' => Todo::PRIORITY_URGENT,
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'due_date' => now()->addDays(5),
+        ]);
+
+        // Newer focus with 0 open tasks (P3)
+        $p3Focus = Focus::factory()->for($user)->create([
+            'title' => 'P3 Newer Empty Focus',
+            'started_at' => now(),
+        ]);
+        Todo::factory()->for($user)->asTask()->create([
+            'focus_id' => $p3Focus->id,
+            'is_completed' => true,
+        ]);
+
+        // Default priority sort MUST put P1 focus above newer P3 focus
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('today.current_work.items.0.id', $p1Focus->id)
+                ->where('today.current_work.items.0.priority_tier', 'P1')
+                ->where('today.current_work.items.1.id', $p3Focus->id)
+                ->where('today.current_work.items.1.priority_tier', 'P3')
+                ->where('filters.focus_sort', 'priority')
+                ->where('filters.sort', 'priority')
+                ->etc()
+            );
+
+        // focus_sort=open_tasks also keeps open tasks focus first
+        $this->actingAs($user)
+            ->get('/dashboard?focus_sort=open_tasks&sort=due_date')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('today.current_work.items.0.id', $p1Focus->id)
+                ->where('filters.focus_sort', 'open_tasks')
+                ->where('filters.sort', 'due_date')
+                ->etc()
+            );
+    }
 }

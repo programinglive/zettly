@@ -60,8 +60,8 @@ export default function Dashboard({
     });
 
     const [priorityFilter, setPriorityFilter] = useState('ALL');
-    const [sortBy, setSortBy] = useState('priority');
-    const [focusSortBy, setFocusSortBy] = useState('priority');
+    const [sortBy, setSortBy] = useState(filters?.sort || 'priority');
+    const [focusSortBy, setFocusSortBy] = useState(filters?.focus_sort || 'priority');
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -124,8 +124,8 @@ export default function Dashboard({
     return (
         <DashboardLayout title="Dashboard">
             <Head title="Dashboard" />
-            <div className="min-h-screen pb-24 lg:pb-6">
-                <div className="w-full px-4 sm:px-6 py-4">
+            <div className="min-h-screen pb-24 lg:pb-6 overflow-x-hidden">
+                <div className="w-full max-w-full px-4 sm:px-6 py-4">
                     {/* Compact Notion-style Header with Explicitly Scoped Counters */}
                     <div className="mb-4 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-baseline gap-3">
@@ -375,7 +375,13 @@ export default function Dashboard({
                                                                 <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{item.title}</span>
                                                             </Link>
                                                             <div className="flex items-center gap-2 shrink-0 text-xs">
-                                                                {needsAction ? (
+                                                                {(item.total_tasks_count ?? 0) > 0 && (
+                                                                    <span className="hidden sm:inline text-[11px] text-gray-500 dark:text-gray-400">
+                                                                        {item.open_tasks_count ?? 0} open · {item.completed_tasks_count ?? 0} done
+                                                                        {item.progress_percent !== null && item.progress_percent !== undefined ? ` · ${item.progress_percent}%` : ''}
+                                                                    </span>
+                                                                )}
+                                                                {needsAction && (
                                                                     <Link
                                                                         href={`/todos/create?focus_id=${item.id}`}
                                                                         className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300"
@@ -383,18 +389,17 @@ export default function Dashboard({
                                                                         <AlertTriangle className="h-3 w-3" />
                                                                         Needs Next Action
                                                                     </Link>
-                                                                ) : (
-                                                                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                                                                        {item.open_tasks_count ?? 0} open · {item.completed_tasks_count ?? 0} done
-                                                                        {item.progress_percent !== null && item.progress_percent !== undefined ? ` · ${item.progress_percent}%` : ''}
-                                                                    </span>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         {item.progress_percent !== null && item.progress_percent !== undefined && (
                                                             <div className="mt-1.5 h-1.5 w-full rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
                                                                 <div
-                                                                    className="h-full rounded-full bg-indigo-600 dark:bg-indigo-400 transition-all"
+                                                                    className={`h-full rounded-full transition-all ${
+                                                                        item.progress_percent >= 100 && (item.open_tasks_count ?? 0) === 0
+                                                                            ? 'bg-emerald-500 dark:bg-emerald-400'
+                                                                            : 'bg-indigo-600 dark:bg-indigo-400'
+                                                                    }`}
                                                                     style={{ width: `${item.progress_percent}%` }}
                                                                 />
                                                             </div>
