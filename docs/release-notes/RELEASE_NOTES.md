@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.10.10 | 2026-11-22 | **notes:** overhaul /notes into calm Zettelkasten knowledge library (338eae0) |
 | 1.10.9 | 2026-11-22 | **todos:** overhaul /todos into calm human-centered task workspace (d2df330) |
 | 1.10.8 | 2026-11-22 | **summary:** select description and complete canonical project classification (3e49737) |
 | 1.10.7 | 2026-11-22 | **summary:** add canonical Zettelkasten project classifier, CLI, and auto-tagging (9b90d1a) |
@@ -162,6 +163,26 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.10.10
+
+Released on **2026-11-22**.
+
+- **notes:** overhaul /notes into calm Zettelkasten knowledge library (338eae0)
+- **todos:** overhaul /todos into calm human-centered task workspace (d2df330)
+- **summary:** select description and complete canonical project classification (3e49737)
+- **summary:** add canonical Zettelkasten project classifier, CLI, and auto-tagging (9b90d1a)
+- **priority:** fix warnings rendering, explain modal fields, and 1-click Today pinning (639550e)
+- **summary:** make /summary default landing page for authenticated users (f4b9d89)
+- **summary:** add executive summary dashboard with project charts and CLI (91dfec3)
+- **dashboard:** keep Today external schedule and retrospective payload strictly bounded (0815bdf)
+- **today:** add human retrospectives, calendar external waiting, and technical reports page (c61a200)
+- **ui:** prevent horizontal overflow on tablet viewports with min-w-0 (61fe7fd)
+- **ui:** compact ModeToggle and optimize Today page density and UX (13fd710)
+- **ui:** unify sidebar text-sm sizing and organize grouped navigation (ad4dade)
+- **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929)
+- **ui:** standardize full-width Notion-style compact layout and typography (fbaf9cf)
 
 ## 1.10.9
 

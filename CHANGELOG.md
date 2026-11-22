@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.10](https://github.com/programinglive/todo/compare/v1.10.9...v1.10.10) (2026-11-22)
+
+
+### ✨ Features
+
+* **notes:** overhaul /notes into calm Zettelkasten knowledge library ([338eae0](https://github.com/programinglive/todo/commit/338eae06073a81ebbd3c218abe84a49f2679d560))
+
 ### [1.10.9](https://github.com/programinglive/todo/compare/v1.10.8...v1.10.9) (2026-11-22)
 
 
