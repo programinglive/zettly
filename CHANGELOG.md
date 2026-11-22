@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.11](https://github.com/programinglive/todo/compare/v1.10.10...v1.10.11) (2026-11-22)
+
+
+### ✨ Features
+
+* **notes:** extend Zettelkasten canonical auto-tagging to notes ([2883bb2](https://github.com/programinglive/todo/commit/2883bb298932f9dc08a004a0b2fa07ed9112feff))
+
 ### [1.10.10](https://github.com/programinglive/todo/compare/v1.10.9...v1.10.10) (2026-11-22)
 
 
