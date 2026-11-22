@@ -3,7 +3,6 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import DashboardLayout from '../../Layouts/DashboardLayout';
 import {
     Plus,
-    Eye,
     Edit,
     Trash2,
     FileText,
@@ -13,10 +12,13 @@ import {
     ArrowUpDown,
     SlidersHorizontal,
     ChevronDown,
+    ExternalLink,
+    Link2,
 } from 'lucide-react';
 
 import { Button } from '../../Components/ui/button';
 import ConfirmationModal from '../../Components/ConfirmationModal';
+import SanitizedHtml from '../../Components/SanitizedHtml';
 
 const stripHtml = (html) => {
     if (!html) {
@@ -53,7 +55,7 @@ export const stripMarkdown = (text) => {
         .trim();
 };
 
-const getDescriptionPreview = (raw, limit = 165) => {
+const getDescriptionPreview = (raw, limit = 110) => {
     const text = stripMarkdown(stripHtml(raw));
 
     if (!text) {
@@ -75,6 +77,13 @@ const splitTagName = (name) => {
 };
 
 const formatShortDate = (value) => {
+    if (!value) return '';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+const formatFullDate = (value) => {
     if (!value) return '';
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return '';
@@ -237,6 +246,27 @@ export default function NotesIndex({
         return () => observer.disconnect();
     }, [hasMore, hasMoreServer, hasMoreLocal, nextPageUrl, notesData]);
 
+    const visibleNotes = accNotes;
+
+    // Master-Detail selected note state (auto-selects first note like /todos & Apple Mail)
+    const [selectedNoteId, setSelectedNoteId] = useState(() => visibleNotes[0]?.id ?? null);
+
+    useEffect(() => {
+        if (visibleNotes.length === 0) {
+            setSelectedNoteId(null);
+            return;
+        }
+        const stillExists = visibleNotes.some((n) => n.id === selectedNoteId);
+        if (!stillExists) {
+            setSelectedNoteId(visibleNotes[0].id);
+        }
+    }, [visibleNotes, selectedNoteId]);
+
+    const selectedNote = useMemo(
+        () => visibleNotes.find((n) => n.id === selectedNoteId) || visibleNotes[0] || null,
+        [visibleNotes, selectedNoteId]
+    );
+
     const handleDeleteClick = (note) => {
         setNoteToDelete(note);
         setShowDeleteModal(true);
@@ -251,7 +281,7 @@ export default function NotesIndex({
     };
 
     const resolveProjectBadge = (note) => {
-        const noteTags = Array.isArray(note.tags) ? note.tags : [];
+        const noteTags = Array.isArray(note?.tags) ? note.tags : [];
         const proyekTag = noteTags.find((t) => String(t.name || '').toLowerCase().startsWith('proyek:'));
         if (!proyekTag) return null;
         const slug = String(proyekTag.name).slice('proyek:'.length).toLowerCase();
@@ -264,19 +294,32 @@ export default function NotesIndex({
     };
 
     const resolveTopicTags = (note) => {
-        const noteTags = Array.isArray(note.tags) ? note.tags : [];
-        return noteTags
-            .filter((t) => !String(t.name || '').toLowerCase().startsWith('proyek:'))
-            .slice(0, 3);
+        const noteTags = Array.isArray(note?.tags) ? note.tags : [];
+        return noteTags.filter((t) => !String(t.name || '').toLowerCase().startsWith('proyek:'));
     };
 
-    const visibleNotes = accNotes;
+    const selectedProjectBadge = selectedNote ? resolveProjectBadge(selectedNote) : null;
+    const selectedTopicTags = selectedNote ? resolveTopicTags(selectedNote) : [];
+    const selectedRelated = useMemo(() => {
+        if (!selectedNote) return [];
+        const out = [
+            ...(Array.isArray(selectedNote.related_todos) ? selectedNote.related_todos : []),
+            ...(Array.isArray(selectedNote.linked_by_todos) ? selectedNote.linked_by_todos : []),
+        ];
+        const seen = new Set();
+        return out.filter((item) => {
+            if (!item || seen.has(item.id)) return false;
+            seen.add(item.id);
+            return true;
+        });
+    }, [selectedNote]);
+
     const displayCount = totalNotes !== null ? totalNotes : (isPaginated ? (notes.total ?? visibleNotes.length) : visibleNotes.length);
 
     return (
         <DashboardLayout title="Notes">
             <Head title="Notes" />
-            <div className="w-full px-4 sm:px-6 py-4 space-y-4">
+            <div className="w-full px-4 sm:px-6 py-4 space-y-3.5">
                 {/* Calm Header */}
                 <div className="pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2.5">
@@ -297,9 +340,8 @@ export default function NotesIndex({
                 </div>
 
                 {/* Single-Row Calm Toolbar */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                        {/* Instant Search */}
                         <div className="relative flex-1 min-w-[220px]">
                             <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                             <input
@@ -329,7 +371,6 @@ export default function NotesIndex({
                             )}
                         </div>
 
-                        {/* Canonical Project Selector */}
                         <div className="relative">
                             <FolderKanban className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                             <select
@@ -348,7 +389,6 @@ export default function NotesIndex({
                             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         </div>
 
-                        {/* Sort Selector */}
                         <div className="relative">
                             <ArrowUpDown className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                             <select
@@ -364,7 +404,6 @@ export default function NotesIndex({
                             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         </div>
 
-                        {/* Collapsible Topic Tags Panel */}
                         {secondaryTagGroups.length > 0 && (
                             <button
                                 type="button"
@@ -386,7 +425,6 @@ export default function NotesIndex({
                         )}
                     </div>
 
-                    {/* Collapsible Active Topic Tags */}
                     {tagsOpen && secondaryTagGroups.length > 0 && (
                         <div className="rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/60 p-3 space-y-2">
                             {secondaryTagGroups.map((group) => (
@@ -417,7 +455,6 @@ export default function NotesIndex({
                         </div>
                     )}
 
-                    {/* Active Filter Chips */}
                     {hasAnyFilter && (
                         <div className="flex flex-wrap items-center gap-1.5 text-xs">
                             {activeProject && (
@@ -465,105 +502,231 @@ export default function NotesIndex({
                     )}
                 </div>
 
-                {/* Calm Zettelkasten Knowledge Cards */}
+                {/* Email-Style Master-Detail Split View */}
                 {visibleNotes.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-                        {visibleNotes.map((note) => {
-                            const preview = getDescriptionPreview(note.description, 165);
-                            const projectBadge = resolveProjectBadge(note);
-                            const topicTags = resolveTopicTags(note);
-                            const dateLabel = formatShortDate(note.updated_at || note.created_at);
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                        {/* Left Master Note List (~40% on desktop) */}
+                        <section className="lg:col-span-5 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 overflow-hidden">
+                            <div className="divide-y divide-gray-100 dark:divide-slate-800/80 lg:max-h-[calc(100vh-205px)] lg:overflow-y-auto">
+                                {visibleNotes.map((note) => {
+                                    const isSelected = selectedNote?.id === note.id;
+                                    const preview = getDescriptionPreview(note.description);
+                                    const projectBadge = resolveProjectBadge(note);
+                                    const topicTags = resolveTopicTags(note).slice(0, 2);
 
-                            return (
-                                <article
-                                    key={note.id}
-                                    className="group relative flex flex-col justify-between p-4 rounded-lg border border-gray-200 bg-white hover:border-gray-400 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-600 transition-colors"
-                                >
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                {projectBadge ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => navigateWith({ project: projectBadge.slug })}
-                                                        className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors truncate"
-                                                        title={`Filter by ${projectBadge.label}`}
+                                    return (
+                                        <div
+                                            key={note.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => setSelectedNoteId(note.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setSelectedNoteId(note.id);
+                                                }
+                                            }}
+                                            className={`group relative px-3.5 py-3 cursor-pointer transition-colors ${
+                                                isSelected
+                                                    ? 'bg-gray-50 dark:bg-slate-800/80 border-l-2 border-l-gray-900 dark:border-l-white'
+                                                    : 'hover:bg-gray-50/70 dark:hover:bg-slate-800/40 border-l-2 border-l-transparent'
+                                            }`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="text-sm font-medium leading-snug text-gray-900 dark:text-slate-100 line-clamp-2">
+                                                    <span className="hidden lg:inline">{note.title}</span>
+                                                    <Link
+                                                        href={`/todos/${note.id}`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="lg:hidden hover:underline"
                                                     >
+                                                        {note.title}
+                                                    </Link>
+                                                </h3>
+                                                <span className="text-[11px] text-gray-400 dark:text-slate-500 shrink-0 tabular-nums">
+                                                    {formatShortDate(note.updated_at || note.created_at)}
+                                                </span>
+                                            </div>
+
+                                            {preview && (
+                                                <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400 line-clamp-1">
+                                                    {preview}
+                                                </p>
+                                            )}
+
+                                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                                                {projectBadge && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-slate-800 px-2 py-0.5 font-medium text-gray-700 dark:text-slate-300">
                                                         <span
                                                             className="h-1.5 w-1.5 rounded-full shrink-0"
                                                             style={{ backgroundColor: projectBadge.color }}
                                                         />
-                                                        <span className="truncate">{projectBadge.label}</span>
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                                                        {dateLabel}
+                                                        {projectBadge.label}
                                                     </span>
                                                 )}
-                                            </div>
 
-                                            <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-                                                <Link
-                                                    href={`/todos/${note.id}`}
-                                                    className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-slate-800 dark:hover:text-white"
-                                                    title="View note"
-                                                >
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                </Link>
-                                                <Link
-                                                    href={`/todos/${note.id}/edit`}
-                                                    className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-slate-800 dark:hover:text-white"
-                                                    title="Edit note"
-                                                >
-                                                    <Edit className="w-3.5 h-3.5" />
-                                                </Link>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteClick(note)}
-                                                    className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400"
-                                                    title="Delete note"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
+                                                {topicTags.map((tag) => (
+                                                    <span
+                                                        key={tag.id}
+                                                        className="inline-flex items-center rounded-full border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-gray-500 dark:text-slate-400"
+                                                    >
+                                                        {splitTagName(tag.name).value}
+                                                    </span>
+                                                ))}
                                             </div>
                                         </div>
+                                    );
+                                })}
 
-                                        <Link href={`/todos/${note.id}`} className="block">
-                                            <h3 className="text-sm font-semibold leading-snug text-gray-900 dark:text-white group-hover:underline line-clamp-2">
-                                                {note.title}
-                                            </h3>
-                                        </Link>
-
-                                        {preview && (
-                                            <p className="text-xs leading-relaxed text-gray-500 dark:text-slate-400 line-clamp-3">
-                                                {preview}
-                                            </p>
-                                        )}
+                                {hasMore && (
+                                    <div className="p-3 text-center">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                if (hasMoreServer && nextPageUrl) {
+                                                    appendNextRef.current = true;
+                                                    router.get(nextPageUrl, {}, { preserveScroll: true, preserveState: true, only: ['notes'] });
+                                                } else if (hasMoreLocal) {
+                                                    setAccNotes((prev) => notesData.slice(0, Math.min(prev.length + PAGE_CHUNK_SIZE, notesData.length)));
+                                                }
+                                            }}
+                                        >
+                                            Load More Notes
+                                        </Button>
                                     </div>
+                                )}
+                                {hasMore && <div ref={sentinelRef} className="h-1" aria-hidden="true" />}
+                            </div>
+                        </section>
 
-                                    <div className="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-gray-100 dark:border-slate-800/70">
-                                        <div className="flex flex-wrap items-center gap-1 min-w-0">
-                                            {topicTags.map((tag) => (
-                                                <button
-                                                    key={tag.id}
-                                                    type="button"
-                                                    onClick={() => navigateWith({ tag: tag.id })}
-                                                    title={tag.name}
-                                                    className="inline-flex items-center rounded-full border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-[11px] text-gray-500 dark:text-slate-400 hover:border-gray-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors"
-                                                >
-                                                    {splitTagName(tag.name).value}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {projectBadge && (
-                                            <span className="text-[11px] text-gray-400 dark:text-slate-500 shrink-0">
-                                                {dateLabel}
+                        {/* Right Live Reading & Action Pane (~60% on desktop) */}
+                        <aside className="hidden lg:flex lg:col-span-7 flex-col rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 lg:sticky lg:top-4 lg:max-h-[calc(100vh-205px)] overflow-hidden">
+                            {selectedNote ? (
+                                <>
+                                    <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-gray-100 dark:border-slate-800 bg-gray-50/60 dark:bg-slate-900/80 shrink-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-slate-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-slate-300">
+                                                <FileText className="w-3.5 h-3.5 text-gray-400" />
+                                                Note
                                             </span>
+                                            <span className="text-[11px] text-gray-400 dark:text-slate-500 tabular-nums">
+                                                #{selectedNote.id}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5">
+                                            <Link
+                                                href={`/todos/${selectedNote.id}/edit`}
+                                                className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-slate-200 hover:border-gray-400 transition-colors"
+                                            >
+                                                <Edit className="w-3.5 h-3.5" />
+                                                Edit
+                                            </Link>
+                                            <Link
+                                                href={`/todos/${selectedNote.id}`}
+                                                className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-slate-200 hover:border-gray-400 transition-colors"
+                                                title="Open full page"
+                                            >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                Full View
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteClick(selectedNote)}
+                                                className="inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-gray-500 hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400 transition-colors"
+                                                title="Delete note"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                                        <div className="space-y-3">
+                                            <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-snug">
+                                                {selectedNote.title}
+                                            </h2>
+
+                                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                {selectedProjectBadge && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigateWith({ project: selectedProjectBadge.slug })}
+                                                        className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 font-medium text-gray-800 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                                                    >
+                                                        <span
+                                                            className="h-2 w-2 rounded-full shrink-0"
+                                                            style={{ backgroundColor: selectedProjectBadge.color }}
+                                                        />
+                                                        {selectedProjectBadge.label}
+                                                    </button>
+                                                )}
+
+                                                <span className="text-gray-400 dark:text-slate-500">
+                                                    Updated {formatFullDate(selectedNote.updated_at || selectedNote.created_at)}
+                                                </span>
+                                            </div>
+
+                                            {selectedTopicTags.length > 0 && (
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    {selectedTopicTags.map((tag) => (
+                                                        <button
+                                                            key={tag.id}
+                                                            type="button"
+                                                            onClick={() => navigateWith({ tag: tag.id })}
+                                                            title={tag.name}
+                                                            className="inline-flex items-center rounded-full border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-slate-400 hover:border-gray-400 hover:text-gray-900 dark:hover:text-slate-200 transition-colors"
+                                                        >
+                                                            {splitTagName(tag.name).value}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+                                            {selectedNote.description ? (
+                                                <SanitizedHtml
+                                                    html={selectedNote.description}
+                                                    className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-slate-300 leading-relaxed"
+                                                />
+                                            ) : (
+                                                <p className="text-xs italic text-gray-400 dark:text-slate-500">
+                                                    This note has no body yet. Click Edit to write.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {selectedRelated.length > 0 && (
+                                            <div className="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-2">
+                                                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300">
+                                                    <Link2 className="w-3.5 h-3.5 text-gray-400" />
+                                                    <span>Zettelkasten Links ({selectedRelated.length})</span>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {selectedRelated.map((rel) => (
+                                                        <Link
+                                                            key={rel.id}
+                                                            href={`/todos/${rel.id}`}
+                                                            className="flex items-center gap-2 text-xs text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:underline"
+                                                        >
+                                                            <span className="text-gray-400">#{rel.id}</span>
+                                                            <span className="truncate">{rel.title}</span>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
-                                </article>
-                            );
-                        })}
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-16 px-6 text-center text-gray-400 dark:text-slate-500">
+                                    <FileText className="w-8 h-8 mb-2 opacity-50" />
+                                    <p className="text-xs">Select a note on the left to read its full content.</p>
+                                </div>
+                            )}
+                        </aside>
                     </div>
                 ) : (
                     <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center">
@@ -599,27 +762,6 @@ export default function NotesIndex({
                     </div>
                 )}
             </div>
-
-            {hasMore && (
-                <div className="flex justify-center py-6">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            if (hasMoreServer && nextPageUrl) {
-                                appendNextRef.current = true;
-                                router.get(nextPageUrl, {}, { preserveScroll: true, preserveState: true, only: ['notes'] });
-                            } else if (hasMoreLocal) {
-                                setAccNotes((prev) => notesData.slice(0, Math.min(prev.length + PAGE_CHUNK_SIZE, notesData.length)));
-                            }
-                        }}
-                    >
-                        Load More Notes
-                    </Button>
-                </div>
-            )}
-
-            {hasMore && <div ref={sentinelRef} className="h-1" aria-hidden="true" />}
 
             <ConfirmationModal
                 isOpen={showDeleteModal}

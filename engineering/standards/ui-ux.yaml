@@ -30,3 +30,18 @@ standards:
     autofix: AF-1
     verification: npm run test:js && npm run build
     exception_process: Modals, confirmation dialogs, and authentication or form-only views may constrain width for readability.
+
+  - id: ZET-UI-003
+    title: Human-centered Master-Detail reading, calm properties, and zero visual noise
+    description: Collection workspaces (/todos, /notes) MUST use a desktop Master-Detail split view (lg:grid-cols-12: 5-column scrollable list + 7-column sticky SanitizedHtml reading/action pane) with instant search, Canonical Project selector (proyek:* color dots), collapsible secondary filters, and Markdown-stripped previews. Detail pages (/todos/{id}) MUST use a full-width 2-column Document + Properties sidebar (lg:grid-cols-12: 8-column canvas + 4-column sticky properties). Completed titles MUST remain readable without strikethrough (line-through), and workspace controls MUST use crisp Lucide icons with soft-tinted badges instead of emoji gimmicks or raw tag walls.
+    rationale: Single-column lists waste horizontal desktop space and force constant page navigation; uncollapsed raw tag walls, raw Markdown leaks, and struck-through titles add cognitive load without helping human decision-making.
+    principle: Calm Human-Centered Reading & Zero-Noise Ergonomics
+    source: Zettly Design System (Notion/Linear/Apple Mail Workspace Standard)
+    scope: [frontend]
+    severity: medium
+    enforcement: warning
+    detection: regex
+    pattern: "(?:Filter by Tag|line-through|🤖)"
+    autofix: AF-1
+    verification: npm run test:js && npm run build
+    exception_process: Explicit diff views or changelog strikethrough comparisons only.

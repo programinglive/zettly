@@ -17,15 +17,32 @@ const WORKSPACE_PAGES = [
     'resources/js/Pages/Todos/Index.jsx',
 ];
 
-test('canonical UI/UX engineering standard file exists and defines ZET-UI-001 and ZET-UI-002', () => {
+test('canonical UI/UX engineering standard file exists and defines ZET-UI-001, ZET-UI-002, and ZET-UI-003', () => {
     const standardPath = path.join(repoRoot, 'engineering/standards/ui-ux.yaml');
     assert.equal(fs.existsSync(standardPath), true, 'engineering/standards/ui-ux.yaml must exist');
 
     const content = fs.readFileSync(standardPath, 'utf8');
     assert.match(content, /id:\s*ZET-UI-001/);
     assert.match(content, /id:\s*ZET-UI-002/);
+    assert.match(content, /id:\s*ZET-UI-003/);
     assert.match(content, /text-lg font-semibold/);
     assert.match(content, /w-full px-4 sm:px-6 py-4/);
+});
+
+test('Todos/Show.jsx follows ZET-UI-002 and ZET-UI-003 full-width 2-column document + properties standard', () => {
+    const showPath = path.join(repoRoot, 'resources/js/Pages/Todos/Show.jsx');
+    const content = fs.readFileSync(showPath, 'utf8');
+
+    assert.match(content, /w-full px-4 sm:px-6 py-4/, 'Todos/Show.jsx must use full-width fluid container');
+    assert.match(content, /lg:grid-cols-12/, 'Todos/Show.jsx must use 2-column Document + Properties grid');
+    assert.doesNotMatch(content, /\bmax-w-6xl\b/, 'Todos/Show.jsx must not constrain outer layout to max-w-6xl');
+    assert.doesNotMatch(content, /\brounded-3xl\b/, 'Todos/Show.jsx must not use oversized rounded-3xl cards');
+    assert.doesNotMatch(content, /\btext-4xl\b/, 'Todos/Show.jsx must not use oversized text-4xl hero heading');
+    assert.doesNotMatch(content, /🤖/, 'Todos/Show.jsx must use crisp Lucide icons instead of emoji gimmicks');
+    assert.match(content, /SanitizedHtml/);
+    assert.match(content, /TodoLinkManager/);
+    assert.match(content, /AttachmentList/);
+    assert.match(content, /CompletionReasonDialog/);
 });
 
 test('primary workspace pages follow Notion-style full-width fluid layout and uniform typography', () => {

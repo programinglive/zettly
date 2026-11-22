@@ -30,6 +30,11 @@ test('Notes/Index.jsx uses calm Zettelkasten toolbar (search, canonical project 
         'stripMarkdown must not strip underscores inside snake_case identifiers',
     );
 
+    // Email-style Master-Detail split view matching /todos
+    assert.match(content, /SanitizedHtml/, 'Notes reading pane must render full Markdown/HTML via SanitizedHtml');
+    assert.match(content, /selectedNote/, 'Notes Master-Detail split view must track selectedNote');
+    assert.match(content, /lg:grid-cols-12/, 'Notes desktop layout must use 12-column Master-Detail split view');
+
     // Must not silently slice server-paginated 20 items down to 12
     assert.doesNotMatch(content, /filteredNotes\.slice\(0,\s*PAGE_CHUNK_SIZE\)/, 'Notes page must not truncate server-paginated results');
 });

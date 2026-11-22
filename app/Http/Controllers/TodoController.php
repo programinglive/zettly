@@ -276,7 +276,12 @@ class TodoController extends Controller
         $query = Todo::where('user_id', $userId)
             ->notArchived()
             ->notes()
-            ->with(['user', 'tags']);
+            ->with([
+                'user',
+                'tags',
+                'relatedTodos:id,title,is_completed',
+                'linkedByTodos:id,title,is_completed',
+            ]);
 
         if ($project !== '') {
             $canonicalTagName = 'proyek:'.strtolower($project);
@@ -568,16 +573,17 @@ class TodoController extends Controller
     /**
      * Display the specified todo.
      */
-    public function show(Todo $todo)
+    public function show(Todo $todo, ProjectClassifierService $classifier)
     {
         // Ensure user owns the todo
         if ($todo->user_id !== Auth::id()) {
             abort(403);
         }
 
-        // Eager load related data including status events
+        // Eager load related data including focus and status events
         $todo->load([
             'tags',
+            'focus:id,title',
             'relatedTodos',
             'linkedByTodos',
             'attachments',
@@ -623,6 +629,7 @@ class TodoController extends Controller
             'availableTodos' => $availableTodos,
             'isNote' => $todo->isNote(),
             'statusEvents' => $statusEvents,
+            'canonicalProject' => $classifier->classifyTodo($todo),
         ]);
     }
 

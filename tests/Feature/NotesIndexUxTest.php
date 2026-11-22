@@ -131,4 +131,30 @@ class NotesIndexUxTest extends TestCase
                 ->where('filters.sort', 'title');
         });
     }
+
+    public function test_todo_show_includes_canonical_project_and_focus_metadata(): void
+    {
+        $user = User::factory()->create();
+        $zettlyTag = Tag::create([
+            'user_id' => $user->id,
+            'name' => 'proyek:zettly',
+            'color' => '#F59E0B',
+        ]);
+        $todo = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Revamp detail page layout',
+            'description' => 'Full-width 2-column Notion/Linear style',
+        ]);
+        $todo->tags()->attach($zettlyTag->id);
+
+        $response = $this->actingAs($user)->get(route('todos.show', $todo));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Todos/Show')
+            ->where('canonicalProject.key', 'zettly')
+            ->where('canonicalProject.label', 'Zettly')
+            ->has('todo.focus')
+        );
+    }
 }
