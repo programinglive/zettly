@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Plus, ListTodo, FileText, PenTool, MailWarning } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Plus, ListTodo, FileText, PenTool, MailWarning, ArrowUpDown, AlertTriangle } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import FocusGreeting from '../Components/FocusGreeting';
@@ -15,6 +15,25 @@ export function formatActivityExcerpt(excerpt) {
         .replace(/^\[Dev Workflow outcome ID:[^\]]*\]\s*/i, '')
         .replace(/^Status:\s*\w+\s*Task:\s*/i, '')
         .trim();
+}
+
+const PRIORITY_RANK = { P0: 0, P1: 1, P2: 2, P3: 3, UNPRIORITIZED: 4 };
+
+const PRIORITY_BADGE_STYLES = {
+    P0: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-900',
+    P1: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900',
+    P2: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900',
+    P3: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    UNPRIORITIZED: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-700',
+};
+
+export function resolveTaskTier(item) {
+    if (item?.priority_tier) return item.priority_tier;
+    if (item?.is_p0) return 'P0';
+    if (!item?.priority || !item?.importance) return 'UNPRIORITIZED';
+    if (item.priority === 'urgent' && item.importance === 'important') return 'P1';
+    if (item.importance === 'important' || item.priority === 'urgent') return 'P2';
+    return 'P3';
 }
 
 export default function Dashboard({
@@ -37,61 +56,103 @@ export default function Dashboard({
         if (typeof window === 'undefined' || !isSuperAdmin) {
             return false;
         }
-
         return window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
     });
+
+    const [priorityFilter, setPriorityFilter] = useState('ALL');
+    const [sortBy, setSortBy] = useState('priority');
+    const [focusSortBy, setFocusSortBy] = useState('priority');
 
     useEffect(() => {
         if (typeof window === 'undefined') {
             setHasDebugFlag(false);
             return undefined;
         }
-
-        // Debug mode is for super admins only. This used to read
-        // `!isSuperAdmin && !debugEnabled`, so anyone could turn the panel on by
-        // setting localStorage['zettly-debug-mode'] = 'true'.
         const debugEnabled = isSuperAdmin
             && window.localStorage.getItem(DEBUG_STORAGE_KEY) === 'true';
-
         if (!isSuperAdmin) {
             window.localStorage.removeItem(DEBUG_STORAGE_KEY);
             setHasDebugFlag(false);
             return undefined;
         }
-
         const handleDebugChange = (event) => {
-            const enabled = Boolean(event.detail?.enabled);
-            setHasDebugFlag(enabled);
+            setHasDebugFlag(Boolean(event.detail?.enabled));
         };
-
         setHasDebugFlag(debugEnabled);
-
         window.addEventListener('zettly:debug-mode-changed', handleDebugChange);
-
-        return () => {
-            window.removeEventListener('zettly:debug-mode-changed', handleDebugChange);
-        };
+        return () => window.removeEventListener('zettly:debug-mode-changed', handleDebugChange);
     }, [isSuperAdmin]);
 
     const [fabOpen, setFabOpen] = useState(false);
-
     const handleFabToggle = () => setFabOpen((prev) => !prev);
     const handleFabClose = () => setFabOpen(false);
+
+    const metrics = today?.metrics || {
+        open_today: 0,
+        open_overall: tasks.open,
+        completed: tasks.completed,
+        active_focuses: Array.isArray(today?.current_work?.items) ? today.current_work.items.length : 0,
+        overdue: 0,
+        unprioritized: 0,
+        p0_critical: 0,
+    };
+
+    const visiblePriorityTasks = useMemo(() => {
+        const raw = Array.isArray(today?.open_tasks?.items) ? today.open_tasks.items : [];
+        return priorityFilter === 'ALL'
+            ? raw
+            : raw.filter((item) => resolveTaskTier(item) === priorityFilter);
+    }, [today?.open_tasks?.items, priorityFilter]);
+
+    const visibleFocusItems = useMemo(
+        () => (Array.isArray(today?.current_work?.items) ? today.current_work.items : []),
+        [today?.current_work?.items],
+    );
+
+    const handleTaskSortToggle = () => {
+        const next = sortBy === 'priority' ? 'due_date' : 'priority';
+        setSortBy(next);
+        router.get('/dashboard', { sort: next, focus_sort: focusSortBy }, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    const handleFocusSortToggle = () => {
+        const next = focusSortBy === 'priority' ? 'open_tasks' : focusSortBy === 'open_tasks' ? 'progress' : 'priority';
+        setFocusSortBy(next);
+        router.get('/dashboard', { sort: sortBy, focus_sort: next }, { preserveState: true, preserveScroll: true, replace: true });
+    };
 
     return (
         <DashboardLayout title="Dashboard">
             <Head title="Dashboard" />
             <div className="min-h-screen pb-24 lg:pb-6">
                 <div className="w-full px-4 sm:px-6 py-4">
-                    {/* Compact Notion-style Header */}
+                    {/* Compact Notion-style Header with Explicitly Scoped Counters */}
                     <div className="mb-4 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-baseline gap-3">
+                        <div className="flex flex-wrap items-baseline gap-3">
                             <h1 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
                                 Today
                             </h1>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {tasks.open} open · {tasks.completed} completed
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <span><strong className="text-gray-900 dark:text-gray-100">{metrics.open_today}</strong> open today</span>
+                                <span>·</span>
+                                <span><strong className="text-gray-900 dark:text-gray-100">{metrics.open_overall}</strong> open overall</span>
+                                <span>·</span>
+                                <span><strong className="text-gray-900 dark:text-gray-100">{metrics.active_focuses}</strong> active focuses</span>
+                                {metrics.overdue > 0 && (
+                                    <>
+                                        <span>·</span>
+                                        <span className="text-red-600 dark:text-red-400 font-medium">{metrics.overdue} overdue</span>
+                                    </>
+                                )}
+                                {metrics.unprioritized > 0 && (
+                                    <>
+                                        <span>·</span>
+                                        <span className="text-amber-600 dark:text-amber-400 font-medium">{metrics.unprioritized} unprioritized</span>
+                                    </>
+                                )}
+                                <span>·</span>
+                                <span>{metrics.completed} completed</span>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2.5 text-xs font-medium">
                             <Link
@@ -157,13 +218,42 @@ export default function Dashboard({
 
                     {hasToday ? (
                         <div className="grid gap-3 xl:grid-cols-12 items-start min-w-0">
+                            {/* Main Work Area: Priority Queue & Active Focuses */}
                             <div className="min-w-0 space-y-3 xl:col-span-7">
-                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
-                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
-                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Open tasks</h2>
-                                        {today?.open_tasks?.status !== 'no_data' && (
-                                            <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open</span>
-                                        )}
+                                {/* Priority Queue Section */}
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden" aria-label="Priority Queue">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Priority Queue</h2>
+                                            {today?.open_tasks?.status !== 'no_data' && (
+                                                <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open</span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {['ALL', 'P0', 'P1', 'P2', 'P3', 'UNPRIORITIZED'].map((tier) => (
+                                                <button
+                                                    key={tier}
+                                                    type="button"
+                                                    onClick={() => setPriorityFilter(tier)}
+                                                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${
+                                                        priorityFilter === tier
+                                                            ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                                                            : 'text-gray-500 hover:bg-gray-200/70 dark:text-gray-400 dark:hover:bg-slate-800'
+                                                    }`}
+                                                >
+                                                    {tier === 'UNPRIORITIZED' ? 'Unset' : tier}
+                                                </button>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={handleTaskSortToggle}
+                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                title="Toggle sort order"
+                                            >
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                {sortBy === 'priority' ? 'By Priority' : 'By Due Date'}
+                                            </button>
+                                        </div>
                                     </div>
                                     <form
                                         onSubmit={(event) => {
@@ -199,51 +289,125 @@ export default function Dashboard({
                                         )}
                                     </form>
                                     {today?.open_tasks?.status === 'no_data' ? (
-                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.open_tasks.message}</p>
+                                        <div className="px-3 py-3 text-xs text-gray-600 dark:text-gray-300 flex flex-wrap items-center justify-between gap-2">
+                                            <p>{today.open_tasks.message}</p>
+                                            <Link
+                                                href="/todos/create"
+                                                className="inline-flex items-center gap-1 rounded border border-gray-300 dark:border-slate-700 px-2 py-1 text-[11px] font-medium text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                                Plan next task
+                                            </Link>
+                                        </div>
+                                    ) : visiblePriorityTasks.length === 0 ? (
+                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">
+                                            No open tasks match the selected priority filter ({priorityFilter}).
+                                        </p>
                                     ) : (
                                         <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
-                                            {today.open_tasks.items.map((item) => (
-                                                <li key={item.id}>
-                                                    <Link
-                                                        href={`/todos/${item.id}`}
-                                                        className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40"
-                                                    >
-                                                        <span className="truncate font-medium">{item.title}</span>
-                                                        {item.due_date && <span className="shrink-0 text-xs text-gray-400">due {item.due_date}</span>}
-                                                    </Link>
-                                                </li>
-                                            ))}
+                                            {visiblePriorityTasks.map((item) => {
+                                                const tier = resolveTaskTier(item);
+                                                return (
+                                                    <li key={item.id}>
+                                                        <Link
+                                                            href={`/todos/${item.id}`}
+                                                            className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40"
+                                                        >
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${PRIORITY_BADGE_STYLES[tier]}`}>
+                                                                    {tier === 'UNPRIORITIZED' ? 'UNSET' : tier}
+                                                                </span>
+                                                                <span className="truncate font-medium">{item.title}</span>
+                                                                {item.focus_title && (
+                                                                    <span className="hidden sm:inline-block shrink-0 rounded bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:text-indigo-300 truncate max-w-[140px]">
+                                                                        {item.focus_title}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {item.due_date && (
+                                                                <span className="shrink-0 text-xs text-gray-400">due {item.due_date}</span>
+                                                            )}
+                                                        </Link>
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     )}
                                 </section>
 
-                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
-                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
-                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Current work</h2>
-                                        {today?.current_work?.status !== 'no_data' && Array.isArray(today?.current_work?.items) && (
-                                            <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.current_work.items.length} active</span>
-                                        )}
+                                {/* Current Work / Active Focuses with Measurable Progress */}
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden" aria-label="Active Focuses">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Current work</h2>
+                                            {today?.current_work?.status !== 'no_data' && Array.isArray(today?.current_work?.items) && (
+                                                <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                                                    {today.current_work.total_active ?? today.current_work.items.length} active
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1 text-[10px]">
+                                            <button
+                                                type="button"
+                                                onClick={handleFocusSortToggle}
+                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                            >
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Sort: {focusSortBy === 'priority' ? 'Priority' : focusSortBy === 'open_tasks' ? 'Open Tasks' : 'Progress'}
+                                            </button>
+                                        </div>
                                     </div>
                                     {today?.current_work?.status === 'no_data' ? (
                                         <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.current_work.message}</p>
                                     ) : (
                                         <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
-                                            {today.current_work.items.map((item) => (
-                                                <li key={item.id}>
-                                                    <Link
-                                                        href={`/focus/${item.id}`}
-                                                        className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40"
-                                                    >
-                                                        <span className="truncate font-medium">{item.title}</span>
-                                                        <span className="shrink-0 text-xs text-gray-400">{item.status}</span>
-                                                    </Link>
-                                                </li>
-                                            ))}
+                                            {visibleFocusItems.map((item) => {
+                                                const needsAction = item.work_state === 'planning' || item.work_state === 'needs_next_action';
+                                                return (
+                                                    <li key={item.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <Link href={`/focus/${item.id}`} className="flex items-center gap-2 min-w-0 flex-1">
+                                                                {item.priority_tier && (
+                                                                    <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${PRIORITY_BADGE_STYLES[item.priority_tier] || PRIORITY_BADGE_STYLES.P3}`}>
+                                                                        {item.priority_tier}
+                                                                    </span>
+                                                                )}
+                                                                <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{item.title}</span>
+                                                            </Link>
+                                                            <div className="flex items-center gap-2 shrink-0 text-xs">
+                                                                {needsAction ? (
+                                                                    <Link
+                                                                        href={`/todos/create?focus_id=${item.id}`}
+                                                                        className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300"
+                                                                    >
+                                                                        <AlertTriangle className="h-3 w-3" />
+                                                                        Needs Next Action
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                                                                        {item.open_tasks_count ?? 0} open · {item.completed_tasks_count ?? 0} done
+                                                                        {item.progress_percent !== null && item.progress_percent !== undefined ? ` · ${item.progress_percent}%` : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {item.progress_percent !== null && item.progress_percent !== undefined && (
+                                                            <div className="mt-1.5 h-1.5 w-full rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                                                                <div
+                                                                    className="h-full rounded-full bg-indigo-600 dark:bg-indigo-400 transition-all"
+                                                                    style={{ width: `${item.progress_percent}%` }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     )}
                                 </section>
                             </div>
 
+                            {/* Secondary Area: Recent Activity & Linked Notes */}
                             <div className="min-w-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 xl:col-span-5">
                                 <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
@@ -301,8 +465,7 @@ export default function Dashboard({
 
             <div className="pointer-events-none fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 lg:hidden">
                 <div
-                    className={`flex flex-col gap-2 transition-all duration-150 ${fabOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-2 opacity-0'
-                        }`}
+                    className={`flex flex-col gap-2 transition-all duration-150 ${fabOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-2 opacity-0'}`}
                 >
                     <Link
                         href="/todos/create"
