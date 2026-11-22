@@ -156,9 +156,9 @@ export default function Dashboard({
                     </div>
 
                     {hasToday ? (
-                        <div className="grid gap-3 xl:grid-cols-12 items-start">
-                            <div className="space-y-3 xl:col-span-7">
-                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                        <div className="grid gap-3 xl:grid-cols-12 items-start min-w-0">
+                            <div className="min-w-0 space-y-3 xl:col-span-7">
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Open tasks</h2>
                                         {today?.open_tasks?.status !== 'no_data' && (
@@ -217,7 +217,7 @@ export default function Dashboard({
                                     )}
                                 </section>
 
-                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Current work</h2>
                                         {today?.current_work?.status !== 'no_data' && Array.isArray(today?.current_work?.items) && (
@@ -244,8 +244,8 @@ export default function Dashboard({
                                 </section>
                             </div>
 
-                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 xl:col-span-5">
-                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                            <div className="min-w-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 xl:col-span-5">
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Recent activity</h2>
                                     </div>
@@ -259,14 +259,14 @@ export default function Dashboard({
                                                         <span className="font-semibold uppercase">{item.kind}</span>
                                                         <span>{item.entry_date}</span>
                                                     </div>
-                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2">{formatActivityExcerpt(item.excerpt)}</p>
+                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2 break-words">{formatActivityExcerpt(item.excerpt)}</p>
                                                 </li>
                                             ))}
                                         </ul>
                                     )}
                                 </section>
 
-                                <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Linked notes</h2>
                                     </div>

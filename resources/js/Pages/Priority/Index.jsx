@@ -277,8 +277,8 @@ export default function PriorityIndex({
                     </section>
                 )}
 
-                <div className="grid gap-4 lg:grid-cols-12 items-start">
-                    <div className="lg:col-span-8 xl:col-span-9 space-y-4">
+                <div className="grid gap-4 lg:grid-cols-12 items-start min-w-0">
+                    <div className="min-w-0 lg:col-span-8 xl:col-span-9 space-y-4">
                         {/* Today Committed */}
                         <section>
                             <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">

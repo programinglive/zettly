@@ -244,12 +244,12 @@ export default function ReportsIndex({ reports, channels, periodKind, kinds, pag
                     </Button>
                 </header>
 
-                <div className="grid gap-4 lg:grid-cols-12 items-start">
-                    <div className="lg:col-span-5">
+                <div className="grid gap-4 lg:grid-cols-12 items-start min-w-0">
+                    <div className="min-w-0 lg:col-span-5">
                         <WeeklyDigest digest={weeklyDigest} />
                     </div>
 
-                    <div className="lg:col-span-7 space-y-3">
+                    <div className="min-w-0 lg:col-span-7 space-y-3">
                         {Array.isArray(channels) && channels.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
                                 <Radio className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />

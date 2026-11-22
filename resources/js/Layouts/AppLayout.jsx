@@ -473,7 +473,7 @@ export default function AppLayout({
                             )}
 
                             {/* Main Content Area */}
-                            <div className={`flex-1 flex flex-col overflow-hidden ${sidebarOpen ? 'lg:ml-56' : 'lg:ml-16'} transition-all duration-200`}>
+                            <div className={`flex-1 min-w-0 flex flex-col overflow-hidden ${sidebarOpen ? 'lg:ml-56' : 'lg:ml-16'} transition-all duration-200`}>
                                 {/* Top Navigation */}
                                 <nav className="h-12 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4">
                                     <div className="flex items-center gap-3 flex-1">
@@ -545,8 +545,8 @@ export default function AppLayout({
 
 
                                 {/* Main Content */}
-                                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
-                                    <div className={resolvedContentClassName}>{children}</div>
+                                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-slate-950">
+                                    <div className={`min-w-0 ${resolvedContentClassName}`}>{children}</div>
                                 </main>
                             </div>
                         </div>

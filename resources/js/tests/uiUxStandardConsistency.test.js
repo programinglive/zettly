@@ -101,4 +101,10 @@ test('Today page uses compactSummary focus greeting, clean activity formatting, 
     assert.match(dashboard, /formatActivityExcerpt/);
     assert.match(dashboard, /Quick add a task/);
     assert.match(dashboard, /lg:hidden/);
+    assert.match(dashboard, /min-w-0 space-y-3 xl:col-span-7/);
+    assert.match(dashboard, /min-w-0 grid gap-3 sm:grid-cols-2/);
+
+    const appLayout = fs.readFileSync(path.join(repoRoot, 'resources/js/Layouts/AppLayout.jsx'), 'utf8');
+    assert.match(appLayout, /flex-1 min-w-0 flex flex-col overflow-hidden/);
+    assert.match(appLayout, /overflow-y-auto overflow-x-hidden/);
 });
