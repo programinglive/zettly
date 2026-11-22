@@ -17,6 +17,7 @@ class EngineeringImprovement extends Model
         'MEASURING',
         'EFFECTIVE',
         'INEFFECTIVE',
+        'INCONCLUSIVE',
         'REVERTED',
         'CLOSED',
     ];

@@ -332,6 +332,89 @@ class EngineeringIntelligenceService
     }
 
     /**
+     * Zettly V1.9 Automated Improvement Effectiveness Measurement Loop.
+     *
+     * Compares post-implementation recurrence metrics against baseline occurrences
+     * and assigns an evidence-backed verdict:
+     *  - `INCONCLUSIVE` when post-change sample size is insufficient (never forces a conclusion)
+     *  - `EFFECTIVE` when recurrences dropped to zero (or >= 50% reduction) with sufficient sample size
+     *  - `INEFFECTIVE` when recurrences persist at or above baseline despite implementation
+     * Automatically records a durable EngineeringLesson when a verdict is reached.
+     *
+     * @param  array{
+     *   baseline_occurrences?: int,
+     *   post_change_occurrences?: int,
+     *   sample_size?: int,
+     *   min_sample_size?: int,
+     *   measurement_window_days?: int,
+     *   confounding_factors?: array<int, string>,
+     * }  $measurement
+     * @return array{improvement_id: int, action_code: string, verdict: string, metrics: array<string, mixed>, lesson_id: ?int}
+     */
+    public function measureImprovementEffectiveness(
+        EngineeringImprovement $improvement,
+        array $measurement = []
+    ): array {
+        $baseline = (int) ($measurement['baseline_occurrences'] ?? $improvement->occurrence_count);
+        $postCount = (int) ($measurement['post_change_occurrences'] ?? 0);
+        $sampleSize = (int) ($measurement['sample_size'] ?? 0);
+        $minSampleSize = max(1, (int) ($measurement['min_sample_size'] ?? 3));
+        $windowDays = max(1, (int) ($measurement['measurement_window_days'] ?? 7));
+        $confounding = is_array($measurement['confounding_factors'] ?? null) ? $measurement['confounding_factors'] : [];
+
+        if ($sampleSize < $minSampleSize) {
+            $verdict = 'INCONCLUSIVE';
+            $summary = "Insufficient post-change sample size ({$sampleSize} < {$minSampleSize} required) over {$windowDays}-day window; keeping verdict INCONCLUSIVE.";
+        } elseif ($postCount === 0 || ($baseline > 0 && $postCount <= (int) floor($baseline * 0.5))) {
+            $verdict = 'EFFECTIVE';
+            $summary = "Measured recurrence reduction from {$baseline} to {$postCount} across {$sampleSize} evaluated job(s) over {$windowDays} day(s).";
+        } else {
+            $verdict = 'INEFFECTIVE';
+            $summary = "Failure pattern persisted ({$postCount} post-change vs {$baseline} baseline) across {$sampleSize} evaluated job(s) over {$windowDays} day(s).";
+        }
+
+        $metrics = [
+            'baseline_occurrences' => $baseline,
+            'post_change_occurrences' => $postCount,
+            'sample_size' => $sampleSize,
+            'min_sample_size' => $minSampleSize,
+            'measurement_window_days' => $windowDays,
+            'confounding_factors' => $confounding,
+            'verdict' => $verdict,
+            'summary' => $summary,
+        ];
+
+        $updated = $this->transitionImprovement($improvement, $verdict, $metrics);
+
+        $lessonId = null;
+        if (in_array($verdict, ['EFFECTIVE', 'INEFFECTIVE'], true)) {
+            $lesson = $this->recordLesson($improvement->user_id, [
+                'title' => "[{$improvement->action_code}] Effectiveness verdict: {$verdict}",
+                'category' => 'improvement_effectiveness',
+                'affected_system' => $improvement->owner_role ?: 'zettly',
+                'confidence' => $verdict === 'EFFECTIVE' ? 'confirmed' : 'hypothesis',
+                'context' => $summary,
+                'source_evidence' => [
+                    'improvement_id' => $improvement->id,
+                    'action_code' => $improvement->action_code,
+                    'baseline_occurrences' => $baseline,
+                    'post_change_occurrences' => $postCount,
+                    'sample_size' => $sampleSize,
+                ],
+            ]);
+            $lessonId = $lesson->id;
+        }
+
+        return [
+            'improvement_id' => $updated->id,
+            'action_code' => $updated->action_code,
+            'verdict' => $verdict,
+            'metrics' => $updated->effectiveness_metrics ?? $metrics,
+            'lesson_id' => $lessonId,
+        ];
+    }
+
+    /**
      * Record or update a durable, deduplicated lesson in Engineering Memory.
      * Never stores unredacted secrets and distinguishes 'confirmed' from 'hypothesis'.
      *
