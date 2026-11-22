@@ -71,7 +71,7 @@ Route::middleware('auth')->group(function () {
         Route::get('intelligence', [\App\Http\Controllers\EngineeringIntelligenceController::class, 'index'])->name('intelligence.index');
         Route::post('intelligence/generate', [\App\Http\Controllers\EngineeringIntelligenceController::class, 'generate'])->name('intelligence.generate');
     });
-    Route::get('reports/{report}', \App\Http\Controllers\ReportDetailsController::class)->name('reports.show');
+    Route::get('reports/{report}', \App\Http\Controllers\ReportDetailsController::class)->whereNumber('report')->name('reports.show');
     // Special routes that need to come before resource routes
     Route::get('todos/archived', [TodoController::class, 'archived'])->name('todos.archived');
     Route::get('todos/completed', [TodoController::class, 'completed'])->name('todos.completed');
@@ -187,6 +187,7 @@ Route::get('/focus/{focus}', [FocusController::class, 'boardPage'])->name('focus
     // lives under /reports/view so the legacy redacted private link at
     // /reports/{report} (used by notification payloads) keeps its URI.
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/technical', [ReportsController::class, 'technical'])->name('reports.technical');
     Route::post('/reports/generate', [ReportsController::class, 'generateNow'])->name('reports.generate');
     Route::get('/reports/view/{report}', [ReportsController::class, 'show'])->whereNumber('report')->name('reports.view');
 });

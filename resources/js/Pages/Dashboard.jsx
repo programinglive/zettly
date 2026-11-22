@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Plus, ListTodo, FileText, PenTool, MailWarning, ArrowUpDown, AlertTriangle } from 'lucide-react';
+import { Plus, ListTodo, FileText, PenTool, MailWarning, ArrowUpDown, AlertTriangle, Calendar, Clock, CheckCircle2, Sparkles, Compass, ArrowRight } from 'lucide-react';
 
 import DashboardLayout from '../Layouts/DashboardLayout';
 import FocusGreeting from '../Components/FocusGreeting';
@@ -335,6 +335,75 @@ export default function Dashboard({
                                     )}
                                 </section>
 
+                                {/* Calendar & External Waiting Schedule */}
+                                {Array.isArray(today?.external_schedule?.items) && today.external_schedule.items.length > 0 && (
+                                    <section className="min-w-0 rounded-md border border-amber-200/80 dark:border-amber-900/60 overflow-hidden" aria-label="Calendar and External Waiting">
+                                        <div className="bg-amber-50/70 dark:bg-amber-950/30 px-3 py-1.5 border-b border-amber-200/70 dark:border-amber-900/50 flex flex-wrap items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" />
+                                                <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                                                    Calendar & External Waiting
+                                                </h2>
+                                                <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80">
+                                                    {today.external_schedule.total ?? today.external_schedule.items.length} tracked
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href="/calendar"
+                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 hover:underline dark:text-amber-300"
+                                            >
+                                                Open Calendar
+                                                <ArrowRight className="h-3 w-3" />
+                                            </Link>
+                                        </div>
+                                        <ul className="divide-y divide-amber-100/80 dark:divide-slate-800/80 bg-white dark:bg-slate-950/30">
+                                            {today.external_schedule.items.map((item) => {
+                                                const badgeLabel = item.is_overdue
+                                                    ? 'Overdue'
+                                                    : item.is_external_waiting
+                                                        ? 'Waiting External'
+                                                        : 'Scheduled';
+                                                return (
+                                                    <li key={item.id} className="px-3 py-2 flex items-center justify-between gap-3 hover:bg-amber-50/40 dark:hover:bg-slate-800/40">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span
+                                                                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                                    item.is_overdue
+                                                                        ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-900'
+                                                                        : item.is_external_waiting
+                                                                            ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900'
+                                                                            : 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900'
+                                                                }`}
+                                                            >
+                                                                {badgeLabel}
+                                                            </span>
+                                                            <Link
+                                                                href={`/todos/${item.id}`}
+                                                                className="truncate text-sm font-medium text-gray-900 dark:text-gray-100 hover:underline"
+                                                            >
+                                                                {item.title}
+                                                            </Link>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0 text-xs">
+                                                            {item.due_date ? (
+                                                                <Link
+                                                                    href={`/calendar?date=${item.due_date}`}
+                                                                    className="inline-flex items-center gap-1 rounded border border-gray-200 dark:border-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                                >
+                                                                    <Clock className="h-3 w-3" aria-hidden="true" />
+                                                                    {item.due_date}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-[11px] text-gray-400">No date</span>
+                                                            )}
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </section>
+                                )}
+
                                 {/* Current Work / Active Focuses with Measurable Progress */}
                                 <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden" aria-label="Active Focuses">
                                     <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
@@ -412,48 +481,101 @@ export default function Dashboard({
                                 </section>
                             </div>
 
-                            {/* Secondary Area: Recent Activity & Linked Notes */}
-                            <div className="min-w-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 xl:col-span-5">
-                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
-                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
-                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Recent activity</h2>
+                            {/* Secondary Area: Human-Readable Daily Retrospective */}
+                            <div className="min-w-0 space-y-3 xl:col-span-5">
+                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900/50" aria-label="Daily Retrospective">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="h-3.5 w-3.5 text-gray-600 dark:text-gray-300" aria-hidden="true" />
+                                            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                                Today&apos;s Retrospective
+                                            </h2>
+                                            {today?.daily_retrospective?.range_label && (
+                                                <span className="text-[11px] text-gray-400 dark:text-slate-500">
+                                                    {today.daily_retrospective.range_label}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <Link
+                                            href="/reports"
+                                            className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                                        >
+                                            All Retrospectives
+                                            <ArrowRight className="h-3 w-3" />
+                                        </Link>
                                     </div>
-                                    {today?.recent_activity?.status === 'no_data' ? (
-                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.recent_activity.message}</p>
-                                    ) : (
-                                        <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
-                                            {today.recent_activity.items.map((item) => (
-                                                <li key={item.id} className="px-3 py-2 text-xs text-gray-800 dark:text-gray-100">
-                                                    <div className="flex items-center justify-between text-gray-400">
-                                                        <span className="font-semibold uppercase">{item.kind}</span>
-                                                        <span>{item.entry_date}</span>
-                                                    </div>
-                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2 break-words">{formatActivityExcerpt(item.excerpt)}</p>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </section>
 
-                                <section className="min-w-0 rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
-                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
-                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Linked notes</h2>
-                                    </div>
-                                    {today?.linked_notes?.status === 'no_data' ? (
-                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.linked_notes.message}</p>
+                                    {today?.daily_retrospective ? (
+                                        <div className="p-3 space-y-3 text-xs">
+                                            <p className="text-sm leading-relaxed text-gray-800 dark:text-gray-100">
+                                                {today.daily_retrospective.summary}
+                                            </p>
+
+                                            {Array.isArray(today.daily_retrospective.done_highlights) && today.daily_retrospective.done_highlights.length > 0 && (
+                                                <div className="border-t border-gray-100 dark:border-slate-800 pt-2.5">
+                                                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1.5">
+                                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                                                        Done Today ({today.daily_retrospective.completed_count})
+                                                    </h3>
+                                                    <ul className="space-y-1">
+                                                        {today.daily_retrospective.done_highlights.map((item) => (
+                                                            <li key={item.id}>
+                                                                <Link
+                                                                    href={`/todos/${item.id}`}
+                                                                    className="block truncate text-gray-700 dark:text-gray-200 hover:underline"
+                                                                >
+                                                                    • {item.title}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {Array.isArray(today.daily_retrospective.went_well) && today.daily_retrospective.went_well.length > 0 && (
+                                                <div className="border-t border-gray-100 dark:border-slate-800 pt-2.5">
+                                                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1.5">
+                                                        What Went Well
+                                                    </h3>
+                                                    <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+                                                        {today.daily_retrospective.went_well.map((line, index) => (
+                                                            <li key={index} className="leading-relaxed">• {line}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {Array.isArray(today.daily_retrospective.blockers) && today.daily_retrospective.blockers.length > 0 && (
+                                                <div className="border-t border-gray-100 dark:border-slate-800 pt-2.5">
+                                                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1.5">
+                                                        Blockers & Waiting
+                                                    </h3>
+                                                    <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+                                                        {today.daily_retrospective.blockers.map((line, index) => (
+                                                            <li key={index} className="leading-relaxed">• {line}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {Array.isArray(today.daily_retrospective.improvements) && today.daily_retrospective.improvements.length > 0 && (
+                                                <div className="border-t border-gray-100 dark:border-slate-800 pt-2.5">
+                                                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-1.5 flex items-center gap-1.5">
+                                                        <Compass className="h-3.5 w-3.5" aria-hidden="true" />
+                                                        What to Improve
+                                                    </h3>
+                                                    <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+                                                        {today.daily_retrospective.improvements.map((line, index) => (
+                                                            <li key={index} className="leading-relaxed">• {line}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
-                                        <ul className="divide-y divide-gray-100 dark:divide-slate-800/80">
-                                            {today.linked_notes.items.map((item) => (
-                                                <li key={item.id}>
-                                                    <Link
-                                                        href={`/todos/${item.id}`}
-                                                        className="block px-3 py-2 text-xs font-medium text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800/40 truncate"
-                                                    >
-                                                        {item.title}
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">
+                                            Daily retrospective is not available yet.
+                                        </p>
                                     )}
                                 </section>
                             </div>

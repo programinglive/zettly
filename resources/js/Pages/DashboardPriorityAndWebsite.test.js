@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const dashboardSrc = fs.readFileSync(path.join(REPO_ROOT, 'resources', 'js', 'Pages', 'Dashboard.jsx'), 'utf8');
+const reportsSrc = fs.readFileSync(path.join(REPO_ROOT, 'resources', 'js', 'Pages', 'Reports', 'Index.jsx'), 'utf8');
 const homeSrc = fs.readFileSync(path.join(REPO_ROOT, 'resources', 'js', 'Pages', 'Home', 'Index.jsx'), 'utf8');
 
 test('PR-01..PR-06 & UI-01..UI-07: Today Dashboard exposes Priority Queue, P0-P3 filter/sort, scoped counters, and Needs Next Action on empty focuses', () => {
@@ -20,6 +21,20 @@ test('PR-01..PR-06 & UI-01..UI-07: Today Dashboard exposes Priority Queue, P0-P3
     assert.match(dashboardSrc, /By Priority/);
     assert.match(dashboardSrc, /By Due Date/);
     assert.match(dashboardSrc, /Plan next task/);
+});
+
+test('Today Dashboard replaces Recent Activity & Linked Notes with Calendar External Waiting and Human Daily Retrospective, and Reports links to /reports/technical', () => {
+    assert.match(dashboardSrc, /Calendar & External Waiting/);
+    assert.match(dashboardSrc, /Today&apos;s Retrospective/);
+    assert.match(dashboardSrc, /What Went Well/);
+    assert.match(dashboardSrc, /Blockers & Waiting/);
+    assert.match(dashboardSrc, /What to Improve/);
+    assert.doesNotMatch(dashboardSrc, />Recent activity</);
+    assert.doesNotMatch(dashboardSrc, />Linked notes</);
+    assert.match(reportsSrc, /Daily/);
+    assert.match(reportsSrc, /Weekly/);
+    assert.match(reportsSrc, /Monthly/);
+    assert.match(reportsSrc, /\/reports\/technical/);
 });
 
 test('HOME-01..HOME-06 & A11Y-01..A11Y-05: Zettly public website communicates product-first positioning with zero emoji gimmicks and valid CTAs', () => {

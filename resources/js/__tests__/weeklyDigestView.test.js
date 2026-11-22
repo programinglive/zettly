@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const source = readFileSync(join(__dirname, '..', 'Pages', 'Reports', 'Index.jsx'), 'utf8');
+const source = readFileSync(join(__dirname, '..', 'Pages', 'Reports', 'Technical.jsx'), 'utf8');
 
 test('Reports page consumes the server-provided weekly digest prop', () => {
   assert.match(source, /weeklyDigest/);

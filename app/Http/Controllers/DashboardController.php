@@ -6,6 +6,7 @@ use App\Domain\Priority\PriorityQueueBuilder;
 use App\Domain\Priority\PrioritySettingsService;
 use App\Models\Todo;
 use App\Services\AgentSessionIngestor;
+use App\Services\HumanRetrospectiveService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -244,6 +245,10 @@ class DashboardController extends Controller
             ? 'Your active Focuses need actionable tasks. Create or select the next step.'
             : 'No open tasks are recorded in this workspace.';
 
+        $retrospectiveService = app(HumanRetrospectiveService::class);
+        $externalSchedule = $retrospectiveService->buildExternalSchedule($user, $todayDate, 3);
+        $dailyRetrospective = $retrospectiveService->buildRetrospective($user, 'daily', $todayDate);
+
         $today = [
             'metrics' => [
                 'open_today' => $openTodayCount,
@@ -271,6 +276,8 @@ class DashboardController extends Controller
                     ? null
                     : $emptyOpenTasksMessage,
             ],
+            'external_schedule' => $externalSchedule,
+            'daily_retrospective' => $dailyRetrospective,
             'recent_activity' => [
                 'status' => $recentJournal->isNotEmpty() ? 'ok' : 'no_data',
                 'items' => $recentJournal->map(fn ($entry) => [

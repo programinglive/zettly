@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\ReportDelivery;
 use App\Models\ReportSummary;
 use App\Models\UserReportChannel;
+use App\Services\HumanRetrospectiveService;
 use App\Services\ReportDeliveryService;
 use App\Services\ReportGenerator;
 use App\Services\WeeklyDigestService;
@@ -80,6 +81,67 @@ class ReportsController extends Controller
         [$digestStart, $digestEnd] = ReportGenerator::periodFor(Report::KIND_WEEKLY, CarbonImmutable::instance($today));
 
         return inertia('Reports/Index', [
+            'reports' => $reports,
+            'channels' => $channels,
+            'periodKind' => $filter,
+            'kinds' => self::KINDS,
+            'page' => $page,
+            'has_more' => $hasMore,
+            'weeklyDigest' => app(WeeklyDigestService::class)->forUser(Auth::user(), $digestStart, $digestEnd),
+            'retrospectives' => app(HumanRetrospectiveService::class)->buildAllPeriods(Auth::user()),
+        ]);
+    }
+
+    /**
+     * Dedicated technical details & raw archive page for power-user metrics,
+     * provenance logs, delivery channels, and historical generated markdown reports.
+     */
+    public function technical(Request $request): \Inertia\Response
+    {
+        $kind = $request->query('period_kind');
+        $filter = in_array($kind, self::KINDS, true) ? $kind : null;
+
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 30;
+
+        $query = Report::where('user_id', Auth::id())
+            ->when($filter, fn ($q) => $q->where('period_kind', $filter))
+            ->orderByDesc('period_end')
+            ->orderByDesc('generated_at');
+
+        $hasMore = $query->count() > $page * $perPage;
+        $rows = $query->forPage($page, $perPage)->get();
+        $summaries = ReportSummary::whereIn('report_id', $rows->pluck('id'))->get()->keyBy('report_id');
+
+        $reports = $rows
+            ->map(function (Report $report) use ($summaries) {
+                $digest = $summaries->get($report->id)?->digest;
+
+                return [
+                    'id' => $report->id,
+                    'period_kind' => $report->period_kind,
+                    'period_start' => $report->period_start->toDateString(),
+                    'period_end' => $report->period_end->toDateString(),
+                    'generated_at' => $report->generated_at?->toDateTimeString(),
+                    'summary' => $digest !== null && $digest !== '' ? self::clip($digest) : self::summary($report->content),
+                ];
+            })
+            ->values();
+
+        $channels = Auth::user()->reportChannels()
+            ->get()
+            ->sortBy('channel')
+            ->map(fn (UserReportChannel $channel) => [
+                'channel' => $channel->channel,
+                'enabled' => $channel->enabled,
+            ])
+            ->values()
+            ->all();
+
+        $today = today('Asia/Jakarta')->startOfDay();
+        [$digestStart, $digestEnd] = ReportGenerator::periodFor(Report::KIND_WEEKLY, CarbonImmutable::instance($today));
+
+        return inertia('Reports/Technical', [
             'reports' => $reports,
             'channels' => $channels,
             'periodKind' => $filter,
