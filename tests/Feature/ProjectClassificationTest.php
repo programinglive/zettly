@@ -152,4 +152,42 @@ class ProjectClassificationTest extends TestCase
         $this->assertTrue($untaggedCloudNote->fresh()->tags()->where('name', 'proyek:bw-infra')->exists());
         $this->assertTrue($untaggedCloudNote->fresh()->tags()->where('name', 'tipe:note')->exists());
     }
+
+    public function test_classifier_eliminates_meaningless_tipe_other_and_normalizes_to_explicit_work_types(): void
+    {
+        $user = User::factory()->create();
+        $otherTag = Tag::create(['user_id' => $user->id, 'name' => 'tipe:other', 'color' => '#94A3B8']);
+        $featAliasTag = Tag::create(['user_id' => $user->id, 'name' => 'tipe:feat', 'color' => '#06B6D4']);
+        $zettlyTag = Tag::create(['user_id' => $user->id, 'name' => 'proyek:zettly', 'color' => '#F59E0B']);
+
+        $auditTodo = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Full scan of all Zettly web routes and UI/UX compliance audit',
+            'description' => 'Audit all pages against ZET-UI-003',
+        ]);
+        $auditTodo->tags()->attach([$zettlyTag->id, $otherTag->id]);
+
+        $opsTodo = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Backup production database and deploy v1.10.14 to bw-app',
+            'description' => 'Run pg_dump and webhook-deploy-launcher',
+        ]);
+        $opsTodo->tags()->attach([$zettlyTag->id, $otherTag->id]);
+
+        $featTodo = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Add split view reading pane to Zettly',
+        ]);
+        $featTodo->tags()->attach([$zettlyTag->id, $featAliasTag->id]);
+
+        $this->artisan('zettly:classify-projects', ['--user' => $user->id, '--apply' => true])
+            ->expectsOutputToContain('APPLIED')
+            ->assertSuccessful();
+
+        $this->assertFalse($auditTodo->fresh()->tags()->where('name', 'tipe:other')->exists());
+        $this->assertTrue($auditTodo->fresh()->tags()->where('name', 'tipe:audit')->exists());
+
+        $this->assertFalse($opsTodo->fresh()->tags()->where('name', 'tipe:other')->exists());
+        $this->assertTrue($opsTodo->fresh()->tags()->where('name', 'tipe:ops')->exists());
+
+        $this->assertFalse($featTodo->fresh()->tags()->where('name', 'tipe:feat')->exists());
+        $this->assertTrue($featTodo->fresh()->tags()->where('name', 'tipe:feature')->exists());
+    }
 }

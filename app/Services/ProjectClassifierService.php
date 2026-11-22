@@ -126,6 +126,107 @@ class ProjectClassifierService
         'area:project' => 'programinglive',
     ];
 
+    /**
+     * Generic/meaningless `tipe:*` slugs that must never be attached.
+     */
+    private const FORBIDDEN_TYPE_SLUGS = [
+        'other',
+        'misc',
+        'general',
+        'unknown',
+        'none',
+    ];
+
+    /**
+     * Shorthand duplicate `tipe:*` aliases => explicit canonical work type.
+     */
+    private const TYPE_ALIASES = [
+        'feat' => 'feature',
+        'fix' => 'bugfix',
+    ];
+
+    /**
+     * Colors for explicit canonical `tipe:*` tags.
+     */
+    private const WORK_TYPE_COLORS = [
+        'feature' => '#06B6D4',
+        'bugfix' => '#EF4444',
+        'audit' => '#8B5CF6',
+        'ops' => '#6366F1',
+        'refactor' => '#10B981',
+        'docs' => '#0EA5E9',
+        'chore' => '#F59E0B',
+        'note' => '#64748B',
+    ];
+
+    /**
+     * Infer an explicit, meaningful canonical `tipe:*` work type from a Todo/Note.
+     * Never returns `other`.
+     */
+    public function classifyWorkType(Todo $todo): string
+    {
+        if ($todo->type === Todo::TYPE_NOTE) {
+            return 'note';
+        }
+
+        $haystack = trim(((string) $todo->title).' '.strip_tags((string) $todo->description));
+
+        $rules = [
+            'audit' => '/\b(audit|scan|inspect|verify|verification|review|check|compliance|diagnos|health|inventory|drift)\b/i',
+            'bugfix' => '/\b(fix|bug|bugfix|error|crash|regression|repair|broken|500|502|404|403|401|422|hotfix|incident|troubleshoot|debug|fail)\b/i',
+            'ops' => '/\b(deploy|release|backup|restore|migrat|server|runner|ssl|dns|gcs|bucket|infra|rollback|webhook|cron|systemd|nginx|tailscale|cloudflare|npm|unpublish|publish)\b/i',
+            'refactor' => '/\b(refactor|cleanup|clean up|simplify|normaliz|decoupl|standardiz|overhaul|revamp|align|eliminat)\b/i',
+            'docs' => '/\b(docs|readme|changelog|spec|guide|tutorial|handover|briefing|documentation)\b/i',
+            'feature' => '/\b(add|build|create|implement|feature|dashboard|ui\/ux|split view|calendar|chart|endpoint|support|enable|integrate|auto-tag)\b/i',
+        ];
+
+        foreach ($rules as $type => $pattern) {
+            if (preg_match($pattern, $haystack) === 1) {
+                return $type;
+            }
+        }
+
+        return 'chore';
+    }
+
+    /**
+     * Resolve explicit `tipe:*` normalization actions for a Todo/Note.
+     *
+     * @return array{target_type: ?string, stale_type_ids: array<int, int>, needs_update: bool}
+     */
+    private function resolveWorkTypeNormalization(Todo $todo, Collection $tags): array
+    {
+        $typeTags = $tags->filter(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'tipe:'));
+        $staleTypeIds = [];
+        $validTypes = [];
+        $aliasedTargets = [];
+
+        foreach ($typeTags as $tag) {
+            $slug = strtolower(trim(substr((string) $tag->name, strlen('tipe:'))));
+            if ($slug === '' || in_array($slug, self::FORBIDDEN_TYPE_SLUGS, true)) {
+                $staleTypeIds[] = (int) $tag->id;
+            } elseif (isset(self::TYPE_ALIASES[$slug])) {
+                $staleTypeIds[] = (int) $tag->id;
+                $aliasedTargets[] = self::TYPE_ALIASES[$slug];
+            } else {
+                $validTypes[] = $slug;
+            }
+        }
+
+        $targetType = null;
+        if (empty($validTypes)) {
+            $targetType = $aliasedTargets[0] ?? $this->classifyWorkType($todo);
+        } elseif (! empty($aliasedTargets) && ! in_array($aliasedTargets[0], $validTypes, true)) {
+            $targetType = $aliasedTargets[0];
+        }
+
+        return [
+            'target_type' => $targetType,
+            'stale_type_ids' => array_values(array_unique($staleTypeIds)),
+            'needs_update' => $targetType !== null || ! empty($staleTypeIds),
+        ];
+    }
+
     public function canonicalCatalog(): array
     {
         return self::CANONICAL_PROJECTS;
@@ -250,10 +351,9 @@ class ProjectClassifierService
             ->pluck('id')
             ->all();
 
-        $needsNoteTypeTag = $todo->type === Todo::TYPE_NOTE
-            && ! $tags->contains(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'tipe:'));
+        $typePlan = $this->resolveWorkTypeNormalization($todo, $tags);
 
-        if ($hasCanonical && empty($staleTagIds) && ! $needsNoteTypeTag) {
+        if ($hasCanonical && empty($staleTagIds) && ! $typePlan['needs_update']) {
             return ['status' => 'unchanged', 'canonical' => $resolved['key'], 'attached' => false, 'detached' => []];
         }
 
@@ -264,30 +364,32 @@ class ProjectClassifierService
             );
             $todo->tags()->syncWithoutDetaching([$canonicalTag->id]);
 
-            if (! empty($staleTagIds)) {
-                $todo->tags()->detach($staleTagIds);
+            $allStaleIds = array_values(array_unique(array_merge($staleTagIds, $typePlan['stale_type_ids'])));
+            if (! empty($allStaleIds)) {
+                $todo->tags()->detach($allStaleIds);
             }
 
-            if ($needsNoteTypeTag) {
-                $noteTypeTag = Tag::firstOrCreate(
-                    ['user_id' => $todo->user_id, 'name' => 'tipe:note'],
-                    ['color' => '#64748B']
+            if ($typePlan['target_type'] !== null) {
+                $typeSlug = $typePlan['target_type'];
+                $typeTag = Tag::firstOrCreate(
+                    ['user_id' => $todo->user_id, 'name' => 'tipe:'.$typeSlug],
+                    ['color' => self::WORK_TYPE_COLORS[$typeSlug] ?? '#64748B']
                 );
-                $todo->tags()->syncWithoutDetaching([$noteTypeTag->id]);
+                $todo->tags()->syncWithoutDetaching([$typeTag->id]);
             }
         }
 
         return [
             'status' => 'updated',
             'canonical' => $resolved['key'],
-            'attached' => ! $hasCanonical || $needsNoteTypeTag,
-            'detached' => $staleTagIds,
+            'attached' => ! $hasCanonical || $typePlan['target_type'] !== null,
+            'detached' => array_values(array_unique(array_merge($staleTagIds, $typePlan['stale_type_ids']))),
         ];
     }
 
     /**
      * Best-effort auto-tagger for newly created Todos and Notes so Zettelkasten coordinates
-     * (canonical proyek:* + tipe:note for notes) are always attached automatically.
+     * (canonical proyek:* + explicit non-other tipe:*) are always attached automatically.
      */
     public function autoTagIfRecognized(Todo $todo): ?string
     {
@@ -295,19 +397,21 @@ class ProjectClassifierService
             return null;
         }
 
-        if ($todo->type === Todo::TYPE_NOTE) {
-            $existingTags = $todo->relationLoaded('tags')
-                ? $todo->tags
-                : $todo->tags()->get(['tags.id', 'tags.name']);
-            $hasTypeTag = $existingTags->contains(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'tipe:'));
+        $existingTags = $todo->relationLoaded('tags')
+            ? $todo->tags
+            : $todo->tags()->get(['tags.id', 'tags.name', 'tags.color']);
 
-            if (! $hasTypeTag) {
-                $noteTypeTag = Tag::firstOrCreate(
-                    ['user_id' => $todo->user_id, 'name' => 'tipe:note'],
-                    ['color' => '#64748B']
-                );
-                $todo->tags()->syncWithoutDetaching([$noteTypeTag->id]);
-            }
+        $typePlan = $this->resolveWorkTypeNormalization($todo, $existingTags);
+        if (! empty($typePlan['stale_type_ids'])) {
+            $todo->tags()->detach($typePlan['stale_type_ids']);
+        }
+        if ($typePlan['target_type'] !== null) {
+            $typeSlug = $typePlan['target_type'];
+            $typeTag = Tag::firstOrCreate(
+                ['user_id' => $todo->user_id, 'name' => 'tipe:'.$typeSlug],
+                ['color' => self::WORK_TYPE_COLORS[$typeSlug] ?? '#64748B']
+            );
+            $todo->tags()->syncWithoutDetaching([$typeTag->id]);
         }
 
         $resolved = $this->classifyTodo($todo);
