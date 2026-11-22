@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.15](https://github.com/programinglive/todo/compare/v1.10.14...v1.10.15) (2026-11-22)
+
+
+### ♻️ Refactors
+
+* **tags:** eliminate vague area:dev tags and add tasks/notes schema spec ([3a04470](https://github.com/programinglive/todo/commit/3a0447025e6798d23cc00c337d3211a226c187ac))
+
 ### [1.10.14](https://github.com/programinglive/todo/compare/v1.10.13...v1.10.14) (2026-11-22)
 
 
