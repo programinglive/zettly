@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/programinglive/todo/compare/v1.7.0...v1.8.0) (2026-11-22)
+
+
+### ✨ Features
+
+* **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue ([b7fd85b](https://github.com/programinglive/todo/commit/b7fd85bdedc48bf13f5515e8f7b38b7f101758ad))
+
 ### [1.5.4](https://github.com/programinglive/todo/compare/v1.5.3...v1.5.4) (2026-11-20)
 
 

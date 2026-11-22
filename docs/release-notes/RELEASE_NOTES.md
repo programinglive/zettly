@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.8.0 | 2026-11-22 | **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue (b7fd85b) |
 | 1.5.4 | 2026-11-20 | **build:** make npm run build atomic to prevent missing Vite manifest during deploy (#65) (ece16e9) |
 | 1.5.3 | 2026-11-19 | **security:** patch Dependabot alerts #300, #299, #297 and composer advisories (#64) (41ce6ca) |
 | 1.5.2 | 2026-11-19 | **priority:** integrate weekly focus day-theme allocation into PriorityEngine, PriorityQueueBuilder, and DayPlanner (8e55bb6) |
@@ -132,6 +133,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.8.0
+
+Released on **2026-11-22**.
+
+- **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue (b7fd85b)
+- **build:** make npm run build atomic to prevent missing Vite manifest during deploy (#65) (ece16e9)
+- **security:** patch Dependabot alerts #300, #299, #297 and composer advisories (#64) (41ce6ca)
+- **priority:** integrate weekly focus day-theme allocation into PriorityEngine, PriorityQueueBuilder, and DayPlanner (8e55bb6)
+- **api:** support tag name in byTag, make event append idempotent, and fix auto-release cli flag (90c6e96)
 
 ## 1.5.4
 
