@@ -154,14 +154,23 @@ export default function ReportsIndex({ retrospectives = {}, periodKind }) {
                         </p>
                     </div>
 
-                    <Link
-                        href="/reports/technical"
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-200 dark:hover:bg-slate-800"
-                    >
-                        <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                        Technical Details & Raw Archive
-                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/summary"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-200 dark:hover:bg-slate-800"
+                        >
+                            Summary Charts
+                            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                        <Link
+                            href="/reports/technical"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-200 dark:hover:bg-slate-800"
+                        >
+                            <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                            Technical Details & Raw Archive
+                            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                    </div>
                 </header>
 
                 <nav aria-label="Retrospective periods" className="inline-flex rounded-md bg-gray-100 p-1 dark:bg-slate-900">

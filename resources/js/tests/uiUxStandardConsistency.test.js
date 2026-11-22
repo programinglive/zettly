@@ -9,6 +9,7 @@ const repoRoot = path.resolve(__dirname, '../../..');
 
 const WORKSPACE_PAGES = [
     'resources/js/Pages/Dashboard.jsx',
+    'resources/js/Pages/Summary/Index.jsx',
     'resources/js/Pages/Priority/Index.jsx',
     'resources/js/Pages/Notes/Index.jsx',
     'resources/js/Pages/Reports/Index.jsx',

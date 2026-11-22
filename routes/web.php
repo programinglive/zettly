@@ -45,6 +45,10 @@ Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth'])
     ->name('dashboard');
 
+Route::get('/summary', \App\Http\Controllers\SummaryController::class)
+    ->middleware(['auth'])
+    ->name('summary.index');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/priority', [PriorityController::class, 'index'])->name('priority.index');
     Route::post('/priority/plan/items', [PriorityController::class, 'commitItem'])->name('priority.plan.commit');

@@ -170,6 +170,12 @@ export default function Dashboard({
                                 New Note
                             </Link>
                             <Link
+                                href="/summary"
+                                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            >
+                                Summary
+                            </Link>
+                            <Link
                                 href="/priority"
                                 className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                             >
