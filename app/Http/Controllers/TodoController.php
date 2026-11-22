@@ -255,28 +255,116 @@ class TodoController extends Controller
         ]);
     }
 
-    public function notes(Request $request)
+    public function notes(Request $request, ProjectClassifierService $classifier)
     {
-        $query = Todo::where('user_id', Auth::id())
+        $userId = Auth::id();
+        $search = trim((string) $request->get('q', ''));
+        $project = trim((string) $request->get('project', ''));
+        $selectedTag = $request->get('tag');
+        $sort = $request->get('sort', 'updated');
+        if (! in_array($sort, ['updated', 'newest', 'title'], true)) {
+            $sort = 'updated';
+        }
+
+        $query = Todo::where('user_id', $userId)
             ->notArchived()
             ->notes()
-            ->with(['user', 'tags'])
-            ->orderBy('created_at', 'desc');
+            ->with(['user', 'tags']);
 
-        if ($request->has('tag') && $request->tag) {
-            $query->whereHas('tags', function ($q) use ($request) {
-                $q->where('tags.id', $request->tag);
+        if ($project !== '') {
+            $canonicalTagName = 'proyek:'.strtolower($project);
+            $query->whereHas('tags', function ($q) use ($canonicalTagName) {
+                $q->whereRaw('LOWER(tags.name) = ?', [$canonicalTagName]);
             });
         }
 
-        $notes = $query->paginate(20);
+        if ($selectedTag) {
+            $query->whereHas('tags', function ($q) use ($selectedTag) {
+                $q->where('tags.id', $selectedTag);
+            });
+        }
 
-        $tags = Tag::forUser(Auth::id())->get();
+        if ($search !== '') {
+            $needle = '%'.mb_strtolower($search).'%';
+            $query->where(function ($q) use ($needle) {
+                $q->whereRaw('LOWER(title) LIKE ?', [$needle])
+                    ->orWhereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$needle]);
+            });
+        }
+
+        switch ($sort) {
+            case 'title':
+                $query->orderByRaw('LOWER(title) ASC');
+                break;
+            case 'newest':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'updated':
+            default:
+                $query->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $notes = $query->paginate(20)->withQueryString();
+
+        $totalNotes = Todo::where('user_id', $userId)->notArchived()->notes()->count();
+
+        $catalog = $classifier->canonicalCatalog();
+        $canonicalTagNames = array_map(fn (string $slug) => 'proyek:'.$slug, array_keys($catalog));
+
+        $canonicalTagRows = Tag::forUser($userId)
+            ->whereIn(DB::raw('LOWER(name)'), $canonicalTagNames)
+            ->withCount(['todos as notes_count' => function ($q) use ($userId) {
+                $q->where('todos.user_id', $userId)
+                    ->whereNull('todos.archived_at')
+                    ->where('todos.type', Todo::TYPE_NOTE);
+            }])
+            ->get()
+            ->keyBy(fn (Tag $tag) => strtolower($tag->name));
+
+        $canonicalProjects = collect($catalog)
+            ->map(function (array $meta, string $slug) use ($canonicalTagRows) {
+                $tag = $canonicalTagRows->get('proyek:'.$slug);
+
+                return [
+                    'key' => $slug,
+                    'label' => $meta['label'],
+                    'color' => $meta['color'],
+                    'tag_id' => $tag?->id,
+                    'count' => (int) ($tag?->notes_count ?? 0),
+                ];
+            })
+            ->sortByDesc('count')
+            ->values()
+            ->all();
+
+        $tags = Tag::forUser($userId)
+            ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
+            ->where(function ($q) use ($userId, $selectedTag) {
+                $q->whereHas('todos', function ($noteQ) use ($userId) {
+                    $noteQ->where('todos.user_id', $userId)
+                        ->whereNull('todos.archived_at')
+                        ->where('todos.type', Todo::TYPE_NOTE);
+                });
+                if ($selectedTag) {
+                    $q->orWhere('tags.id', $selectedTag);
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'color']);
 
         return Inertia::render('Notes/Index', [
             'notes' => $notes,
             'tags' => $tags,
-            'selectedTag' => $request->get('tag'),
+            'canonicalProjects' => $canonicalProjects,
+            'totalNotes' => $totalNotes,
+            'selectedTag' => $selectedTag,
+            'filters' => [
+                'q' => $search !== '' ? $search : null,
+                'project' => $project !== '' ? $project : null,
+                'sort' => $sort,
+                'tag' => $selectedTag,
+            ],
         ]);
     }
 
