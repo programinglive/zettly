@@ -14,10 +14,71 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../Layouts/DashboardLayout';
 
+const WARNING_LABELS = {
+    deadline_at_risk: 'Deadline at Risk',
+    deadline_uncommitted: 'Upcoming Deadline',
+    capacity_exceeded: 'Capacity Exceeded',
+    main_work_overdue: 'Main Work Overdue',
+};
+
+function formatWarningItem(warning) {
+    if (!warning || typeof warning !== 'object') {
+        return null;
+    }
+    const code = warning.code || warning.type || '';
+    const label = WARNING_LABELS[code] || (code ? code.replace(/_/g, ' ') : 'Notice');
+
+    if (warning.message) {
+        return { label, text: warning.message, todoId: warning.todo_id || null };
+    }
+
+    if (code === 'deadline_at_risk') {
+        const dueNote = warning.due_date ? ` (due ${warning.due_date})` : '';
+        return {
+            label,
+            text: `"${warning.title || `Task #${warning.todo_id}`}"${dueNote} is due soon but currently ranked below your Main Work.`,
+            todoId: warning.todo_id || null,
+        };
+    }
+
+    if (code === 'deadline_uncommitted') {
+        const dueNote = warning.due_date ? ` (due ${warning.due_date})` : '';
+        return {
+            label,
+            text: `"${warning.title || `Task #${warning.todo_id}`}"${dueNote} is due soon while Today's WIP limit is full.`,
+            todoId: warning.todo_id || null,
+        };
+    }
+
+    if (code === 'capacity_exceeded') {
+        return {
+            label,
+            text: `Today's planned work (${warning.minutes_planned} min) exceeds your daily capacity (${warning.minutes_capacity} min).`,
+            todoId: null,
+        };
+    }
+
+    if (code === 'main_work_overdue') {
+        return {
+            label,
+            text: `Main Work "${warning.title || `Task #${warning.todo_id}`}" is overdue (${warning.due_date}).`,
+            todoId: warning.todo_id || null,
+        };
+    }
+
+    return null;
+}
+
+function formatDecidedBy(value) {
+    if (!value || typeof value !== 'string') return '';
+    return value.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
 function TaskCard({
     task,
     isProposed,
     isCommitted,
+    busy,
     onCommit,
     onUncommit,
     onExplain,
@@ -105,18 +166,20 @@ function TaskCard({
                     {isCommitted ? (
                         <button
                             type="button"
+                            disabled={busy}
                             onClick={() => onUncommit(task)}
-                            className="inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                            className="inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
                         >
-                            Uncommit
+                            Remove
                         </button>
                     ) : (
                         <button
                             type="button"
+                            disabled={busy}
                             onClick={() => onCommit(task)}
-                            className="inline-flex items-center gap-1 rounded-md bg-gray-900 dark:bg-white px-2 py-1 text-xs font-semibold text-white dark:text-gray-900 hover:opacity-90"
+                            className="inline-flex items-center gap-1 rounded-md bg-gray-900 dark:bg-white px-2 py-1 text-xs font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50"
                         >
-                            Commit
+                            + Today
                             <ArrowRight className="h-3.5 w-3.5" />
                         </button>
                     )}
@@ -138,43 +201,31 @@ export default function PriorityIndex({
     counts = {},
     errors = {},
 }) {
-    const [actionModal, setActionModal] = useState(null); // { mode: 'commit'|'uncommit', task }
-    const [reason, setReason] = useState('');
-    const [submitting, setSubmitting] = useState(false);
+    const [busyTaskId, setBusyTaskId] = useState(null);
     const [explanation, setExplanation] = useState(null);
     const [explainError, setExplainError] = useState(null);
 
     const proposedSet = new Set(Array.isArray(proposal) ? proposal : []);
+    const formattedWarnings = (Array.isArray(warnings) ? warnings : [])
+        .map(formatWarningItem)
+        .filter(Boolean);
 
-    const openActionModal = (mode, task) => {
-        setActionModal({ mode, task });
-        setReason('');
+    const handlePinToday = (task) => {
+        setBusyTaskId(task.id);
+        router.post(
+            '/priority/plan/items',
+            { todo_id: task.id, date },
+            { preserveScroll: true, onFinish: () => setBusyTaskId(null) },
+        );
     };
 
-    const submitAction = (e) => {
-        e.preventDefault();
-        if (!actionModal || reason.trim().length < 8) return;
-        setSubmitting(true);
-
-        const finish = () => {
-            setSubmitting(false);
-            setActionModal(null);
-            setReason('');
-        };
-
-        if (actionModal.mode === 'commit') {
-            router.post(
-                '/priority/plan/items',
-                { todo_id: actionModal.task.id, reason: reason.trim(), date },
-                { preserveScroll: true, onFinish: finish },
-            );
-        } else {
-            router.delete(`/priority/plan/items/${actionModal.task.id}`, {
-                data: { reason: reason.trim(), date },
-                preserveScroll: true,
-                onFinish: finish,
-            });
-        }
+    const handleRemoveToday = (task) => {
+        setBusyTaskId(task.id);
+        router.delete(`/priority/plan/items/${task.id}`, {
+            data: { date },
+            preserveScroll: true,
+            onFinish: () => setBusyTaskId(null),
+        });
     };
 
     const handleExplain = async (task) => {
@@ -260,17 +311,25 @@ export default function PriorityIndex({
                 </section>
 
                 {/* Warnings */}
-                {Array.isArray(warnings) && warnings.length > 0 && (
+                {formattedWarnings.length > 0 && (
                     <section className="mb-4 rounded-md border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3">
                         <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-900 dark:text-amber-200">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             Warnings
                         </div>
-                        <ul className="mt-1.5 space-y-1 text-xs text-amber-900 dark:text-amber-100">
-                            {warnings.map((w, idx) => (
-                                <li key={idx}>
-                                    <span className="font-mono text-[11px] uppercase mr-1.5">[{w.type}]</span>
-                                    {w.message}
+                        <ul className="mt-1.5 space-y-1.5 text-xs text-amber-900 dark:text-amber-100">
+                            {formattedWarnings.map((w, idx) => (
+                                <li key={idx} className="flex flex-wrap items-baseline gap-1.5">
+                                    <span className="rounded bg-amber-200/70 dark:bg-amber-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                                        {w.label}
+                                    </span>
+                                    {w.todoId ? (
+                                        <Link href={`/todos/${w.todoId}`} className="hover:underline">
+                                            {w.text}
+                                        </Link>
+                                    ) : (
+                                        <span>{w.text}</span>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -279,16 +338,16 @@ export default function PriorityIndex({
 
                 <div className="grid gap-4 lg:grid-cols-12 items-start min-w-0">
                     <div className="min-w-0 lg:col-span-8 xl:col-span-9 space-y-4">
-                        {/* Today Committed */}
+                        {/* Today Plan */}
                         <section>
                             <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                Today (Committed)
+                                Today&apos;s Plan
                                 <span className="font-normal text-gray-400">({today.length})</span>
                             </h2>
                             {today.length === 0 ? (
                                 <div className="rounded-md border border-dashed border-gray-300 dark:border-slate-700 p-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                                    No tasks committed for today yet. Commit tasks from the Next queue below.
+                                    No tasks pinned for today yet. Click + Today on any task below.
                                 </div>
                             ) : (
                                 <div className="space-y-2">
@@ -298,8 +357,9 @@ export default function PriorityIndex({
                                             task={task}
                                             isCommitted
                                             isProposed={false}
-                                            onCommit={(t) => openActionModal('commit', t)}
-                                            onUncommit={(t) => openActionModal('uncommit', t)}
+                                            busy={busyTaskId === task.id}
+                                            onCommit={handlePinToday}
+                                            onUncommit={handleRemoveToday}
                                             onExplain={handleExplain}
                                         />
                                     ))}
@@ -325,8 +385,9 @@ export default function PriorityIndex({
                                             task={task}
                                             isCommitted={false}
                                             isProposed={proposedSet.has(task.id)}
-                                            onCommit={(t) => openActionModal('commit', t)}
-                                            onUncommit={(t) => openActionModal('uncommit', t)}
+                                            busy={busyTaskId === task.id}
+                                            onCommit={handlePinToday}
+                                            onUncommit={handleRemoveToday}
                                             onExplain={handleExplain}
                                         />
                                     ))}
@@ -372,61 +433,6 @@ export default function PriorityIndex({
                     </aside>
                 </div>
 
-                {/* Commit / Uncommit Reason Modal */}
-                {actionModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                        <div className="w-full max-w-md rounded-lg bg-white dark:bg-slate-900 p-6 shadow-xl">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {actionModal.mode === 'commit' ? 'Commit to Today' : 'Uncommit from Today'}
-                                </h3>
-                                <button
-                                    type="button"
-                                    onClick={() => setActionModal(null)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                {actionModal.task.title}
-                            </p>
-                            <form onSubmit={submitAction} className="mt-4 space-y-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                        Reason (minimum 8 characters)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={reason}
-                                        onChange={(e) => setReason(e.target.value)}
-                                        minLength={8}
-                                        required
-                                        placeholder="Why is this changing today's plan?"
-                                        className="mt-1 w-full rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-white"
-                                    />
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setActionModal(null)}
-                                        className="rounded-md border border-gray-300 dark:border-slate-700 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={submitting || reason.trim().length < 8}
-                                        className="rounded-md bg-gray-900 dark:bg-white px-4 py-1.5 text-sm font-semibold text-white dark:text-gray-900 disabled:opacity-50"
-                                    >
-                                        {submitting ? 'Saving...' : 'Confirm'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
                 {/* Explain Modal */}
                 {explanation && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -450,25 +456,48 @@ export default function PriorityIndex({
                                     <p className="font-semibold text-gray-900 dark:text-white">
                                         {explanation.todo?.title}
                                     </p>
-                                    <p>
-                                        <span className="font-medium">Ready:</span>{' '}
-                                        {explanation.ready ? 'Yes' : `No (${(explanation.readiness_reasons || []).join(', ')})`}
-                                    </p>
-                                    <p>
-                                        <span className="font-medium">Decided by:</span>{' '}
-                                        <span className="font-mono">{explanation.decided_by}</span>
-                                    </p>
-                                    <p>
-                                        <span className="font-medium">Detail:</span> {explanation.detail}
-                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                                        {explanation.position ? (
+                                            <span className="rounded bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 font-semibold text-blue-700 dark:text-blue-300">
+                                                Rank #{explanation.position}
+                                                {explanation.position === 1 ? ' · Top Priority' : ''}
+                                            </span>
+                                        ) : null}
+                                        <span className="rounded bg-gray-100 dark:bg-slate-800 px-2 py-0.5 text-gray-700 dark:text-gray-300">
+                                            Ready: {explanation.ready ? 'Yes' : `No (${(explanation.readiness_reasons || []).join(', ')})`}
+                                        </span>
+                                    </div>
+                                    {Array.isArray(explanation.reasons) && explanation.reasons.length > 0 && (
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Why it ranks here:
+                                            </p>
+                                            <ul className="space-y-1 text-xs">
+                                                {explanation.reasons.map((r, idx) => (
+                                                    <li key={idx}>• {r}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {explanation.decided_by ? (
+                                        <p className="text-xs">
+                                            <span className="font-medium">Ranked below previous task because of:</span>{' '}
+                                            <span className="font-semibold">{formatDecidedBy(explanation.decided_by)}</span>
+                                            {explanation.detail ? ` — ${explanation.detail}` : ''}
+                                        </p>
+                                    ) : explanation.position === 1 ? (
+                                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                                            This is currently the #1 highest-priority task in your queue.
+                                        </p>
+                                    ) : null}
                                     {Array.isArray(explanation.blocked_by) && explanation.blocked_by.length > 0 && (
-                                        <p>
+                                        <p className="text-xs">
                                             <span className="font-medium">Blocked by:</span>{' '}
                                             {explanation.blocked_by.map((b) => `#${b.id} ${b.title}`).join(', ')}
                                         </p>
                                     )}
                                     {Array.isArray(explanation.blocks) && explanation.blocks.length > 0 && (
-                                        <p>
+                                        <p className="text-xs">
                                             <span className="font-medium">Unblocks:</span>{' '}
                                             {explanation.blocks.map((b) => `#${b.id} ${b.title}`).join(', ')}
                                         </p>

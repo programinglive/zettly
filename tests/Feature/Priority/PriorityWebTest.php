@@ -115,4 +115,24 @@ class PriorityWebTest extends TestCase
             ])
             ->assertRedirect();
     }
+
+    public function test_web_pin_and_remove_work_in_one_click_without_manual_reason(): void
+    {
+        $todo = Todo::create([
+            'user_id' => $this->user->id,
+            'title' => 'One Click Pin Task',
+            'type' => Todo::TYPE_TODO,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'is_completed' => false,
+            'archived' => false,
+        ]);
+
+        $this->actingAs($this->user)
+            ->post('/priority/plan/items', ['todo_id' => $todo->id])
+            ->assertRedirect();
+
+        $this->actingAs($this->user)
+            ->delete("/priority/plan/items/{$todo->id}")
+            ->assertRedirect();
+    }
 }

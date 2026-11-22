@@ -59,10 +59,15 @@ class PriorityController extends Controller
     {
         $data = $request->validate([
             'todo_id' => ['required', 'integer'],
-            'reason' => ['required', 'string', 'min:8', 'max:500'],
+            'reason' => ['nullable', 'string', 'max:500'],
             'allow_over_capacity' => ['sometimes', 'boolean'],
             'date' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        $reason = trim((string) ($data['reason'] ?? ''));
+        if (mb_strlen($reason) < 8) {
+            $reason = 'Pinned to Today from Priority Queue';
+        }
 
         $userId = (int) Auth::id();
         $todo = Todo::query()->where('user_id', $userId)->find($data['todo_id']);
@@ -76,7 +81,7 @@ class PriorityController extends Controller
         try {
             $planner->commit(
                 $todo,
-                $data['reason'],
+                $reason,
                 (bool) ($data['allow_over_capacity'] ?? false),
                 'web',
             );
@@ -98,9 +103,14 @@ class PriorityController extends Controller
     public function uncommitItem(Request $request, int $todo): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
-            'reason' => ['required', 'string', 'min:8', 'max:500'],
+            'reason' => ['nullable', 'string', 'max:500'],
             'date' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        $reason = trim((string) ($data['reason'] ?? ''));
+        if (mb_strlen($reason) < 8) {
+            $reason = 'Removed from Today in Priority Queue';
+        }
 
         $userId = (int) Auth::id();
         $model = Todo::query()->where('user_id', $userId)->find($todo);
@@ -110,7 +120,7 @@ class PriorityController extends Controller
 
         $settings = (new PrioritySettingsService($userId))->get();
         $planner = new DayPlanner($userId, $settings, $this->resolveToday($request));
-        $planner->uncommit($model, $data['reason'], 'web');
+        $planner->uncommit($model, $reason, 'web');
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);
