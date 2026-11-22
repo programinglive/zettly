@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.17](https://github.com/programinglive/todo/compare/v1.10.16...v1.10.17) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **filters:** scope faceted tags to active view and eliminate tipe:todo ([a639ab6](https://github.com/programinglive/todo/commit/a639ab6d1d36f2bd3280a18c082282471973bbe5))
+
 ### [1.10.16](https://github.com/programinglive/todo/compare/v1.10.15...v1.10.16) (2026-11-22)
 
 
