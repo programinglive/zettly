@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.9](https://github.com/programinglive/todo/compare/v1.10.8...v1.10.9) (2026-11-22)
+
+
+### ✨ Features
+
+* **todos:** overhaul /todos into calm human-centered task workspace ([d2df330](https://github.com/programinglive/todo/commit/d2df3307625140f143fd945c3cdfa40c2f12d2cb))
+
 ### [1.10.8](https://github.com/programinglive/todo/compare/v1.10.7...v1.10.8) (2026-11-22)
 
 
