@@ -130,165 +130,151 @@ export default function NotesIndex({ notes, tags, selectedTag }) {
     return (
         <DashboardLayout title="Notes">
             <Head title="My Notes" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Header Section */}
-                <div className="mb-20">
-                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-                        <div className="flex-1 space-y-4">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 animate-in fade-in slide-in-from-left-4 duration-500">
-                                <FileText className="w-4 h-4 text-gray-600 dark:text-slate-400" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-500">
-                                    Personal Archive
-                                </span>
-                            </div>
-                            <h1 className="text-5xl sm:text-6xl font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight animate-in fade-in slide-in-from-left-4 duration-700 delay-75">
-                                My <span className="text-gray-400 dark:text-slate-600 italic">Notes</span>
-                            </h1>
-                            <p className="text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl animate-in fade-in slide-in-from-left-4 duration-1000 delay-150">
-                                Capture ideas, documentation, and reference information in your centralized personal workspace.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
-                            <Link href="/todos/create?type=note">
-                                <Button className="group relative overflow-hidden rounded-full px-8 py-7 h-auto text-lg font-bold shadow-2xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-95">
-                                    <Plus className="w-5 h-5 mr-2 transition-transform group-hover:rotate-90" />
-                                    New Note
-                                </Button>
-                            </Link>
-                        </div>
+            <div className="w-full px-4 sm:px-6 py-4">
+                {/* Compact Notion-style Header */}
+                <div className="mb-4 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+                            Notes
+                        </h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Capture ideas, documentation, and reference information.
+                        </p>
                     </div>
-
-                    {/* Tags Carousel/Filter Area */}
-                    {tags && tags.length > 0 && (
-                        <div className="mt-16 pt-8 border-t border-gray-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-2">
-                                    <Hash className="w-4 h-4 text-gray-400" />
-                                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">
-                                        Filter by Tag
-                                    </label>
-                                </div>
-                                {selectedTag && (
-                                    <Link
-                                        href={buildUrl({ tag: null })}
-                                        className="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white hover:opacity-60 transition-opacity flex items-center gap-1"
-                                    >
-                                        Clear filter <span className="text-lg leading-none">×</span>
-                                    </Link>
-                                )}
-                            </div>
-                            <div className="flex flex-wrap gap-2.5">
-                                {tags.map((tag) => {
-                                    const isSelected = selectedTag == tag.id;
-
-                                    return (
-                                        <Link
-                                            key={tag.id}
-                                            href={buildUrl({ tag: tag.id })}
-                                            className={`inline-flex items-center px-5 py-2 rounded-full text-xs font-bold border transition-all duration-300 ${isSelected
-                                                ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow-lg'
-                                                : 'bg-white text-gray-500 border-gray-100 hover:border-gray-900 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-white dark:hover:text-white shadow-sm'
-                                                }`}
-                                        >
-                                            {tag.name}
-                                            {isSelected && <span className="ml-2 font-normal opacity-50">×</span>}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+                    <Link
+                        href="/todos/create?type=note"
+                        className="inline-flex items-center gap-1 rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        New Note
+                    </Link>
                 </div>
 
-                {/* Notes Grid */}
-                {visibleNotes.length > 0 ? (
-                    <div className="[column-fill:_balance] [column-gap:2rem] columns-1 md:columns-2 lg:columns-3 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
-                        {visibleNotes.map((note) => {
-                            const descriptionPreview = getDescriptionPreview(note.description, 200);
+                {/* Compact Tag Filter Bar */}
+                {tags && tags.length > 0 && (
+                    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mr-1">
+                            <Hash className="w-3 h-3" />
+                            Tags
+                        </span>
+                        {tags.map((tag) => {
+                            const isSelected = selectedTag == tag.id;
 
                             return (
-                                <div key={note.id} className="mb-8 break-inside-avoid-column group">
-                                    <article className="relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-500 bg-white border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-2 hover:border-gray-900/10 dark:bg-slate-900/40 dark:border-slate-800 dark:hover:border-white/20 dark:hover:shadow-none h-full overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                                            <div className="flex items-center gap-1.5">
+                                <Link
+                                    key={tag.id}
+                                    href={buildUrl({ tag: tag.id })}
+                                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${isSelected
+                                        ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-slate-600 dark:hover:text-white'
+                                        }`}
+                                >
+                                    {tag.name}
+                                    {isSelected && <span className="ml-1.5 opacity-60">×</span>}
+                                </Link>
+                            );
+                        })}
+                        {selectedTag && (
+                            <Link
+                                href={buildUrl({ tag: null })}
+                                className="ml-1 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                            >
+                                Clear filter
+                            </Link>
+                        )}
+                    </div>
+                )}
+
+                {/* Compact Full-Width Notes Grid */}
+                {visibleNotes.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {visibleNotes.map((note) => {
+                            const descriptionPreview = getDescriptionPreview(note.description, 160);
+
+                            return (
+                                <article
+                                    key={note.id}
+                                    className="group relative flex flex-col justify-between p-3 rounded-md border border-gray-200 bg-white hover:border-gray-400 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-600 transition-colors"
+                                >
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-[11px] text-gray-400 dark:text-slate-500">
+                                                {new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Link
                                                     href={`/todos/${note.id}`}
-                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    className="flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-white dark:hover:text-gray-900"
                                                     title="View Note"
                                                 >
-                                                    <Eye className="w-4 h-4" />
+                                                    <Eye className="w-3.5 h-3.5" />
                                                 </Link>
                                                 <Link
                                                     href={`/todos/${note.id}/edit`}
-                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    className="flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-white dark:hover:text-gray-900"
                                                     title="Edit Note"
                                                 >
-                                                    <Edit className="w-4 h-4" />
+                                                    <Edit className="w-3.5 h-3.5" />
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDeleteClick(note)}
-                                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
+                                                    className="flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-red-600 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-red-600 dark:hover:text-white"
                                                     title="Delete Note"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 space-y-6">
-                                            <div>
-                                                <span className="text-[10px] font-black text-gray-300 dark:text-slate-600 uppercase tracking-[0.2em]">
-                                                    {new Date(note.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                                </span>
-                                                <h3 className="mt-4 text-2xl font-black leading-tight text-gray-900 dark:text-white group-hover:text-gray-500 dark:group-hover:text-slate-300 transition-colors">
-                                                    {note.title}
-                                                </h3>
-                                                {descriptionPreview && (
-                                                    <p className="mt-4 text-base leading-relaxed text-gray-500 dark:text-gray-400 font-light line-clamp-6">
-                                                        {descriptionPreview}
-                                                    </p>
-                                                )}
-                                            </div>
+                                        <Link href={`/todos/${note.id}`} className="block">
+                                            <h3 className="text-sm font-semibold leading-snug text-gray-900 dark:text-white group-hover:underline line-clamp-2">
+                                                {note.title}
+                                            </h3>
+                                        </Link>
 
-                                            {note.tags && note.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 pt-4 border-t border-gray-50 dark:border-slate-800/50">
-                                                    {note.tags.map((tag) => (
-                                                        <TagBadge key={tag.id} tag={tag} />
-                                                    ))}
-                                                </div>
-                                            )}
+                                        {descriptionPreview && (
+                                            <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-3">
+                                                {descriptionPreview}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {note.tags && note.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 pt-2 mt-2 border-t border-gray-100 dark:border-slate-800/70">
+                                            {note.tags.map((tag) => (
+                                                <TagBadge key={tag.id} tag={tag} />
+                                            ))}
                                         </div>
-                                    </article>
-                                </div>
+                                    )}
+                                </article>
                             );
                         })}
                     </div>
                 ) : (
-                    <div className="py-32 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                        <div className="inline-flex items-center justify-center w-32 h-32 rounded-[3.5rem] bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 mb-10 shadow-inner group">
-                            <FileText className="w-12 h-12 text-gray-200 dark:text-slate-800 transition-transform group-hover:scale-110 duration-500" />
-                        </div>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white mb-6">
+                    <div className="rounded-md border border-dashed border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center">
+                        <FileText className="mx-auto w-7 h-7 text-gray-300 dark:text-slate-600" />
+                        <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                             No notes found
                         </h3>
-                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light mb-16 max-w-lg mx-auto leading-relaxed">
-                            {selectedTag ? "No notes are currently tagged with this selection. Try clearing the filter or creating a new note with this tag." : "Your personal knowledge base is empty. Start capturing your thoughts and ideas today."}
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                            {selectedTag ? 'No notes are currently tagged with this selection. Clear the filter or create a new note.' : 'Your knowledge base is empty. Start capturing notes today.'}
                         </p>
-                        <Link href="/todos/create?type=note">
-                            <Button className="rounded-full px-12 py-8 h-auto text-xl font-black shadow-2xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-105 active:scale-95">
-                                <Plus className="w-6 h-6 mr-3" />
-                                Create First Note
-                            </Button>
+                        <Link
+                            href="/todos/create?type=note"
+                            className="mt-3 inline-flex items-center gap-1 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Create First Note
                         </Link>
                     </div>
                 )}
             </div>
 
             {hasMore && (
-                <div className="flex justify-center pt-20 pb-32">
+                <div className="flex justify-center py-6">
                     <Button
                         variant="outline"
-                        className="rounded-full px-12 py-7 h-auto text-base font-bold border-gray-200 text-gray-500 hover:border-gray-900 hover:text-gray-900 dark:border-slate-800 dark:text-slate-500 dark:hover:border-white dark:hover:text-white transition-all duration-300 shadow-sm"
+                        size="sm"
                         onClick={() => {
                             if (hasMoreServer && nextPageUrl) {
                                 appendNextRef.current = true;

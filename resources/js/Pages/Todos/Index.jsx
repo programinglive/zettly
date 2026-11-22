@@ -311,81 +311,71 @@ export default function Index({ todos, tags, filter, selectedTag }) {
     return (
         <AppLayout title="Todos">
             <Head title="My Todos" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Header */}
-                <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                    <div className="flex-1">
-                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-                            My Todos
+            <div className="w-full px-4 sm:px-6 py-4">
+                {/* Compact Notion-style Header */}
+                <div className="mb-4 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+                            Tasks
                         </h1>
-                        <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                             Plan, prioritize, and complete your work efficiently.
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Link href="/todos/create">
-                            <Button className="rounded-full px-6 py-6 h-auto text-base font-semibold transition shadow-sm bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-                                <Plus className="w-5 h-5 mr-2" />
-                                New Todo
-                            </Button>
-                        </Link>
-                    </div>
+                    <Link
+                        href="/todos/create"
+                        className="inline-flex items-center gap-1 rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        New Todo
+                    </Link>
                 </div>
 
-                {/* Filters */}
-                <div className="space-y-8 mb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+                {/* Compact Filters */}
+                <div className="space-y-2.5 mb-4">
                     {/* Status Filters */}
-                    <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
-                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                            {[
-                                { key: null, label: 'All' },
-                                { key: 'pending', label: 'Pending' },
-                                { key: 'completed', label: 'Completed' },
-                                { key: 'urgent', label: 'Urgent' },
-                                { key: 'not_urgent', label: 'Not Urgent' },
-                                { key: 'important', label: 'Important' },
-                                { key: 'not_important', label: 'Not Important' },
-                            ].map(({ key, label }) => (
-                                <Link
-                                    key={key || 'all'}
-                                    href={buildUrl({ filter: key })}
-                                    className={`whitespace-nowrap px-5 py-2 text-sm font-medium rounded-full transition-all shadow-sm ${filter === key
-                                        ? 'bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900'
-                                        : 'bg-white border border-gray-100 text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-slate-700 dark:hover:text-white'
-                                        }`}
-                                >
-                                    {label}
-                                </Link>
-                            ))}
-                        </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {[
+                            { key: null, label: 'All' },
+                            { key: 'pending', label: 'Pending' },
+                            { key: 'completed', label: 'Completed' },
+                            { key: 'urgent', label: 'Urgent' },
+                            { key: 'not_urgent', label: 'Not Urgent' },
+                            { key: 'important', label: 'Important' },
+                            { key: 'not_important', label: 'Not Important' },
+                        ].map(({ key, label }) => (
+                            <Link
+                                key={key || 'all'}
+                                href={buildUrl({ filter: key })}
+                                className={`whitespace-nowrap px-2.5 py-1 text-xs font-medium rounded-md border transition-colors ${filter === key
+                                    ? 'bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900 dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400 dark:hover:border-slate-600 dark:hover:text-white'
+                                    }`}
+                            >
+                                {label}
+                            </Link>
+                        ))}
                     </div>
 
                     {/* Tag Filters, grouped by zettelkasten axis */}
                     {tags && tags.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-1.5 pt-1">
                             <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                                <label className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Filter by Tag
                                 </label>
                                 {selectedTag && (
                                     <Link
                                         href={buildUrl({ tag: null })}
-                                        className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+                                        className="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
                                     >
                                         Clear filter
                                     </Link>
                                 )}
                             </div>
-                            {/*
-                              * Grouped by axis so a reader can ask the question the
-                              * zettelkasten method actually raises: "everything in this
-                              * repository", "everything of this type", "everything from
-                              * this source" — instead of scanning one long list where a
-                              * project and a topic look alike.
-                              */}
                             {groupTagsByAxis(tags).map((group) => (
-                                <div key={group.axis || 'other'} className="flex flex-wrap items-baseline gap-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500 w-16 shrink-0">
+                                <div key={group.axis || 'other'} className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500 w-16 shrink-0">
                                         {group.label}
                                     </span>
                                     {group.tags.map(tag => {
@@ -396,14 +386,14 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                                                 key={tag.id}
                                                 href={buildUrl({ tag: tag.id })}
                                                 title={tag.name}
-                                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border transition-all shadow-sm ${isSelected
+                                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border transition-colors ${isSelected
                                                     ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
-                                                    : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300 hover:text-gray-900 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:text-white'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-800 dark:hover:border-slate-600 dark:hover:text-white'
                                                     }`}
                                             >
                                                 {splitTagName(tag.name).value}
                                                 {isSelected && (
-                                                    <span className="ml-2 text-[10px] uppercase tracking-wide opacity-70">
+                                                    <span className="ml-1.5 text-[10px] uppercase opacity-70">
                                                         selected
                                                     </span>
                                                 )}
@@ -416,9 +406,9 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                     )}
                 </div>
 
-                {/* Todos List */}
+                {/* Compact Full-Width Todos List */}
                 {visibleTodos.length > 0 ? (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                    <div className="space-y-2">
                         {visibleTodos.map((todo) => {
                             const priorityStyle = getPriorityStyle(todo.priority);
                             const descriptionPreview = getDescriptionPreview(todo.description);
@@ -428,144 +418,142 @@ export default function Index({ todos, tags, filter, selectedTag }) {
                             const dueSoon = showDueBadge && !overdue && isDueSoon(todo.due_date);
 
                             return (
-                                <div key={todo.id} className="group">
-                                    <article
-                                        className={`relative flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-[2rem] border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${todo.is_completed
-                                            ? 'bg-gray-50/50 border-gray-100 dark:bg-slate-900/40 dark:border-slate-800/60'
-                                            : 'bg-white border-gray-100 shadow-sm hover:border-gray-200 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-700'
-                                            }`}
-                                    >
-                                        {/* Status Toggle */}
-                                        <div className="flex-shrink-0">
-                                            <button
-                                                onClick={() => handleToggle(todo)}
-                                                className={`flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300 ${todo.is_completed
-                                                    ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/20'
-                                                    : 'bg-white border-gray-100 text-gray-400 hover:text-gray-900 hover:border-gray-900 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-500 dark:hover:text-white dark:hover:border-white'
-                                                    }`}
-                                                disabled={toggleForm.processing}
-                                            >
-                                                {todo.is_completed ? (
-                                                    <CheckCircle className="w-6 h-6 animate-in zoom-in duration-300" />
-                                                ) : (
-                                                    <Circle className="w-6 h-6" />
-                                                )}
-                                            </button>
-                                        </div>
+                                <article
+                                    key={todo.id}
+                                    className={`group flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-md border transition-colors ${todo.is_completed
+                                        ? 'bg-gray-50/50 border-gray-200/70 dark:bg-slate-900/40 dark:border-slate-800/60'
+                                        : 'bg-white border-gray-200 hover:border-gray-400 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-600'
+                                        }`}
+                                >
+                                    {/* Status Toggle */}
+                                    <div className="flex-shrink-0">
+                                        <button
+                                            onClick={() => handleToggle(todo)}
+                                            className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${todo.is_completed
+                                                ? 'bg-green-500 border-green-500 text-white'
+                                                : 'bg-white border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-900 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-500 dark:hover:text-white dark:hover:border-white'
+                                                }`}
+                                            disabled={toggleForm.processing}
+                                        >
+                                            {todo.is_completed ? (
+                                                <CheckCircle className="w-4 h-4" />
+                                            ) : (
+                                                <Circle className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                    </div>
 
-                                        {/* Main Content */}
-                                        <div className="flex-1 min-w-0 space-y-3">
-                                            <div className="flex flex-wrap items-center gap-3">
-                                                {todo.is_completed === false && todo.priority && (
-                                                    <span
-                                                        className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
-                                                        style={{
-                                                            backgroundColor: priorityStyle.badgeBg,
-                                                        }}
-                                                    >
-                                                        {formatPriorityLabel(todo.priority)}
-                                                    </span>
-                                                )}
-                                                {showDueBadge && (
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-sm ${overdue
-                                                            ? 'bg-red-500'
-                                                            : dueSoon
-                                                                ? 'bg-orange-500'
-                                                                : 'bg-emerald-500'
-                                                            }`}
-                                                    >
-                                                        Due {dueDateLabel}
-                                                    </span>
-                                                )}
-                                                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
-                                                    Added {new Date(todo.created_at).toLocaleDateString()}
-                                                </span>
-                                            </div>
-
-                                            <div>
+                                    {/* Main Content */}
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Link href={`/todos/${todo.id}`} className="min-w-0">
                                                 <h3
-                                                    className={`text-xl font-bold leading-tight truncate ${todo.is_completed
+                                                    className={`text-sm font-semibold leading-snug truncate hover:underline ${todo.is_completed
                                                         ? 'text-gray-400 line-through dark:text-slate-600'
                                                         : 'text-gray-900 dark:text-white'
                                                         }`}
                                                 >
                                                     {todo.title}
                                                 </h3>
-                                                {descriptionPreview && (
-                                                    <p
-                                                        className={`mt-1 text-base leading-relaxed line-clamp-1 ${todo.is_completed ? 'text-gray-400 dark:text-slate-600' : 'text-gray-600 dark:text-gray-400 font-light'
-                                                            }`}
-                                                    >
-                                                        {descriptionPreview}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {todo.tags && todo.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                                    {todo.tags.map(tag => (
-                                                        <AxisTagBadge key={tag.id} tag={tag} />
-                                                    ))}
-                                                </div>
+                                            </Link>
+                                            {todo.is_completed === false && todo.priority && (
+                                                <span
+                                                    className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                                                    style={{
+                                                        backgroundColor: priorityStyle.badgeBg,
+                                                    }}
+                                                >
+                                                    {formatPriorityLabel(todo.priority)}
+                                                </span>
                                             )}
+                                            {showDueBadge && (
+                                                <span
+                                                    className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ${overdue
+                                                        ? 'bg-red-500'
+                                                        : dueSoon
+                                                            ? 'bg-orange-500'
+                                                            : 'bg-emerald-500'
+                                                        }`}
+                                                >
+                                                    Due {dueDateLabel}
+                                                </span>
+                                            )}
+                                            <span className="text-[11px] text-gray-400 dark:text-slate-500">
+                                                Added {new Date(todo.created_at).toLocaleDateString()}
+                                            </span>
                                         </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <Link
-                                                href={`/todos/${todo.id}`}
-                                                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
-                                                title="View details"
+                                        {descriptionPreview && (
+                                            <p
+                                                className={`text-xs leading-relaxed line-clamp-1 ${todo.is_completed ? 'text-gray-400 dark:text-slate-600' : 'text-gray-500 dark:text-gray-400'
+                                                    }`}
                                             >
-                                                <Eye className="w-4 h-4" />
-                                            </Link>
-                                            <Link
-                                                href={`/todos/${todo.id}/edit`}
-                                                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 hover:bg-gray-900 hover:text-white dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
-                                                title="Edit todo"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDeleteClick(todo)}
-                                                className="flex h-10 w-10 items-center justify-center rounded-full border border-red-50 bg-red-10 text-red-400 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white transition-all shadow-sm"
-                                                title="Delete todo"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </article>
-                                </div>
+                                                {descriptionPreview}
+                                            </p>
+                                        )}
+
+                                        {todo.tags && todo.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 pt-0.5">
+                                                {todo.tags.map(tag => (
+                                                    <AxisTagBadge key={tag.id} tag={tag} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Link
+                                            href={`/todos/${todo.id}`}
+                                            className="flex h-7 w-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-white dark:hover:text-gray-900"
+                                            title="View details"
+                                        >
+                                            <Eye className="w-3.5 h-3.5" />
+                                        </Link>
+                                        <Link
+                                            href={`/todos/${todo.id}/edit`}
+                                            className="flex h-7 w-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-900 hover:text-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-white dark:hover:text-gray-900"
+                                            title="Edit todo"
+                                        >
+                                            <Edit className="w-3.5 h-3.5" />
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDeleteClick(todo)}
+                                            className="flex h-7 w-7 items-center justify-center rounded border border-red-100 bg-white text-red-500 hover:bg-red-600 hover:text-white dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+                                            title="Delete todo"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </article>
                             );
                         })}
                     </div>
                 ) : (
-                    <div className="py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                        <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 mb-8 shadow-inner">
-                            <Plus className="w-10 h-10 text-gray-300 dark:text-slate-700" />
-                        </div>
-                        <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4">
+                    <div className="rounded-md border border-dashed border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center">
+                        <Plus className="mx-auto w-7 h-7 text-gray-300 dark:text-slate-600" />
+                        <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                             No todos yet
                         </h3>
-                        <p className="text-xl text-gray-500 dark:text-gray-400 font-light mb-12 max-w-md mx-auto leading-relaxed">
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                             It looks like you're all caught up. Ready to start something new?
                         </p>
-                        <Link href="/todos/create">
-                            <Button className="rounded-full px-8 py-7 h-auto text-lg font-bold shadow-xl shadow-gray-200 dark:shadow-none bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all hover:scale-105 active:scale-95">
-                                <Plus className="w-6 h-6 mr-2" />
-                                Create Your First Todo
-                            </Button>
+                        <Link
+                            href="/todos/create"
+                            className="mt-3 inline-flex items-center gap-1 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Create Your First Todo
                         </Link>
                     </div>
                 )}
             </div>
 
             {hasMore && (
-                <div className="flex justify-center pt-12 pb-12">
+                <div className="flex justify-center py-6">
                     <Button
                         variant="outline"
-                        className="rounded-full px-10 py-6 h-auto text-base font-semibold border-gray-100 hover:border-gray-900 hover:bg-gray-900 hover:text-white dark:border-slate-800 dark:hover:border-white dark:hover:bg-white dark:hover:text-gray-900 transition-all duration-300 shadow-sm"
+                        size="sm"
                         onClick={() => {
                             if (hasMoreServer && nextPageUrl) {
                                 appendNextRef.current = true;

@@ -17,6 +17,7 @@ Zettly enforces version-controlled standards in `engineering/`:
 - `engineering/standards/api-contracts.yaml` (`ZET-API-001`) — Design by Contract & backward-compatible responses.
 - `engineering/standards/database.yaml` (`ZET-DB-001`) — Additive N-1 compatible migrations; destructive schema changes blocked without verified GCS backup (`sha256`) and human approval.
 - `engineering/standards/documentation.yaml` (`ZET-DOC-001`) — Living documentation synchronized with code.
+- `engineering/standards/ui-ux.yaml` (`ZET-UI-001`, `ZET-UI-002`) — Notion-style compact full-width workspace layout, uniform typography scale (`h1: text-lg font-semibold`, `h2: text-xs uppercase`, `body: text-sm`, `meta: text-xs`), and crisp density (`rounded-md`/`rounded-lg`, `p-3`).
 - `engineering/standards/release.yaml` (`ZET-REL-001`) — 8-Dimension PR Reversibility & 15-Condition Autonomous Release Gate.
 - `engineering/exceptions/approved-exceptions.yaml` — Explicit, time-bounded rule exceptions.
 - `engineering/policies/enforcement.yaml` — Baseline-aware quality gates and Autofix classes (`AF-0`..`AF-3`).

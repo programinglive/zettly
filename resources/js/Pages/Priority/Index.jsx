@@ -28,30 +28,30 @@ function TaskCard({
     return (
         <div
             data-testid={`priority-task-${task.id}`}
-            className="rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
+            className="rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3"
         >
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-2.5">
                 <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                         {task.is_p0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/40 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:text-red-200">
-                                <Flame className="h-3.5 w-3.5" />
+                            <span className="inline-flex items-center gap-1 rounded bg-red-100 dark:bg-red-900/40 px-2 py-0.5 text-[11px] font-semibold text-red-800 dark:text-red-200">
+                                <Flame className="h-3 w-3" />
                                 P0 Critical
                             </span>
                         )}
                         {task.is_main_work && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
-                                <Star className="h-3.5 w-3.5" />
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-200">
+                                <Star className="h-3 w-3" />
                                 Main Work
                             </span>
                         )}
                         {isProposed && !isCommitted && (
-                            <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:text-emerald-200">
+                            <span className="inline-flex items-center rounded bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 text-[11px] font-medium text-emerald-800 dark:text-emerald-200">
                                 Recommended for Today
                             </span>
                         )}
                         {blockedBy.length > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 dark:bg-rose-900/40 px-2.5 py-0.5 text-xs font-medium text-rose-800 dark:text-rose-200">
+                            <span className="inline-flex items-center gap-1 rounded bg-rose-100 dark:bg-rose-900/40 px-2 py-0.5 text-[11px] font-medium text-rose-800 dark:text-rose-200">
                                 <Lock className="h-3 w-3" />
                                 Blocked by #{blockedBy.join(', #')}
                             </span>
@@ -60,17 +60,17 @@ function TaskCard({
 
                     <Link
                         href={`/todos/${task.id}`}
-                        className="mt-2 block text-base font-semibold text-gray-900 dark:text-white hover:underline"
+                        className="mt-1.5 block text-sm font-semibold text-gray-900 dark:text-white hover:underline"
                     >
                         {task.title}
                     </Link>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-gray-500 dark:text-gray-400">
                         <span className="font-mono">#{task.id}</span>
                         {task.focus_title && <span>Focus: {task.focus_title}</span>}
                         {task.due_date && (
                             <span className="inline-flex items-center gap-1">
-                                <Clock className="h-3.5 w-3.5" />
+                                <Clock className="h-3 w-3" />
                                 Due {task.due_date}
                             </span>
                         )}
@@ -80,11 +80,11 @@ function TaskCard({
                     </div>
 
                     {reasons.length > 0 && (
-                        <ul className="mt-2 flex flex-wrap gap-1.5">
+                        <ul className="mt-1.5 flex flex-wrap gap-1">
                             {reasons.map((reason, idx) => (
                                 <li
                                     key={idx}
-                                    className="rounded bg-gray-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300"
+                                    className="rounded bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 text-[11px] text-gray-700 dark:text-gray-300"
                                 >
                                     {reason}
                                 </li>
@@ -93,11 +93,11 @@ function TaskCard({
                     )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                     <button
                         type="button"
                         onClick={() => onExplain(task)}
-                        className="inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-slate-700 px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-slate-700 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                     >
                         <HelpCircle className="h-3.5 w-3.5" />
                         Explain
@@ -106,7 +106,7 @@ function TaskCard({
                         <button
                             type="button"
                             onClick={() => onUncommit(task)}
-                            className="inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
+                            className="inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                         >
                             Uncommit
                         </button>
@@ -114,7 +114,7 @@ function TaskCard({
                         <button
                             type="button"
                             onClick={() => onCommit(task)}
-                            className="inline-flex items-center gap-1 rounded-md bg-gray-900 dark:bg-white px-2.5 py-1.5 text-xs font-semibold text-white dark:text-gray-900 hover:opacity-90"
+                            className="inline-flex items-center gap-1 rounded-md bg-gray-900 dark:bg-white px-2 py-1 text-xs font-semibold text-white dark:text-gray-900 hover:opacity-90"
                         >
                             Commit
                             <ArrowRight className="h-3.5 w-3.5" />
@@ -194,13 +194,13 @@ export default function PriorityIndex({
     return (
         <DashboardLayout title="Priority Queue">
             <Head title="Priority Queue" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="w-full px-4 sm:px-6 py-4">
+                <div className="mb-4 pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-3">
+                        <h1 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
                             Priority Queue
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                             Single-authority ranking for {date || 'today'} ·{' '}
                             <Link href="/dashboard" className="underline hover:text-gray-800 dark:hover:text-gray-200">
                                 Back to Today
@@ -209,12 +209,12 @@ export default function PriorityIndex({
                     </div>
 
                     {capacity && (
-                        <div className="rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm">
+                        <div className="rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs">
                             <span className="font-semibold text-gray-900 dark:text-white">
                                 WIP: {capacity.committed} / {capacity.wip_limit}
                             </span>
                             {capacity.minutes_capacity > 0 && (
-                                <span className="ml-3 text-gray-500 dark:text-gray-400">
+                                <span className="ml-2.5 text-gray-500 dark:text-gray-400">
                                     Time: {capacity.minutes_planned} / {capacity.minutes_capacity} min
                                 </span>
                             )}
@@ -223,21 +223,21 @@ export default function PriorityIndex({
                 </div>
 
                 {errors?.priority && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200">
+                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 text-xs text-red-800 dark:text-red-200">
                         {errors.priority}
                     </div>
                 )}
 
                 {explainError && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200">
+                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 text-xs text-red-800 dark:text-red-200">
                         {explainError}
                     </div>
                 )}
 
                 {/* Main Work Banner */}
-                <section className="mb-6 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/20 p-4">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-                        <Star className="h-4 w-4" />
+                <section className="mb-4 rounded-md border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/20 p-3">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-200">
+                        <Star className="h-3.5 w-3.5" />
                         Main Work
                     </div>
                     {mainWork ? (
@@ -253,7 +253,7 @@ export default function PriorityIndex({
                             )}
                         </div>
                     ) : (
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
                             No explicit Main Work is currently set.
                         </p>
                     )}
@@ -261,15 +261,15 @@ export default function PriorityIndex({
 
                 {/* Warnings */}
                 {Array.isArray(warnings) && warnings.length > 0 && (
-                    <section className="mb-6 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
-                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-amber-900 dark:text-amber-200">
-                            <AlertTriangle className="h-4 w-4" />
+                    <section className="mb-4 rounded-md border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                            <AlertTriangle className="h-3.5 w-3.5" />
                             Warnings
                         </div>
-                        <ul className="mt-2 space-y-1 text-sm text-amber-900 dark:text-amber-100">
+                        <ul className="mt-1.5 space-y-1 text-xs text-amber-900 dark:text-amber-100">
                             {warnings.map((w, idx) => (
                                 <li key={idx}>
-                                    <span className="font-mono text-xs uppercase mr-2">[{w.type}]</span>
+                                    <span className="font-mono text-[11px] uppercase mr-1.5">[{w.type}]</span>
                                     {w.message}
                                 </li>
                             ))}
@@ -277,21 +277,21 @@ export default function PriorityIndex({
                     </section>
                 )}
 
-                <div className="grid gap-8 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-8">
+                <div className="grid gap-4 lg:grid-cols-12 items-start">
+                    <div className="lg:col-span-8 xl:col-span-9 space-y-4">
                         {/* Today Committed */}
                         <section>
-                            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-                                <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 Today (Committed)
-                                <span className="text-sm font-normal text-gray-500">({today.length})</span>
+                                <span className="font-normal text-gray-400">({today.length})</span>
                             </h2>
                             {today.length === 0 ? (
-                                <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                                <div className="rounded-md border border-dashed border-gray-300 dark:border-slate-700 p-4 text-center text-xs text-gray-500 dark:text-gray-400">
                                     No tasks committed for today yet. Commit tasks from the Next queue below.
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {today.map((task) => (
                                         <TaskCard
                                             key={task.id}
@@ -309,16 +309,16 @@ export default function PriorityIndex({
 
                         {/* Next Ranked Queue */}
                         <section>
-                            <h2 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
+                            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Next (Ranked Queue)
-                                <span className="ml-2 text-sm font-normal text-gray-500">({next.length})</span>
+                                <span className="ml-1.5 font-normal text-gray-400">({next.length})</span>
                             </h2>
                             {next.length === 0 ? (
-                                <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                                <div className="rounded-md border border-dashed border-gray-300 dark:border-slate-700 p-4 text-center text-xs text-gray-500 dark:text-gray-400">
                                     No ready tasks in the queue.
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {next.map((task) => (
                                         <TaskCard
                                             key={task.id}
@@ -336,12 +336,12 @@ export default function PriorityIndex({
                     </div>
 
                     {/* Sidebar: Triage & Counts */}
-                    <aside className="space-y-6">
-                        <section className="rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-                            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200">
+                    <aside className="lg:col-span-4 xl:col-span-3 space-y-3">
+                        <section className="rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+                            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Triage Summary
                             </h2>
-                            <dl className="mt-3 space-y-2 text-sm">
+                            <dl className="mt-2.5 space-y-1.5 text-xs">
                                 <div className="flex justify-between">
                                     <dt className="text-gray-500 dark:text-gray-400">Total excluded</dt>
                                     <dd className="font-semibold text-gray-900 dark:text-white">{triage?.total ?? 0}</dd>
@@ -364,7 +364,7 @@ export default function PriorityIndex({
                                 </div>
                             </dl>
                             {counts?.open !== undefined && (
-                                <p className="mt-4 border-t border-gray-100 dark:border-slate-800 pt-3 text-xs text-gray-500 dark:text-gray-400">
+                                <p className="mt-3 border-t border-gray-100 dark:border-slate-800 pt-2 text-[11px] text-gray-500 dark:text-gray-400">
                                     Open: {counts.open} · Offerable: {counts.offerable} · Excluded: {counts.excluded}
                                 </p>
                             )}

@@ -14,7 +14,7 @@ The private coding agent control plane links jobs to personal Todos and replaces
 
 ## Design System
 
-The application uses a mostly monochrome interface with black, white, and gray as its base palette. Feature-specific accents remain available where they carry meaning, including priority quadrants and user-configurable habit colors. Follow the shared gray-based component styles while preserving those purposeful indicators.
+The application uses a Notion-inspired compact, full-width monochrome workspace interface (`engineering/standards/ui-ux.yaml`, rules `ZET-UI-001` & `ZET-UI-002`) with black, white, and gray as its base palette. Feature-specific accents remain available where they carry meaning, including priority quadrants and user-configurable habit colors. All primary workspace pages must use fluid full-width containers (`w-full px-4 sm:px-6 py-4`) and the uniform typography scale (`h1: text-lg font-semibold`, `h2: text-xs font-semibold uppercase tracking-wider`, `body: text-sm`, `meta: text-xs`).
 
 ## Release Notes
 

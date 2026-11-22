@@ -223,11 +223,11 @@ export default function ReportsIndex({ reports, channels, periodKind, kinds, pag
 
     return (
         <DashboardLayout title="Reports">
-            <div className="mx-auto max-w-3xl space-y-6 py-8">
-                <header className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <h1 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">Reports</h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            <div className="w-full px-4 sm:px-6 py-4 space-y-4">
+                <header className="pb-3 border-b border-gray-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-3">
+                        <h1 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Reports</h1>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
                             Recaps of your work, generated automatically every night at 23:55 (WIB).
                         </p>
                     </div>
@@ -244,80 +244,86 @@ export default function ReportsIndex({ reports, channels, periodKind, kinds, pag
                     </Button>
                 </header>
 
-                <WeeklyDigest digest={weeklyDigest} />
-
-                {Array.isArray(channels) && channels.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
-                        <Radio className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
-                        <span className="text-xs font-medium text-gray-500 dark:text-slate-400">Delivery</span>
-                        {channels.map((channel) => (
-                            <span
-                                key={channel.channel}
-                                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${channel.enabled
-                                    ? 'border-gray-300 bg-gray-50 text-gray-700 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300'
-                                    : 'border-dashed border-gray-300 text-gray-400 dark:border-slate-700 dark:text-slate-500'
-                                }`}
-                            >
-                                {channel.channel} {channel.enabled ? 'on' : 'off'}
-                            </span>
-                        ))}
+                <div className="grid gap-4 lg:grid-cols-12 items-start">
+                    <div className="lg:col-span-5">
+                        <WeeklyDigest digest={weeklyDigest} />
                     </div>
-                ) : null}
 
-                <nav aria-label="Report periods" className="flex flex-wrap gap-1 rounded-lg bg-gray-100 p-1 dark:bg-slate-900">
-                    {tabs.map((kind) => {
-                        const active = activeKind === kind;
-
-                        return (
-                            <button
-                                key={kind}
-                                onClick={() => handleSelectKind(kind)}
-                                className={`rounded-md px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors ${active
-                                    ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-800 dark:text-white'
-                                    : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
-                                }`}
-                            >
-                                {kind === 'all' ? 'All' : KIND_LABELS[kind] || kind}
-                            </button>
-                        );
-                    })}
-                </nav>
-
-                {groups.length > 0 ? (
-                    <div className="space-y-4">
-                        {groups.map((group, index) => (
-                            <ReportGroup
-                                key={group.key}
-                                group={group}
-                                open={isOpen(index, group)}
-                                onToggle={() => toggleGroup(group)}
-                            />
-                        ))}
-
-                        {has_more ? (
-                            <div className="pt-1">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleShowOlder}
-                                    title="Load the next 30 reports, oldest shown last"
-                                >
-                                    Show older reports
-                                </Button>
+                    <div className="lg:col-span-7 space-y-3">
+                        {Array.isArray(channels) && channels.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
+                                <Radio className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
+                                <span className="text-xs font-medium text-gray-500 dark:text-slate-400">Delivery</span>
+                                {channels.map((channel) => (
+                                    <span
+                                        key={channel.channel}
+                                        className={`rounded border px-2 py-0.5 text-xs font-medium ${channel.enabled
+                                            ? 'border-gray-300 bg-gray-50 text-gray-700 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300'
+                                            : 'border-dashed border-gray-300 text-gray-400 dark:border-slate-700 dark:text-slate-500'
+                                        }`}
+                                    >
+                                        {channel.channel} {channel.enabled ? 'on' : 'off'}
+                                    </span>
+                                ))}
                             </div>
                         ) : null}
+
+                        <nav aria-label="Report periods" className="flex flex-wrap gap-1 rounded-md bg-gray-100 p-1 dark:bg-slate-900">
+                            {tabs.map((kind) => {
+                                const active = activeKind === kind;
+
+                                return (
+                                    <button
+                                        key={kind}
+                                        onClick={() => handleSelectKind(kind)}
+                                        className={`rounded px-2.5 py-1 text-xs font-semibold tracking-wide transition-colors ${active
+                                            ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {kind === 'all' ? 'All' : KIND_LABELS[kind] || kind}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+
+                        {groups.length > 0 ? (
+                            <div className="space-y-3">
+                                {groups.map((group, index) => (
+                                    <ReportGroup
+                                        key={group.key}
+                                        group={group}
+                                        open={isOpen(index, group)}
+                                        onToggle={() => toggleGroup(group)}
+                                    />
+                                ))}
+
+                                {has_more ? (
+                                    <div className="pt-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleShowOlder}
+                                            title="Load the next 30 reports, oldest shown last"
+                                        >
+                                            Show older reports
+                                        </Button>
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center rounded-md border border-dashed border-gray-300 bg-white px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-900">
+                                <Inbox className="h-7 w-7 text-gray-300 dark:text-slate-600" />
+                                <h2 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    {activeKind === 'all' ? 'No reports yet' : `No ${KIND_LABELS[activeKind] || activeKind} reports yet`}
+                                </h2>
+                                <p className="mt-1 max-w-sm text-xs leading-relaxed text-gray-500 dark:text-slate-400">
+                                    Recaps are generated every night at 23:55 (WIB). Use "Generate now" to create today's report right away.
+                                </p>
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="flex flex-col items-center rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
-                        <Inbox className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                        <h2 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
-                            {activeKind === 'all' ? 'No reports yet' : `No ${KIND_LABELS[activeKind] || activeKind} reports yet`}
-                        </h2>
-                        <p className="mt-1 max-w-sm text-xs leading-relaxed text-gray-500 dark:text-slate-400">
-                            Recaps are generated every night at 23:55 (WIB). Use "Generate now" to create today's report right away.
-                        </p>
-                    </div>
-                )}
+                </div>
             </div>
         </DashboardLayout>
     );

@@ -1,0 +1,32 @@
+version: "2.0"
+scope:
+  - frontend
+standards:
+  - id: ZET-UI-001
+    title: Uniform Notion-style compact typography and crisp surfaces across workspace pages
+    description: Authenticated Zettly workspace pages MUST use the canonical compact typography scale (h1 text-lg font-semibold, subtitle text-xs, section h2 text-xs font-semibold uppercase tracking-wider, primary item text-sm, metadata text-xs) and crisp surfaces (rounded-md or rounded-lg, p-3). Marketing-hero typography (text-5xl, text-6xl) and oversized pill cards (rounded-[2rem], rounded-[2.5rem]) are prohibited in workspace pages.
+    rationale: Inconsistent heading sizes and oversized padding cause jarring visual jumps between tabs and waste viewport density. A single Notion-style scale keeps the workspace calm, scannable, and predictable.
+    principle: Visual Consistency & High-Density Calm Workspace
+    source: Zettly Design System (Notion-inspired Compact Monochrome Standard)
+    scope: [frontend]
+    severity: medium
+    enforcement: warning
+    detection: regex
+    pattern: "(?:text-5xl|text-6xl|rounded-\\[2(?:\\.5)?rem\\])"
+    autofix: AF-1
+    verification: npm run test:js && npm run build
+    exception_process: Public marketing landing pages or standalone print views only.
+
+  - id: ZET-UI-002
+    title: Full-width fluid workspace layout utilizing available desktop viewport
+    description: Primary authenticated workspace pages MUST use fluid full-width containers (w-full px-4 sm:px-6 py-4) and responsive multi-column grids (lg:grid-cols-12, xl:grid-cols-4) instead of narrow centered max-w-3xl, max-w-4xl, or max-w-6xl outer wrappers.
+    rationale: AppLayout already provides a persistent sidebar and fluid main canvas. Wrapping workspace pages inside narrow centered containers wastes desktop screen real estate and breaks Notion-style full-width utility.
+    principle: Full-Width Fluid Workspace Ergonomics
+    source: Zettly Design System (Notion-inspired Compact Monochrome Standard)
+    scope: [frontend]
+    severity: medium
+    enforcement: warning
+    detection: manual
+    autofix: AF-1
+    verification: npm run test:js && npm run build
+    exception_process: Modals, confirmation dialogs, and authentication or form-only views may constrain width for readability.
