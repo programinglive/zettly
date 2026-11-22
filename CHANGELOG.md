@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.20](https://github.com/programinglive/todo/compare/v1.10.19...v1.10.20) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **classify:** move typePlan and areaPlan definition before null check ([100491f](https://github.com/programinglive/todo/commit/100491f2407860cdf4d1e6f63f1e9694cf26824d))
+
 ### [1.10.19](https://github.com/programinglive/todo/compare/v1.10.18...v1.10.19) (2026-11-22)
 
 
