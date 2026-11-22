@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.8](https://github.com/programinglive/todo/compare/v1.10.7...v1.10.8) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **summary:** select description and complete canonical project classification ([3e49737](https://github.com/programinglive/todo/commit/3e4973789b99aec441bfa09bb086f55ba1cd79f2))
+
 ### [1.10.7](https://github.com/programinglive/todo/compare/v1.10.6...v1.10.7) (2026-11-22)
 
 
