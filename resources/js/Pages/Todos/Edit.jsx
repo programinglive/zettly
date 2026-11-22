@@ -103,7 +103,7 @@ export default function Edit({ todo, tags, todos, linkedTodoIds = [], selectedLi
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Always send multipart/form-data via POST + _method=PUT
         const formData = new FormData();
         formData.append('_method', 'PUT');

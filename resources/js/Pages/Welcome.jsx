@@ -357,13 +357,13 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     Proudly Powered By
                                 </h2>
                                 <p className="text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
-                                    We're grateful for the amazing tools and services that help us build Zettly. 
+                                    We're grateful for the amazing tools and services that help us build Zettly.
                                     These sponsors provide the foundation for our real-time collaborative drawing experience.
                                 </p>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                                     {/* tldraw Sponsor */}
-                                    <a 
+                                    <a
                                         href="https://tldraw.com/"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -408,7 +408,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 <div className="mt-12 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                                        <strong>Interested in sponsoring?</strong> Help us continue building the best collaborative drawing platform. 
+                                        <strong>Interested in sponsoring?</strong> Help us continue building the best collaborative drawing platform.
                                         <a href="mailto:sponsor@zettly.com" className="underline hover:text-blue-600 dark:hover:text-blue-300 ml-1">
                                             Get in touch →
                                         </a>

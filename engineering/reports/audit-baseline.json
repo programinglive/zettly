@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-11-22T09:23:59.816Z",
+  "description": "Zettly V1.9.5 historical UI/UX typography debt baseline (Focus #187)",
+  "findings": [
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Developer.jsx",
+      "line": 13
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Docs.jsx",
+      "line": 87
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Draw/Index.jsx",
+      "line": 1363
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Habits/Create.jsx",
+      "line": 67
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Habits/Edit.jsx",
+      "line": 53
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Habits/Index.jsx",
+      "line": 65
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Habits/Show.jsx",
+      "line": 75
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Home/Index.jsx",
+      "line": 15
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Journal/Index.jsx",
+      "line": 79
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Organizations/Index.jsx",
+      "line": 19
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Organizations/Show.jsx",
+      "line": 61
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Profile/Edit.jsx",
+      "line": 193
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Tags/Index.jsx",
+      "line": 70
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Todos/Archived.jsx",
+      "line": 112
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Todos/Board.jsx",
+      "line": 132
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Todos/Completed.jsx",
+      "line": 106
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Todos/Create.jsx",
+      "line": 139
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Todos/Deleted.jsx",
+      "line": 56
+    }
+  ]
+}

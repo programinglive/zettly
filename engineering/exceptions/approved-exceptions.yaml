@@ -7,3 +7,11 @@ approved_exceptions:
     approved_by: mahatma.mahardhika@programinglive.com
     approved_at: "2026-11-21T16:00:00Z"
     expires_at: "2027-11-21T16:00:00Z"
+
+  - id: EXC-2026-002
+    rule_id: ZET-DB-001
+    file: database/migrations/2025_10_08_171701_make_priority_nullable_in_todos_table.php
+    reason: "Historical 2025 SQLite/MySQL column rebuild migration applied prior to Zettly V1.0 production launch."
+    approved_by: mahatma.mahardhika@programinglive.com
+    approved_at: "2026-11-22T16:20:00Z"
+    expires_at: "2027-11-22T16:20:00Z"

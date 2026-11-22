@@ -1,5 +1,5 @@
 version: "2.0"
-updated_at: "2026-11-22T00:25:00+07:00"
+updated_at: "2026-11-22T16:22:00+07:00"
 items:
   - id: DEBT-ZET-001
     priority: P0
@@ -39,3 +39,16 @@ items:
     suggested_resolution: "Extract shared query scopes and DTO builders into App\\Domain\\Todo services incrementally under characterization test coverage."
     status: TRACKED_OPEN
     related_commit_or_pr: "N/A"
+
+  - id: DEBT-ZET-004
+    priority: P2
+    component: "Legacy Hero Typography in Secondary Workspace Pages (resources/js/Pages/Todos/*, Draw/Index.jsx, Notes/*)"
+    problem: "Secondary workspace pages still use oversized text-4xl sm:text-5xl headings flagged by ZET-UI-001 instead of the Notion-style compact text-lg font-semibold scale."
+    source_evidence: "resources/js/Pages/Todos/Board.jsx:132, Completed.jsx:106, Create.jsx:139, Deleted.jsx:56"
+    engineering_impact: "Visual density inconsistency between refactored Today/Priority pages and secondary views."
+    business_impact: "Tracked under Focus #187 (Zettly UI/UX Standardization & Compact Full-Width Notion-Style Layout Refactor)."
+    severity: medium
+    estimated_risk: low
+    suggested_resolution: "Migrate remaining secondary workspace headings to compact Notion typography scale incrementally under Focus #187; baseline recorded in engineering/reports/audit-baseline.json."
+    status: TRACKED_OPEN
+    related_commit_or_pr: "Focus #187"

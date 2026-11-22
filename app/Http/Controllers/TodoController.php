@@ -48,13 +48,13 @@ class TodoController extends Controller
             ->tasks()
             ->with(['tags', 'relatedTodos', 'linkedByTodos', 'attachments'])
             ->orderBy('is_completed', 'asc')
-            ->orderByRaw("CASE 
-            WHEN priority = 'urgent' THEN 1 
-            WHEN priority = 'not_urgent' THEN 2 
+            ->orderByRaw("CASE
+            WHEN priority = 'urgent' THEN 1
+            WHEN priority = 'not_urgent' THEN 2
             ELSE 3 END")
-            ->orderByRaw("CASE 
-            WHEN importance = 'important' THEN 1 
-            WHEN importance = 'not_important' THEN 2 
+            ->orderByRaw("CASE
+            WHEN importance = 'important' THEN 1
+            WHEN importance = 'not_important' THEN 2
             ELSE 3 END");
 
         if (Todo::hasKanbanOrderColumn()) {
@@ -140,13 +140,13 @@ class TodoController extends Controller
         }
 
         $query->orderBy('is_completed', 'asc')
-            ->orderByRaw("CASE 
-                WHEN priority = 'urgent' THEN 1 
-                WHEN priority = 'not_urgent' THEN 2 
+            ->orderByRaw("CASE
+                WHEN priority = 'urgent' THEN 1
+                WHEN priority = 'not_urgent' THEN 2
                 ELSE 3 END")
-            ->orderByRaw("CASE 
-                WHEN importance = 'important' THEN 1 
-                WHEN importance = 'not_important' THEN 2 
+            ->orderByRaw("CASE
+                WHEN importance = 'important' THEN 1
+                WHEN importance = 'not_important' THEN 2
                 ELSE 3 END");
 
         if (Todo::hasKanbanOrderColumn()) {

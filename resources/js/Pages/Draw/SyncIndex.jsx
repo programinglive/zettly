@@ -24,15 +24,15 @@ let isEventListenerOverrideActive = false;
 
 const overrideEventListeners = () => {
     if (isEventListenerOverrideActive) return;
-    
+
     EventTarget.prototype.addEventListener = function(type, listener, options) {
         // For touch, wheel, and pointer events that TLDraw uses, make them non-passive
-        if (type === 'touchstart' || type === 'touchmove' || type === 'touchend' || 
-            type === 'wheel' || type === 'mousewheel' || 
+        if (type === 'touchstart' || type === 'touchmove' || type === 'touchend' ||
+            type === 'wheel' || type === 'mousewheel' ||
             type === 'pointerdown' || type === 'pointermove' || type === 'pointerup') {
-            return originalAddEventListener.call(this, type, listener, { 
-                ...options, 
-                passive: false 
+            return originalAddEventListener.call(this, type, listener, {
+                ...options,
+                passive: false
             });
         }
         return originalAddEventListener.call(this, type, listener, options);
@@ -53,7 +53,7 @@ overrideEventListeners();
 const originalConsoleError = console.error;
 console.error = (...args) => {
     const message = args[0];
-    if (typeof message === 'string' && 
+    if (typeof message === 'string' &&
         (message.includes('Unable to preventDefault inside passive event listener') ||
          message.includes('passive event listener'))) {
         return; // Suppress passive event listener warnings
@@ -92,7 +92,7 @@ const normalizeSnapshotForPersist = (snapshot, nameFallback = 'Untitled drawing'
 
         if (next.document.store && typeof next.document.store === 'object') {
             const store = { ...next.document.store };
-            
+
             // Fix image assets with null URLs
             Object.keys(store).forEach(key => {
                 const asset = store[key];
@@ -107,7 +107,7 @@ const normalizeSnapshotForPersist = (snapshot, nameFallback = 'Untitled drawing'
                     };
                 }
             });
-            
+
             const documentNode = store['document:document'];
             if (documentNode && typeof documentNode === 'object') {
                 const updatedNode = { ...documentNode };
@@ -352,7 +352,7 @@ export default function DrawSyncIndex({ drawings: initialDrawings = [] }) {
 
         const snapshot = editor.getSnapshot();
         const normalized = normalizeSnapshotForPersist(snapshot, activeDrawing?.title);
-        
+
         // Persist to backend
         persistDrawing(activeDrawing.id, { document: normalized });
     }, [activeDrawing?.id, activeDrawing?.title, isConnected, persistDrawing]);

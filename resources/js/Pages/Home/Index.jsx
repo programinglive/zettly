@@ -220,10 +220,10 @@ export default function Index({ message }) {
                             We're grateful for these amazing technologies that make Zettly possible.
                         </p>
                     </div>
-                    
+
                     <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                         {/* tldraw Sponsor */}
-                        <a 
+                        <a
                             href="https://tldraw.com/"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -255,7 +255,7 @@ export default function Index({ message }) {
                             <span className="text-sm text-blue-700 dark:text-blue-300">
                                 Interested in sponsoring Zettly?
                             </span>
-                            <a 
+                            <a
                                 href="mailto:mahatma.mahardhika@programinglive.com"
                                 className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >

@@ -20,7 +20,7 @@ class HabitController extends Controller
     {
         $user = Auth::user();
         $organizationId = $request->get('organization_id');
-        
+
         $habits = Habit::accessibleBy($user->id, $organizationId)
             ->active()
             ->with(['entries' => function ($query) {
@@ -320,14 +320,14 @@ class HabitController extends Controller
     private function authorizeHabit(Habit $habit, Request $request): void
     {
         $user = Auth::user();
-        
+
         // Check if user owns the habit or has access through organization
         if ($habit->user_id !== $user->id) {
             if ($habit->organization_id) {
                 $isMember = $user->organizations()
                     ->where('organizations.id', $habit->organization_id)
                     ->exists();
-                
+
                 if (!$isMember) {
                     if ($request->wantsJson() || $request->is('api/*')) {
                         response()->json(['message' => 'Unauthorized'], 403)->throwResponse();

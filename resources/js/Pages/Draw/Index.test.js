@@ -56,7 +56,7 @@ describe('Draw Index drawing switching', () => {
         // Setup mock data
         const drawing1 = { id: 1, title: 'Drawing 1', document: { shapes: [] } };
         const drawing2 = { id: 2, title: 'Drawing 2', document: { shapes: [] } };
-        
+
         mockAxios.get.mockResolvedValue({ data: { drawing: drawing2 } });
 
         // Simulate the loadDrawing function logic
@@ -85,7 +85,7 @@ describe('Draw Index drawing switching', () => {
             try {
                 const { data } = await mockAxios.get(mockRoute('draw.show', { drawing: id }));
                 const freshDrawing = data.drawing;
-                
+
                 drawingCacheRef.current.set(id, freshDrawing);
                 loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
@@ -109,7 +109,7 @@ describe('Draw Index drawing switching', () => {
 
     test('should use cache when reloading same drawing', async () => {
         const drawing1 = { id: 1, title: 'Drawing 1', document: { shapes: [] } };
-        
+
         const drawingCacheRef = { current: new Map([[1, drawing1]]) };
         let activeId = 1;
         let loadedDrawing = null;
@@ -133,7 +133,7 @@ describe('Draw Index drawing switching', () => {
             try {
                 const { data } = await mockAxios.get(mockRoute('draw.show', { drawing: id }));
                 const freshDrawing = data.drawing;
-                
+
                 drawingCacheRef.current.set(id, freshDrawing);
                 loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
@@ -152,7 +152,7 @@ describe('Draw Index drawing switching', () => {
 
     test('should handle network errors gracefully', async () => {
         const drawing1 = { id: 1, title: 'Drawing 1', document: { shapes: [] } };
-        
+
         mockAxios.get.mockRejectedValue(new Error('Network error'));
 
         const drawingCacheRef = { current: new Map([[1, drawing1]]) };
@@ -180,7 +180,7 @@ describe('Draw Index drawing switching', () => {
             try {
                 const { data } = await mockAxios.get(mockRoute('draw.show', { drawing: id }));
                 const freshDrawing = data.drawing;
-                
+
                 drawingCacheRef.current.set(id, freshDrawing);
                 loadDrawingIntoEditor(freshDrawing);
             } catch (error) {
@@ -205,10 +205,10 @@ describe('Draw Index cache management', () => {
     test('should properly update cache when drawing is saved', () => {
         const drawingCacheRef = { current: new Map() };
         const drawing = { id: 1, title: 'Updated Drawing', document: { shapes: ['new'] } };
-        
+
         // Simulate cache update
         drawingCacheRef.current.set(drawing.id, drawing);
-        
+
         assert.strictEqual(drawingCacheRef.current.size, 1);
         assert.deepStrictEqual(drawingCacheRef.current.get(1), drawing);
     });
@@ -216,12 +216,12 @@ describe('Draw Index cache management', () => {
     test('should clear cache when needed', () => {
         const drawing1 = { id: 1, title: 'Drawing 1', document: { shapes: [] } };
         const drawing2 = { id: 2, title: 'Drawing 2', document: { shapes: [] } };
-        
+
         const drawingCacheRef = { current: new Map([[1, drawing1], [2, drawing2]]) };
-        
+
         // Clear cache
         drawingCacheRef.current.clear();
-        
+
         assert.strictEqual(drawingCacheRef.current.size, 0);
     });
 });
@@ -230,25 +230,25 @@ describe('Draw Index active drawing management', () => {
     test('should set active drawing when loaded', () => {
         const drawing = { id: 1, title: 'Test Drawing', document: { shapes: [] } };
         let activeDrawing = null;
-        
+
         const setActiveDrawing = (drawing) => {
             activeDrawing = drawing;
         };
-        
+
         setActiveDrawing(drawing);
-        
+
         assert.deepStrictEqual(activeDrawing, drawing);
     });
 
     test('should clear active drawing when null is loaded', () => {
         let activeDrawing = { id: 1, title: 'Test Drawing' };
-        
+
         const setActiveDrawing = (drawing) => {
             activeDrawing = drawing;
         };
-        
+
         setActiveDrawing(null);
-        
+
         assert.strictEqual(activeDrawing, null);
     });
 });
