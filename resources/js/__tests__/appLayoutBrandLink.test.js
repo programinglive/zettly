@@ -10,10 +10,10 @@ const __dirname = dirname(__filename);
 const layoutPath = join(__dirname, '..', 'Layouts', 'AppLayout.jsx');
 const layoutSource = readFileSync(layoutPath, 'utf8');
 
-test('AppLayout brand uses dashboard link when authenticated', () => {
+test('AppLayout brand uses summary link when authenticated', () => {
     assert.ok(
-        layoutSource.includes("const brandHref = isAuthenticated ? '/dashboard' : '/';"),
-        'Expected brandHref to send authenticated users to the dashboard.'
+        layoutSource.includes("const brandHref = isAuthenticated ? '/summary' : '/';"),
+        'Expected brandHref to send authenticated users to the summary dashboard.'
     );
 
     assert.ok(

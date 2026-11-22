@@ -24,7 +24,7 @@ class LoginSessionHardeningTest extends TestCase
         ]);
 
         $this->assertAuthenticatedAs($user);
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('summary.index', absolute: false));
     }
 
     public function test_service_worker_does_not_cache_auth_or_inertia_navigation(): void

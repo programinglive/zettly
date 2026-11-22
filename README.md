@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/github/license/programinglive/zettly?style=flat&color=6366F1)](./LICENSE)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-22C55E.svg)](./CONTRIBUTING.md)
 
-Zettly is a connected knowledge and priority-driven workspace combining Zettelkasten notes, Focus containers with measurable progress, Eisenhower + P0–P3 Priority Queue execution, Calendar & External Waiting visibility, an Executive Summary Dashboard (`/summary`, `php artisan zettly:summary --days=30`) with project distribution & velocity charts, human-readable Daily/Weekly/Monthly Retrospectives (`php artisan zettly:retrospective {daily|weekly|monthly}`, `/dashboard`, `/reports`, and dedicated raw telemetry archive `/reports/technical`), habits, shared organizations, knowledge graphs, and collaborative drawings. It is built with Laravel 12, React, Inertia.js, and Tailwind CSS.
+Zettly is a connected knowledge and priority-driven workspace combining Zettelkasten notes, Focus containers with measurable progress, Eisenhower + P0–P3 Priority Queue execution, Calendar & External Waiting visibility, an Executive Summary Dashboard (default authenticated landing at `/summary`, `php artisan zettly:summary --days=30`) with project distribution & velocity charts, human-readable Daily/Weekly/Monthly Retrospectives (`php artisan zettly:retrospective {daily|weekly|monthly}`, `/dashboard`, `/reports`, and dedicated raw telemetry archive `/reports/technical`), habits, shared organizations, knowledge graphs, and collaborative drawings. It is built with Laravel 12, React, Inertia.js, and Tailwind CSS.
 
 ## Coding Agent & Engineering Hub
 

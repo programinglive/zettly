@@ -13,11 +13,11 @@ function arrayBlock(name) {
   return match ? match[1] : '';
 }
 
-test('primary navigation has exactly six destinations in the agreed order', () => {
+test('primary navigation leads with Summary above Today in the agreed order', () => {
   const block = arrayBlock('primaryNavigation');
   const hrefs = [...block.matchAll(/href:\s*'([^']+)'/g)].map((match) => match[1]);
   assert.deepEqual(hrefs, [
-    '/dashboard', '/todos', '/notes', '/journal', '/reports', '/profile',
+    '/summary', '/dashboard', '/todos', '/notes', '/journal', '/reports', '/profile',
   ]);
 });
 

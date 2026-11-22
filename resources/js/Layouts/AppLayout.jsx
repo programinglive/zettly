@@ -50,10 +50,17 @@ export default function AppLayout({
     const [moreOpen, setMoreOpen] = React.useState(false);
 
     const isAuthenticated = Boolean(auth?.user);
-    const brandHref = isAuthenticated ? '/dashboard' : '/';
+    const brandHref = isAuthenticated ? '/summary' : '/';
 
-    // Primary destinations are intentionally short; every other feature stays reachable under More.
+    // Primary destinations lead with Summary as default landing, with Today right below.
     const primaryNavigation = [
+        {
+            href: '/summary',
+            label: 'Summary',
+            icon: BarChart3,
+            group: 'main',
+            description: 'Executive project charts, velocity trends, and focus health',
+        },
         {
             href: '/dashboard',
             label: 'Today',
@@ -99,7 +106,6 @@ export default function AppLayout({
     ];
 
     const secondaryNavigation = [
-        { href: '/summary', label: 'Summary', description: 'Executive project charts, velocity trends, and focus health', icon: BarChart3, group: 'main', section: 'planning' },
         { href: '/priority', label: 'Priority Queue', description: 'Pareto 80/20 ranked queue and Today WIP plan', icon: LayoutList, group: 'main', section: 'planning' },
         { href: '/calendar', label: 'Calendar', description: 'Weekly focus allocation and schedule view', icon: Calendar, group: 'main', section: 'planning' },
         { href: '/todos/board', label: 'Todo Board', description: 'Eisenhower Matrix and Kanban task board', icon: LayoutDashboard, group: 'main', section: 'planning' },

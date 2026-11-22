@@ -25,6 +25,16 @@ class SummaryDashboardTest extends TestCase
         $this->get('/summary')->assertRedirect('/login');
     }
 
+    public function test_authenticated_root_redirects_to_summary_while_guests_see_home(): void
+    {
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Home/Index'));
+
+        $user = User::factory()->create();
+        $this->actingAs($user)
+            ->get('/')
+            ->assertRedirect(route('summary.index'));
+    }
+
     public function test_summary_dashboard_computes_project_charts_kpis_trends_and_human_takeaway(): void
     {
         $user = User::factory()->create();

@@ -46,7 +46,7 @@ class RegistrationTest extends TestCase
         Mail::assertQueued(UserWelcome::class, function ($mailable) use ($user) {
             return $mailable->hasTo($user->email);
         });
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('summary.index', absolute: false));
     }
 
     public function test_registration_sends_verification_email(): void
