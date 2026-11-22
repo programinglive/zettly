@@ -96,15 +96,34 @@ class ProjectClassifierService
      * Keyword regex rules for classifying untagged / placeholder tasks from Focus/Title/Description.
      */
     private const TEXT_RULES = [
-        'zettly' => '/\b(zettly|zettelkasten|tldraw|reverb|priority queue|eisenhower|today dashboard)\b/i',
-        'dev-workflow' => '/\b(dev-workflow|devworkflow|devwf|managedmcp|rollout\.cjs|start_task|complete_focus|mcp server|commiter)\b/i',
+        'zettly' => '/\b(zettly|zettelkasten|tldraw|reverb|priority queue|eisenhower|today dashboard|coding agent|daily activity journal)\b/i',
+        'dev-workflow' => '/\b(dev-workflow|devworkflow|dev workflow|devwf|managedmcp|rollout\.cjs|start_task|complete_focus|mcp server|commiter|opencode)\b/i',
         'clinic' => '/\b(clinic|timeless|ministry|room mic|receipt printer|posclinic|paratest|kasir)\b/i',
-        'erp' => '/\b(erp\.beautyworld|frontend_erp|printer-erp|reseller\.beautyworld|btb stock|mgm\.beautyworld)\b/i',
+        'erp' => '/\b(erp\.beautyworld|\berp\b|frontend_erp|printer-erp|reseller\.beautyworld|btb stock|mgm\.beautyworld|force close transaction|role.*permission)\b/i',
         'hris' => '/\b(hris\.beautyworld|\bhris\b|absen|payroll|attendance)\b/i',
         'portal-beautyworld' => '/\b(portal-beautyworld|beautyworld portal|portal cloud)\b/i',
         'dbpinball' => '/\b(dbpinball|mariadb-safesync)\b/i',
-        'bw-infra' => '/\b(bw-app|bw-tools|bw-server|cloudflare|tailscale|gitlab runner|github runner|central-gateway|notification-hub|gcs bucket|backup|nginx|ssl|systemd|mmch|helloworld)\b/i',
-        'programinglive' => '/\b(programinglive|tiktok-downloader|mahatmamahardhika|portfolio|youtube|content)\b/i',
+        'bw-infra' => '/\b(bw-app|bw-tools|bw-server|cloudflare|tailscale|gitlab runner|github runner|central-gateway|notification[- ]hub|gcs bucket|backup|nginx|ssl|systemd|mmch|helloworld|service-account|credential)\b/i',
+        'programinglive' => '/\b(programinglive|tiktok-downloader|mahatmamahardhika|portfolio|youtube|content|marketing|detak|logo generator|remove background|slider image|light box|transpile|parser.*html|parses on web)\b/i',
+    ];
+
+    /**
+     * Secondary Zettelkasten `area:*` tag fallback when no `proyek:*` or explicit text matched.
+     */
+    private const AREA_FALLBACKS = [
+        'area:zettly' => 'zettly',
+        'area:mcp' => 'dev-workflow',
+        'area:cli' => 'dev-workflow',
+        'area:erp' => 'erp',
+        'area:hris' => 'hris',
+        'area:infra' => 'bw-infra',
+        'area:notification' => 'bw-infra',
+        'area:marketing' => 'programinglive',
+        'area:content' => 'programinglive',
+        'area:tutorial' => 'programinglive',
+        'area:web' => 'programinglive',
+        'area:image' => 'programinglive',
+        'area:project' => 'programinglive',
     ];
 
     public function canonicalCatalog(): array
@@ -198,6 +217,13 @@ class ProjectClassifierService
         $fromText = $this->inferFromText(trim((string) $todo->title.' '.(string) $todo->description));
         if ($fromText !== null) {
             return $this->describeProject($fromText);
+        }
+
+        foreach ($tags as $tag) {
+            $tagName = strtolower((string) $tag->name);
+            if (isset(self::AREA_FALLBACKS[$tagName])) {
+                return $this->describeProject(self::AREA_FALLBACKS[$tagName]);
+            }
         }
 
         return null;

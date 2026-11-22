@@ -106,12 +106,21 @@ class ProjectClassificationTest extends TestCase
             'completed_at' => now(),
         ]);
 
+        // Task whose project cue lives only in description (regression for missing description select)
+        Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Verify release artifacts',
+            'description' => 'Repo: D:\code\clinic — check live staging deploy',
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+
         $this->actingAs($user)
             ->get('/summary?days=30')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Summary/Index')
-                ->where('summary.projects.0.key', 'dev-workflow')
+                ->where('summary.projects.0.key', 'clinic')
+                ->where('summary.projects.1.key', 'dev-workflow')
                 ->where('summary.unclassified_count', 1)
                 ->etc()
             );

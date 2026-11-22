@@ -45,7 +45,7 @@ class WorkspaceSummaryService
             ->where('is_completed', true)
             ->whereBetween('completed_at', [$startUtc, $endUtc])
             ->with(['tags:id,name,color', 'focus:id,title'])
-            ->get(['id', 'title', 'priority', 'importance', 'is_p0', 'is_completed', 'completed_at', 'focus_id']);
+            ->get(['id', 'title', 'description', 'priority', 'importance', 'is_p0', 'is_completed', 'completed_at', 'focus_id']);
 
         $prevCompletedCount = $user->todos()
             ->notArchived()
