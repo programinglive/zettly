@@ -103,7 +103,7 @@ class TodoController extends Controller
         }
 
         $userId = Auth::id();
-        $filter = $request->get('filter');
+        $filter = $request->get('filter', 'pending');
         $priority = $request->get('priority');
         $importance = $request->get('importance');
         $project = trim((string) $request->get('project', ''));
@@ -113,9 +113,16 @@ class TodoController extends Controller
         $query = Todo::where('user_id', $userId)
             ->notArchived()
             ->tasks()
-            ->with(['user', 'tags', 'relatedTodos', 'linkedByTodos']);
+            ->with([
+                'user',
+                'tags',
+                'focus:id,title',
+                'checklistItems' => fn ($q) => $q->orderBy('position')->orderBy('id'),
+                'relatedTodos:id,title,is_completed',
+                'linkedByTodos:id,title,is_completed',
+            ]);
 
-        if ($filter) {
+        if ($filter && $filter !== 'all') {
             switch ($filter) {
                 case 'completed':
                     $query->completed();

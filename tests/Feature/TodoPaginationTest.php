@@ -25,6 +25,7 @@ class TodoPaginationTest extends TestCase
         $user = User::factory()->create();
         Todo::factory()->asTask()->count(25)->create([
             'user_id' => $user->id,
+            'is_completed' => false,
         ]);
 
         $pageOneResponse = $this->actingAs($user)->get(route('todos.index'));

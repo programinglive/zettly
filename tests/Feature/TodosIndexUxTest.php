@@ -63,8 +63,12 @@ class TodosIndexUxTest extends TestCase
         $response = $this->actingAs($user)->get(route('todos.index'));
 
         $response->assertStatus(200);
-        $response->assertInertia(function (AssertableInertia $page) use ($legacyWorktree, $unusedType, $activeType) {
+        $response->assertInertia(function (AssertableInertia $page) use ($legacyWorktree, $unusedType, $activeType, $openTodo) {
             $page->component('Todos/Index')
+                ->where('filters.filter', 'pending')
+                ->has('todos.data', 1)
+                ->where('todos.data.0.id', $openTodo->id)
+                ->has('todos.data.0.checklist_items')
                 ->where('statusCounts.open', 1)
                 ->where('statusCounts.completed', 1)
                 ->where('statusCounts.all', 2)
@@ -81,6 +85,14 @@ class TodosIndexUxTest extends TestCase
                         && ! in_array($unusedType->id, $ids, true);
                 });
         });
+
+        // Completed tab returns completed tasks cleanly
+        $completedResponse = $this->actingAs($user)->get(route('todos.index', ['filter' => 'completed']));
+        $completedResponse->assertStatus(200);
+        $completedResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('filters.filter', 'completed')
+            ->has('todos.data', 1)
+        );
     }
 
     public function test_index_filters_by_search_query_canonical_project_and_orthogonal_priority_importance(): void

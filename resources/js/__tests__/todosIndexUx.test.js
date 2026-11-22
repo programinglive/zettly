@@ -28,6 +28,12 @@ test('Todos/Index.jsx uses human-centered toolbar (search, status tabs, canonica
     assert.match(content, /<CompletionReasonDialog/, 'CompletionReasonDialog must be rendered in JSX');
     assert.doesNotMatch(content, /NOTES_PAGE_SIZE/, 'Undefined NOTES_PAGE_SIZE reference must be removed');
 
+    // Email-style Master-Detail split view & readable Completed tasks
+    assert.match(content, /SanitizedHtml/, 'Detail reading pane must render full Markdown/HTML via SanitizedHtml');
+    assert.match(content, /selectedTodo/, 'Master-Detail split view must track selectedTodo for instant reading');
+    assert.match(content, /lg:grid-cols-12/, 'Desktop layout must use 12-column Master-Detail split view');
+    assert.doesNotMatch(content, /line-through/, 'Completed task titles must stay readable without strikethrough');
+
     // Markdown stripping helper must exist to prevent raw **DONE** preview leaks
     assert.match(content, /stripMarkdown/, 'Description preview must strip raw Markdown syntax');
 });
