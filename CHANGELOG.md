@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.6](https://github.com/programinglive/todo/compare/v1.10.5...v1.10.6) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **priority:** fix warnings rendering, explain modal fields, and 1-click Today pinning ([639550e](https://github.com/programinglive/todo/commit/639550ef896e17728b6574a92cfdaf0a1b42589d))
+
 ### [1.10.5](https://github.com/programinglive/todo/compare/v1.10.4...v1.10.5) (2026-11-22)
 
 
