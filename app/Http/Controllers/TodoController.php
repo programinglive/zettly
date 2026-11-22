@@ -15,6 +15,7 @@ use App\Models\TodoAttachment;
 use App\Models\TodoChecklistItem;
 use App\Models\TodoStatusEvent;
 use App\Models\User;
+use App\Services\ProjectClassifierService;
 use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -94,20 +95,28 @@ class TodoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, ProjectClassifierService $classifier)
     {
         $requestedType = $request->get('type');
         if ($requestedType === Todo::TYPE_NOTE) {
             return redirect()->route('notes.index', $request->query());
         }
 
-        $query = Todo::where('user_id', Auth::id())
+        $userId = Auth::id();
+        $filter = $request->get('filter');
+        $priority = $request->get('priority');
+        $importance = $request->get('importance');
+        $project = trim((string) $request->get('project', ''));
+        $search = trim((string) $request->get('q', ''));
+        $selectedTag = $request->get('tag');
+
+        $query = Todo::where('user_id', $userId)
             ->notArchived()
             ->tasks()
             ->with(['user', 'tags', 'relatedTodos', 'linkedByTodos']);
 
-        if ($request->has('filter')) {
-            switch ($request->filter) {
+        if ($filter) {
+            switch ($filter) {
                 case 'completed':
                     $query->completed();
                     break;
@@ -129,13 +138,32 @@ class TodoController extends Controller
             }
         }
 
-        if ($request->has('priority')) {
-            $query->byPriority($request->priority);
+        if ($priority) {
+            $query->byPriority($priority);
         }
 
-        if ($request->has('tag') && $request->tag) {
-            $query->whereHas('tags', function ($q) use ($request) {
-                $q->where('tags.id', $request->tag);
+        if ($importance) {
+            $query->byImportance($importance);
+        }
+
+        if ($project !== '') {
+            $canonicalTagName = 'proyek:'.strtolower($project);
+            $query->whereHas('tags', function ($q) use ($canonicalTagName) {
+                $q->whereRaw('LOWER(tags.name) = ?', [$canonicalTagName]);
+            });
+        }
+
+        if ($selectedTag) {
+            $query->whereHas('tags', function ($q) use ($selectedTag) {
+                $q->where('tags.id', $selectedTag);
+            });
+        }
+
+        if ($search !== '') {
+            $needle = '%'.mb_strtolower($search).'%';
+            $query->where(function ($q) use ($needle) {
+                $q->whereRaw('LOWER(title) LIKE ?', [$needle])
+                    ->orWhereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$needle]);
             });
         }
 
@@ -155,15 +183,75 @@ class TodoController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $todos = $query->paginate(20);
+        $todos = $query->paginate(20)->withQueryString();
 
-        $tags = Tag::forUser(Auth::id())->get();
+        $openCount = Todo::where('user_id', $userId)->notArchived()->tasks()->pending()->count();
+        $completedCount = Todo::where('user_id', $userId)->notArchived()->tasks()->completed()->count();
+        $statusCounts = [
+            'all' => $openCount + $completedCount,
+            'open' => $openCount,
+            'completed' => $completedCount,
+        ];
+
+        $catalog = $classifier->canonicalCatalog();
+        $canonicalTagNames = array_map(fn (string $slug) => 'proyek:'.$slug, array_keys($catalog));
+
+        $canonicalTagRows = Tag::forUser($userId)
+            ->whereIn(DB::raw('LOWER(name)'), $canonicalTagNames)
+            ->withCount(['todos as tasks_count' => function ($q) use ($userId) {
+                $q->where('todos.user_id', $userId)
+                    ->whereNull('todos.archived_at')
+                    ->where('todos.type', Todo::TYPE_TODO);
+            }])
+            ->get()
+            ->keyBy(fn (Tag $tag) => strtolower($tag->name));
+
+        $canonicalProjects = collect($catalog)
+            ->map(function (array $meta, string $slug) use ($canonicalTagRows) {
+                $tag = $canonicalTagRows->get('proyek:'.$slug);
+
+                return [
+                    'key' => $slug,
+                    'label' => $meta['label'],
+                    'color' => $meta['color'],
+                    'tag_id' => $tag?->id,
+                    'count' => (int) ($tag?->tasks_count ?? 0),
+                ];
+            })
+            ->sortByDesc('count')
+            ->values()
+            ->all();
+
+        $tags = Tag::forUser($userId)
+            ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
+            ->where(function ($q) use ($userId, $selectedTag) {
+                $q->whereHas('todos', function ($todoQ) use ($userId) {
+                    $todoQ->where('todos.user_id', $userId)
+                        ->whereNull('todos.archived_at')
+                        ->where('todos.type', Todo::TYPE_TODO);
+                });
+                if ($selectedTag) {
+                    $q->orWhere('tags.id', $selectedTag);
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'color']);
 
         return Inertia::render('Todos/Index', [
             'todos' => $todos,
             'tags' => $tags,
-            'selectedTag' => $request->get('tag'),
-            'filter' => $request->get('filter'),
+            'canonicalProjects' => $canonicalProjects,
+            'statusCounts' => $statusCounts,
+            'selectedTag' => $selectedTag,
+            'filter' => $filter,
+            'filters' => [
+                'q' => $search !== '' ? $search : null,
+                'filter' => $filter,
+                'project' => $project !== '' ? $project : null,
+                'priority' => $priority,
+                'importance' => $importance,
+                'tag' => $selectedTag,
+            ],
         ]);
     }
 
