@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.12](https://github.com/programinglive/todo/compare/v1.10.11...v1.10.12) (2026-11-22)
+
+
+### ✨ Features
+
+* **todos:** add email-style master-detail split view and Open-first default ([5dcf809](https://github.com/programinglive/todo/commit/5dcf809e1b05f794cef116903745f14e285c20e9))
+
 ### [1.10.11](https://github.com/programinglive/todo/compare/v1.10.10...v1.10.11) (2026-11-22)
 
 
