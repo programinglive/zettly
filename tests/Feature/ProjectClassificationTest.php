@@ -190,4 +190,34 @@ class ProjectClassificationTest extends TestCase
         $this->assertFalse($featTodo->fresh()->tags()->where('name', 'tipe:feat')->exists());
         $this->assertTrue($featTodo->fresh()->tags()->where('name', 'tipe:feature')->exists());
     }
+
+    public function test_classifier_eliminates_vague_area_dev_and_replaces_with_explicit_domain_area(): void
+    {
+        $user = User::factory()->create();
+        $devAreaTag = Tag::create(['user_id' => $user->id, 'name' => 'area:dev', 'color' => '#94A3B8']);
+        $appsAreaTag = Tag::create(['user_id' => $user->id, 'name' => 'area:apps', 'color' => '#94A3B8']);
+        $zettlyTag = Tag::create(['user_id' => $user->id, 'name' => 'proyek:zettly', 'color' => '#F59E0B']);
+
+        $uiTodo = Todo::factory()->for($user)->asTask()->create([
+            'title' => 'Overhaul Zettly Master-Detail split view UI/UX layout',
+            'description' => 'Update typography and responsive grid',
+        ]);
+        $uiTodo->tags()->attach([$zettlyTag->id, $devAreaTag->id]);
+
+        $dbNote = Todo::factory()->for($user)->asNote()->create([
+            'title' => 'PostgreSQL backup and schema migration plan for Zettly',
+            'description' => 'Rename todos table to tasks and split notes table',
+        ]);
+        $dbNote->tags()->attach([$zettlyTag->id, $appsAreaTag->id]);
+
+        $this->artisan('zettly:classify-projects', ['--user' => $user->id, '--apply' => true])
+            ->expectsOutputToContain('APPLIED')
+            ->assertSuccessful();
+
+        $this->assertFalse($uiTodo->fresh()->tags()->where('name', 'area:dev')->exists());
+        $this->assertTrue($uiTodo->fresh()->tags()->where('name', 'area:ui-ux')->exists());
+
+        $this->assertFalse($dbNote->fresh()->tags()->where('name', 'area:apps')->exists());
+        $this->assertTrue($dbNote->fresh()->tags()->where('name', 'area:database')->exists());
+    }
 }

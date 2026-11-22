@@ -227,6 +227,78 @@ class ProjectClassifierService
         ];
     }
 
+    /**
+     * Vague/meaningless `area:*` slugs that must be replaced with explicit domain areas.
+     */
+    private const FORBIDDEN_AREA_SLUGS = [
+        'dev',
+        'apps',
+        'project',
+        'general',
+        'other',
+        'misc',
+    ];
+
+    /**
+     * Infer an explicit domain `area:*` slug when replacing vague tags like `area:dev`.
+     */
+    public function classifyArea(Todo $todo): string
+    {
+        $haystack = trim(((string) $todo->title).' '.strip_tags((string) $todo->description));
+
+        $rules = [
+            'notification' => '/\b(notification|notifikasi|discord|pusher|email|push|alert)\b/i',
+            'database' => '/\b(database|postgres|pgsql|mysql|mariadb|sqlite|schema|migration|pg_dump|mysqldump|backup|query|table|sql)\b/i',
+            'ui-ux' => '/\b(ui\/ux|\bui\b|\bux\b|layout|typography|split view|master-detail|sidebar|modal|dashboard|chart|theme|dark mode|tailwind)\b/i',
+            'security' => '/\b(security|credential|secret|token|auth|permission|role|csrf|xss|ssl|tls)\b/i',
+            'deploy' => '/\b(deploy|release|ci\/cd|pipeline|runner|gitlab|github|npm|publish|unpublish|rollback|rollout|webhook)\b/i',
+            'infra' => '/\b(infra|server|bw-app|bw-tools|bw-server|mmch|nginx|systemd|tailscale|cloudflare|dns|gcs|bucket|cloud|vm|journald)\b/i',
+            'mcp' => '/\b(mcp|dev-workflow|central-gateway|start_task|complete_focus)\b/i',
+            'cli' => '/\b(cli|artisan|command|terminal|script)\b/i',
+            'frontend' => '/\b(react|inertia|vite|jsx|tsx|pwa|browser|frontend|component)\b/i',
+        ];
+
+        foreach ($rules as $area => $pattern) {
+            if (preg_match($pattern, $haystack) === 1) {
+                return $area;
+            }
+        }
+
+        return 'backend';
+    }
+
+    /**
+     * Resolve vague `area:*` cleanup actions for a Todo/Note.
+     *
+     * @return array{target_area: ?string, stale_area_ids: array<int, int>, needs_update: bool}
+     */
+    private function resolveAreaNormalization(Todo $todo, Collection $tags): array
+    {
+        $areaTags = $tags->filter(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'area:'));
+        $staleAreaIds = [];
+        $validAreas = [];
+
+        foreach ($areaTags as $tag) {
+            $slug = strtolower(trim(substr((string) $tag->name, strlen('area:'))));
+            if ($slug === '' || in_array($slug, self::FORBIDDEN_AREA_SLUGS, true)) {
+                $staleAreaIds[] = (int) $tag->id;
+            } else {
+                $validAreas[] = $slug;
+            }
+        }
+
+        $targetArea = null;
+        if (! empty($staleAreaIds) && empty($validAreas)) {
+            $targetArea = $this->classifyArea($todo);
+        }
+
+        return [
+            'target_area' => $targetArea,
+            'stale_area_ids' => array_values(array_unique($staleAreaIds)),
+            'needs_update' => ! empty($staleAreaIds),
+        ];
+    }
+
     public function canonicalCatalog(): array
     {
         return self::CANONICAL_PROJECTS;
@@ -352,10 +424,17 @@ class ProjectClassifierService
             ->all();
 
         $typePlan = $this->resolveWorkTypeNormalization($todo, $tags);
+        $areaPlan = $this->resolveAreaNormalization($todo, $tags);
 
-        if ($hasCanonical && empty($staleTagIds) && ! $typePlan['needs_update']) {
+        if ($hasCanonical && empty($staleTagIds) && ! $typePlan['needs_update'] && ! $areaPlan['needs_update']) {
             return ['status' => 'unchanged', 'canonical' => $resolved['key'], 'attached' => false, 'detached' => []];
         }
+
+        $allStaleIds = array_values(array_unique(array_merge(
+            $staleTagIds,
+            $typePlan['stale_type_ids'],
+            $areaPlan['stale_area_ids']
+        )));
 
         if (! $dryRun) {
             $canonicalTag = Tag::firstOrCreate(
@@ -364,7 +443,6 @@ class ProjectClassifierService
             );
             $todo->tags()->syncWithoutDetaching([$canonicalTag->id]);
 
-            $allStaleIds = array_values(array_unique(array_merge($staleTagIds, $typePlan['stale_type_ids'])));
             if (! empty($allStaleIds)) {
                 $todo->tags()->detach($allStaleIds);
             }
@@ -377,19 +455,27 @@ class ProjectClassifierService
                 );
                 $todo->tags()->syncWithoutDetaching([$typeTag->id]);
             }
+
+            if ($areaPlan['target_area'] !== null) {
+                $areaTag = Tag::firstOrCreate(
+                    ['user_id' => $todo->user_id, 'name' => 'area:'.$areaPlan['target_area']],
+                    ['color' => '#64748B']
+                );
+                $todo->tags()->syncWithoutDetaching([$areaTag->id]);
+            }
         }
 
         return [
             'status' => 'updated',
             'canonical' => $resolved['key'],
-            'attached' => ! $hasCanonical || $typePlan['target_type'] !== null,
-            'detached' => array_values(array_unique(array_merge($staleTagIds, $typePlan['stale_type_ids']))),
+            'attached' => ! $hasCanonical || $typePlan['target_type'] !== null || $areaPlan['target_area'] !== null,
+            'detached' => $allStaleIds,
         ];
     }
 
     /**
      * Best-effort auto-tagger for newly created Todos and Notes so Zettelkasten coordinates
-     * (canonical proyek:* + explicit non-other tipe:*) are always attached automatically.
+     * (canonical proyek:* + explicit non-other tipe:* + explicit area:*) are always attached automatically.
      */
     public function autoTagIfRecognized(Todo $todo): ?string
     {
@@ -402,8 +488,14 @@ class ProjectClassifierService
             : $todo->tags()->get(['tags.id', 'tags.name', 'tags.color']);
 
         $typePlan = $this->resolveWorkTypeNormalization($todo, $existingTags);
-        if (! empty($typePlan['stale_type_ids'])) {
-            $todo->tags()->detach($typePlan['stale_type_ids']);
+        $areaPlan = $this->resolveAreaNormalization($todo, $existingTags);
+
+        $staleIds = array_values(array_unique(array_merge(
+            $typePlan['stale_type_ids'],
+            $areaPlan['stale_area_ids']
+        )));
+        if (! empty($staleIds)) {
+            $todo->tags()->detach($staleIds);
         }
         if ($typePlan['target_type'] !== null) {
             $typeSlug = $typePlan['target_type'];
@@ -412,6 +504,13 @@ class ProjectClassifierService
                 ['color' => self::WORK_TYPE_COLORS[$typeSlug] ?? '#64748B']
             );
             $todo->tags()->syncWithoutDetaching([$typeTag->id]);
+        }
+        if ($areaPlan['target_area'] !== null) {
+            $areaTag = Tag::firstOrCreate(
+                ['user_id' => $todo->user_id, 'name' => 'area:'.$areaPlan['target_area']],
+                ['color' => '#64748B']
+            );
+            $todo->tags()->syncWithoutDetaching([$areaTag->id]);
         }
 
         $resolved = $this->classifyTodo($todo);
