@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.9.0 | 2026-11-22 | **intelligence:** add V1.9 effectiveness measurement loop and guarded autonomous dispatch (880b21d) |
 | 1.8.0 | 2026-11-22 | **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue (b7fd85b) |
 | 1.5.4 | 2026-11-20 | **build:** make npm run build atomic to prevent missing Vite manifest during deploy (#65) (ece16e9) |
 | 1.5.3 | 2026-11-19 | **security:** patch Dependabot alerts #300, #299, #297 and composer advisories (#64) (41ce6ca) |
@@ -134,6 +135,13 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.9.0
+
+Released on **2026-11-22**.
+
+- **intelligence:** add V1.9 effectiveness measurement loop and guarded autonomous dispatch (880b21d)
 
 ## 1.8.0
 

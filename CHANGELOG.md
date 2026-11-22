@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/programinglive/todo/compare/v1.8.0...v1.9.0) (2026-11-22)
+
+
+### ✨ Features
+
+* **intelligence:** add V1.9 effectiveness measurement loop and guarded autonomous dispatch ([880b21d](https://github.com/programinglive/todo/commit/880b21d21e75b5a8ab65b66b06633de53aa40443))
+
 ## [1.8.0](https://github.com/programinglive/todo/compare/v1.7.0...v1.8.0) (2026-11-22)
 
 
