@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.19](https://github.com/programinglive/todo/compare/v1.10.18...v1.10.19) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **classify:** normalize stale tags on unclassified items and add todos regex ([697cc77](https://github.com/programinglive/todo/commit/697cc77caf9dca7fb89f3bf3d66d5e9354daf27f))
+
 ### [1.10.18](https://github.com/programinglive/todo/compare/v1.10.17...v1.10.18) (2026-11-22)
 
 
