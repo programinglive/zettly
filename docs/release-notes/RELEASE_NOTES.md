@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.9.2 | 2026-11-22 | **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929) |
 | 1.9.1 | 2026-11-22 | **ui:** standardize full-width Notion-style compact layout and typography (fbaf9cf) |
 | 1.9.0 | 2026-11-22 | **intelligence:** add V1.9 effectiveness measurement loop and guarded autonomous dispatch (880b21d) |
 | 1.8.0 | 2026-11-22 | **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue (b7fd85b) |
@@ -138,6 +139,14 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.9.2
+
+Released on **2026-11-22**.
+
+- **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929)
+- **ui:** standardize full-width Notion-style compact layout and typography (fbaf9cf)
 
 ## 1.9.1
 

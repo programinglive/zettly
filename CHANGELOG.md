@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.2](https://github.com/programinglive/todo/compare/v1.9.1...v1.9.2) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** show version and commit hash in layout and enable PWA autoUpdate ([078f929](https://github.com/programinglive/todo/commit/078f92951139469c0a769898ac3bddd09cbb8751))
+
 ### [1.9.1](https://github.com/programinglive/todo/compare/v1.9.0...v1.9.1) (2026-11-22)
 
 
