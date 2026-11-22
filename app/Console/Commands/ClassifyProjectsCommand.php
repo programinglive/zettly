@@ -24,7 +24,6 @@ class ClassifyProjectsCommand extends Command
 
         $query = Todo::query()
             ->whereIn('type', [Todo::TYPE_TODO, Todo::TYPE_NOTE])
-            ->where('archived', false)
             ->when($userId, fn ($q) => $q->where('user_id', (int) $userId))
             ->with(['tags:id,name,color', 'focus:id,title'])
             ->orderByDesc('id')
