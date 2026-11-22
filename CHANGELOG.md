@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.13](https://github.com/programinglive/todo/compare/v1.10.12...v1.10.13) (2026-11-22)
+
+
+### ✨ Features
+
+* **ui:** add /notes split view, /todos/{id} 2-col revamp, and ZET-UI-003 ([836390d](https://github.com/programinglive/todo/commit/836390d31efe2e0891a1eecf986c953493704462))
+
 ### [1.10.12](https://github.com/programinglive/todo/compare/v1.10.11...v1.10.12) (2026-11-22)
 
 
