@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.3](https://github.com/programinglive/todo/compare/v1.9.2...v1.9.3) (2026-11-22)
+
+
+### ♻️ Refactors
+
+* **ui:** unify sidebar text-sm sizing and organize grouped navigation ([ad4dade](https://github.com/programinglive/todo/commit/ad4dade2f6727b30cfc7386a656bae2c65fd85f9))
+
 ### [1.9.2](https://github.com/programinglive/todo/compare/v1.9.1...v1.9.2) (2026-11-22)
 
 
