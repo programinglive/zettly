@@ -96,7 +96,7 @@ class ProjectClassifierService
      * Keyword regex rules for classifying untagged / placeholder tasks from Focus/Title/Description.
      */
     private const TEXT_RULES = [
-        'zettly' => '/\b(zettly|zettelkasten|tldraw|reverb|priority queue|eisenhower|today dashboard|coding agent|daily activity journal)\b/i',
+        'zettly' => '/\b(zettly|zettelkasten|tldraw|reverb|priority queue|eisenhower|today dashboard|coding agent|daily activity journal|todos?\b)/i',
         'dev-workflow' => '/\b(dev-workflow|devworkflow|dev workflow|devwf|managedmcp|rollout\.cjs|start_task|complete_focus|mcp server|commiter|opencode|reaper)\b/i',
         'clinic' => '/\b(clinic|timeless|ministry|room mic|receipt printer|posclinic|paratest|kasir)\b/i',
         'erp' => '/\b(erp\.beautyworld|\berp\b|frontend_erp|printer-erp|reseller\.beautyworld|btb stock|mgm\.beautyworld|force close transaction|role.*permission)\b/i',
@@ -415,7 +415,15 @@ class ProjectClassifierService
         $projectTags = $tags->filter(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'proyek:'));
 
         if ($resolved === null) {
-            return ['status' => 'unclassified', 'canonical' => null, 'attached' => false, 'detached' => []];
+            $allStaleIds = array_values(array_unique(array_merge(
+                $typePlan['stale_type_ids'],
+                $areaPlan['stale_area_ids']
+            )));
+            if (! $dryRun && ! empty($allStaleIds)) {
+                $todo->tags()->detach($allStaleIds);
+            }
+
+            return ['status' => 'unclassified', 'canonical' => null, 'attached' => false, 'detached' => $allStaleIds];
         }
 
         $canonicalTagName = 'proyek:'.$resolved['key'];
