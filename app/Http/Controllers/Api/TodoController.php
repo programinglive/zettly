@@ -217,6 +217,7 @@ class TodoController extends Controller
                 abort_if(count($ownedTagIds) !== count(array_unique($tagIds)), 403, 'One or more tags are inaccessible.');
                 $todo->tags()->sync($ownedTagIds);
             }
+            app(\App\Services\ProjectClassifierService::class)->autoTagIfRecognized($todo);
             if ($relatedTodoIds) {
                 $ownedTodoIds = Todo::whereIn('id', $relatedTodoIds)->where('user_id', Auth::id())->pluck('id')->all();
                 abort_if(count($ownedTodoIds) !== count(array_unique($relatedTodoIds)), 403, 'One or more related todos are inaccessible.');

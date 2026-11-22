@@ -167,6 +167,7 @@ export default function SummaryIndex({ days = 30, summary = {} }) {
     const priorityMix = Array.isArray(summary?.priority_mix) ? summary.priority_mix : [];
     const workTypes = Array.isArray(summary?.work_types) ? summary.work_types : [];
     const activeFocuses = Array.isArray(summary?.active_focuses) ? summary.active_focuses : [];
+    const unclassifiedCount = Number(summary?.unclassified_count ?? 0);
 
     const handleChangeWindow = (nextDays) => {
         router.get('/summary', { days: nextDays }, { preserveState: true, preserveScroll: true, replace: true });
@@ -282,9 +283,20 @@ export default function SummaryIndex({ days = 30, summary = {} }) {
                             </h2>
                         </div>
                         <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                            Grouped by proyek:* tags (fallback to Focus)
+                            Canonical Zettelkasten projects (proyek:*)
                         </span>
                     </div>
+
+                    {unclassifiedCount > 0 ? (
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                            <span>
+                                <strong>{unclassifiedCount}</strong> {unclassifiedCount === 1 ? 'task still needs' : 'tasks still need'} a canonical project tag (<code>proyek:*</code>) so no effort goes untracked.
+                            </span>
+                            <Link href="/todos" className="font-semibold underline hover:opacity-80">
+                                Review Tasks →
+                            </Link>
+                        </div>
+                    ) : null}
 
                     <div className="mt-4 grid gap-6 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-4">

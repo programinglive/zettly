@@ -76,36 +76,33 @@ class WorkspaceSummaryService
             ->limit(8)
             ->get(['id', 'title', 'started_at']);
 
-        // 1. Project breakdown (proyek:* tags first, fallback to Focus title, else Unassigned)
+        // 1. Canonical Project breakdown (proyek:* normalized + Focus/Text inference)
+        $classifier = app(ProjectClassifierService::class);
+        $canonicalTagIds = $user->tags()
+            ->where('name', 'like', 'proyek:%')
+            ->get(['id', 'name'])
+            ->mapWithKeys(fn ($tag) => [strtolower((string) $tag->name) => (int) $tag->id]);
+
         $projectBuckets = [];
+        $unclassifiedCount = 0;
         $allRelevantTasks = $completedInWindow->concat($openTasks);
 
         foreach ($allRelevantTasks as $todo) {
-            $projectTag = $todo->tags->first(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'proyek:'));
-            if ($projectTag) {
-                $slug = trim(substr((string) $projectTag->name, strlen('proyek:')));
-                $key = strtolower($slug ?: 'general');
-                $label = $slug ?: 'General';
-                $color = $projectTag->color ?: null;
-                $tagId = (int) $projectTag->id;
-            } elseif ($todo->focus && trim((string) $todo->focus->title) !== '') {
-                $label = mb_strimwidth(trim((string) $todo->focus->title), 0, 36, '…');
-                $key = 'focus-'.(int) $todo->focus->id;
-                $color = null;
-                $tagId = null;
-            } else {
-                $key = 'unassigned';
-                $label = 'General / Unassigned';
-                $color = '#94A3B8';
-                $tagId = null;
+            $resolved = $classifier->classifyTodo($todo);
+            if ($resolved === null) {
+                $unclassifiedCount++;
+                continue;
             }
+
+            $key = $resolved['key'];
+            $canonicalTagId = $canonicalTagIds->get('proyek:'.$key) ?? $resolved['tag_id'];
 
             if (! isset($projectBuckets[$key])) {
                 $projectBuckets[$key] = [
                     'key' => $key,
-                    'label' => $label,
-                    'color' => $color,
-                    'tag_id' => $tagId,
+                    'label' => $resolved['label'],
+                    'color' => $resolved['color'],
+                    'tag_id' => $canonicalTagId,
                     'completed' => 0,
                     'open' => 0,
                     'total' => 0,
@@ -124,7 +121,7 @@ class WorkspaceSummaryService
 
         $totalProjectTasks = array_sum(array_column($projectBuckets, 'total'));
         $projects = [];
-        foreach (array_slice($projectBuckets, 0, 8) as $idx => $bucket) {
+        foreach (array_slice($projectBuckets, 0, 10) as $idx => $bucket) {
             $bucket['color'] = $bucket['color'] ?: self::PALETTE[$idx % count(self::PALETTE)];
             $bucket['share_pct'] = $totalProjectTasks > 0
                 ? (int) round(($bucket['total'] / $totalProjectTasks) * 100)
@@ -264,6 +261,7 @@ class WorkspaceSummaryService
             'range_label' => $start->format('M j').' – '.$end->format('M j, Y'),
             'kpis' => $kpis,
             'projects' => $projects,
+            'unclassified_count' => $unclassifiedCount,
             'daily_trend' => $dailyTrend,
             'peak_day' => $peakDay,
             'priority_mix' => $priorityMix,

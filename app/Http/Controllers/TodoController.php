@@ -288,6 +288,9 @@ class TodoController extends Controller
             $todo->tags()->attach($userTagIds);
         }
 
+        // Auto-attach canonical Zettelkasten proyek:* tag when recognized from Focus/title/description
+        app(\App\Services\ProjectClassifierService::class)->autoTagIfRecognized($todo);
+
         // Handle related todos
         if (isset($validated['related_todo_ids']) && ! empty($validated['related_todo_ids'])) {
             // Filter todos to ensure they belong to the authenticated user
