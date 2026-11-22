@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.4](https://github.com/programinglive/todo/compare/v1.9.3...v1.9.4) (2026-11-22)
+
+
+### ♻️ Refactors
+
+* **ui:** compact ModeToggle and optimize Today page density and UX ([13fd710](https://github.com/programinglive/todo/commit/13fd7103b4cd8a06de3aeb0fb4bd49464ae6301b))
+
 ### [1.9.3](https://github.com/programinglive/todo/compare/v1.9.2...v1.9.3) (2026-11-22)
 
 
