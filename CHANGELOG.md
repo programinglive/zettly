@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.5](https://github.com/programinglive/todo/compare/v1.10.4...v1.10.5) (2026-11-22)
+
+
+### ✨ Features
+
+* **summary:** make /summary default landing page for authenticated users ([f4b9d89](https://github.com/programinglive/todo/commit/f4b9d898d55b9b70ff3b601d94d00b6fba7549b3))
+
 ### [1.10.4](https://github.com/programinglive/todo/compare/v1.10.3...v1.10.4) (2026-11-22)
 
 
