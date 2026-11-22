@@ -159,4 +159,37 @@ class TodosIndexUxTest extends TestCase
                 ->where('filters.importance', 'important');
         });
     }
+
+    public function test_index_supports_multi_tag_and_intersection_across_multiple_areas_and_types(): void
+    {
+        $user = User::factory()->create();
+        $erpArea = Tag::create(['user_id' => $user->id, 'name' => 'area:erp', 'color' => '#0EA5E9']);
+        $notifArea = Tag::create(['user_id' => $user->id, 'name' => 'area:notification', 'color' => '#6366F1']);
+        $bugfixType = Tag::create(['user_id' => $user->id, 'name' => 'tipe:bugfix', 'color' => '#EF4444']);
+
+        $both = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Fix ERP Discord notification relay',
+            'is_completed' => false,
+        ]);
+        $both->tags()->attach([$erpArea->id, $notifArea->id, $bugfixType->id]);
+
+        $onlyErp = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Fix ERP stock calculation',
+            'is_completed' => false,
+        ]);
+        $onlyErp->tags()->attach([$erpArea->id, $bugfixType->id]);
+
+        $response = $this->actingAs($user)->get(route('todos.index', [
+            'tags' => "{$erpArea->id},{$notifArea->id},{$bugfixType->id}",
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('todos.data', 1)
+            ->where('todos.data.0.id', $both->id)
+            ->where('filters.tags', [$erpArea->id, $notifArea->id, $bugfixType->id])
+        );
+    }
 }

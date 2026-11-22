@@ -131,7 +131,13 @@ export default function NotesIndex({
     const nextPageUrl = isPaginated ? notes.next_page_url : null;
 
     const activeProject = filters.project ?? null;
-    const activeTag = filters.tag ?? selectedTag ?? null;
+    const activeTagIds = useMemo(() => {
+        if (Array.isArray(filters.tags) && filters.tags.length > 0) {
+            return filters.tags.map((id) => Number(id)).filter((id) => id > 0);
+        }
+        const single = filters.tag ?? selectedTag;
+        return single ? [Number(single)].filter((id) => id > 0) : [];
+    }, [filters.tags, filters.tag, selectedTag]);
     const activeSearch = filters.q ?? '';
     const activeSort = filters.sort ?? 'updated';
 
@@ -156,17 +162,19 @@ export default function NotesIndex({
 
     const secondaryTagGroups = useMemo(() => groupSecondaryTags(tags), [tags]);
 
-    const selectedTagObj = useMemo(
-        () => tags.find((t) => String(t.id) === String(activeTag)) || null,
-        [tags, activeTag]
+    const selectedTagObjects = useMemo(
+        () => activeTagIds
+            .map((id) => tags.find((t) => Number(t.id) === id))
+            .filter(Boolean),
+        [tags, activeTagIds]
     );
 
-    const hasAnyFilter = Boolean(activeSearch || activeProject || activeTag);
+    const hasAnyFilter = Boolean(activeSearch || activeProject || activeTagIds.length > 0);
 
     const buildQueryObject = (overrides = {}) => {
         const next = {
             project: activeProject,
-            tag: activeTag,
+            tags: activeTagIds.length > 0 ? activeTagIds.join(',') : null,
             q: activeSearch || null,
             sort: activeSort !== 'updated' ? activeSort : null,
             ...overrides,
@@ -189,6 +197,15 @@ export default function NotesIndex({
         });
     };
 
+    const toggleTagFilter = (tagId) => {
+        const numericId = Number(tagId);
+        const exists = activeTagIds.includes(numericId);
+        const nextIds = exists
+            ? activeTagIds.filter((id) => id !== numericId)
+            : [...activeTagIds, numericId];
+        navigateWith({ tags: nextIds.length > 0 ? nextIds.join(',') : null });
+    };
+
     useEffect(() => {
         const trimmed = searchInput.trim();
         if (trimmed === (activeSearch || '').trim()) {
@@ -206,7 +223,7 @@ export default function NotesIndex({
     const sentinelRef = useRef(null);
     const listSignature = JSON.stringify({
         project: activeProject,
-        tag: activeTag,
+        tags: activeTagIds,
         q: activeSearch,
         sort: activeSort,
     });
@@ -409,16 +426,16 @@ export default function NotesIndex({
                                 type="button"
                                 onClick={() => setTagsOpen((prev) => !prev)}
                                 className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                                    tagsOpen || activeTag
+                                    tagsOpen || activeTagIds.length > 0
                                         ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
                                         : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600'
                                 }`}
                             >
                                 <SlidersHorizontal className="w-3.5 h-3.5" />
                                 <span>Tags</span>
-                                {activeTag && (
+                                {activeTagIds.length > 0 && (
                                     <span className="rounded-full bg-white/20 dark:bg-gray-900/20 px-1.5 text-[10px]">
-                                        1
+                                        {activeTagIds.length}
                                     </span>
                                 )}
                             </button>
@@ -433,12 +450,12 @@ export default function NotesIndex({
                                         {group.label}
                                     </span>
                                     {group.tags.map((tag) => {
-                                        const isSelected = String(activeTag) === String(tag.id);
+                                        const isSelected = activeTagIds.includes(Number(tag.id));
                                         return (
                                             <button
                                                 key={tag.id}
                                                 type="button"
-                                                onClick={() => navigateWith({ tag: isSelected ? null : tag.id })}
+                                                onClick={() => toggleTagFilter(tag.id)}
                                                 title={tag.name}
                                                 className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border transition-colors ${
                                                     isSelected
@@ -465,14 +482,18 @@ export default function NotesIndex({
                                     </button>
                                 </span>
                             )}
-                            {selectedTagObj && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
-                                    Tag: {splitTagName(selectedTagObj.name).value}
-                                    <button type="button" onClick={() => navigateWith({ tag: null })} aria-label="Remove tag filter">
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </span>
-                            )}
+                            {selectedTagObjects.map((tag) => {
+                                const { axis, value } = splitTagName(tag.name);
+                                const prefix = AXIS_TITLES[axis] || 'Tag';
+                                return (
+                                    <span key={tag.id} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
+                                        {prefix}: {value}
+                                        <button type="button" onClick={() => toggleTagFilter(tag.id)} aria-label={`Remove ${value} filter`}>
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </span>
+                                );
+                            })}
                             {activeSearch && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
                                     Search: “{activeSearch}”
@@ -674,7 +695,7 @@ export default function NotesIndex({
                                                         <button
                                                             key={tag.id}
                                                             type="button"
-                                                            onClick={() => navigateWith({ tag: tag.id })}
+                                                            onClick={() => toggleTagFilter(tag.id)}
                                                             title={tag.name}
                                                             className="inline-flex items-center rounded-full border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-slate-400 hover:border-gray-400 hover:text-gray-900 dark:hover:text-slate-200 transition-colors"
                                                         >

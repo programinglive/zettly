@@ -157,4 +157,34 @@ class NotesIndexUxTest extends TestCase
             ->has('todo.focus')
         );
     }
+
+    public function test_notes_index_supports_multi_tag_and_intersection_across_multiple_areas(): void
+    {
+        $user = User::factory()->create();
+        $erpArea = Tag::create(['user_id' => $user->id, 'name' => 'area:erp', 'color' => '#0EA5E9']);
+        $notifArea = Tag::create(['user_id' => $user->id, 'name' => 'area:notification', 'color' => '#6366F1']);
+
+        $both = Todo::factory()->asNote()->create([
+            'user_id' => $user->id,
+            'title' => 'ERP Notification Audit History',
+        ]);
+        $both->tags()->attach([$erpArea->id, $notifArea->id]);
+
+        $onlyNotif = Todo::factory()->asNote()->create([
+            'user_id' => $user->id,
+            'title' => 'Generic Notification Note',
+        ]);
+        $onlyNotif->tags()->attach([$notifArea->id]);
+
+        $response = $this->actingAs($user)->get(route('notes.index', [
+            'tags' => "{$erpArea->id},{$notifArea->id}",
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('notes.data', 1)
+            ->where('notes.data.0.id', $both->id)
+            ->where('filters.tags', [$erpArea->id, $notifArea->id])
+        );
+    }
 }

@@ -179,7 +179,13 @@ export default function Index({
     const activeProject = filters.project ?? null;
     const activePriority = filters.priority ?? null;
     const activeImportance = filters.importance ?? null;
-    const activeTag = filters.tag ?? selectedTag ?? null;
+    const activeTagIds = useMemo(() => {
+        if (Array.isArray(filters.tags) && filters.tags.length > 0) {
+            return filters.tags.map((id) => Number(id)).filter((id) => id > 0);
+        }
+        const single = filters.tag ?? selectedTag;
+        return single ? [Number(single)].filter((id) => id > 0) : [];
+    }, [filters.tags, filters.tag, selectedTag]);
     const activeSearch = filters.q ?? '';
 
     const [searchInput, setSearchInput] = useState(activeSearch);
@@ -209,14 +215,14 @@ export default function Index({
     const secondaryFilterCount =
         (activePriority ? 1 : 0) +
         (activeImportance ? 1 : 0) +
-        (activeTag ? 1 : 0);
+        activeTagIds.length;
 
     const hasAnyFilter = Boolean(
         activeSearch ||
         activeProject ||
         activePriority ||
         activeImportance ||
-        activeTag
+        activeTagIds.length > 0
     );
 
     const buildQueryObject = (overrides = {}) => {
@@ -225,7 +231,7 @@ export default function Index({
             project: activeProject,
             priority: activePriority,
             importance: activeImportance,
-            tag: activeTag,
+            tags: activeTagIds.length > 0 ? activeTagIds.join(',') : null,
             q: activeSearch || null,
             ...overrides,
         };
@@ -248,6 +254,15 @@ export default function Index({
             preserveState: true,
             replace: true,
         });
+    };
+
+    const toggleTagFilter = (tagId) => {
+        const numericId = Number(tagId);
+        const exists = activeTagIds.includes(numericId);
+        const nextIds = exists
+            ? activeTagIds.filter((id) => id !== numericId)
+            : [...activeTagIds, numericId];
+        navigateWith({ tags: nextIds.length > 0 ? nextIds.join(',') : null });
     };
 
     // Debounced server-side search
@@ -310,7 +325,7 @@ export default function Index({
         project: activeProject,
         priority: activePriority,
         importance: activeImportance,
-        tag: activeTag,
+        tags: activeTagIds,
         q: activeSearch,
     });
     const sentinelRef = useRef(null);
@@ -369,9 +384,11 @@ export default function Index({
         [visibleTodos, selectedTodoId]
     );
 
-    const selectedTagObj = useMemo(
-        () => tags.find((t) => String(t.id) === String(activeTag)) || null,
-        [tags, activeTag]
+    const selectedTagObjects = useMemo(
+        () => activeTagIds
+            .map((id) => tags.find((t) => Number(t.id) === id))
+            .filter(Boolean),
+        [tags, activeTagIds]
     );
 
     const resolveProjectBadge = (todo) => {
@@ -606,12 +623,12 @@ export default function Index({
                                                 {group.label}
                                             </span>
                                             {group.tags.map((tag) => {
-                                                const isSelected = String(activeTag) === String(tag.id);
+                                                const isSelected = activeTagIds.includes(Number(tag.id));
                                                 return (
                                                     <button
                                                         key={tag.id}
                                                         type="button"
-                                                        onClick={() => navigateWith({ tag: isSelected ? null : tag.id })}
+                                                        onClick={() => toggleTagFilter(tag.id)}
                                                         title={tag.name}
                                                         className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border transition-colors ${
                                                             isSelected
@@ -656,14 +673,18 @@ export default function Index({
                                     </button>
                                 </span>
                             )}
-                            {selectedTagObj && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
-                                    Tag: {splitTagName(selectedTagObj.name).value}
-                                    <button type="button" onClick={() => navigateWith({ tag: null })} aria-label="Remove tag filter">
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </span>
-                            )}
+                            {selectedTagObjects.map((tag) => {
+                                const { axis, value } = splitTagName(tag.name);
+                                const prefix = AXIS_TITLES[axis] || 'Tag';
+                                return (
+                                    <span key={tag.id} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
+                                        {prefix}: {value}
+                                        <button type="button" onClick={() => toggleTagFilter(tag.id)} aria-label={`Remove ${value} filter`}>
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </span>
+                                );
+                            })}
                             {activeSearch && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 px-2.5 py-0.5 text-gray-700 dark:text-slate-200">
                                     Search: “{activeSearch}”
@@ -964,7 +985,7 @@ export default function Index({
                                                         <button
                                                             key={tag.id}
                                                             type="button"
-                                                            onClick={() => navigateWith({ tag: tag.id })}
+                                                            onClick={() => toggleTagFilter(tag.id)}
                                                             title={tag.name}
                                                             className="inline-flex items-center rounded-full border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-[11px] text-gray-600 dark:text-slate-400 hover:border-gray-400 hover:text-gray-900 dark:hover:text-slate-200 transition-colors"
                                                         >

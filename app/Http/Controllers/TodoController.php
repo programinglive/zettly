@@ -93,6 +93,35 @@ class TodoController extends Controller
     }
 
     /**
+     * Parse multi-tag query parameters (?tags=1,2, ?tags[]=1&tags[]=2, or legacy ?tag=1).
+     *
+     * @return array<int, int>
+     */
+    private function parseSelectedTagIds(Request $request): array
+    {
+        $rawTags = $request->get('tags');
+        $ids = [];
+
+        if (is_array($rawTags)) {
+            $ids = $rawTags;
+        } elseif (is_string($rawTags) && trim($rawTags) !== '') {
+            $ids = explode(',', $rawTags);
+        }
+
+        $legacyTag = $request->get('tag');
+        if ($legacyTag !== null && $legacyTag !== '') {
+            $ids[] = $legacyTag;
+        }
+
+        return collect($ids)
+            ->map(fn ($id) => (int) trim((string) $id))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request, ProjectClassifierService $classifier)
@@ -108,7 +137,8 @@ class TodoController extends Controller
         $importance = $request->get('importance');
         $project = trim((string) $request->get('project', ''));
         $search = trim((string) $request->get('q', ''));
-        $selectedTag = $request->get('tag');
+        $selectedTagIds = $this->parseSelectedTagIds($request);
+        $selectedTag = $selectedTagIds[0] ?? null;
 
         $query = Todo::where('user_id', $userId)
             ->notArchived()
@@ -160,9 +190,9 @@ class TodoController extends Controller
             });
         }
 
-        if ($selectedTag) {
-            $query->whereHas('tags', function ($q) use ($selectedTag) {
-                $q->where('tags.id', $selectedTag);
+        foreach ($selectedTagIds as $tagId) {
+            $query->whereHas('tags', function ($q) use ($tagId) {
+                $q->where('tags.id', $tagId);
             });
         }
 
@@ -231,14 +261,14 @@ class TodoController extends Controller
 
         $tags = Tag::forUser($userId)
             ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
-            ->where(function ($q) use ($userId, $selectedTag) {
+            ->where(function ($q) use ($userId, $selectedTagIds) {
                 $q->whereHas('todos', function ($todoQ) use ($userId) {
                     $todoQ->where('todos.user_id', $userId)
                         ->whereNull('todos.archived_at')
                         ->where('todos.type', Todo::TYPE_TODO);
                 });
-                if ($selectedTag) {
-                    $q->orWhere('tags.id', $selectedTag);
+                if (! empty($selectedTagIds)) {
+                    $q->orWhereIn('tags.id', $selectedTagIds);
                 }
             })
             ->orderBy('name')
@@ -258,6 +288,7 @@ class TodoController extends Controller
                 'priority' => $priority,
                 'importance' => $importance,
                 'tag' => $selectedTag,
+                'tags' => $selectedTagIds,
             ],
         ]);
     }
@@ -267,7 +298,8 @@ class TodoController extends Controller
         $userId = Auth::id();
         $search = trim((string) $request->get('q', ''));
         $project = trim((string) $request->get('project', ''));
-        $selectedTag = $request->get('tag');
+        $selectedTagIds = $this->parseSelectedTagIds($request);
+        $selectedTag = $selectedTagIds[0] ?? null;
         $sort = $request->get('sort', 'updated');
         if (! in_array($sort, ['updated', 'newest', 'title'], true)) {
             $sort = 'updated';
@@ -290,9 +322,9 @@ class TodoController extends Controller
             });
         }
 
-        if ($selectedTag) {
-            $query->whereHas('tags', function ($q) use ($selectedTag) {
-                $q->where('tags.id', $selectedTag);
+        foreach ($selectedTagIds as $tagId) {
+            $query->whereHas('tags', function ($q) use ($tagId) {
+                $q->where('tags.id', $tagId);
             });
         }
 
@@ -352,14 +384,14 @@ class TodoController extends Controller
 
         $tags = Tag::forUser($userId)
             ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
-            ->where(function ($q) use ($userId, $selectedTag) {
+            ->where(function ($q) use ($userId, $selectedTagIds) {
                 $q->whereHas('todos', function ($noteQ) use ($userId) {
                     $noteQ->where('todos.user_id', $userId)
                         ->whereNull('todos.archived_at')
                         ->where('todos.type', Todo::TYPE_NOTE);
                 });
-                if ($selectedTag) {
-                    $q->orWhere('tags.id', $selectedTag);
+                if (! empty($selectedTagIds)) {
+                    $q->orWhereIn('tags.id', $selectedTagIds);
                 }
             })
             ->orderBy('name')
@@ -376,6 +408,7 @@ class TodoController extends Controller
                 'project' => $project !== '' ? $project : null,
                 'sort' => $sort,
                 'tag' => $selectedTag,
+                'tags' => $selectedTagIds,
             ],
         ]);
     }
