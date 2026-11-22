@@ -4,10 +4,13 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AppLayout from '@/Layouts/AppLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Login({ status, canResetPassword }) {
+    const { props } = usePage();
+    const appVersion = (typeof __APP_VERSION__ !== 'undefined' && __APP_VERSION__) || props?.app?.version || '';
+    const appCommit = (typeof __APP_COMMIT__ !== 'undefined' && __APP_COMMIT__) || props?.app?.commit || '';
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -130,6 +133,14 @@ export default function Login({ status, canResetPassword }) {
                             Create one here
                         </Link>
                     </p>
+                    {appVersion && (
+                        <p
+                            data-testid="login-version-badge"
+                            className="mt-4 text-[11px] font-mono text-gray-400 dark:text-gray-500"
+                        >
+                            Zettly v{appVersion}{appCommit ? ` · ${appCommit}` : ''}
+                        </p>
+                    )}
                 </div>
             </div>
         </AppLayout>

@@ -36,7 +36,9 @@ export default function AppLayout({
     variant,
 }) {
     const page = usePage();
-    const { auth, flash, canUseCodingAgent, canProvisionCodingAgent } = page.props;
+    const { auth, flash, canUseCodingAgent, canProvisionCodingAgent, app: appMeta } = page.props;
+    const appVersion = (typeof __APP_VERSION__ !== 'undefined' && __APP_VERSION__) || appMeta?.version || '';
+    const appCommit = (typeof __APP_COMMIT__ !== 'undefined' && __APP_COMMIT__) || appMeta?.commit || '';
     const isSuperAdmin = auth?.user?.role === 'super_admin';
     const { url } = page;
     const { isStandalone, isTablet } = usePwaMode();
@@ -131,8 +133,8 @@ export default function AppLayout({
         },
     ];
 
-    const resolvedContentClassName = contentClassName ?? 'w-full px-4 sm:px-6 lg:px-8';
-    const resolvedNavClassName = navClassName ?? 'w-full px-4 sm:px-6 lg:px-8';
+    const resolvedContentClassName = contentClassName ?? 'w-full';
+    const resolvedNavClassName = navClassName ?? 'w-full px-4 sm:px-6';
     const resolvedVariant = variant ?? (isAuthenticated ? 'authenticated' : 'public');
 
     const handleLogout = React.useCallback(() => {
@@ -313,6 +315,19 @@ export default function AppLayout({
                                         )}
                                     </div>
                                 </nav>
+
+                                {appVersion && (
+                                    <div
+                                        data-testid="app-version-badge"
+                                        className={`border-t border-gray-200 dark:border-slate-800 px-3 py-2 text-[11px] font-mono text-gray-400 dark:text-slate-500 ${sidebarOpen ? 'flex items-center justify-between' : 'text-center'}`}
+                                        title={`Zettly v${appVersion}${appCommit ? ` (${appCommit})` : ''}`}
+                                    >
+                                        <span>v{appVersion}</span>
+                                        {sidebarOpen && appCommit && (
+                                            <span className="text-[10px] text-gray-400/80 dark:text-slate-500">{appCommit}</span>
+                                        )}
+                                    </div>
+                                )}
                             </aside>
 
                             {/* Mobile Sidebar Overlay */}
@@ -392,6 +407,13 @@ export default function AppLayout({
                                                 )}
                                             </div>
                                         </nav>
+
+                                        {appVersion && (
+                                            <div className="border-t border-gray-200 dark:border-slate-800 px-4 py-2 text-[11px] font-mono text-gray-400 dark:text-slate-500 flex items-center justify-between">
+                                                <span>v{appVersion}</span>
+                                                {appCommit && <span>{appCommit}</span>}
+                                            </div>
+                                        )}
                                     </aside>
                                 </div>
                             )}

@@ -55,3 +55,24 @@ test('primary workspace pages follow Notion-style full-width fluid layout and un
         );
     }
 });
+
+test('vite config injects dynamic version + git commit and enables PWA autoUpdate', () => {
+    const viteConfig = fs.readFileSync(path.join(repoRoot, 'vite.config.js'), 'utf8');
+    assert.match(viteConfig, /__APP_VERSION__/);
+    assert.match(viteConfig, /__APP_COMMIT__/);
+    assert.match(viteConfig, /registerType:\s*'autoUpdate'/);
+    assert.match(viteConfig, /skipWaiting:\s*true/);
+    assert.match(viteConfig, /clientsClaim:\s*true/);
+});
+
+test('AppLayout and Login display dynamic application version and commit hash', () => {
+    const appLayout = fs.readFileSync(path.join(repoRoot, 'resources/js/Layouts/AppLayout.jsx'), 'utf8');
+    assert.match(appLayout, /data-testid="app-version-badge"/);
+    assert.match(appLayout, /__APP_VERSION__/);
+    assert.match(appLayout, /__APP_COMMIT__/);
+
+    const loginPage = fs.readFileSync(path.join(repoRoot, 'resources/js/Pages/Auth/Login.jsx'), 'utf8');
+    assert.match(loginPage, /data-testid="login-version-badge"/);
+    assert.match(loginPage, /__APP_VERSION__/);
+    assert.match(loginPage, /__APP_COMMIT__/);
+});

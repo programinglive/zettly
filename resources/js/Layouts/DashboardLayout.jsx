@@ -8,8 +8,8 @@ export default function DashboardLayout({
     navClassName,
     ...rest
 }) {
-    const resolvedContentClassName = contentClassName ?? 'w-full px-4 sm:px-6 lg:px-8';
-    const resolvedNavClassName = navClassName ?? 'w-full px-4 sm:px-6 lg:px-8';
+    const resolvedContentClassName = contentClassName ?? 'w-full';
+    const resolvedNavClassName = navClassName ?? 'w-full px-4 sm:px-6';
 
     return (
         <AppLayout

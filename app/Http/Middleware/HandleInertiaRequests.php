@@ -45,6 +45,50 @@ class HandleInertiaRequests extends Middleware
                 && $request->user()?->email === (string) config('coding_agent.owner_email')
                 && $request->user()?->hasVerifiedEmail(),
             'csrf_token' => csrf_token(),
+            'app' => [
+                'version' => $this->resolveAppVersion(),
+                'commit' => $this->resolveGitCommit(),
+            ],
         ];
+    }
+
+    private function resolveAppVersion(): string
+    {
+        $packageJsonPath = base_path('package.json');
+        if (is_file($packageJsonPath)) {
+            $decoded = json_decode((string) file_get_contents($packageJsonPath), true);
+            if (is_array($decoded) && !empty($decoded['version'])) {
+                return (string) $decoded['version'];
+            }
+        }
+
+        return (string) config('app.version', '0.0.0');
+    }
+
+    private function resolveGitCommit(): string
+    {
+        $headPath = base_path('.git/HEAD');
+        if (!is_file($headPath)) {
+            return 'unknown';
+        }
+
+        $head = trim((string) file_get_contents($headPath));
+        if (str_starts_with($head, 'ref: ')) {
+            $refPath = base_path('.git/' . trim(substr($head, 5)));
+            if (is_file($refPath)) {
+                return substr(trim((string) file_get_contents($refPath)), 0, 7);
+            }
+            $packedRefsPath = base_path('.git/packed-refs');
+            $refName = trim(substr($head, 5));
+            if (is_file($packedRefsPath)) {
+                foreach (file($packedRefsPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+                    if (!str_starts_with($line, '#') && str_ends_with($line, ' ' . $refName)) {
+                        return substr(trim(explode(' ', $line)[0]), 0, 7);
+                    }
+                }
+            }
+        }
+
+        return $head !== '' ? substr($head, 0, 7) : 'unknown';
     }
 }
