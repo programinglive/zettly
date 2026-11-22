@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.7](https://github.com/programinglive/todo/compare/v1.10.6...v1.10.7) (2026-11-22)
+
+
+### ✨ Features
+
+* **summary:** add canonical Zettelkasten project classifier, CLI, and auto-tagging ([9b90d1a](https://github.com/programinglive/todo/commit/9b90d1a5e54ebf2c3bc0cf0c99ade7c954e5451e))
+
 ### [1.10.6](https://github.com/programinglive/todo/compare/v1.10.5...v1.10.6) (2026-11-22)
 
 
