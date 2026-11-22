@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.14](https://github.com/programinglive/todo/compare/v1.10.13...v1.10.14) (2026-11-22)
+
+
+### ♻️ Refactors
+
+* **tags:** eliminate tipe:other and enforce explicit canonical work types ([e8fa663](https://github.com/programinglive/todo/commit/e8fa6639609c2a711b4f2964a1545cb4eac6870c))
+
 ### [1.10.13](https://github.com/programinglive/todo/compare/v1.10.12...v1.10.13) (2026-11-22)
 
 
