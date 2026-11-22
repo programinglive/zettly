@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.9.5 | 2026-11-22 | **ui:** prevent horizontal overflow on tablet viewports with min-w-0 (61fe7fd) |
 | 1.9.4 | 2026-11-22 | **ui:** compact ModeToggle and optimize Today page density and UX (13fd710) |
 | 1.9.3 | 2026-11-22 | **ui:** unify sidebar text-sm sizing and organize grouped navigation (ad4dade) |
 | 1.9.2 | 2026-11-22 | **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929) |
@@ -144,6 +145,17 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.9.5
+
+Released on **2026-11-22**.
+
+- **ui:** prevent horizontal overflow on tablet viewports with min-w-0 (61fe7fd)
+- **ui:** compact ModeToggle and optimize Today page density and UX (13fd710)
+- **ui:** unify sidebar text-sm sizing and organize grouped navigation (ad4dade)
+- **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929)
+- **ui:** standardize full-width Notion-style compact layout and typography (fbaf9cf)
 
 ## 1.9.4
 

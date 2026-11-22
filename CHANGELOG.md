@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.5](https://github.com/programinglive/todo/compare/v1.9.4...v1.9.5) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **ui:** prevent horizontal overflow on tablet viewports with min-w-0 ([61fe7fd](https://github.com/programinglive/todo/commit/61fe7fd72ea86ac6c8d763afe18fda8e72b5be11))
+
 ### [1.9.4](https://github.com/programinglive/todo/compare/v1.9.3...v1.9.4) (2026-11-22)
 
 
