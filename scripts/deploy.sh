@@ -188,6 +188,19 @@ artisan view:cache
 echo "[deploy] 6. Restarting queue workers..."
 artisan queue:restart
 
+# Post-deployment verification gate: verify Vite manifest exists and live site responds HTTP 200.
+if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
+    echo "[deploy] ERROR: public/build/manifest.json missing after asset build!" >&2
+    exit 1
+fi
+if command -v curl >/dev/null 2>&1; then
+    HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "https://zettly.programinglive.com/?deploy_verify=$(date +%s)" || echo "000")"
+    echo "[deploy] Post-deploy live check https://zettly.programinglive.com/ -> HTTP $HTTP_CODE"
+    if [ "$HTTP_CODE" != "200" ]; then
+        echo "[deploy] WARNING: live homepage returned HTTP $HTTP_CODE (expected 200)" >&2
+    fi
+fi
+
 MARKER_DIR="/var/lib/deploy-tags/deployed"
 if [ -d "$(dirname "$MARKER_DIR")" ]; then
     mkdir -p "$MARKER_DIR" 2>/dev/null || true
