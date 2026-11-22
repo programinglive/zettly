@@ -23,7 +23,7 @@ class ClassifyProjectsCommand extends Command
         $limit = max(1, (int) $this->option('limit'));
 
         $query = Todo::query()
-            ->where('type', Todo::TYPE_TODO)
+            ->whereIn('type', [Todo::TYPE_TODO, Todo::TYPE_NOTE])
             ->where('archived', false)
             ->when($userId, fn ($q) => $q->where('user_id', (int) $userId))
             ->with(['tags:id,name,color', 'focus:id,title'])

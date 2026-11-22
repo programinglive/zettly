@@ -97,13 +97,13 @@ class ProjectClassifierService
      */
     private const TEXT_RULES = [
         'zettly' => '/\b(zettly|zettelkasten|tldraw|reverb|priority queue|eisenhower|today dashboard|coding agent|daily activity journal)\b/i',
-        'dev-workflow' => '/\b(dev-workflow|devworkflow|dev workflow|devwf|managedmcp|rollout\.cjs|start_task|complete_focus|mcp server|commiter|opencode)\b/i',
+        'dev-workflow' => '/\b(dev-workflow|devworkflow|dev workflow|devwf|managedmcp|rollout\.cjs|start_task|complete_focus|mcp server|commiter|opencode|reaper)\b/i',
         'clinic' => '/\b(clinic|timeless|ministry|room mic|receipt printer|posclinic|paratest|kasir)\b/i',
         'erp' => '/\b(erp\.beautyworld|\berp\b|frontend_erp|printer-erp|reseller\.beautyworld|btb stock|mgm\.beautyworld|force close transaction|role.*permission)\b/i',
         'hris' => '/\b(hris\.beautyworld|\bhris\b|absen|payroll|attendance)\b/i',
         'portal-beautyworld' => '/\b(portal-beautyworld|beautyworld portal|portal cloud)\b/i',
         'dbpinball' => '/\b(dbpinball|mariadb-safesync)\b/i',
-        'bw-infra' => '/\b(bw-app|bw-tools|bw-server|cloudflare|tailscale|gitlab runner|github runner|central-gateway|notification[- ]hub|gcs bucket|backup|nginx|ssl|systemd|mmch|helloworld|service-account|credential)\b/i',
+        'bw-infra' => '/\b(bw-app|bw-tools|bw-server|cloudflare|tailscale|gitlab runner|github runner|central-gateway|notification[- ]hub|gcs bucket|backup|nginx|ssl|systemd|mmch|helloworld|service-account|credential|cloud\s+computing|journald|discord|notifikasi)\b/i',
         'programinglive' => '/\b(programinglive|tiktok-downloader|mahatmamahardhika|portfolio|youtube|content|marketing|detak|logo generator|remove background|slider image|light box|transpile|parser.*html|parses on web)\b/i',
     ];
 
@@ -250,7 +250,10 @@ class ProjectClassifierService
             ->pluck('id')
             ->all();
 
-        if ($hasCanonical && empty($staleTagIds)) {
+        $needsNoteTypeTag = $todo->type === Todo::TYPE_NOTE
+            && ! $tags->contains(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'tipe:'));
+
+        if ($hasCanonical && empty($staleTagIds) && ! $needsNoteTypeTag) {
             return ['status' => 'unchanged', 'canonical' => $resolved['key'], 'attached' => false, 'detached' => []];
         }
 
@@ -264,23 +267,47 @@ class ProjectClassifierService
             if (! empty($staleTagIds)) {
                 $todo->tags()->detach($staleTagIds);
             }
+
+            if ($needsNoteTypeTag) {
+                $noteTypeTag = Tag::firstOrCreate(
+                    ['user_id' => $todo->user_id, 'name' => 'tipe:note'],
+                    ['color' => '#64748B']
+                );
+                $todo->tags()->syncWithoutDetaching([$noteTypeTag->id]);
+            }
         }
 
         return [
             'status' => 'updated',
             'canonical' => $resolved['key'],
-            'attached' => ! $hasCanonical,
+            'attached' => ! $hasCanonical || $needsNoteTypeTag,
             'detached' => $staleTagIds,
         ];
     }
 
     /**
-     * Best-effort auto-tagger for newly created Todos so new work rarely falls into Unclassified.
+     * Best-effort auto-tagger for newly created Todos and Notes so Zettelkasten coordinates
+     * (canonical proyek:* + tipe:note for notes) are always attached automatically.
      */
     public function autoTagIfRecognized(Todo $todo): ?string
     {
-        if (! $todo->user_id || $todo->type !== Todo::TYPE_TODO) {
+        if (! $todo->user_id || ! in_array($todo->type, [Todo::TYPE_TODO, Todo::TYPE_NOTE], true)) {
             return null;
+        }
+
+        if ($todo->type === Todo::TYPE_NOTE) {
+            $existingTags = $todo->relationLoaded('tags')
+                ? $todo->tags
+                : $todo->tags()->get(['tags.id', 'tags.name']);
+            $hasTypeTag = $existingTags->contains(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'tipe:'));
+
+            if (! $hasTypeTag) {
+                $noteTypeTag = Tag::firstOrCreate(
+                    ['user_id' => $todo->user_id, 'name' => 'tipe:note'],
+                    ['color' => '#64748B']
+                );
+                $todo->tags()->syncWithoutDetaching([$noteTypeTag->id]);
+            }
         }
 
         $resolved = $this->classifyTodo($todo);

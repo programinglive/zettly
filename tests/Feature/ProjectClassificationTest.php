@@ -125,4 +125,31 @@ class ProjectClassificationTest extends TestCase
                 ->etc()
             );
     }
+
+    public function test_classifier_and_cli_auto_tag_notes_with_canonical_project_and_tipe_note(): void
+    {
+        $user = User::factory()->create();
+
+        $note = Todo::factory()->for($user)->asNote()->create([
+            'title' => 'DBPinball M4 S2-c — Handover',
+            'description' => 'Preflight complete for D:\\code\\dbpinball',
+        ]);
+
+        $classifier = app(ProjectClassifierService::class);
+        $this->assertSame('dbpinball', $classifier->autoTagIfRecognized($note));
+        $this->assertTrue($note->fresh()->tags()->where('name', 'proyek:dbpinball')->exists());
+        $this->assertTrue($note->fresh()->tags()->where('name', 'tipe:note')->exists());
+
+        $untaggedCloudNote = Todo::factory()->for($user)->asNote()->create([
+            'title' => 'What is Cloud Computing',
+            'description' => 'Overview of cloud infrastructure models',
+        ]);
+
+        $this->artisan('zettly:classify-projects', ['--user' => $user->id, '--apply' => true])
+            ->expectsOutputToContain('APPLIED: inspected=2 updated=1 unchanged=1 unclassified=0')
+            ->assertSuccessful();
+
+        $this->assertTrue($untaggedCloudNote->fresh()->tags()->where('name', 'proyek:bw-infra')->exists());
+        $this->assertTrue($untaggedCloudNote->fresh()->tags()->where('name', 'tipe:note')->exists());
+    }
 }

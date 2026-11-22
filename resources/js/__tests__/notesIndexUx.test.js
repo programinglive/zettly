@@ -22,8 +22,13 @@ test('Notes/Index.jsx uses calm Zettelkasten toolbar (search, canonical project 
     assert.match(content, /totalNotes/, 'Notes page must display total note count');
     assert.match(content, /Recently Updated/, 'Notes page must provide sort options');
 
-    // Markdown stripping helper must exist to prevent raw ## / **bold** leaks
+    // Markdown stripping helper must exist and preserve snake_case underscores
     assert.match(content, /stripMarkdown/, 'Note preview must strip raw Markdown syntax');
+    assert.doesNotMatch(
+        content,
+        /\.replace\(\/\(\\\*\|_\)(\(\.\*\?\))\\1\/g/,
+        'stripMarkdown must not strip underscores inside snake_case identifiers',
+    );
 
     // Must not silently slice server-paginated 20 items down to 12
     assert.doesNotMatch(content, /filteredNotes\.slice\(0,\s*PAGE_CHUNK_SIZE\)/, 'Notes page must not truncate server-paginated results');
