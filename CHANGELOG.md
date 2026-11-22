@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.1](https://github.com/programinglive/todo/compare/v1.9.0...v1.9.1) (2026-11-22)
+
+
+### ♻️ Refactors
+
+* **ui:** standardize full-width Notion-style compact layout and typography ([fbaf9cf](https://github.com/programinglive/todo/commit/fbaf9cf2996d16572d2e1a49d4dc1123609488e0))
+
 ## [1.9.0](https://github.com/programinglive/todo/compare/v1.8.0...v1.9.0) (2026-11-22)
 
 
