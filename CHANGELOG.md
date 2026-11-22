@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.21](https://github.com/programinglive/todo/compare/v1.10.20...v1.10.21) (2026-11-22)
+
+
+### ✨ Features
+
+* **engineering:** integrate open-source zettly-code into registry and docs ([54bdfbe](https://github.com/programinglive/todo/commit/54bdfbe1c11f8cc40c47cbc5e28014e0c037dd8f))
+
 ### [1.10.20](https://github.com/programinglive/todo/compare/v1.10.19...v1.10.20) (2026-11-22)
 
 
