@@ -49,6 +49,11 @@ const guides = [
                 description: 'Link analysis, relationship syncing, and debugging real-time edges.',
                 href: `${DOC_BASE_URL}/reference/REORDER_DEBUG.md`,
             },
+            {
+                title: 'Zettly Code Knowledge Graph (@programinglive/zettly-code)',
+                description: 'Open-source persistent source-code memory, SQLite knowledge graph, and mandatory @zettly-code bug-fix workflow gate.',
+                href: 'https://github.com/programinglive/zettly-code',
+            },
         ],
     },
     {

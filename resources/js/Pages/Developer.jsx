@@ -70,6 +70,38 @@ export default function Developer() {
                     </div>
                 </section>
 
+                {/* Zettly Code Open-Source Knowledge Graph */}
+                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                            Zettly Code (@programinglive/zettly-code)
+                        </h2>
+                        <a
+                            href="https://github.com/programinglive/zettly-code"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                        >
+                            Open Source (MIT) · github.com/programinglive/zettly-code
+                        </a>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                        Persistent source-code memory and self-evolving Zettelkasten knowledge graph integrated into Zettly and DevWorkflow MCP. Mandatory for all engineering workflows via <code>code_context</code>, <code>code_index</code>, and the pre-commit <code>@zettly-code</code> bug-fix annotation gate.
+                    </p>
+                    <div className="bg-gray-900 text-gray-100 font-mono text-sm rounded-xl p-4 overflow-x-auto">
+                        <div className="text-emerald-400 mb-2"># Mandatory @zettly-code bug-fix knowledge annotation</div>
+                        <pre>{`/**
+ * @zettly-code ZC-MODULE-001
+ * @purpose Concise responsibility of the owning symbol
+ * @invariant Domain invariant that must always hold
+ * @bug-fix BUG-1234
+ * @root-cause Verified root cause (or @hypothesis if unconfirmed)
+ * @fix Minimal fix summary
+ * @tests regression.test.js
+ */`}</pre>
+                    </div>
+                </section>
+
                 {/* Endpoints */}
                 <section className="space-y-6">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Todos API</h2>

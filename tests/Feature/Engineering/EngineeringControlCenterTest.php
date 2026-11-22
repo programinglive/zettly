@@ -154,4 +154,21 @@ class EngineeringControlCenterTest extends TestCase
 
         $this->assertSame(1, EngineeringPipelineEvent::where('engineering_project_id', $project->id)->count());
     }
+
+    public function test_default_projects_include_open_source_zettly_code_knowledge_graph(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+
+        Sanctum::actingAs($admin, ['zettly:cli']);
+        $response = $this->getJson('/api/v1/engineering/projects')->assertOk();
+
+        $slugs = collect($response->json('data'))->pluck('slug')->all();
+        $this->assertContains('zettly-app', $slugs);
+        $this->assertContains('zettly-code', $slugs);
+        $this->assertContains('zettly-mcp-server', $slugs);
+
+        $zettlyCode = collect($response->json('data'))->firstWhere('slug', 'zettly-code');
+        $this->assertSame('programinglive/zettly-code', $zettlyCode['repo_full_name']);
+        $this->assertSame('open-source', $zettlyCode['environment']);
+    }
 }
