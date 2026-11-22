@@ -4,7 +4,7 @@ scope:
 standards:
   - id: ZET-UI-001
     title: Uniform Notion-style compact typography and crisp surfaces across workspace pages
-    description: Authenticated Zettly workspace pages MUST use the canonical compact typography scale (h1 text-lg font-semibold, subtitle text-xs, section h2 text-xs font-semibold uppercase tracking-wider, primary item text-sm, metadata text-xs) and crisp surfaces (rounded-md or rounded-lg, p-3). Marketing-hero typography (text-5xl, text-6xl) and oversized pill cards (rounded-[2rem], rounded-[2.5rem]) are prohibited in workspace pages.
+    description: Authenticated Zettly workspace pages MUST use the canonical compact typography scale (h1 text-lg font-semibold, subtitle text-xs, section h2 text-xs font-semibold uppercase tracking-wider, primary item and sidebar nav text-sm font-medium with w-4 h-4 icons, metadata text-xs) and crisp surfaces (rounded-md or rounded-lg, p-3, h-12 topbar, w-56 sidebar). Marketing-hero typography (text-5xl, text-6xl) and oversized pill cards (rounded-[2rem], rounded-[2.5rem]) are prohibited in workspace pages.
     rationale: Inconsistent heading sizes and oversized padding cause jarring visual jumps between tabs and waste viewport density. A single Notion-style scale keeps the workspace calm, scannable, and predictable.
     principle: Visual Consistency & High-Density Calm Workspace
     source: Zettly Design System (Notion-inspired Compact Monochrome Standard)

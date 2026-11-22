@@ -76,3 +76,13 @@ test('AppLayout and Login display dynamic application version and commit hash', 
     assert.match(loginPage, /__APP_VERSION__/);
     assert.match(loginPage, /__APP_COMMIT__/);
 });
+
+test('AppLayout sidebar uses uniform text-sm typography, w-4 h-4 icons, and organized menu groups', () => {
+    const appLayout = fs.readFileSync(path.join(repoRoot, 'resources/js/Layouts/AppLayout.jsx'), 'utf8');
+    assert.match(appLayout, /Planning & Focus/);
+    assert.match(appLayout, /Knowledge & Visual/);
+    assert.match(appLayout, /AI & Automation/);
+    assert.match(appLayout, /Admin & Ops/);
+    assert.match(appLayout, /className=\{`flex items-center gap-2\.5 px-2\.5 py-1\.5 rounded-md text-sm font-medium/);
+    assert.doesNotMatch(appLayout, /<Icon className=\{`w-5 h-5/);
+});

@@ -58,63 +58,88 @@ export default function AppLayout({
             label: 'Today',
             icon: LayoutDashboard,
             group: 'main',
+            description: 'Daily overview, active focuses, and open tasks',
         },
         {
             href: '/todos',
             label: 'Tasks',
             icon: CheckSquare,
             group: 'main',
+            description: 'All tasks with priority, status, and tag filters',
         },
         {
             href: '/notes',
             label: 'Notes',
             icon: FileText,
             group: 'main',
+            description: 'Personal notes, specs, and reference docs',
         },
         {
             href: '/journal',
             label: 'Journal',
             icon: BookOpen,
             group: 'main',
+            description: 'Daily work logs, reflections, and outcomes',
         },
         {
             href: '/reports',
             label: 'Reports',
             icon: ScrollText,
             group: 'main',
+            description: 'Automated daily, weekly, and monthly recaps',
         },
         {
             href: '/profile',
             label: 'Settings',
             icon: Settings,
             group: 'main',
+            description: 'Account, theme, and workspace preferences',
         },
     ];
 
     const secondaryNavigation = [
-        { href: '/calendar', label: 'Calendar', icon: Calendar, group: 'main' },
-        { href: '/priority', label: 'Priority Queue', icon: LayoutList, group: 'main' },
-        { href: '/todos/board', label: 'Todo Board', icon: LayoutDashboard, group: 'main' },
-        { href: '/draw', label: 'Draw', icon: PenTool, group: 'main' },
-        { href: '/habits', label: 'Habits', icon: Target, group: 'main' },
-        { href: '/graph', label: 'Graph', icon: Network, group: 'main' },
-        { href: '/manage/tags', label: 'Tags', icon: Hash, group: 'main' },
+        { href: '/priority', label: 'Priority Queue', description: 'Pareto 80/20 ranked queue and Today WIP plan', icon: LayoutList, group: 'main', section: 'planning' },
+        { href: '/calendar', label: 'Calendar', description: 'Weekly focus allocation and schedule view', icon: Calendar, group: 'main', section: 'planning' },
+        { href: '/todos/board', label: 'Todo Board', description: 'Eisenhower Matrix and Kanban task board', icon: LayoutDashboard, group: 'main', section: 'planning' },
+        { href: '/habits', label: 'Habits', description: 'Daily habit streaks and consistency tracker', icon: Target, group: 'main', section: 'planning' },
+        { href: '/draw', label: 'Draw', description: 'Architecture and visual diagram canvas', icon: PenTool, group: 'main', section: 'knowledge' },
+        { href: '/graph', label: 'Graph', description: 'Zettelkasten linked knowledge graph', icon: Network, group: 'main', section: 'knowledge' },
+        { href: '/manage/tags', label: 'Tags', description: 'Manage Zettelkasten axes and tags', icon: Hash, group: 'main', section: 'knowledge' },
     ];
 
     const developerNavigation = [];
     if (canUseCodingAgent) {
-        developerNavigation.push({ href: '/agent/jobs', label: 'Coding Agent', icon: Bot, group: 'main' });
+        developerNavigation.push({ href: '/agent/jobs', label: 'Coding Agent', description: 'Autonomous coding jobs and worker hub', icon: Bot, group: 'main' });
     }
 
     if (canProvisionCodingAgent && !canUseCodingAgent) {
-        developerNavigation.push({ href: '/agent/setup', label: 'Coding Agent Setup', icon: Bot, group: 'main' });
+        developerNavigation.push({ href: '/agent/setup', label: 'Coding Agent Setup', description: 'Provision coding agent repositories and workers', icon: Bot, group: 'main' });
     }
 
     const adminNavigation = [];
     if (isSuperAdmin) {
-        adminNavigation.push({ href: '/admin/system-monitor', label: 'System Monitor', icon: Monitor, group: 'admin' });
-        adminNavigation.push({ href: '/engineering', label: 'Engineering Control Center', icon: Monitor, group: 'admin' });
+        adminNavigation.push({ href: '/admin/system-monitor', label: 'System Monitor', description: 'Server, queue, and WebSocket health monitor', icon: Monitor, group: 'admin' });
+        adminNavigation.push({ href: '/engineering', label: 'Engineering Control Center', description: 'Retrospectives, standards, and agent scorecards', icon: Monitor, group: 'admin' });
     }
+
+    const moreSections = [
+        {
+            id: 'planning',
+            label: 'Planning & Focus',
+            items: secondaryNavigation.filter((item) => item.section === 'planning'),
+        },
+        {
+            id: 'knowledge',
+            label: 'Knowledge & Visual',
+            items: secondaryNavigation.filter((item) => item.section === 'knowledge'),
+        },
+        ...(developerNavigation.length > 0
+            ? [{ id: 'automation', label: 'AI & Automation', items: developerNavigation }]
+            : []),
+        ...(adminNavigation.length > 0
+            ? [{ id: 'admin', label: 'Admin & Ops', items: adminNavigation }]
+            : []),
+    ];
 
     const moreNavigation = [...secondaryNavigation, ...developerNavigation, ...adminNavigation];
     const allNavigation = [...primaryNavigation, ...moreNavigation];
@@ -234,29 +259,34 @@ export default function AppLayout({
                         <div className="flex h-screen overflow-hidden">
                             {/* Sidebar */}
                             <aside
-                                className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'
+                                className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 transition-all duration-200 ${sidebarOpen ? 'w-56' : 'w-16'
                                     } hidden lg:flex`}
                             >
                                 {/* Sidebar Header */}
-                                <div className={`flex items-center h-16 px-4 border-b border-gray-200 dark:border-slate-800 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+                                <div className={`flex items-center h-12 px-3 border-b border-gray-200 dark:border-slate-800 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
                                     {sidebarOpen && (
                                         <Link href={brandHref} className="flex items-center gap-2">
-                                            <span className="text-xl">📝</span>
-                                            <span className="text-lg font-semibold text-gray-900 dark:text-white">Zettly</span>
+                                            <span className="text-base leading-none">📝</span>
+                                            <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">Zettly</span>
                                         </Link>
                                     )}
                                     <button
                                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-600 dark:text-gray-400"
+                                        className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-500 dark:text-gray-400"
                                         title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
                                     >
-                                        {sidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+                                        {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
                                     </button>
                                 </div>
 
                                 {/* Sidebar Navigation */}
-                                <nav className="flex-1 overflow-y-auto py-4 px-3">
-                                    <div className="space-y-1">
+                                <nav className="flex-1 overflow-y-auto py-3 px-2.5">
+                                    {sidebarOpen && (
+                                        <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                            Workspace
+                                        </div>
+                                    )}
+                                    <div className="space-y-0.5">
                                         {primaryNavigation.map((item) => {
                                             const Icon = item.icon;
                                             const active = isActive(item.href);
@@ -265,52 +295,61 @@ export default function AppLayout({
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-all relative group ${active
-                                                        ? 'bg-gray-50/80 dark:bg-slate-800/40 text-gray-900 dark:text-white'
-                                                        : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white'
+                                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors relative group ${active
+                                                        ? 'bg-gray-100 dark:bg-slate-800/70 text-gray-900 dark:text-white'
+                                                        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/40 hover:text-gray-900 dark:hover:text-white'
                                                         }`}
-                                                    title={!sidebarOpen ? item.label : undefined}
+                                                    title={sidebarOpen ? item.description : `${item.label} — ${item.description}`}
                                                 >
-                                                    <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'}`} />
+                                                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300'}`} />
                                                     {active && (
-                                                        <div className="absolute left-0 w-1 h-5 bg-gray-900 dark:bg-white rounded-r-full" />
+                                                        <div className="absolute left-0 w-0.5 h-4 bg-gray-900 dark:bg-white rounded-r-full" />
                                                     )}
-                                                    {sidebarOpen && <span className={`font-semibold tracking-tight ${active ? 'opacity-100' : 'opacity-80'}`}>{item.label}</span>}
+                                                    {sidebarOpen && <span className="truncate">{item.label}</span>}
                                                 </Link>
                                             );
                                         })}
                                     </div>
-                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-800">
+                                    <div className="mt-3 pt-2.5 border-t border-gray-200 dark:border-slate-800">
                                         <button
                                             type="button"
                                             onClick={() => setMoreOpen(!moreOpen)}
-                                            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white transition-all"
-                                            title={!sidebarOpen ? 'More' : undefined}
+                                            className="flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-md text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/40 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                            title={!sidebarOpen ? 'More tools & workspace views' : 'Toggle additional workspace views'}
                                             aria-expanded={moreOpen}
                                         >
-                                            <MoreHorizontal className="w-5 h-5 flex-shrink-0" />
-                                            {sidebarOpen && <span className="font-semibold tracking-tight opacity-80">More</span>}
+                                            <MoreHorizontal className="w-4 h-4 flex-shrink-0" />
+                                            {sidebarOpen && <span className="truncate">More</span>}
                                         </button>
                                         {moreOpen && (
-                                            <div className="space-y-1 mt-1">
-                                                {moreNavigation.map((item) => {
-                                                    const Icon = item.icon;
-                                                    const active = isActive(item.href);
-                                                    return (
-                                                        <Link
-                                                            key={item.href}
-                                                            href={item.href}
-                                                            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all ${active
-                                                                ? 'bg-gray-50/80 dark:bg-slate-800/40 text-gray-900 dark:text-white'
-                                                                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:text-gray-900 dark:hover:text-white'
-                                                                }`}
-                                                            title={!sidebarOpen ? item.label : undefined}
-                                                        >
-                                                            <Icon className="w-4 h-4 flex-shrink-0" />
-                                                            {sidebarOpen && <span className="text-sm">{item.label}</span>}
-                                                        </Link>
-                                                    );
-                                                })}
+                                            <div className="mt-2 space-y-3">
+                                                {moreSections.map((section) => (
+                                                    <div key={section.id} className="space-y-0.5">
+                                                        {sidebarOpen && (
+                                                            <div className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                                                {section.label}
+                                                            </div>
+                                                        )}
+                                                        {section.items.map((item) => {
+                                                            const Icon = item.icon;
+                                                            const active = isActive(item.href);
+                                                            return (
+                                                                <Link
+                                                                    key={item.href}
+                                                                    href={item.href}
+                                                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${active
+                                                                        ? 'bg-gray-100 dark:bg-slate-800/70 text-gray-900 dark:text-white'
+                                                                        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100/70 dark:hover:bg-slate-800/40 hover:text-gray-900 dark:hover:text-white'
+                                                                        }`}
+                                                                    title={sidebarOpen ? item.description : `${item.label} — ${item.description}`}
+                                                                >
+                                                                    <Icon className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-slate-500" />
+                                                                    {sidebarOpen && <span className="truncate">{item.label}</span>}
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
@@ -336,23 +375,29 @@ export default function AppLayout({
                                     className="fixed inset-0 z-40 bg-black/50 lg:hidden"
                                     onClick={() => setMobileSidebarOpen(false)}
                                 >
-                                    <aside className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800">
-                                        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-slate-800">
+                                    <aside
+                                        className="fixed inset-y-0 left-0 w-56 flex flex-col bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center justify-between h-12 px-3 border-b border-gray-200 dark:border-slate-800">
                                             <Link href={brandHref} className="flex items-center gap-2">
-                                                <span className="text-xl">📝</span>
-                                                <span className="text-lg font-semibold text-gray-900 dark:text-white">Zettly</span>
+                                                <span className="text-base leading-none">📝</span>
+                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">Zettly</span>
                                             </Link>
                                             <button
                                                 onClick={() => setMobileSidebarOpen(false)}
-                                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-600 dark:text-gray-400"
+                                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-500 dark:text-gray-400"
                                                 title="Close sidebar"
                                             >
-                                                <PanelLeftClose className="w-5 h-5" />
+                                                <PanelLeftClose className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <nav className="py-4 px-3">
-                                            <div className="space-y-1">
+                                        <nav className="flex-1 overflow-y-auto py-3 px-2.5">
+                                            <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                                Workspace
+                                            </div>
+                                            <div className="space-y-0.5">
                                                 {primaryNavigation.map((item) => {
                                                     const Icon = item.icon;
                                                     const active = isActive(item.href);
@@ -362,54 +407,63 @@ export default function AppLayout({
                                                             key={item.href}
                                                             href={item.href}
                                                             onClick={() => setMobileSidebarOpen(false)}
-                                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${active
+                                                            className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${active
                                                                 ? 'bg-gray-900 dark:bg-slate-700 text-white'
                                                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                                                                 }`}
+                                                            title={item.description}
                                                         >
-                                                            <Icon className="w-5 h-5" />
-                                                            <span className="font-medium">{item.label}</span>
+                                                            <Icon className="w-4 h-4 flex-shrink-0" />
+                                                            <span className="truncate">{item.label}</span>
                                                         </Link>
                                                     );
                                                 })}
                                             </div>
-                                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-800">
+                                            <div className="mt-3 pt-2.5 border-t border-gray-200 dark:border-slate-800">
                                                 <button
                                                     type="button"
                                                     onClick={() => setMoreOpen(!moreOpen)}
-                                                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                    className="flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
                                                     aria-expanded={moreOpen}
                                                 >
-                                                    <MoreHorizontal className="w-5 h-5" />
-                                                    <span className="font-medium">More</span>
+                                                    <MoreHorizontal className="w-4 h-4 flex-shrink-0" />
+                                                    <span>More</span>
                                                 </button>
                                                 {moreOpen && (
-                                                    <div className="space-y-1 mt-1">
-                                                        {moreNavigation.map((item) => {
-                                                            const Icon = item.icon;
-                                                            const active = isActive(item.href);
-                                                            return (
-                                                                <Link
-                                                                    key={item.href}
-                                                                    href={item.href}
-                                                                    onClick={() => setMobileSidebarOpen(false)}
-                                                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${active
-                                                                        ? 'bg-gray-900 dark:bg-slate-700 text-white'
-                                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
-                                                                        }`}
-                                                                >
-                                                                    <Icon className="w-4 h-4" />
-                                                                    <span className="text-sm">{item.label}</span>
-                                                                </Link>
-                                                            );
-                                                        })}
+                                                    <div className="mt-2 space-y-3">
+                                                        {moreSections.map((section) => (
+                                                            <div key={section.id} className="space-y-0.5">
+                                                                <div className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                                                    {section.label}
+                                                                </div>
+                                                                {section.items.map((item) => {
+                                                                    const Icon = item.icon;
+                                                                    const active = isActive(item.href);
+                                                                    return (
+                                                                        <Link
+                                                                            key={item.href}
+                                                                            href={item.href}
+                                                                            onClick={() => setMobileSidebarOpen(false)}
+                                                                            className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${active
+                                                                                ? 'bg-gray-900 dark:bg-slate-700 text-white'
+                                                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                                                }`}
+                                                                            title={item.description}
+                                                                        >
+                                                                            <Icon className="w-4 h-4 flex-shrink-0" />
+                                                                            <span className="truncate">{item.label}</span>
+                                                                        </Link>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 )}
                                             </div>
                                         </nav>
 
                                         {appVersion && (
-                                            <div className="border-t border-gray-200 dark:border-slate-800 px-4 py-2 text-[11px] font-mono text-gray-400 dark:text-slate-500 flex items-center justify-between">
+                                            <div className="border-t border-gray-200 dark:border-slate-800 px-3 py-2 text-[11px] font-mono text-gray-400 dark:text-slate-500 flex items-center justify-between">
                                                 <span>v{appVersion}</span>
                                                 {appCommit && <span>{appCommit}</span>}
                                             </div>
@@ -419,21 +473,21 @@ export default function AppLayout({
                             )}
 
                             {/* Main Content Area */}
-                            <div className={`flex-1 flex flex-col overflow-hidden ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} transition-all duration-300`}>
+                            <div className={`flex-1 flex flex-col overflow-hidden ${sidebarOpen ? 'lg:ml-56' : 'lg:ml-16'} transition-all duration-200`}>
                                 {/* Top Navigation */}
-                                <nav className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4">
-                                    <div className="flex items-center gap-4 flex-1">
+                                <nav className="h-12 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4">
+                                    <div className="flex items-center gap-3 flex-1">
                                         {/* Mobile Menu Button */}
                                         <button
                                             onClick={() => setMobileSidebarOpen(true)}
-                                            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                                            className="lg:hidden p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800"
                                         >
-                                            <Menu className="w-5 h-5" />
+                                            <Menu className="w-4 h-4" />
                                         </button>
 
                                     </div>
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
 
                                         <ModeToggle />
 
@@ -441,15 +495,15 @@ export default function AppLayout({
                                         <div className="relative">
                                             <button
                                                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                                             >
-                                                <div className="w-8 h-8 rounded-full bg-gray-700 dark:bg-slate-600 flex items-center justify-center text-white font-semibold text-sm">
+                                                <div className="w-7 h-7 rounded-full bg-gray-700 dark:bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">
                                                     {auth?.user?.name?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     {auth?.user?.name}
                                                 </span>
-                                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </button>
