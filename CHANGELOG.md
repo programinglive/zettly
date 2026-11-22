@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.3](https://github.com/programinglive/todo/compare/v1.10.2...v1.10.3) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **dashboard:** keep Today external schedule and retrospective payload strictly bounded ([0815bdf](https://github.com/programinglive/todo/commit/0815bdf3b990647c579da33abd0cabdff97b0d35))
+
 ### [1.10.2](https://github.com/programinglive/todo/compare/v1.10.1...v1.10.2) (2026-11-22)
 
 
