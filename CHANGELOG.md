@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.4](https://github.com/programinglive/todo/compare/v1.10.3...v1.10.4) (2026-11-22)
+
+
+### ✨ Features
+
+* **summary:** add executive summary dashboard with project charts and CLI ([91dfec3](https://github.com/programinglive/todo/commit/91dfec31a6d19ce8a07664541b6c25ccb121cca6))
+
 ### [1.10.3](https://github.com/programinglive/todo/compare/v1.10.2...v1.10.3) (2026-11-22)
 
 
