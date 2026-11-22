@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.18](https://github.com/programinglive/todo/compare/v1.10.17...v1.10.18) (2026-11-22)
+
+
+### 🐛 Bug Fixes
+
+* **classify:** inspect archived tasks to normalize legacy tags ([6f03a2e](https://github.com/programinglive/todo/commit/6f03a2e4e26655ed3aaa9dc3a28e2eadc178ec24))
+
 ### [1.10.17](https://github.com/programinglive/todo/compare/v1.10.16...v1.10.17) (2026-11-22)
 
 
