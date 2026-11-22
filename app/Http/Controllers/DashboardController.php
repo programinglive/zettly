@@ -10,6 +10,17 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * @zettly-code ZC-ZETTLY-DASH-001
+ * @purpose Serve the priority-first Today dashboard payload with consistent user-scoped counters and measurable Focus progress
+ * @domain dashboard
+ * @invariant Active Focus counts in metrics and Current Work must share the same scope, empty Focuses must return null progress (never 100%), and serialized todo payload growth must stay under 500 bytes
+ * @bug-fix BUG-ZETTLY-DASH-195
+ * @root-cause Hardcoded limit(5) on activeFoci caused 6-vs-5 UI mismatch and uncompacted null keys exceeded the 500-byte DashboardPayloadTest growth ceiling
+ * @fix Raised bounded activeFoci view to 10 with authoritative total_active counter and stripped null keys from openTaskItems via array_filter
+ * @related PriorityQueueBuilder, Focus, Todo
+ * @tests DashboardPayloadTest, DashboardPriorityOverhaulTest
+ */
 class DashboardController extends Controller
 {
     public static function resolvePriorityTier(?bool $isP0, ?string $priority, ?string $importance): string
