@@ -1,96 +1,178 @@
 {
-  "generated_at": "2026-11-22T09:23:59.816Z",
-  "description": "Zettly V1.9.5 historical UI/UX typography debt baseline (Focus #187)",
+  "fingerprint_version": "2.0",
+  "generated_at": "2026-11-22T09:47:24.371Z",
+  "description": "Zettly V1.9.5 historical UI/UX typography debt baseline (Focus #187, Finding Identity v2.0)",
   "findings": [
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Developer.jsx",
-      "line": 13
+      "line": 13,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "6a344b7d5af47a751f5f02f9",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Docs.jsx",
-      "line": 87
+      "line": 87,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "d0fb862c261a948e3ea49d63",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Draw/Index.jsx",
-      "line": 1363
+      "line": 1363,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "11fd26134ed44d3d45600e2d",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
+    },
+    {
+      "rule_id": "ZET-UI-001",
+      "file": "resources/js/Pages/Draw/Index.jsx",
+      "line": 1441,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "11fd26134ed44d3d45600e2d",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 2
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Habits/Create.jsx",
-      "line": 67
+      "line": 67,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "7d4443a2a20d966f9971b34b",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Habits/Edit.jsx",
-      "line": 53
+      "line": 53,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "3c314fee7d85eeb0eee4cdc3",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Habits/Index.jsx",
-      "line": 65
+      "line": 65,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "0c7b4ba17a0465d55a46c9d4",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Habits/Show.jsx",
-      "line": 75
+      "line": 75,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "e3962f3aa47265d33bfe54e3",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Home/Index.jsx",
-      "line": 15
+      "line": 15,
+      "evidence": "<div className=\"text-5xl sm:text-6xl mb-5 sm:mb-6\">📝</div>",
+      "evidence_fingerprint": "68c2acc63a7c7f275f8ac229",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Journal/Index.jsx",
-      "line": 79
+      "line": 79,
+      "evidence": "<h1 className=\"mt-4 text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight\">",
+      "evidence_fingerprint": "613e6a5633beb77237746531",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Organizations/Index.jsx",
-      "line": 19
+      "line": 19,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "a72ae9e3cfcd90368a079303",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Organizations/Show.jsx",
-      "line": 61
+      "line": 61,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "383882ce3de551f3bf021efa",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Profile/Edit.jsx",
-      "line": 193
+      "line": 193,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "82731eb82102c7b9975b2f13",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Tags/Index.jsx",
-      "line": 70
+      "line": 70,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black tracking-tight text-gray-900 dark:text-white animate-in fade-in slide-in-",
+      "evidence_fingerprint": "a4daa8c4e92b3c9007bae7f2",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Todos/Archived.jsx",
-      "line": 112
+      "line": 112,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "407299a5602ef3e9f05d4548",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Todos/Board.jsx",
-      "line": 132
+      "line": 132,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "f20ab2dd90f0fe8527454107",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Todos/Completed.jsx",
-      "line": 106
+      "line": 106,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "fd4decc05abc1fd14e96388e",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Todos/Create.jsx",
-      "line": 139
+      "line": 139,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "de1253526d1325633dddd9bc",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     },
     {
       "rule_id": "ZET-UI-001",
       "file": "resources/js/Pages/Todos/Deleted.jsx",
-      "line": 56
+      "line": 56,
+      "evidence": "<h1 className=\"text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight\">",
+      "evidence_fingerprint": "74c8b2f242642d88e57b96ac",
+      "fingerprint_version": "2.0",
+      "occurrence_index": 1
     }
   ]
 }
