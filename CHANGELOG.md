@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.16](https://github.com/programinglive/todo/compare/v1.10.15...v1.10.16) (2026-11-22)
+
+
+### ✨ Features
+
+* **filters:** enable multi-tag AND intersection across Area, Type, and Source ([66ed3a3](https://github.com/programinglive/todo/commit/66ed3a38840647efeddb82a7d8642fdda6ad168e))
+
 ### [1.10.15](https://github.com/programinglive/todo/compare/v1.10.14...v1.10.15) (2026-11-22)
 
 
