@@ -20,27 +20,27 @@ class HumanRetrospectiveService
     public function buildExternalSchedule(User $user, ?CarbonImmutable $referenceDate = null, int $limit = 3): array
     {
         $today = ($referenceDate ?? CarbonImmutable::now(self::TIMEZONE))->setTimezone(self::TIMEZONE)->startOfDay();
-        $horizon = $today->addDays(3);
 
         $candidates = $user->todos()
             ->notArchived()
             ->tasks()
             ->where('is_completed', false)
-            ->get(['id', 'title', 'description', 'due_date']);
+            ->get(['id', 'title', 'description', 'due_date', 'priority', 'importance', 'is_p0']);
 
         $items = $candidates
-            ->map(function (Todo $todo) use ($today, $horizon) {
+            ->map(function (Todo $todo) use ($today) {
                 $isExternal = self::isExternalWaiting($todo->title, $todo->description);
                 $due = $todo->due_date ? CarbonImmutable::parse($todo->due_date->toDateString(), self::TIMEZONE)->startOfDay() : null;
-                $withinHorizon = $due !== null && $due->lessThanOrEqualTo($horizon);
-
-                if (! $isExternal && ! $withinHorizon) {
-                    return null;
-                }
-
                 $daysDiff = $due !== null ? (int) $today->diffInDays($due, false) : null;
                 $isOverdue = $daysDiff !== null && $daysDiff < 0;
                 $isDueToday = $daysDiff === 0;
+                $isHighPriority = (bool) $todo->is_p0
+                    || ($todo->priority === Todo::PRIORITY_URGENT && $todo->importance === Todo::IMPORTANCE_IMPORTANT);
+
+                if (! $isExternal && ! ($isHighPriority && ($isOverdue || $isDueToday))) {
+                    return null;
+                }
+
                 $dueString = $due?->toDateString();
 
                 return [
@@ -114,15 +114,8 @@ class HumanRetrospectiveService
             ->notArchived()
             ->tasks()
             ->where('is_completed', true)
-            ->where(function ($q) use ($startUtc, $endUtc) {
-                $q->whereBetween('completed_at', [$startUtc, $endUtc])
-                    ->orWhere(function ($fallback) use ($startUtc, $endUtc) {
-                        $fallback->whereNull('completed_at')
-                            ->whereBetween('updated_at', [$startUtc, $endUtc]);
-                    });
-            })
+            ->whereBetween('completed_at', [$startUtc, $endUtc])
             ->orderByDesc('completed_at')
-            ->orderByDesc('updated_at')
             ->get(['id', 'title', 'completed_at', 'focus_id']);
 
         $completedFocuses = $user->foci()
