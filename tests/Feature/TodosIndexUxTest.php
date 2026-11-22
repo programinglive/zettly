@@ -192,4 +192,43 @@ class TodosIndexUxTest extends TestCase
             ->where('filters.tags', [$erpArea->id, $notifArea->id, $bugfixType->id])
         );
     }
+
+    public function test_index_only_returns_tags_present_in_active_status_and_filter_scope(): void
+    {
+        $user = User::factory()->create();
+        $openArea = Tag::create(['user_id' => $user->id, 'name' => 'area:erp', 'color' => '#0EA5E9']);
+        $completedOnlyType = Tag::create(['user_id' => $user->id, 'name' => 'tipe:research', 'color' => '#8B5CF6']);
+
+        $openTask = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Open ERP task',
+            'is_completed' => false,
+        ]);
+        $openTask->tags()->attach([$openArea->id]);
+
+        $completedTask = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Completed research task',
+            'is_completed' => true,
+        ]);
+        $completedTask->tags()->attach([$completedOnlyType->id]);
+
+        // Default Open tab must NOT expose completed-only tags
+        $openRes = $this->actingAs($user)->get(route('todos.index'));
+        $openRes->assertStatus(200);
+        $openRes->assertInertia(function (AssertableInertia $page) {
+            $tagNames = collect($page->toArray()['props']['tags'])->pluck('name')->all();
+            $this->assertContains('area:erp', $tagNames);
+            $this->assertNotContains('tipe:research', $tagNames);
+        });
+
+        // Completed tab MUST expose completed-only tags and hide open-only tags
+        $doneRes = $this->actingAs($user)->get(route('todos.index', ['filter' => 'completed']));
+        $doneRes->assertStatus(200);
+        $doneRes->assertInertia(function (AssertableInertia $page) {
+            $tagNames = collect($page->toArray()['props']['tags'])->pluck('name')->all();
+            $this->assertContains('tipe:research', $tagNames);
+            $this->assertNotContains('area:erp', $tagNames);
+        });
+    }
 }

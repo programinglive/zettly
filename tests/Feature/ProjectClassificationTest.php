@@ -220,4 +220,27 @@ class ProjectClassificationTest extends TestCase
         $this->assertFalse($dbNote->fresh()->tags()->where('name', 'area:apps')->exists());
         $this->assertTrue($dbNote->fresh()->tags()->where('name', 'area:database')->exists());
     }
+
+    public function test_classify_eliminates_redundant_tipe_todo_and_prunes_unused_forbidden_tags(): void
+    {
+        $user = User::factory()->create();
+        $zettlyTag = Tag::create(['user_id' => $user->id, 'name' => 'proyek:zettly', 'color' => '#F59E0B']);
+        $todoTypeTag = Tag::create(['user_id' => $user->id, 'name' => 'tipe:todo', 'color' => '#64748B']);
+        $orphanOtherTag = Tag::create(['user_id' => $user->id, 'name' => 'tipe:other', 'color' => '#64748B']);
+
+        $task = Todo::factory()->asTask()->create([
+            'user_id' => $user->id,
+            'title' => 'Fix login redirect bug in Zettly',
+        ]);
+        $task->tags()->attach([$zettlyTag->id, $todoTypeTag->id]);
+
+        $this->artisan('zettly:classify-projects', ['--user' => $user->id, '--apply' => true])
+            ->expectsOutputToContain('APPLIED')
+            ->assertSuccessful();
+
+        $this->assertFalse($task->fresh()->tags()->where('name', 'tipe:todo')->exists());
+        $this->assertTrue($task->fresh()->tags()->where('name', 'tipe:bugfix')->exists());
+        $this->assertNull(Tag::find($todoTypeTag->id));
+        $this->assertNull(Tag::find($orphanOtherTag->id));
+    }
 }

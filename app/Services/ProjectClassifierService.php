@@ -135,6 +135,8 @@ class ProjectClassifierService
         'general',
         'unknown',
         'none',
+        'todo',
+        'task',
     ];
 
     /**
@@ -538,5 +540,31 @@ class ProjectClassifierService
             'color' => $meta['color'] ?? $fallbackColor ?? '#64748B',
             'tag_id' => $tagId,
         ];
+    }
+
+    /**
+     * Delete unused forbidden or aliased Zettelkasten tags (0 attached todos/notes)
+     * so eliminated tags like tipe:other, tipe:todo, area:dev do not linger in the tags table.
+     */
+    public function pruneUnusedForbiddenTags(?int $userId = null): int
+    {
+        $forbiddenNames = array_merge(
+            array_map(fn (string $s) => 'tipe:'.$s, array_merge(self::FORBIDDEN_TYPE_SLUGS, array_keys(self::TYPE_ALIASES))),
+            array_map(fn (string $s) => 'area:'.$s, self::FORBIDDEN_AREA_SLUGS),
+            array_map(fn (string $s) => 'proyek:'.$s, self::FORBIDDEN_SLUGS),
+        );
+
+        $query = Tag::query()
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))
+            ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), $forbiddenNames)
+            ->whereDoesntHave('todos');
+
+        $count = 0;
+        foreach ($query->get() as $tag) {
+            $tag->delete();
+            $count++;
+        }
+
+        return $count;
     }
 }

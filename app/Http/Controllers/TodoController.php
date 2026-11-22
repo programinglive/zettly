@@ -204,6 +204,8 @@ class TodoController extends Controller
             });
         }
 
+        $scopedIdsQuery = (clone $query)->select('todos.id');
+
         $query->orderBy('is_completed', 'asc')
             ->orderByRaw("CASE
                 WHEN priority = 'urgent' THEN 1
@@ -261,11 +263,9 @@ class TodoController extends Controller
 
         $tags = Tag::forUser($userId)
             ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
-            ->where(function ($q) use ($userId, $selectedTagIds) {
-                $q->whereHas('todos', function ($todoQ) use ($userId) {
-                    $todoQ->where('todos.user_id', $userId)
-                        ->whereNull('todos.archived_at')
-                        ->where('todos.type', Todo::TYPE_TODO);
+            ->where(function ($q) use ($scopedIdsQuery, $selectedTagIds) {
+                $q->whereHas('todos', function ($todoQ) use ($scopedIdsQuery) {
+                    $todoQ->whereIn('todos.id', $scopedIdsQuery);
                 });
                 if (! empty($selectedTagIds)) {
                     $q->orWhereIn('tags.id', $selectedTagIds);
@@ -336,6 +336,8 @@ class TodoController extends Controller
             });
         }
 
+        $scopedIdsQuery = (clone $query)->select('todos.id');
+
         switch ($sort) {
             case 'title':
                 $query->orderByRaw('LOWER(title) ASC');
@@ -384,11 +386,9 @@ class TodoController extends Controller
 
         $tags = Tag::forUser($userId)
             ->whereRaw("LOWER(name) NOT LIKE 'proyek:%'")
-            ->where(function ($q) use ($userId, $selectedTagIds) {
-                $q->whereHas('todos', function ($noteQ) use ($userId) {
-                    $noteQ->where('todos.user_id', $userId)
-                        ->whereNull('todos.archived_at')
-                        ->where('todos.type', Todo::TYPE_NOTE);
+            ->where(function ($q) use ($scopedIdsQuery, $selectedTagIds) {
+                $q->whereHas('todos', function ($noteQ) use ($scopedIdsQuery) {
+                    $noteQ->whereIn('todos.id', $scopedIdsQuery);
                 });
                 if (! empty($selectedTagIds)) {
                     $q->orWhereIn('tags.id', $selectedTagIds);

@@ -50,14 +50,20 @@ class ClassifyProjectsCommand extends Command
 
         arsort($byProject);
 
+        $pruned = 0;
+        if (! $dryRun) {
+            $pruned = $classifier->pruneUnusedForbiddenTags($userId ? (int) $userId : null);
+        }
+
         $mode = $dryRun ? 'DRY RUN' : 'APPLIED';
         $this->info(sprintf(
-            '%s: inspected=%d updated=%d unchanged=%d unclassified=%d',
+            '%s: inspected=%d updated=%d unchanged=%d unclassified=%d pruned_forbidden_tags=%d',
             $mode,
             $stats['inspected'],
             $stats['updated'],
             $stats['unchanged'],
-            $stats['unclassified']
+            $stats['unclassified'],
+            $pruned
         ));
 
         foreach ($byProject as $slug => $count) {

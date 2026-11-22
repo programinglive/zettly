@@ -187,4 +187,27 @@ class NotesIndexUxTest extends TestCase
             ->where('filters.tags', [$erpArea->id, $notifArea->id])
         );
     }
+
+    public function test_notes_index_scopes_available_tags_to_active_project_filter(): void
+    {
+        $user = User::factory()->create();
+        $erpProject = Tag::create(['user_id' => $user->id, 'name' => 'proyek:erp', 'color' => '#0EA5E9']);
+        $zettlyProject = Tag::create(['user_id' => $user->id, 'name' => 'proyek:zettly', 'color' => '#F59E0B']);
+        $notifArea = Tag::create(['user_id' => $user->id, 'name' => 'area:notification', 'color' => '#6366F1']);
+        $cliArea = Tag::create(['user_id' => $user->id, 'name' => 'area:cli', 'color' => '#10B981']);
+
+        $erpNote = Todo::factory()->asNote()->create(['user_id' => $user->id, 'title' => 'ERP Alerting']);
+        $erpNote->tags()->attach([$erpProject->id, $notifArea->id]);
+
+        $zettlyNote = Todo::factory()->asNote()->create(['user_id' => $user->id, 'title' => 'Zettly CLI']);
+        $zettlyNote->tags()->attach([$zettlyProject->id, $cliArea->id]);
+
+        $response = $this->actingAs($user)->get(route('notes.index', ['project' => 'erp']));
+        $response->assertStatus(200);
+        $response->assertInertia(function (AssertableInertia $page) {
+            $tagNames = collect($page->toArray()['props']['tags'])->pluck('name')->all();
+            $this->assertContains('area:notification', $tagNames);
+            $this->assertNotContains('area:cli', $tagNames);
+        });
+    }
 }
