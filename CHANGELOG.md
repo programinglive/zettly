@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.2](https://github.com/programinglive/todo/compare/v1.10.1...v1.10.2) (2026-11-22)
+
+
+### ✨ Features
+
+* **today:** add human retrospectives, calendar external waiting, and technical reports page ([c61a200](https://github.com/programinglive/todo/commit/c61a200a9f9b7d45a1a78cda6da93bcb7d67f674))
+
 ### [1.9.5](https://github.com/programinglive/todo/compare/v1.9.4...v1.9.5) (2026-11-22)
 
 
