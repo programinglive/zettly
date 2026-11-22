@@ -143,11 +143,21 @@ export default function Intelligence({
                             ) : (
                                 improvements.map((imp) => (
                                     <div key={imp.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950/50">
-                                        <div className="flex items-center justify-between font-semibold">
+                                        <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
                                             <span>{imp.action_code} · {imp.title}</span>
-                                            <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] text-amber-900">
-                                                {imp.priority} · {imp.status} (x{imp.occurrence_count})
-                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] text-amber-900">
+                                                    {imp.priority} · Score {imp.priority_score ?? 80} · {imp.safety_level ?? 'safe_auto'} · {imp.status} (x{imp.occurrence_count})
+                                                </span>
+                                                {imp.promoted_todo_id && (
+                                                    <Link
+                                                        href={`/todos/${imp.promoted_todo_id}`}
+                                                        className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 hover:bg-emerald-200"
+                                                    >
+                                                        Priority Todo #{imp.promoted_todo_id}
+                                                    </Link>
+                                                )}
+                                            </div>
                                         </div>
                                         <p className="mt-1 text-gray-600 dark:text-gray-400">{imp.expected_outcome}</p>
                                     </div>

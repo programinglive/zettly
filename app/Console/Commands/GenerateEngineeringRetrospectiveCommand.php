@@ -9,12 +9,12 @@ use Illuminate\Console\Command;
 class GenerateEngineeringRetrospectiveCommand extends Command
 {
     protected $signature = 'engineering:retrospective
-        {kind=daily : Period kind: daily, weekly, monthly, or scorecard}
+        {kind=daily : Period kind: daily, weekly, monthly, scorecard, or promote-improvements}
         {--period= : Explicit period key (YYYY-MM-DD, YYYY-Www, or YYYY-MM)}
         {--user= : Target owner user ID}
         {--regenerate : Force regeneration while preserving previous version history}';
 
-    protected $description = 'Generate idempotent, versioned Daily, Weekly, or Monthly Engineering Retrospectives (Asia/Jakarta) or evaluate Agent Performance Scorecards.';
+    protected $description = 'Generate idempotent, versioned Daily, Weekly, or Monthly Engineering Retrospectives (Asia/Jakarta), evaluate Agent Performance Scorecards, or auto-promote safe high-priority improvements to the Pareto Priority Queue.';
 
     public function handle(
         EngineeringIntelligenceService $intelligence,
@@ -27,6 +27,13 @@ class GenerateEngineeringRetrospectiveCommand extends Command
 
         if ($kind === 'scorecard') {
             $result = $scorecard->evaluate($userId);
+            $this->line((string) json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return self::SUCCESS;
+        }
+
+        if ($kind === 'promote-improvements') {
+            $result = $intelligence->autoPromoteImprovementsToPriorityQueue($userId);
             $this->line((string) json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
             return self::SUCCESS;

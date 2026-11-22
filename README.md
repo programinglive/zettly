@@ -10,7 +10,7 @@ Zettly is a productivity workspace for tasks, focus sessions, notes, habits, sha
 
 ## Coding Agent & Engineering Hub
 
-The private coding agent control plane links jobs to personal Todos and replaces standalone engineering boards (Factory). The owner can create and monitor jobs from `/agent/jobs` (or dispatch directly from any Todo detail page `/todos/{id}`), inspect the centralized Project & Repository Registry in `/agent/setup`, track the 14-day Engineering Recap and active AI sessions, review a branch and test summary, and record approval for one exact commit. See [docs/CODING_AGENT.md](./docs/CODING_AGENT.md) for configuration, worker API, and rollout boundaries.
+The private coding agent control plane links jobs to personal Todos and replaces standalone engineering boards (Factory). The owner can create and monitor jobs from `/agent/jobs` (or dispatch directly from any Todo detail page `/todos/{id}`), inspect the centralized Project & Repository Registry in `/agent/setup`, review Daily/Weekly/Monthly Engineering Retrospectives, Continuous Improvement Backlog auto-promotion (`priority_score >= 80`, `safety_level = safe_auto` → `/priority`), and Agent Performance Scorecards at `/agent/intelligence` (`php artisan engineering:retrospective {daily|weekly|monthly|scorecard|promote-improvements}`), track the 14-day Engineering Recap and active AI sessions, review a branch and test summary, and record approval for one exact commit. See [docs/CODING_AGENT.md](./docs/CODING_AGENT.md) and [AGENTS.md](./AGENTS.md) for configuration, worker API, parallel DAG orchestration, and rollout boundaries.
 
 ## Design System
 

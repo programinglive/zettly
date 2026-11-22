@@ -324,14 +324,21 @@ class V17ParallelAiOrgAndEngineeringIntelligenceTest extends TestCase
         $monthly = $intelligence->generateMonthlyRetrospective($this->owner->id, now('Asia/Jakarta')->format('Y-m'));
         $this->assertSame('monthly', $monthly->period_kind);
 
-        // 3. Improvement Backlog Deduplication & 11-State Lifecycle + Effectiveness Measurement
+        // 3. Improvement Backlog Deduplication, Auto-Promotion to Pareto Priority Queue (/priority) & 11-State Lifecycle + Effectiveness Measurement
         $improvements = EngineeringImprovement::query()->where('user_id', $this->owner->id)->get();
         $this->assertCount(1, $improvements);
         $imp = $improvements->first();
         $this->assertSame(2, $imp->occurrence_count);
-
-        $imp = $intelligence->transitionImprovement($imp, 'APPROVED_BY_POLICY');
+        $this->assertGreaterThanOrEqual(80, $imp->priorityScore());
+        $this->assertSame(EngineeringImprovement::SAFETY_SAFE_AUTO, $imp->safetyLevel());
         $this->assertSame('APPROVED_BY_POLICY', $imp->status);
+        $this->assertNotNull($imp->promotedTodoId());
+
+        // Verify idempotency of autoPromoteImprovementsToPriorityQueue (does not create duplicate Todo)
+        $promoResult = $intelligence->autoPromoteImprovementsToPriorityQueue($this->owner->id);
+        $this->assertSame(1, $promoResult['promoted_count']);
+        $this->assertSame($imp->promotedTodoId(), $promoResult['promoted_improvements'][0]['promoted_todo_id']);
+
         $imp = $intelligence->transitionImprovement($imp, 'EFFECTIVE', [
             'recurrences_before' => 2,
             'recurrences_after' => 0,
@@ -365,6 +372,8 @@ class V17ParallelAiOrgAndEngineeringIntelligenceTest extends TestCase
         $this->artisan('engineering:retrospective', ['kind' => 'daily', '--period' => $todayWib])
             ->assertExitCode(0);
         $this->artisan('engineering:retrospective', ['kind' => 'scorecard'])
+            ->assertExitCode(0);
+        $this->artisan('engineering:retrospective', ['kind' => 'promote-improvements'])
             ->assertExitCode(0);
 
         $this->actingAs($this->owner)

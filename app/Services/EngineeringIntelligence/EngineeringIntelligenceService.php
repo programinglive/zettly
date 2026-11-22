@@ -7,6 +7,7 @@ use App\Models\EngineeringImprovement;
 use App\Models\EngineeringLesson;
 use App\Models\EngineeringPipelineEvent;
 use App\Models\EngineeringRetrospective;
+use App\Models\Focus;
 use App\Models\Todo;
 use App\Services\AgentSessionIngestor;
 use App\Services\AiOrganization\AgentPerformanceScorecardService;
@@ -147,17 +148,19 @@ class EngineeringIntelligenceService
                 ->first();
 
             if ($existing) {
+                $existingEvidence = is_array($existing->evidence) ? $existing->evidence : [];
                 $existing->update([
                     'occurrence_count' => max($existing->occurrence_count, $count),
-                    'evidence' => [
+                    'priority' => max($existing->occurrence_count, $count) >= 3 ? 'P0' : $existing->priority,
+                    'evidence' => array_merge($existingEvidence, [
                         'job_ids' => $g['job_ids'],
                         'normalized_reason' => $g['reason'],
-                    ],
+                    ]),
                 ]);
-                $createdOrUpdated[] = $existing->fresh();
+                $improvement = $existing->fresh();
             } else {
                 $code = 'IMP-'.strtoupper(substr($fp, 0, 6));
-                $createdOrUpdated[] = EngineeringImprovement::create([
+                $improvement = EngineeringImprovement::create([
                     'user_id' => $userId,
                     'fingerprint' => $fp,
                     'action_code' => $code,
@@ -176,9 +179,126 @@ class EngineeringIntelligenceService
                     ],
                 ]);
             }
+
+            if ($improvement->isAutoPromotableToPriorityQueue()) {
+                $this->autoPromoteImprovementToPriorityQueue($improvement);
+                $improvement = $improvement->fresh();
+            }
+
+            $createdOrUpdated[] = $improvement;
         }
 
         return $createdOrUpdated;
+    }
+
+    /**
+     * Automatically promote eligible Engineering Improvements (`priority_score >= 80`, `safety_level === 'safe_auto'`)
+     * into the Zettly Pareto Priority Queue (`/priority`) as actionable Q1/Q2 Todos without duplicates.
+     *
+     * @return array{promoted_count: int, promoted_improvements: array<int, array<string, mixed>>}
+     */
+    public function autoPromoteImprovementsToPriorityQueue(
+        int $userId,
+        int $minScore = EngineeringImprovement::AUTO_PROMOTE_THRESHOLD
+    ): array {
+        $candidates = EngineeringImprovement::query()
+            ->where('user_id', $userId)
+            ->orderByDesc('occurrence_count')
+            ->get();
+
+        $promoted = [];
+        foreach ($candidates as $improvement) {
+            if (! $improvement->isAutoPromotableToPriorityQueue($minScore)) {
+                continue;
+            }
+
+            $todo = $this->autoPromoteImprovementToPriorityQueue($improvement, $minScore);
+            if ($todo) {
+                $fresh = $improvement->fresh();
+                $promoted[] = [
+                    'improvement_id' => $fresh->id,
+                    'action_code' => $fresh->action_code,
+                    'title' => $fresh->title,
+                    'priority_score' => $fresh->priorityScore(),
+                    'safety_level' => $fresh->safetyLevel(),
+                    'status' => $fresh->status,
+                    'promoted_todo_id' => $todo->id,
+                    'focus_id' => $todo->focus_id,
+                ];
+            }
+        }
+
+        return [
+            'promoted_count' => count($promoted),
+            'promoted_improvements' => $promoted,
+        ];
+    }
+
+    public function autoPromoteImprovementToPriorityQueue(
+        EngineeringImprovement $improvement,
+        int $minScore = EngineeringImprovement::AUTO_PROMOTE_THRESHOLD
+    ): ?Todo {
+        if (! $improvement->isAutoPromotableToPriorityQueue($minScore)) {
+            return null;
+        }
+
+        $existingTodoId = $improvement->promotedTodoId();
+        if ($existingTodoId !== null) {
+            $existingTodo = Todo::query()
+                ->where('user_id', $improvement->user_id)
+                ->find($existingTodoId);
+            if ($existingTodo) {
+                return $existingTodo;
+            }
+        }
+
+        $activeFocus = Focus::query()
+            ->where('user_id', $improvement->user_id)
+            ->where('status', Focus::STATUS_ACTIVE)
+            ->whereNull('completed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $score = $improvement->priorityScore();
+        $safety = $improvement->safetyLevel();
+        $isUrgent = strtoupper((string) $improvement->priority) === 'P0' || $score >= 85;
+
+        $todo = Todo::create([
+            'user_id' => $improvement->user_id,
+            'focus_id' => $activeFocus?->id,
+            'type' => Todo::TYPE_TODO,
+            'title' => "[{$improvement->action_code} · Auto-Promoted] {$improvement->title}",
+            'description' => implode("\n", [
+                "Auto-promoted from Continuous Improvement Backlog ({$improvement->action_code}).",
+                "Priority Score: {$score}/100 · Safety Level: {$safety} · Occurrences: {$improvement->occurrence_count}",
+                "Owner Role: {$improvement->owner_role}",
+                "Expected Outcome: {$improvement->expected_outcome}",
+                "Verification Criteria: {$improvement->verification_criteria}",
+            ]),
+            'importance' => Todo::IMPORTANCE_IMPORTANT,
+            'priority' => $isUrgent ? Todo::PRIORITY_URGENT : Todo::PRIORITY_NOT_URGENT,
+            'queue_state' => Todo::QUEUE_BACKLOG,
+            'estimate_minutes' => 45,
+            'triaged_at' => now(),
+            'is_completed' => false,
+        ]);
+
+        $evidence = is_array($improvement->evidence) ? $improvement->evidence : [];
+        $evidence['priority_score'] = $score;
+        $evidence['safety_level'] = $safety;
+        $evidence['promoted_todo_id'] = $todo->id;
+        $evidence['promoted_at'] = now()->toIso8601String();
+
+        $nextStatus = in_array($improvement->status, ['OBSERVED', 'TRIAGED', 'PROPOSED'], true)
+            ? 'APPROVED_BY_POLICY'
+            : $improvement->status;
+
+        $improvement->update([
+            'status' => $nextStatus,
+            'evidence' => $evidence,
+        ]);
+
+        return $todo;
     }
 
     /**
