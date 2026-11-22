@@ -414,6 +414,9 @@ class ProjectClassifierService
         $tags = $todo->tags()->get(['tags.id', 'tags.name']);
         $projectTags = $tags->filter(fn ($tag) => str_starts_with(strtolower((string) $tag->name), 'proyek:'));
 
+        $typePlan = $this->resolveWorkTypeNormalization($todo, $tags);
+        $areaPlan = $this->resolveAreaNormalization($todo, $tags);
+
         if ($resolved === null) {
             $allStaleIds = array_values(array_unique(array_merge(
                 $typePlan['stale_type_ids'],
@@ -432,9 +435,6 @@ class ProjectClassifierService
             ->filter(fn ($tag) => strtolower((string) $tag->name) !== $canonicalTagName)
             ->pluck('id')
             ->all();
-
-        $typePlan = $this->resolveWorkTypeNormalization($todo, $tags);
-        $areaPlan = $this->resolveAreaNormalization($todo, $tags);
 
         if ($hasCanonical && empty($staleTagIds) && ! $typePlan['needs_update'] && ! $areaPlan['needs_update']) {
             return ['status' => 'unchanged', 'canonical' => $resolved['key'], 'attached' => false, 'detached' => []];
