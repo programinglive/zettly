@@ -8,7 +8,7 @@ import TextInput from './TextInput';
 import CompletionReasonDialog from './CompletionReasonDialog';
 import axios from 'axios';
 
-export default function FocusGreeting() {
+export default function FocusGreeting({ compactSummary = false }) {
     const authUser = usePage().props.auth.user;
     const [currentFocus, setCurrentFocus] = useState(null);
     const [activeFocuses, setActiveFocuses] = useState([]);
@@ -323,36 +323,56 @@ export default function FocusGreeting() {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
             <div>
-                <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {getGreeting()}, {authUser?.name?.split(' ')[0] || 'there'} 👋
-                </p>
-
-                {activeFocuses.length > 1 ? (
-                    <div className="divide-y divide-gray-200 dark:divide-slate-800 rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                        {activeFocuses.map((active) => (
-                            <a
-                                key={active.id}
-                                href={`/focus/${active.id}`}
-                                className="flex items-center justify-between gap-3 px-3 py-2 text-sm transition hover:bg-gray-50 dark:hover:bg-slate-800/60"
-                            >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <span
-                                        className="h-2 w-2 rounded-full shrink-0"
-                                        style={{ backgroundColor: active.color || '#6366F1' }}
-                                    />
-                                    <span className="truncate font-medium text-gray-900 dark:text-white">
-                                        {active.title}
-                                    </span>
-                                </div>
-                                <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-                                    {active.open_todos} open
-                                </span>
-                            </a>
-                        ))}
+                {compactSummary && activeFocuses.length > 1 ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
+                                {getGreeting()}, {authUser?.name?.split(' ')[0] || 'there'} 👋
+                            </span>
+                            <span>·</span>
+                            <span>{activeFocuses.length} active focuses</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowDialog(true)}
+                            className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+                        >
+                            <Plus className="h-3 w-3" />
+                            New Focus
+                        </button>
                     </div>
-                ) : currentFocus ? (
+                ) : (
+                    <>
+                        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            {getGreeting()}, {authUser?.name?.split(' ')[0] || 'there'} 👋
+                        </p>
+
+                        {activeFocuses.length > 1 ? (
+                            <div className="divide-y divide-gray-200 dark:divide-slate-800 rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                {activeFocuses.map((active) => (
+                                    <a
+                                        key={active.id}
+                                        href={`/focus/${active.id}`}
+                                        className="flex items-center justify-between gap-3 px-3 py-2 text-sm transition hover:bg-gray-50 dark:hover:bg-slate-800/60"
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <span
+                                                className="h-2 w-2 rounded-full shrink-0"
+                                                style={{ backgroundColor: active.color || '#6366F1' }}
+                                            />
+                                            <span className="truncate font-medium text-gray-900 dark:text-white">
+                                                {active.title}
+                                            </span>
+                                        </div>
+                                        <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                                            {active.open_todos} open
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        ) : currentFocus ? (
                     <div className="rounded-md border border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/60 px-3.5 py-2.5">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="min-w-0 flex-1">
@@ -414,77 +434,82 @@ export default function FocusGreeting() {
                             What would you like to focus on today?
                         </p>
 
-                        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-                            <DialogTrigger asChild>
-                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition-colors">
-                                    <Plus className="w-3.5 h-3.5" />
-                                    Set Focus
-                                </button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Set Your Focus</DialogTitle>
-                                    <DialogDescription>
-                                        Define what you want to accomplish today.
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <form onSubmit={handleCreateFocus} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                                            Focus Title *
-                                        </label>
-                                        <TextInput
-                                            type="text"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            placeholder="e.g., Complete project proposal"
-                                            disabled={isSubmitting}
-                                            className="w-full"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                                            Description (optional)
-                                        </label>
-                                        <textarea
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            placeholder="Add any details about your focus..."
-                                            disabled={isSubmitting}
-                                            rows="3"
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                                        />
-                                    </div>
-
-                                    {error && (
-                                        <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/40 rounded-lg text-red-700 dark:text-red-300 text-sm">
-                                            {error}
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-2 justify-end">
-                                        <SecondaryButton
-                                            type="button"
-                                            onClick={() => setShowDialog(false)}
-                                            disabled={isSubmitting}
-                                        >
-                                            Cancel
-                                        </SecondaryButton>
-                                        <PrimaryButton
-                                            type="submit"
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? 'Setting...' : 'Set Focus'}
-                                        </PrimaryButton>
-                                    </div>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                        <button
+                            type="button"
+                            onClick={() => setShowDialog(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition-colors"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Set Focus
+                        </button>
                     </div>
                 )}
+                    </>
+                )}
             </div>
+
+            <Dialog open={showDialog} onOpenChange={setShowDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Set Your Focus</DialogTitle>
+                        <DialogDescription>
+                            Define what you want to accomplish today.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleCreateFocus} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                Focus Title *
+                            </label>
+                            <TextInput
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="e.g., Complete project proposal"
+                                disabled={isSubmitting}
+                                className="w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                Description (optional)
+                            </label>
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Add any details about your focus..."
+                                disabled={isSubmitting}
+                                rows="3"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/40 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="flex gap-2 justify-end">
+                            <SecondaryButton
+                                type="button"
+                                onClick={() => setShowDialog(false)}
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </SecondaryButton>
+                            <PrimaryButton
+                                type="submit"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Setting...' : 'Set Focus'}
+                            </PrimaryButton>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             <div className="border-t border-gray-200 dark:border-slate-800 pt-3">
                 <div className="flex items-center justify-between gap-2">

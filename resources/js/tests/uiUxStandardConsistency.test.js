@@ -86,3 +86,19 @@ test('AppLayout sidebar uses uniform text-sm typography, w-4 h-4 icons, and orga
     assert.match(appLayout, /className=\{`flex items-center gap-2\.5 px-2\.5 py-1\.5 rounded-md text-sm font-medium/);
     assert.doesNotMatch(appLayout, /<Icon className=\{`w-5 h-5/);
 });
+
+test('ModeToggle uses compact borderless ghost h-7 w-7 button with w-4 h-4 icons', () => {
+    const modeToggle = fs.readFileSync(path.join(repoRoot, 'resources/js/Components/mode-toggle.jsx'), 'utf8');
+    assert.match(modeToggle, /variant="ghost"/);
+    assert.match(modeToggle, /h-7 w-7/);
+    assert.match(modeToggle, /h-4 w-4/);
+    assert.doesNotMatch(modeToggle, /h-\[1\.2rem\]/);
+});
+
+test('Today page uses compactSummary focus greeting, clean activity formatting, quick-add todo, and mobile-only FAB', () => {
+    const dashboard = fs.readFileSync(path.join(repoRoot, 'resources/js/Pages/Dashboard.jsx'), 'utf8');
+    assert.match(dashboard, /<FocusGreeting[^>]*compactSummary/);
+    assert.match(dashboard, /formatActivityExcerpt/);
+    assert.match(dashboard, /Quick add a task/);
+    assert.match(dashboard, /lg:hidden/);
+});

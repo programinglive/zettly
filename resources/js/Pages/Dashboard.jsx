@@ -6,6 +6,17 @@ import DashboardLayout from '../Layouts/DashboardLayout';
 import FocusGreeting from '../Components/FocusGreeting';
 import ReorderDebug from '../Components/ReorderDebug';
 
+export function formatActivityExcerpt(excerpt) {
+    if (!excerpt || typeof excerpt !== 'string') {
+        return '';
+    }
+
+    return excerpt
+        .replace(/^\[Dev Workflow outcome ID:[^\]]*\]\s*/i, '')
+        .replace(/^Status:\s*\w+\s*Task:\s*/i, '')
+        .trim();
+}
+
 export default function Dashboard({
     filters = { tags: [] },
     availableTags = [],
@@ -19,6 +30,7 @@ export default function Dashboard({
     const authUser = pageProps?.auth?.user;
     const mustVerifyEmail = Boolean(authUser) && authUser.email_verified_at === null;
     const { post: resendVerification, processing: isSendingVerification } = useForm();
+    const quickTodoForm = useForm({ title: '' });
     const isSuperAdmin = authUser?.role === 'super_admin';
     const DEBUG_STORAGE_KEY = 'zettly-debug-mode';
     const [hasDebugFlag, setHasDebugFlag] = useState(() => {
@@ -81,13 +93,20 @@ export default function Dashboard({
                                 {tasks.open} open · {tasks.completed} completed
                             </span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs font-medium">
+                        <div className="flex items-center gap-2.5 text-xs font-medium">
                             <Link
                                 href="/todos/create"
                                 className="inline-flex items-center gap-1 rounded-md bg-gray-900 px-2.5 py-1 text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
                             >
                                 <Plus className="h-3.5 w-3.5" />
                                 New Todo
+                            </Link>
+                            <Link
+                                href="/todos/create?type=note"
+                                className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1 text-gray-700 hover:bg-gray-100 dark:border-slate-700 dark:text-gray-200 dark:hover:bg-slate-800"
+                            >
+                                <FileText className="h-3.5 w-3.5" />
+                                New Note
                             </Link>
                             <Link
                                 href="/priority"
@@ -133,7 +152,7 @@ export default function Dashboard({
                             </div>
                         )}
 
-                        <FocusGreeting tasks={tasks} />
+                        <FocusGreeting tasks={tasks} compactSummary />
                     </div>
 
                     {hasToday ? (
@@ -146,6 +165,39 @@ export default function Dashboard({
                                             <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.open_tasks.total_open} open</span>
                                         )}
                                     </div>
+                                    <form
+                                        onSubmit={(event) => {
+                                            event.preventDefault();
+                                            if (!quickTodoForm.data.title.trim()) {
+                                                return;
+                                            }
+                                            quickTodoForm.post('/todos', {
+                                                preserveScroll: true,
+                                                onSuccess: () => quickTodoForm.reset('title'),
+                                            });
+                                        }}
+                                        className="flex items-center gap-2 border-b border-gray-100 dark:border-slate-800/80 px-3 py-1.5 bg-white dark:bg-slate-950/40"
+                                    >
+                                        <Plus className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
+                                        <input
+                                            type="text"
+                                            value={quickTodoForm.data.title}
+                                            onChange={(e) => quickTodoForm.setData('title', e.target.value)}
+                                            placeholder="Quick add a task and press Enter..."
+                                            aria-label="Quick add a task"
+                                            disabled={quickTodoForm.processing}
+                                            className="w-full border-0 bg-transparent p-0 text-xs text-gray-900 placeholder-gray-400 focus:ring-0 dark:text-gray-100 dark:placeholder-slate-500"
+                                        />
+                                        {quickTodoForm.data.title.trim() && (
+                                            <button
+                                                type="submit"
+                                                disabled={quickTodoForm.processing}
+                                                className="shrink-0 rounded bg-gray-900 px-2 py-0.5 text-[11px] font-medium text-white hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
+                                            >
+                                                {quickTodoForm.processing ? 'Adding...' : 'Add'}
+                                            </button>
+                                        )}
+                                    </form>
                                     {today?.open_tasks?.status === 'no_data' ? (
                                         <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.open_tasks.message}</p>
                                     ) : (
@@ -166,8 +218,11 @@ export default function Dashboard({
                                 </section>
 
                                 <section className="rounded-md border border-gray-200 dark:border-slate-800 overflow-hidden">
-                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800">
+                                    <div className="bg-gray-50/80 dark:bg-slate-900/60 px-3 py-1.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Current work</h2>
+                                        {today?.current_work?.status !== 'no_data' && Array.isArray(today?.current_work?.items) && (
+                                            <span className="text-[11px] text-gray-500 dark:text-gray-400">{today.current_work.items.length} active</span>
+                                        )}
                                     </div>
                                     {today?.current_work?.status === 'no_data' ? (
                                         <p className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">{today.current_work.message}</p>
@@ -204,7 +259,7 @@ export default function Dashboard({
                                                         <span className="font-semibold uppercase">{item.kind}</span>
                                                         <span>{item.entry_date}</span>
                                                     </div>
-                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2">{item.excerpt}</p>
+                                                    <p className="mt-0.5 text-gray-600 dark:text-gray-300 line-clamp-2">{formatActivityExcerpt(item.excerpt)}</p>
                                                 </li>
                                             ))}
                                         </ul>
@@ -244,7 +299,7 @@ export default function Dashboard({
 
             {hasDebugFlag && <ReorderDebug />}
 
-            <div className="pointer-events-none fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+            <div className="pointer-events-none fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 lg:hidden">
                 <div
                     className={`flex flex-col gap-2 transition-all duration-150 ${fabOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-2 opacity-0'
                         }`}
