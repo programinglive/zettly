@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.22](https://github.com/programinglive/todo/compare/v1.10.21...v1.10.22) (2026-11-23)
+
+
+### ✨ Features
+
+* **engineering:** add central zettly-code graph cloud sync and dashboard metrics ([96ba34e](https://github.com/programinglive/todo/commit/96ba34e13afd8f0dd77aa34fa4b224fa3702300b))
+
 ### [1.10.21](https://github.com/programinglive/todo/compare/v1.10.20...v1.10.21) (2026-11-22)
 
 
