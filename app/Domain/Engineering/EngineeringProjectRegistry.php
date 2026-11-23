@@ -153,6 +153,7 @@ class EngineeringProjectRegistry
             'last_synced_at' => $project->last_synced_at?->toIso8601String(),
             'last_sync_error' => $project->last_sync_error,
             'drift' => $drift,
+            'code_graph' => $project->metadata['code_graph'] ?? null,
             'timeline' => $events->map(fn (EngineeringPipelineEvent $event) => [
                 'id' => $event->id,
                 'stage' => $event->stage,
@@ -211,5 +212,172 @@ class EngineeringProjectRegistry
             'deployed_commit' => $deployedSha,
             'summary' => $summary,
         ];
+    }
+
+    /**
+     * Synchronize a Zettly Code knowledge graph snapshot + @zettly-code annotations
+     * into the central Zettly EngineeringProject store so multi-device sessions
+     * share identical code intelligence and metrics are visible in Zettly UI.
+     */
+    public function syncCodeGraph(User $user, array $payload): EngineeringProject
+    {
+        $slug = trim((string) ($payload['slug'] ?? ''));
+        $repoFullName = trim((string) ($payload['repo_full_name'] ?? ''));
+
+        $knownCatalog = [
+            'zettly' => ['slug' => 'zettly-app', 'name' => 'Zettly Application', 'provider' => 'github', 'repo_full_name' => 'programinglive/zettly', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => config('app.url')],
+            'zettly-app' => ['slug' => 'zettly-app', 'name' => 'Zettly Application', 'provider' => 'github', 'repo_full_name' => 'programinglive/zettly', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => config('app.url')],
+            'zettly-code' => ['slug' => 'zettly-code', 'name' => 'Zettly Code Knowledge Graph', 'provider' => 'github', 'repo_full_name' => 'programinglive/zettly-code', 'default_branch' => 'main', 'environment' => 'open-source', 'target_url' => 'https://github.com/programinglive/zettly-code'],
+            'dev-workflow' => ['slug' => 'dev-workflow', 'name' => 'DevWorkflow MCP Server', 'provider' => 'github', 'repo_full_name' => 'programinglive/dev-workflow', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => 'https://devworkflow.programinglive.com'],
+            'clinic' => ['slug' => 'clinic', 'name' => 'Beautyworld Clinic ERP', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/clinic', 'default_branch' => 'master', 'environment' => 'production', 'target_url' => 'https://pos.ministrybeauty.com'],
+            'erp' => ['slug' => 'erp', 'name' => 'Beautyworld Backend ERP', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/erp.beautyworld.co.id', 'default_branch' => 'master', 'environment' => 'production', 'target_url' => 'https://erp.beautyworld.co.id'],
+            'erp.beautyworld.co.id' => ['slug' => 'erp', 'name' => 'Beautyworld Backend ERP', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/erp.beautyworld.co.id', 'default_branch' => 'master', 'environment' => 'production', 'target_url' => 'https://erp.beautyworld.co.id'],
+            'frontend_erp' => ['slug' => 'frontend-erp', 'name' => 'Beautyworld Frontend ERP', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/frontend_erp', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => 'https://erp.beautyworld.id'],
+            'frontend-erp' => ['slug' => 'frontend-erp', 'name' => 'Beautyworld Frontend ERP', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/frontend_erp', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => 'https://erp.beautyworld.id'],
+            'hris' => ['slug' => 'hris', 'name' => 'Beautyworld HRIS', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/hris.beautyworld.co.id', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => 'https://hris.beautyworld.co.id'],
+            'hris.beautyworld.co.id' => ['slug' => 'hris', 'name' => 'Beautyworld HRIS', 'provider' => 'gitlab', 'repo_full_name' => 'beautyworld_repository/hris.beautyworld.co.id', 'default_branch' => 'main', 'environment' => 'production', 'target_url' => 'https://hris.beautyworld.co.id'],
+        ];
+
+        $template = $knownCatalog[$slug] ?? null;
+        if (! $template && $repoFullName !== '') {
+            foreach ($knownCatalog as $item) {
+                if (strcasecmp($item['repo_full_name'], $repoFullName) === 0) {
+                    $template = $item;
+                    break;
+                }
+            }
+        }
+
+        $canonicalSlug = $template['slug'] ?? ($slug !== '' ? $slug : str_replace(['/', '.'], '-', strtolower($repoFullName ?: 'repo')));
+        $project = EngineeringProject::where('user_id', $user->id)
+            ->where(function ($q) use ($canonicalSlug, $repoFullName, $template) {
+                $q->where('slug', $canonicalSlug);
+                $targetRepo = $template['repo_full_name'] ?? $repoFullName;
+                if ($targetRepo !== '') {
+                    $q->orWhere('repo_full_name', $targetRepo);
+                }
+            })
+            ->first();
+
+        if (! $project) {
+            $project = EngineeringProject::create([
+                'user_id' => $user->id,
+                'slug' => $canonicalSlug,
+                'name' => $payload['name'] ?? $template['name'] ?? ucfirst($canonicalSlug),
+                'provider' => $payload['provider'] ?? $template['provider'] ?? 'github',
+                'repo_full_name' => $template['repo_full_name'] ?? ($repoFullName !== '' ? $repoFullName : $canonicalSlug),
+                'default_branch' => $payload['branch'] ?? $template['default_branch'] ?? 'main',
+                'environment' => $template['environment'] ?? 'production',
+                'target_url' => $template['target_url'] ?? null,
+                'runtime_health_status' => 'ok',
+                'github_status' => 'ok',
+                'mcp_status' => 'ok',
+            ]);
+        }
+
+        $existingMeta = is_array($project->metadata) ? $project->metadata : [];
+        $existingGraph = is_array($existingMeta['code_graph'] ?? null) ? $existingMeta['code_graph'] : [];
+
+        // Merge annotations by ID so switching machines never loses previously synced knowledge
+        $annotationsById = [];
+        foreach (($existingGraph['annotations'] ?? []) as $ann) {
+            if (is_array($ann) && ! empty($ann['id'])) {
+                $annotationsById[$ann['id']] = $ann;
+            }
+        }
+        foreach (($payload['annotations'] ?? []) as $ann) {
+            if (is_array($ann) && ! empty($ann['id'])) {
+                $annotationsById[$ann['id']] = $ann;
+            }
+        }
+
+        // Merge bug fixes by bug_id / bugId
+        $bugFixesById = [];
+        foreach (($existingGraph['bug_fixes'] ?? []) as $bf) {
+            $key = $bf['bug_id'] ?? $bf['bugId'] ?? null;
+            if (is_array($bf) && $key) {
+                $bugFixesById[$key] = $bf;
+            }
+        }
+        foreach (($payload['bug_fixes'] ?? []) as $bf) {
+            $key = $bf['bug_id'] ?? $bf['bugId'] ?? null;
+            if (is_array($bf) && $key) {
+                $bugFixesById[$key] = $bf;
+            }
+        }
+
+        $rawStats = is_array($payload['stats'] ?? null) ? $payload['stats'] : [];
+        $mergedAnnotations = array_values($annotationsById);
+        $mergedBugFixes = array_values($bugFixesById);
+
+        $stats = [
+            'files_indexed' => (int) ($rawStats['files_indexed'] ?? $existingGraph['stats']['files_indexed'] ?? 0),
+            'symbols_count' => (int) ($rawStats['entities_count'] ?? $rawStats['symbols_count'] ?? $existingGraph['stats']['symbols_count'] ?? 0),
+            'relationships_count' => (int) ($rawStats['relationships_count'] ?? $existingGraph['stats']['relationships_count'] ?? 0),
+            'test_links_count' => (int) ($rawStats['test_links_count'] ?? $existingGraph['stats']['test_links_count'] ?? 0),
+            'knowledge_annotations_count' => max(
+                (int) ($rawStats['knowledge_annotations_count'] ?? 0),
+                count($mergedAnnotations)
+            ),
+            'bug_fixes_count' => max(
+                (int) ($rawStats['bug_fixes_count'] ?? 0),
+                count($mergedBugFixes)
+            ),
+        ];
+
+        $revision = (string) ($payload['revision'] ?? $existingGraph['revision'] ?? '');
+        $branch = (string) ($payload['branch'] ?? $project->default_branch ?? 'main');
+        $machine = (string) ($payload['machine'] ?? 'workstation');
+        $syncedAt = now()->toIso8601String();
+
+        $codeGraphSnapshot = [
+            'freshness_status' => (string) ($payload['freshness_status'] ?? 'FRESH'),
+            'revision' => $revision,
+            'branch' => $branch,
+            'machine' => $machine,
+            'synced_at' => $syncedAt,
+            'stats' => $stats,
+            'annotations' => array_slice($mergedAnnotations, 0, 200),
+            'bug_fixes' => array_slice($mergedBugFixes, 0, 100),
+        ];
+
+        $existingMeta['code_graph'] = $codeGraphSnapshot;
+        $project->metadata = $existingMeta;
+        $project->last_synced_at = now();
+        if (! empty($payload['version'])) {
+            $project->latest_release_tag = (string) $payload['version'];
+            $project->deployed_tag = $project->deployed_tag ?: (string) $payload['version'];
+        }
+        if ($revision !== '') {
+            $project->latest_release_sha = substr($revision, 0, 12);
+            $project->deployed_commit = $project->deployed_commit ?: substr($revision, 0, 12);
+        }
+        $project->save();
+
+        $eventKey = 'code_graph:' . $canonicalSlug . ':' . ($revision !== '' ? substr($revision, 0, 12) : date('YmdHi'));
+        EngineeringPipelineEvent::updateOrCreate(
+            [
+                'engineering_project_id' => $project->id,
+                'external_event_id' => $eventKey,
+            ],
+            [
+                'stage' => EngineeringPipelineEvent::STAGE_CODE_GRAPH,
+                'status' => EngineeringProject::STATUS_SUCCESS,
+                'commit_sha' => $revision !== '' ? substr($revision, 0, 40) : null,
+                'ref_name' => $branch,
+                'workflow_name' => sprintf(
+                    'Zettly Code Graph (%d files · %d symbols · %d edges · %d @zettly-code)',
+                    $stats['files_indexed'],
+                    $stats['symbols_count'],
+                    $stats['relationships_count'],
+                    $stats['knowledge_annotations_count']
+                ),
+                'source_provenance' => 'zettly-code:' . $machine,
+                'occurred_at' => now(),
+                'metadata' => ['stats' => $stats, 'machine' => $machine],
+            ]
+        );
+
+        return $project->fresh();
     }
 }

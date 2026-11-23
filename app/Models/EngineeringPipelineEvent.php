@@ -14,6 +14,7 @@ class EngineeringPipelineEvent extends Model
     public const STAGE_RELEASE = 'release';
     public const STAGE_DEPLOY = 'deploy';
     public const STAGE_VERIFY = 'verify';
+    public const STAGE_CODE_GRAPH = 'code_graph';
 
     protected $fillable = [
         'engineering_project_id',

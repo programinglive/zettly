@@ -231,6 +231,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'abilities:zettly:cli'])->group
 
     Route::middleware('super-admin')->prefix('engineering')->group(function () {
         Route::get('projects', [App\Http\Controllers\Api\EngineeringController::class, 'index'])->name('api.v1.engineering.projects.index');
+        Route::post('code-graph/sync', [App\Http\Controllers\Api\EngineeringController::class, 'syncCodeGraph'])->name('api.v1.engineering.code-graph.sync');
         Route::get('projects/{project}', [App\Http\Controllers\Api\EngineeringController::class, 'show'])->name('api.v1.engineering.projects.show');
         Route::post('projects/{project}/sync', [App\Http\Controllers\Api\EngineeringController::class, 'sync'])->name('api.v1.engineering.projects.sync');
     });

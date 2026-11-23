@@ -14,7 +14,7 @@ The private coding agent control plane links jobs to personal Todos and replaces
 
 ## Zettly Code (`@programinglive/zettly-code`) — Open-Source Code Knowledge Graph
 
-[Zettly Code](https://github.com/programinglive/zettly-code) (`@programinglive/zettly-code`, MIT License) is an official open-source core sub-project of Zettly. It transforms source repositories into a persistent, revision-aware SQLite WAL knowledge graph (`.zettly-code/knowledge-graph.db`) and enforces mandatory `@zettly-code` JSDoc/PHPDoc bug-fix annotations (`@zettly-code <ID>`, `@purpose`, `@invariant`, `@bug-fix`, `@root-cause` or `@hypothesis`, `@fix`, `@tests`) across the shared DevWorkflow lifecycle (`code_index`, `code_context`, and the pre-commit gate in `check_ready_to_commit`), syncing compact `zettly-code-reference/v1` payloads directly to Zettly Tasks.
+[Zettly Code](https://github.com/programinglive/zettly-code) (`@programinglive/zettly-code`, MIT License) is an official open-source core sub-project of Zettly. It transforms source repositories into a persistent, revision-aware SQLite WAL knowledge graph (`.zettly-code/knowledge-graph.db`) and enforces mandatory `@zettly-code` JSDoc/PHPDoc bug-fix annotations (`@zettly-code <ID>`, `@purpose`, `@invariant`, `@bug-fix`, `@root-cause` or `@hypothesis`, `@fix`, `@tests`) across the shared DevWorkflow lifecycle (`code_index`, `code_context`, and the pre-commit gate in `check_ready_to_commit`), syncing compact `zettly-code-reference/v1` payloads directly to Zettly Tasks and persisting multi-device repository graph telemetry & annotations centrally via `POST /api/v1/engineering/code-graph/sync` into the Engineering Control Center (`/engineering`).
 
 ## Design System
 

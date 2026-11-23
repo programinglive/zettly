@@ -171,4 +171,69 @@ class EngineeringControlCenterTest extends TestCase
         $this->assertSame('programinglive/zettly-code', $zettlyCode['repo_full_name']);
         $this->assertSame('open-source', $zettlyCode['environment']);
     }
+
+    public function test_code_graph_sync_persists_metrics_and_merges_annotations_across_devices(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        Sanctum::actingAs($admin, ['zettly:cli']);
+
+        // First sync from HELLOWORLD
+        $first = $this->postJson('/api/v1/engineering/code-graph/sync', [
+            'slug' => 'clinic',
+            'repo_full_name' => 'beautyworld_repository/clinic',
+            'version' => 'v5.1.90',
+            'revision' => '0ed7816d3ab000111222',
+            'branch' => 'master',
+            'machine' => 'HELLOWORLD',
+            'freshness_status' => 'FRESH',
+            'stats' => [
+                'files_indexed' => 1120,
+                'entities_count' => 4850,
+                'relationships_count' => 12400,
+                'test_links_count' => 610,
+                'knowledge_annotations_count' => 1,
+            ],
+            'annotations' => [
+                [
+                    'id' => 'ZC-CLINIC-001',
+                    'file_path' => 'app/Http/Livewire/SalesInvoicePage.php',
+                    'purpose' => 'Enforce strict nullable date normalization on invoice filters',
+                    'fix' => 'Normalized empty string dates to null',
+                ],
+            ],
+        ])->assertOk();
+
+        $first->assertJsonPath('data.slug', 'clinic');
+        $first->assertJsonPath('data.code_graph.stats.files_indexed', 1120);
+        $first->assertJsonPath('data.code_graph.stats.symbols_count', 4850);
+        $first->assertJsonPath('data.code_graph.machine', 'HELLOWORLD');
+        $first->assertJsonCount(1, 'data.code_graph.annotations');
+
+        // Second sync from Mac adds another annotation without losing ZC-CLINIC-001
+        $second = $this->postJson('/api/v1/engineering/code-graph/sync', [
+            'slug' => 'clinic',
+            'revision' => '0ed7816d3ab000111222',
+            'branch' => 'master',
+            'machine' => 'Mac',
+            'stats' => [
+                'files_indexed' => 1121,
+                'entities_count' => 4855,
+                'relationships_count' => 12410,
+                'test_links_count' => 612,
+                'knowledge_annotations_count' => 2,
+            ],
+            'annotations' => [
+                [
+                    'id' => 'ZC-CLINIC-002',
+                    'file_path' => 'app/Services/ReceiptPrintService.php',
+                    'purpose' => 'Universal print agent fallback retry',
+                    'fix' => 'Added inline receipt retry action',
+                ],
+            ],
+        ])->assertOk();
+
+        $second->assertJsonPath('data.code_graph.machine', 'Mac');
+        $second->assertJsonPath('data.code_graph.stats.files_indexed', 1121);
+        $second->assertJsonCount(2, 'data.code_graph.annotations');
+    }
 }

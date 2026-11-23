@@ -46,4 +46,36 @@ class EngineeringController extends Controller
             'data' => $registry->summarize($synced),
         ]);
     }
+
+    public function syncCodeGraph(Request $request, EngineeringProjectRegistry $registry): JsonResponse
+    {
+        $validated = $request->validate([
+            'slug' => 'nullable|string|max:120',
+            'repo_full_name' => 'nullable|string|max:190',
+            'name' => 'nullable|string|max:190',
+            'provider' => 'nullable|string|max:40',
+            'version' => 'nullable|string|max:60',
+            'revision' => 'nullable|string|max:64',
+            'branch' => 'nullable|string|max:120',
+            'machine' => 'nullable|string|max:120',
+            'freshness_status' => 'nullable|string|max:40',
+            'stats' => 'nullable|array',
+            'annotations' => 'nullable|array',
+            'bug_fixes' => 'nullable|array',
+        ]);
+
+        if (empty($validated['slug']) && empty($validated['repo_full_name'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Either slug or repo_full_name is required.',
+            ], 422);
+        }
+
+        $project = $registry->syncCodeGraph($request->user(), $validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => $registry->summarize($project),
+        ]);
+    }
 }
