@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.23](https://github.com/programinglive/todo/compare/v1.10.22...v1.10.23) (2026-11-23)
+
+
+### 🐛 Bug Fixes
+
+* **intelligence:** exclude superseded failed agent jobs and reconcile improvements ([a18f675](https://github.com/programinglive/todo/commit/a18f675973398c4a7e92cdc8356a57e95a219788))
+
 ### [1.10.22](https://github.com/programinglive/todo/compare/v1.10.21...v1.10.22) (2026-11-23)
 
 

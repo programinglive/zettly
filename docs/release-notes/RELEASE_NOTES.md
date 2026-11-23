@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.10.23 | 2026-11-23 | **intelligence:** exclude superseded failed agent jobs and reconcile improvements (a18f675) |
 | 1.10.22 | 2026-11-23 | **engineering:** add central zettly-code graph cloud sync and dashboard metrics (96ba34e) |
 | 1.10.21 | 2026-11-22 | **engineering:** integrate open-source zettly-code into registry and docs (54bdfbe) |
 | 1.10.20 | 2026-11-22 | **classify:** move typePlan and areaPlan definition before null check (100491f) |
@@ -188,6 +189,39 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 
 
+
+
+## 1.10.23
+
+Released on **2026-11-23**.
+
+- **intelligence:** exclude superseded failed agent jobs and reconcile improvements (a18f675)
+- **engineering:** add central zettly-code graph cloud sync and dashboard metrics (96ba34e)
+- **engineering:** integrate open-source zettly-code into registry and docs (54bdfbe)
+- **classify:** move typePlan and areaPlan definition before null check (100491f)
+- **classify:** normalize stale tags on unclassified items and add todos regex (697cc77)
+- **classify:** inspect archived tasks to normalize legacy tags (6f03a2e)
+- **filters:** scope faceted tags to active view and eliminate tipe:todo (a639ab6)
+- **filters:** enable multi-tag AND intersection across Area, Type, and Source (66ed3a3)
+- **tags:** eliminate vague area:dev tags and add tasks/notes schema spec (3a04470)
+- **tags:** eliminate tipe:other and enforce explicit canonical work types (e8fa663)
+- **ui:** add /notes split view, /todos/{id} 2-col revamp, and ZET-UI-003 (836390d)
+- **todos:** add email-style master-detail split view and Open-first default (5dcf809)
+- **notes:** extend Zettelkasten canonical auto-tagging to notes (2883bb2)
+- **notes:** overhaul /notes into calm Zettelkasten knowledge library (338eae0)
+- **todos:** overhaul /todos into calm human-centered task workspace (d2df330)
+- **summary:** select description and complete canonical project classification (3e49737)
+- **summary:** add canonical Zettelkasten project classifier, CLI, and auto-tagging (9b90d1a)
+- **priority:** fix warnings rendering, explain modal fields, and 1-click Today pinning (639550e)
+- **summary:** make /summary default landing page for authenticated users (f4b9d89)
+- **summary:** add executive summary dashboard with project charts and CLI (91dfec3)
+- **dashboard:** keep Today external schedule and retrospective payload strictly bounded (0815bdf)
+- **today:** add human retrospectives, calendar external waiting, and technical reports page (c61a200)
+- **ui:** prevent horizontal overflow on tablet viewports with min-w-0 (61fe7fd)
+- **ui:** compact ModeToggle and optimize Today page density and UX (13fd710)
+- **ui:** unify sidebar text-sm sizing and organize grouped navigation (ad4dade)
+- **ui:** show version and commit hash in layout and enable PWA autoUpdate (078f929)
+- **ui:** standardize full-width Notion-style compact layout and typography (fbaf9cf)
 
 ## 1.10.22
 
