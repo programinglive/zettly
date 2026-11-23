@@ -402,6 +402,13 @@ class JobExecutor:
         self._run(['gh', 'auth', 'status'], allow_github=True)
         self._run(['opencode', '--version'])
 
+    # @zettly-code ZC-ZETTLY-WORKER-PHP-001
+    # @purpose Execute CodingAgentJob in an isolated worktree with .env fallback and diagnostic setup/test log capture
+    # @domain coding-agent-worker
+    # @bug-fix IMP-107D72
+    # @root-cause Fresh worktrees lacked .env copied from .env.example and setup/test commands ran without log_path, discarding PHPUnit stderr into opaque 'php command failed with exit 2' errors
+    # @fix Copy .env.example to .env when missing and pass setup_log/test_log to _run_with_heartbeat
+    # @tests V19EffectivenessAndAutonomousDispatchTest.php
     def execute(self, job, checkpoint, emit_event=None):
         start_ns = time.monotonic_ns()
 
@@ -420,12 +427,17 @@ class JobExecutor:
 
         emit('worker_phase', f'Setting up repository cache and worktree for branch `{branch}` (role: `{role}`, mode: `{mode}`)...')
         worktree, branch = self._worktree(job, config, checkpoint)
+        env_file = worktree / '.env'
+        env_example = worktree / '.env.example'
+        if not env_file.exists() and env_example.exists():
+            shutil.copyfile(env_example, env_file)
+        setup_log = self.root / 'jobs' / f'{job["id"]}-setup.log'
         setup_environment = self.command_environment(cwd=worktree)
         for command in config.get('setup', []):
             checkpoint()
             cmd_str = ' '.join(command)
             emit('worker_phase', f'Running setup command: `{cmd_str}`')
-            self._run_with_heartbeat(command, worktree, checkpoint, env=setup_environment)
+            self._run_with_heartbeat(command, worktree, checkpoint, env=setup_environment, log_path=setup_log)
         pending = checkpoint()
         turns = [job['instruction']]
         if pending:
@@ -495,12 +507,13 @@ class JobExecutor:
 
         summary = []
         emit('worker_phase', 'OpenCode agent finished code changes. Executing automated test suite...')
+        test_log = self.root / 'jobs' / f'{job["id"]}-test.log'
         test_environment = self.command_environment(cwd=worktree)
         for command in config['tests']:
             checkpoint()
             cmd_str = ' '.join(command)
             emit('worker_phase', f'Running automated test: `{cmd_str}`')
-            self._run_with_heartbeat(command, worktree, checkpoint, env=test_environment)
+            self._run_with_heartbeat(command, worktree, checkpoint, env=test_environment, log_path=test_log)
             summary.append(' '.join(command) + ': passed')
         checkpoint()
         emit('worker_phase', 'All tests passed. Staging and verifying diff...')

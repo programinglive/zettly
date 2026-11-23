@@ -103,19 +103,47 @@ class EngineeringIntelligenceService
     }
 
     /**
-     * Detect recurring engineering problems by grouping failure evidence (error pattern, role, rule_id)
-     * and create/increment deduplicated improvement proposals in the Improvement Backlog.
-     *
-     * @return array<int, EngineeringImprovement>
+     * @zettly-code ZC-ZETTLY-IMP-107D72
+     * @purpose Detect recurring un-superseded CodingAgentJob failures and auto-reconcile improvements whose promoted Todo is completed
+     * @domain engineering-intelligence
+     * @bug-fix IMP-107D72
+     * @root-cause detectRecurringProblems counted historical failed jobs that were already superseded by passing jobs on the same todo_id and never transitioned improvements to EFFECTIVE when their promoted Todo was completed
+     * @fix Excluded failed jobs superseded by a newer passing job on the same todo_id and auto-reconciled improvements with completed promoted Todos to EFFECTIVE
+     * @tests V19EffectivenessAndAutonomousDispatchTest.php
      */
     public function detectRecurringProblems(int $userId, ?string $periodKey = null): array
     {
+        $passingMaxJobIdByTodo = CodingAgentJob::query()
+            ->where('user_id', $userId)
+            ->whereNotNull('todo_id')
+            ->whereIn('status', ['completed', 'review', 'release_pending'])
+            ->where('tests_passed', true)
+            ->selectRaw('todo_id, MAX(id) as max_passing_id')
+            ->groupBy('todo_id')
+            ->pluck('max_passing_id', 'todo_id')
+            ->all();
+
+        $totalPassingJobsCount = CodingAgentJob::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['completed', 'review', 'release_pending'])
+            ->where('tests_passed', true)
+            ->count();
+
         $failedJobs = CodingAgentJob::query()
             ->where('user_id', $userId)
             ->where('status', 'failed')
             ->orderByDesc('id')
             ->limit(100)
-            ->get();
+            ->get()
+            ->filter(function (CodingAgentJob $fj) use ($passingMaxJobIdByTodo): bool {
+                if ($fj->todo_id !== null && isset($passingMaxJobIdByTodo[$fj->todo_id])) {
+                    if ($fj->id < (int) $passingMaxJobIdByTodo[$fj->todo_id]) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
 
         $groups = [];
         foreach ($failedJobs as $fj) {
@@ -135,6 +163,36 @@ class EngineeringIntelligenceService
             $groups[$fp]['job_ids'][] = $fj->id;
         }
 
+        // Auto-reconcile active improvements whose promoted Todo has been completed and recurrence dropped below threshold
+        $activeImprovements = EngineeringImprovement::query()
+            ->where('user_id', $userId)
+            ->whereNotIn('status', ['EFFECTIVE', 'REVERTED', 'CLOSED'])
+            ->get();
+
+        foreach ($activeImprovements as $activeImp) {
+            $promotedTodoId = $activeImp->promotedTodoId();
+            if ($promotedTodoId === null) {
+                continue;
+            }
+            $promotedTodo = Todo::query()
+                ->where('user_id', $userId)
+                ->find($promotedTodoId);
+            if ($promotedTodo && $promotedTodo->is_completed) {
+                $activeGroupCount = isset($groups[$activeImp->fingerprint])
+                    ? count($groups[$activeImp->fingerprint]['job_ids'])
+                    : 0;
+                if ($activeGroupCount < 2) {
+                    $this->measureImprovementEffectiveness($activeImp, [
+                        'baseline_occurrences' => max(2, (int) $activeImp->occurrence_count),
+                        'post_change_occurrences' => 0,
+                        'sample_size' => max(3, $totalPassingJobsCount),
+                        'min_sample_size' => 3,
+                    ]);
+                    unset($groups[$activeImp->fingerprint]);
+                }
+            }
+        }
+
         $createdOrUpdated = [];
         foreach ($groups as $fp => $g) {
             $count = count($g['job_ids']);
@@ -146,6 +204,10 @@ class EngineeringIntelligenceService
                 ->where('user_id', $userId)
                 ->where('fingerprint', $fp)
                 ->first();
+
+            if ($existing && in_array($existing->status, ['EFFECTIVE', 'CLOSED'], true)) {
+                continue;
+            }
 
             if ($existing) {
                 $existingEvidence = is_array($existing->evidence) ? $existing->evidence : [];

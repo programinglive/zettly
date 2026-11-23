@@ -5,6 +5,7 @@ namespace Tests\Feature\CodingAgent;
 use App\Models\CodingAgentJob;
 use App\Models\EngineeringImprovement;
 use App\Models\EngineeringLesson;
+use App\Models\Todo;
 use App\Models\User;
 use App\Services\EngineeringIntelligence\AutonomousDispatchGuardService;
 use App\Services\EngineeringIntelligence\EngineeringIntelligenceService;
@@ -147,5 +148,96 @@ class V19EffectivenessAndAutonomousDispatchTest extends TestCase
         $this->assertFalse($duplicate['eligible']);
         $this->assertFalse($duplicate['dispatched']);
         $this->assertSame('BLOCKED', $duplicate['decision']);
+    }
+
+    public function test_detect_recurring_problems_excludes_superseded_failed_jobs_and_marks_completed_promoted_todo_effective(): void
+    {
+        $intelligence = app(EngineeringIntelligenceService::class);
+
+        $todo1 = Todo::create([
+            'user_id' => $this->owner->id,
+            'title' => 'Pilot smoke test 1',
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => false,
+        ]);
+        $todo2 = Todo::create([
+            'user_id' => $this->owner->id,
+            'title' => 'Pilot smoke test 2',
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => false,
+        ]);
+
+        // Job #1 on todo1 fails with "php command failed with exit 2"
+        $failedJob1 = CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $todo1->id,
+            'repository' => 'zettly',
+            'role' => 'developer',
+            'instruction' => 'Run pilot 1',
+            'client_request_id' => 'imp-107d72-job-1',
+            'status' => 'failed',
+            'tests_passed' => false,
+            'test_summary' => 'php command failed with exit 2',
+        ]);
+
+        // Job #2 on todo1 succeeds shortly after (superseding failedJob1 on the same todo_id!)
+        $passingJob1 = CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $todo1->id,
+            'repository' => 'zettly',
+            'role' => 'developer',
+            'instruction' => 'Run pilot 1',
+            'client_request_id' => 'imp-107d72-job-2',
+            'status' => 'release_pending',
+            'tests_passed' => true,
+            'test_summary' => 'php artisan test --compact: passed',
+        ]);
+        $this->assertGreaterThan($failedJob1->id, $passingJob1->id);
+
+        // Job #3 on todo2 fails with "php command failed with exit 2" (only 1 un-superseded failure total!)
+        CodingAgentJob::create([
+            'user_id' => $this->owner->id,
+            'todo_id' => $todo2->id,
+            'repository' => 'zettly',
+            'role' => 'developer',
+            'instruction' => 'Run pilot 2',
+            'client_request_id' => 'imp-107d72-job-3',
+            'status' => 'failed',
+            'tests_passed' => false,
+            'test_summary' => 'php command failed with exit 2',
+        ]);
+
+        // Pre-seed an active improvement (like IMP-107D72) whose promoted Todo was completed
+        $promotedTodo = Todo::create([
+            'user_id' => $this->owner->id,
+            'title' => "[IMP-107D72 · Auto-Promoted] Recurring failure in role 'developer': php command failed with exit 2",
+            'type' => Todo::TYPE_TODO,
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+
+        $fp = hash('sha256', "recurring:{$this->owner->id}:developer:php command failed with exit 2");
+        $imp = EngineeringImprovement::create([
+            'user_id' => $this->owner->id,
+            'fingerprint' => $fp,
+            'action_code' => 'IMP-107D72',
+            'title' => "Recurring failure in role 'developer': php command failed with exit 2",
+            'description' => "Detected 2 occurrences of failure pattern in role 'developer': php command failed with exit 2",
+            'owner_role' => 'developer',
+            'priority' => 'P1',
+            'status' => 'APPROVED_BY_POLICY',
+            'occurrence_count' => 2,
+            'evidence' => [
+                'job_ids' => [$failedJob1->id],
+                'normalized_reason' => 'php command failed with exit 2',
+                'promoted_todo_id' => $promotedTodo->id,
+            ],
+        ]);
+
+        // Running detectRecurringProblems must exclude superseded failedJob1 (leaving only 1 active failure < 2 threshold)
+        // and automatically transition IMP-107D72 to EFFECTIVE because its promoted Todo is completed with 0 recurring pattern!
+        $detected = $intelligence->detectRecurringProblems($this->owner->id, '2026-11-23');
+        $this->assertCount(0, $detected);
+        $this->assertSame('EFFECTIVE', $imp->fresh()->status);
     }
 }
