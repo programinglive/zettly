@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.25](https://github.com/programinglive/todo/compare/v1.10.24...v1.10.25) (2026-11-24)
+
+
+### ✨ Features
+
+* **sentry:** add scheduled 5-minute P0 auto-preemption for erp.beautyworld.co.id ([860567a](https://github.com/programinglive/todo/commit/860567a2c752e4802e7d3afdb04a48dd974e18ae))
+
 ### [1.10.24](https://github.com/programinglive/todo/compare/v1.10.23...v1.10.24) (2026-11-24)
 
 
