@@ -24,10 +24,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
+        # Self-hosted bw-tools persists ~/.npm locally on SSD; avoid remote npm cache uploads to APAC.
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
