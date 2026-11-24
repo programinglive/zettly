@@ -11,6 +11,18 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
+ * @zettly-code ZC-ZETTLY-PLANNER-001
+ *
+ * @purpose Enforce daily WIP limits and minute capacity when committing or uncommitting tasks in the Pareto Priority Queue.
+ *
+ * @bug-fix TODOAPP-70
+ *
+ * @root-cause DayPlanner::todayItems() loaded DailyPlanItem rows without eager-loading the todo relationship, causing an N+1 query inside DayPlanner::commit() when summing item->todo->estimate_minutes on POST /api/v1/priority/plan/items.
+ *
+ * @fix Eager-load with('todo') in DayPlanner::todayItems() so all active plan items and their Todo estimates are loaded in 2 bounded queries regardless of plan size.
+ *
+ * @tests SentryZeroRegressionTest.php
+ *
  * Turns the ranked list into a bounded day.
  *
  * The WIP limit and the minute capacity are enforced here, on the server, so no
@@ -55,6 +67,7 @@ final class DayPlanner
     {
         return $this->ensurePlan()
             ->items()
+            ->with('todo')
             ->whereIn('state', [DailyPlan::ITEM_PLANNED, DailyPlan::ITEM_DONE])
             ->get();
     }

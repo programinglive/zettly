@@ -6,6 +6,19 @@ use App\Services\AiOrganization\AgentPerformanceScorecardService;
 use App\Services\EngineeringIntelligence\EngineeringIntelligenceService;
 use Illuminate\Console\Command;
 
+/**
+ * @zettly-code ZC-ZETTLY-RETRO-CMD-001
+ *
+ * @purpose CLI command to generate Daily, Weekly, or Monthly Engineering Retrospectives, evaluate Agent Performance Scorecards, or promote improvements.
+ *
+ * @bug-fix TODOAPP-6Y
+ *
+ * @root-cause Scheduled retrospective command ran with default user_id=1 even on staging environments where user_id=1 was absent, causing unhandled foreign key violations.
+ *
+ * @fix Resolve the target user via EngineeringIntelligenceService::resolveTargetUserId() and skip gracefully with SUCCESS when no users exist in the database.
+ *
+ * @tests SentryZeroRegressionTest.php
+ */
 class GenerateEngineeringRetrospectiveCommand extends Command
 {
     protected $signature = 'engineering:retrospective
@@ -21,7 +34,14 @@ class GenerateEngineeringRetrospectiveCommand extends Command
         AgentPerformanceScorecardService $scorecard
     ): int {
         $kind = strtolower((string) $this->argument('kind'));
-        $userId = (int) ($this->option('user') ?: config('coding_agent.owner_user_id', 1));
+        $requestedUserId = (int) ($this->option('user') ?: config('coding_agent.owner_user_id', 1));
+        $resolvedUserId = $intelligence->resolveTargetUserId($requestedUserId);
+        if ($resolvedUserId === null) {
+            $this->warn("Skipping engineering:retrospective ({$kind}): no users exist in the database.");
+
+            return self::SUCCESS;
+        }
+        $userId = $resolvedUserId;
         $period = $this->option('period') ? (string) $this->option('period') : null;
         $regenerate = (bool) $this->option('regenerate');
 
