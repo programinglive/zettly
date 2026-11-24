@@ -6,6 +6,7 @@ Centralized history of notable changes, fixes, and enhancements to the Zettly pl
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.10.25 | 2026-11-25 | **sentry:** add scheduled 5-minute P0 auto-preemption for erp.beautyworld.co.id (`zettly:sentry-p0-sync`) |
 | 1.10.24 | 2026-11-25 | **sentry:** eager-load DayPlanner todo (TODOAPP-70), guard retrospective user FK (TODOAPP-6Y), and exclude interactive Tinker/CLI parse errors |
 | 1.10.23 | 2026-11-23 | **intelligence:** exclude superseded failed agent jobs and reconcile improvements (a18f675) |
 | 1.10.22 | 2026-11-23 | **engineering:** add central zettly-code graph cloud sync and dashboard metrics (96ba34e) |
