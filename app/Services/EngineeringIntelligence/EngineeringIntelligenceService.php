@@ -9,6 +9,7 @@ use App\Models\EngineeringPipelineEvent;
 use App\Models\EngineeringRetrospective;
 use App\Models\Focus;
 use App\Models\Todo;
+use App\Models\User;
 use App\Services\AgentSessionIngestor;
 use App\Services\AiOrganization\AgentPerformanceScorecardService;
 use Carbon\CarbonImmutable;
@@ -21,8 +22,7 @@ class EngineeringIntelligenceService
 
     public function __construct(
         private readonly AgentPerformanceScorecardService $scorecardService,
-    ) {
-    }
+    ) {}
 
     /**
      * Generate or regenerate an idempotent, versioned Daily Engineering Retrospective
@@ -104,11 +104,17 @@ class EngineeringIntelligenceService
 
     /**
      * @zettly-code ZC-ZETTLY-IMP-107D72
+     *
      * @purpose Detect recurring un-superseded CodingAgentJob failures and auto-reconcile improvements whose promoted Todo is completed
+     *
      * @domain engineering-intelligence
+     *
      * @bug-fix IMP-107D72
+     *
      * @root-cause detectRecurringProblems counted historical failed jobs that were already superseded by passing jobs on the same todo_id and never transitioned improvements to EFFECTIVE when their promoted Todo was completed
+     *
      * @fix Excluded failed jobs superseded by a newer passing job on the same todo_id and auto-reconciled improvements with completed promoted Todos to EFFECTIVE
+     *
      * @tests V19EffectivenessAndAutonomousDispatchTest.php
      */
     public function detectRecurringProblems(int $userId, ?string $periodKey = null): array
@@ -553,6 +559,38 @@ class EngineeringIntelligenceService
         ]);
     }
 
+    /**
+     * @zettly-code ZC-ZETTLY-RETRO-FK-001
+     *
+     * @purpose Resolve a verified existing User ID before persisting Engineering Retrospectives or running scheduled retrospective commands.
+     *
+     * @bug-fix TODOAPP-6Y
+     *
+     * @root-cause Scheduled engineering:retrospective daily defaulted to user_id=1 on staging/fresh databases where user ID 1 did not exist in the users table, throwing SQLSTATE[23503] foreign key violation on engineering_retrospectives_user_id_foreign.
+     *
+     * @fix Resolve the requested userId if present in users, or fall back to the configured owner email / first available user; throw a domain InvalidArgumentException only when the users table is completely empty.
+     *
+     * @tests SentryZeroRegressionTest.php
+     */
+    public function resolveTargetUserId(int $requestedUserId): ?int
+    {
+        if ($requestedUserId > 0 && User::query()->whereKey($requestedUserId)->exists()) {
+            return $requestedUserId;
+        }
+
+        $ownerEmail = trim((string) config('coding_agent.owner_email', ''));
+        if ($ownerEmail !== '') {
+            $byEmail = User::query()->where('email', $ownerEmail)->value('id');
+            if ($byEmail !== null) {
+                return (int) $byEmail;
+            }
+        }
+
+        $firstUserId = User::query()->orderBy('id')->value('id');
+
+        return $firstUserId !== null ? (int) $firstUserId : null;
+    }
+
     private function persistRetrospective(
         int $userId,
         string $kind,
@@ -562,6 +600,12 @@ class EngineeringIntelligenceService
         CarbonImmutable $endUtc,
         bool $forceRegenerate
     ): EngineeringRetrospective {
+        $resolvedUserId = $this->resolveTargetUserId($userId);
+        if ($resolvedUserId === null) {
+            throw new InvalidArgumentException("Cannot generate engineering retrospective: no valid user exists in the database for requested user_id={$userId}.");
+        }
+        $userId = $resolvedUserId;
+
         return DB::transaction(function () use ($userId, $kind, $periodKey, $title, $startUtc, $endUtc, $forceRegenerate): EngineeringRetrospective {
             $existing = EngineeringRetrospective::query()
                 ->where('user_id', $userId)

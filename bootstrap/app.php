@@ -1,14 +1,27 @@
 <?php
 
-use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureCodingAgentOwner;
 use App\Http\Middleware\EnsureCodingAgentWorker;
+use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 use Sentry\Laravel\Integration;
 
+/**
+ * @zettly-code ZC-ZETTLY-BOOTSTRAP-001
+ *
+ * @purpose Configure Laravel routing, middleware, and exception handling including Sentry noise filtering for interactive CLI/Tinker usage errors.
+ *
+ * @bug-fix TODOAPP-3G, TODOAPP-3J, TODOAPP-74, TODOAPP-6X
+ *
+ * @root-cause Interactive PsySH/Tinker parse errors and invalid ad-hoc CLI flags (e.g. --columns, --force) were reported to Sentry as unhandled application exceptions.
+ *
+ * @fix Register Psy\Exception\Exception, Symfony\Component\Console\Exception\ExceptionInterface, and Tinker EOF InvalidArgumentException in dontReport.
+ *
+ * @tests SentryZeroRegressionTest.php
+ */
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -48,6 +61,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontReport([
+            \Psy\Exception\Exception::class,
+            \Symfony\Component\Console\Exception\ExceptionInterface::class,
+        ]);
+
+        $exceptions->dontReportWhen(function (\Throwable $e): bool {
+            return $e instanceof \InvalidArgumentException
+                && $e->getMessage() === 'Unexpected end of input';
+        });
+
         Integration::handles($exceptions);
 
         // Handle database connection errors gracefully.
