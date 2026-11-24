@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @zettly-code ZC-ZETTLY-SERVICES-CFG-001
+ *
+ * @purpose Third-party service credentials configuration including GitHub and Sentry API tokens for automated P0 issue ingestion.
+ */
 return [
 
     /*
@@ -49,6 +54,12 @@ return [
     'github' => [
         'token' => env('CODING_AGENT_GITHUB_TOKEN', env('GITHUB_TOKEN')),
         'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
+    ],
+
+    'sentry' => [
+        'token' => env('SENTRY_ACCESS_TOKEN', env('SENTRY_TOKEN')),
+        'org' => env('SENTRY_ORG', 'programinglive'),
+        'host' => env('SENTRY_HOST', 'https://sentry.io'),
     ],
 
 ];
