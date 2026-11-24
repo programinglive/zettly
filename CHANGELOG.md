@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.24](https://github.com/programinglive/todo/compare/v1.10.23...v1.10.24) (2026-11-24)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** disable remote npm cache on self-hosted bw-tools to prevent APAC egress spikes ([ba4373c](https://github.com/programinglive/todo/commit/ba4373c8a24cf00a1a202338b78cb3e39f1afd05))
+* **sentry:** eager-load DayPlanner todo, guard retrospective user FK, and ignore CLI parse errors ([8aa38c5](https://github.com/programinglive/todo/commit/8aa38c5bc8134ac0825bae55b855abc818b4ce12))
+
 ### [1.10.23](https://github.com/programinglive/todo/compare/v1.10.22...v1.10.23) (2026-11-23)
 
 
