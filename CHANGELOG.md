@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.26](https://github.com/programinglive/todo/compare/v1.10.25...v1.10.26) (2026-11-26)
+
+
+### ✨ Features
+
+* **npm:** add 6-hour npm Support [#5040981](https://github.com/programinglive/todo/issues/5040981) monitor with Todo feedback ([7a89ed5](https://github.com/programinglive/todo/commit/7a89ed5736c09ec6bc0d625c559ebaba00a61195))
+
 ### [1.10.25](https://github.com/programinglive/todo/compare/v1.10.24...v1.10.25) (2026-11-24)
 
 
