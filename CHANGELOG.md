@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.27](https://github.com/programinglive/todo/compare/v1.10.26...v1.10.27) (2026-11-26)
+
+
+### 🐛 Bug Fixes
+
+* **test:** update PlaywrightSmokeTest login redirect assertion to summary.index ([cdaa545](https://github.com/programinglive/todo/commit/cdaa54515d3c742d9c81490da9fc0edc597511f3))
+
 ### [1.10.26](https://github.com/programinglive/todo/compare/v1.10.25...v1.10.26) (2026-11-26)
 
 
