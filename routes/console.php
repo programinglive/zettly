@@ -20,6 +20,8 @@ Schedule::command('journal:generate-reports')->dailyAt('23:55')->timezone('Asia/
 Schedule::command('journal:deliver-reports')->everyFifteenMinutes();
 Schedule::command('zettly:engineering-sync')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('zettly:sentry-p0-sync')->everyFiveMinutes()->withoutOverlapping();
+// Todo #1100: poll npm Support ticket #5040981 and leave feedback on the Todo every 6 hours.
+Schedule::command('zettly:verify-legacy-npm')->everySixHours()->withoutOverlapping();
 
 // Zettly V1.7 Engineering Intelligence Retrospectives (Asia/Jakarta)
 Schedule::command('engineering:retrospective daily')->dailyAt('00:10')->timezone('Asia/Jakarta')->withoutOverlapping();
