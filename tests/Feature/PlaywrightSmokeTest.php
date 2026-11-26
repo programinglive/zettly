@@ -45,7 +45,7 @@ class PlaywrightSmokeTest extends TestCase
         $this->post('/login', [
             'email' => $this->user->email,
             'password' => $password,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('summary.index', absolute: false));
 
         $this->assertAuthenticated();
     }
