@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.28](https://github.com/programinglive/todo/compare/v1.10.27...v1.10.28) (2026-11-27)
+
+
+### ✨ Features
+
+* **sentry:** skip claimed or recently completed issues in P0 sync and expose ai_claim ([91e7195](https://github.com/programinglive/todo/commit/91e719591b25c76072f88e651ab20f184538ff70))
+
 ### [1.10.27](https://github.com/programinglive/todo/compare/v1.10.26...v1.10.27) (2026-11-26)
 
 
