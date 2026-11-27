@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * @zettly-code ZC-ZETTLY-TODO-AICLAIM-001
+ * @purpose Expose structured AI session claim metadata (`ai_claim`) parsed from embedded DevWorkflow section blocks so AI agents and Priority Queue readers immediately see whether a Todo is claimed in-progress.
+ */
 class Todo extends Model
 {
     use HasFactory, SoftDeletes;
@@ -71,6 +75,7 @@ class Todo extends Model
 
     protected $appends = [
         'priority_color',
+        'ai_claim',
     ];
 
     protected static function booted(): void
@@ -328,6 +333,53 @@ class Todo extends Model
         return [
             self::IMPORTANCE_NOT_IMPORTANT => 'Not Important',
             self::IMPORTANCE_IMPORTANT => 'Important',
+        ];
+    }
+
+    /**
+     * Parse the embedded DevWorkflow HTML block (`<!-- dev-workflow:<id>:start -->`)
+     * to expose active AI session claim metadata (`claimed`, `status`, `phase`, `task_id`, `session`).
+     *
+     * @return array{claimed: bool, status: string, phase: string, task_id: string, session: string}|null
+     */
+    public function getAiClaimAttribute(): ?array
+    {
+        $description = (string) ($this->description ?? '');
+        if ($description === '' || ! str_contains($description, 'data-dev-workflow-id=')) {
+            return null;
+        }
+
+        if (! preg_match_all('/<section\s+data-dev-workflow-id="([^"]+)">([\s\S]*?)<\/section>/i', $description, $matches, PREG_SET_ORDER)) {
+            return null;
+        }
+
+        $lastMatch = end($matches);
+        $taskId = html_entity_decode((string) ($lastMatch[1] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $body = (string) ($lastMatch[2] ?? '');
+
+        $phase = 'unknown';
+        if (preg_match('/<p>\s*Status:\s*([^<]+)<\/p>/i', $body, $statusMatch)) {
+            $phase = strtolower(trim(html_entity_decode($statusMatch[1], ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        }
+
+        $sessionText = '';
+        if (preg_match('/<h4>\s*AI sessions\s*<\/h4>\s*<pre>([\s\S]*?)<\/pre>/i', $body, $sessionMatch)) {
+            $lines = array_values(array_filter(array_map(
+                static fn (string $line) => trim(html_entity_decode($line, ENT_QUOTES | ENT_HTML5, 'UTF-8')),
+                preg_split('/\r?\n/', (string) $sessionMatch[1]) ?: []
+            )));
+            $sessionText = (string) (end($lines) ?: '');
+        }
+
+        $terminalPhases = ['idle', 'completed', 'cancelled', 'closed_with_exceptions', 'closed', 'done'];
+        $isClaimed = ! $this->is_completed && ! in_array($phase, $terminalPhases, true);
+
+        return [
+            'claimed' => $isClaimed,
+            'status' => $isClaimed ? 'in_progress' : ($this->is_completed ? 'completed' : $phase),
+            'phase' => $phase,
+            'task_id' => $taskId,
+            'session' => $sessionText,
         ];
     }
 

@@ -62,4 +62,9 @@ return [
         'host' => env('SENTRY_HOST', 'https://sentry.io'),
     ],
 
+    'devworkflow_monitor' => [
+        'url' => env('DEVWF_MONITOR_URL', 'http://100.77.138.14:3100'),
+        'token' => env('DEVWF_MONITOR_TOKEN', ''),
+    ],
+
 ];

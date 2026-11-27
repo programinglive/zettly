@@ -16,6 +16,10 @@ use Carbon\CarbonImmutable;
  *     carries descriptions or related-item graphs, so the payload stays small
  *     enough for the MCP client's response limit.
  */
+/**
+ * @zettly-code ZC-ZETTLY-QUEUE-AICLAIM-001
+ * @purpose Include active AI session claim metadata (`ai_claim`) on Today and Next priority queue items so AI sessions immediately see which Todos are already claimed.
+ */
 final class PriorityQueueBuilder
 {
     public const TITLE_LIMIT = 140;
@@ -172,6 +176,7 @@ final class PriorityQueueBuilder
             'reasons' => $item->reasons,
             'key' => $item->key(),
             'committed' => $committed,
+            'ai_claim' => $todo->ai_claim,
         ];
     }
 

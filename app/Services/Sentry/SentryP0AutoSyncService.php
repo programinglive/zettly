@@ -126,6 +126,7 @@ class SentryP0AutoSyncService
         $p0Service = new P0Service($userId, $settings);
         $today = CarbonImmutable::now('Asia/Jakarta')->startOfDay();
         $planner = new DayPlanner($userId, $settings, $today);
+        $monitorClaims = $this->fetchActiveMonitorClaims();
 
         $createdCount = 0;
         $promoted = [];
@@ -142,6 +143,10 @@ class SentryP0AutoSyncService
             $wasCreated = false;
 
             if ($existing === null) {
+                if ($this->hasRecentlyCompletedTodo($userId, $issueId, $shortId) || $this->isClaimedOnMonitor($issueId, $shortId, $monitorClaims)) {
+                    continue;
+                }
+
                 $todoTitle = mb_substr("[P0 · {$shortId}] Fix erp.beautyworld.co.id: {$title}", 0, 250);
                 $todoDescription = implode("\n", array_filter([
                     'Auto-ingested P0 production issue from Sentry for erp.beautyworld.co.id (#1 Top Priority).',
@@ -234,6 +239,125 @@ class SentryP0AutoSyncService
             })
             ->orderByDesc('id')
             ->first();
+    }
+
+    /**
+     * Check if an AI session already completed a Todo for this Sentry issue within the last 3 hours
+     * (e.g., fix committed and awaiting release tag deployment before Sentry issue status flips to resolved).
+     */
+    private function hasRecentlyCompletedTodo(int $userId, string $issueId, string $shortId): bool
+    {
+        $cutoff = now()->subHours(3);
+
+        return Todo::query()
+            ->where('user_id', $userId)
+            ->where('type', Todo::TYPE_TODO)
+            ->where('is_completed', true)
+            ->where(function ($q) use ($cutoff) {
+                $q->where('completed_at', '>=', $cutoff)
+                    ->orWhere('updated_at', '>=', $cutoff);
+            })
+            ->where(function ($query) use ($issueId, $shortId) {
+                $query->where('description', 'like', "%{$issueId}%")
+                    ->orWhere('title', 'like', "%{$shortId}%")
+                    ->orWhere('description', 'like', "%{$shortId}%");
+            })
+            ->exists();
+    }
+
+    /**
+     * Query the optional DevWorkflow Monitor (`/api/sessions`) for active live AI sessions
+     * and extract their claimed Sentry issue IDs and shortIds.
+     *
+     * @return array{issue_ids: array<string, bool>, short_ids: array<string, bool>}
+     */
+    private function fetchActiveMonitorClaims(): array
+    {
+        $claims = ['issue_ids' => [], 'short_ids' => []];
+        $monitorUrl = rtrim(trim((string) config('services.devworkflow_monitor.url', '')), '/');
+        if ($monitorUrl === '') {
+            return $claims;
+        }
+
+        try {
+            $headers = ['Accept' => 'application/json'];
+            $token = trim((string) config('services.devworkflow_monitor.token', ''));
+            if ($token !== '') {
+                $headers['Authorization'] = 'Bearer '.$token;
+            }
+
+            $response = Http::withHeaders($headers)
+                ->timeout(2)
+                ->get("{$monitorUrl}/api/sessions", ['limit' => 50]);
+
+            if (! $response->successful() || ! is_array($response->json('sessions'))) {
+                return $claims;
+            }
+
+            $inactivePhases = ['idle', 'closed', 'done', 'cancelled', 'archived', 'handed-off'];
+            foreach ($response->json('sessions') as $session) {
+                if (! is_array($session)) {
+                    continue;
+                }
+                $phase = strtolower(trim((string) ($session['phase'] ?? 'idle')));
+                $state = strtolower(trim((string) ($session['state'] ?? 'live')));
+                if (in_array($phase, $inactivePhases, true) || $state === 'ended') {
+                    continue;
+                }
+
+                $origin = $session['task_origin_json'] ?? $session['taskOrigin'] ?? null;
+                if (is_array($origin) && ($origin['system'] ?? '') === 'sentry') {
+                    $id = trim((string) ($origin['id'] ?? ''));
+                    $label = strtoupper(trim((string) ($origin['label'] ?? '')));
+                    if ($id !== '') {
+                        $claims['issue_ids'][$id] = true;
+                    }
+                    if ($label !== '' && $label !== $id) {
+                        $claims['short_ids'][$label] = true;
+                    }
+                }
+
+                $relations = $session['task_relations_json'] ?? $session['taskRelations'] ?? [];
+                if (is_array($relations)) {
+                    foreach ($relations as $rel) {
+                        if (is_array($rel) && ($rel['system'] ?? '') === 'sentry') {
+                            $id = trim((string) ($rel['id'] ?? ''));
+                            $label = strtoupper(trim((string) ($rel['label'] ?? '')));
+                            if ($id !== '') {
+                                $claims['issue_ids'][$id] = true;
+                            }
+                            if ($label !== '' && $label !== $id) {
+                                $claims['short_ids'][$label] = true;
+                            }
+                        }
+                    }
+                }
+
+                $taskText = strtoupper((string) ($session['task'] ?? ''));
+                if ($taskText !== '' && preg_match_all('/\b([A-Z][A-Z0-9_-]{1,24}-[0-9A-Z]{1,8})\b/', $taskText, $matches)) {
+                    foreach ($matches[1] as $tokenMatch) {
+                        $claims['short_ids'][$tokenMatch] = true;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Best-effort monitor query; never block Sentry sync if monitor is offline
+        }
+
+        return $claims;
+    }
+
+    /**
+     * @param  array{issue_ids: array<string, bool>, short_ids: array<string, bool>}  $monitorClaims
+     */
+    private function isClaimedOnMonitor(string $issueId, string $shortId, array $monitorClaims): bool
+    {
+        if ($issueId !== '' && isset($monitorClaims['issue_ids'][$issueId])) {
+            return true;
+        }
+        $upperShort = strtoupper(trim($shortId));
+
+        return $upperShort !== '' && isset($monitorClaims['short_ids'][$upperShort]);
     }
 
     private function ensureActiveErpFocus(int $userId): Focus
