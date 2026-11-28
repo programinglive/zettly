@@ -514,7 +514,7 @@ export default function AppLayout({
                                         <div className="relative">
                                             <button
                                                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                                className="flex min-h-[44px] items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                                             >
                                                 <div className="w-7 h-7 rounded-full bg-gray-700 dark:bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">
                                                     {auth?.user?.name?.charAt(0).toUpperCase()}

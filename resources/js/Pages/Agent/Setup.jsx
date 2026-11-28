@@ -5,7 +5,7 @@ import AppLayout from '../../Layouts/AppLayout';
 export default function Setup({ newToken, agentEnabled, repositoryRegistry = [] }) {
     return <AppLayout title="Coding Agent Setup">
         <Head title="Coding Agent Setup" />
-        <div className="mx-auto max-w-3xl space-y-6 py-6 pb-20">
+        <div className="w-full space-y-6 py-6 pb-20 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-semibold">Coding Agent & Engineering Setup</h1>

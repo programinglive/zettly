@@ -19,7 +19,7 @@ export default function Intelligence({
     return (
         <AppLayout title="Engineering Intelligence & Retrospectives">
             <Head title="Engineering Intelligence · V1.7" />
-            <div className="mx-auto max-w-6xl space-y-6 py-6 pb-20">
+            <div className="w-full space-y-6 py-6 pb-20 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">

@@ -2,15 +2,16 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 
 import AppLayout from '../Layouts/AppLayout';
+import { Rocket } from 'lucide-react';
 
 export default function Developer() {
     return (
         <AppLayout title="Developer Portal">
             <Head title="Developer Portal" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-12 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 {/* Header */}
                 <div className="mb-16">
-                    <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white leading-[1.1] tracking-tight">
                         Developer Portal
                     </h1>
                     <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
@@ -19,7 +20,7 @@ export default function Developer() {
                 </div>
 
                 {/* Getting Started */}
-                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Authentication</h2>
                     <p className="text-gray-600 dark:text-gray-300 mb-6">
                         Authenticate every request with a personal access token. Generate tokens from the <Link href="/profile" className="text-blue-600 dark:text-blue-400 hover:underline">Profile → API Tokens</Link> section.
@@ -31,7 +32,7 @@ export default function Developer() {
                 </section>
 
                 {/* Base URL */}
-                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Base URL</h2>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">All endpoints are prefixed with:</p>
                     <code className="inline-block bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2 rounded text-sm font-mono">
@@ -40,8 +41,8 @@ export default function Developer() {
                 </section>
 
                 {/* Priority System */}
-                <section className="bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-900/20 dark:to-blue-900/20 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">🚀 Priority System</h2>
+                <section className="bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-900/20 dark:to-blue-900/20 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4"><Rocket className="inline h-5 w-5" aria-hidden="true" /> Priority System</h2>
                     <p className="text-gray-600 dark:text-gray-300 mb-6">
                         New in v0.1.0: Comprehensive 4-level priority system for better task management.
                     </p>
@@ -71,7 +72,7 @@ export default function Developer() {
                 </section>
 
                 {/* Zettly Code Open-Source Knowledge Graph */}
-                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                             Zettly Code (@programinglive/zettly-code)
@@ -152,7 +153,7 @@ export default function Developer() {
                         ].map(({ method, path, summary, description }) => (
                             <article
                                 key={`${method}-${path}`}
-                                className="bg-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 shadow-sm transition-all hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700"
+                                className="bg-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-lg p-8 shadow-sm transition-all hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700"
                             >
                                 <header className="flex items-center justify-between mb-3">
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${method === 'GET' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
@@ -210,7 +211,7 @@ export default function Developer() {
                         ].map(({ method, path, summary, description }) => (
                             <article
                                 key={`${method}-${path}`}
-                                className="bg-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-8 shadow-sm transition-all hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700"
+                                className="bg-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-lg p-8 shadow-sm transition-all hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700"
                             >
                                 <header className="flex items-center justify-between mb-3">
                                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
@@ -226,7 +227,7 @@ export default function Developer() {
                 </section>
 
                 {/* SDK */}
-                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
+                <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Example cURL Requests</h2>
                     <div className="space-y-4">
                         <div className="bg-gray-900 text-gray-100 font-mono text-sm rounded-xl p-4 overflow-x-auto">

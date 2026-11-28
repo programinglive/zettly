@@ -136,10 +136,10 @@ export default function SystemMonitor() {
         <AppLayout title="System Monitor">
             <Head title="System Monitor" />
 
-            <div className="max-w-7xl mx-auto space-y-6 py-8">
+            <div className="w-full space-y-6 py-8 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">System Monitor</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">System Monitor</h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-400">
                         Monitor application health and recent activity
                     </p>
@@ -161,7 +161,7 @@ export default function SystemMonitor() {
                             ].map(({ label, value }) => (
                                 <div key={label} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg p-6">
                                     <div className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</div>
-                                    <div className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{value}</div>
+                                    <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{value}</div>
                                 </div>
                             ))}
                         </div>

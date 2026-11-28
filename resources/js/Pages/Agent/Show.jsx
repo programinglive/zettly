@@ -3,6 +3,26 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 import SanitizedHtml from '../../Components/SanitizedHtml';
 import { canApprove, heartbeatLabel, statusLabel } from './jobView';
+import {
+    BarChart3,
+    Bot,
+    ClipboardList,
+    Clock3,
+    Compass,
+    ExternalLink,
+    FileText,
+    FlaskConical,
+    FolderGit2,
+    GitPullRequest,
+    MessageSquare,
+    Package,
+    Pin,
+    Radio,
+    Rocket,
+    Settings2,
+    UserRound,
+    Zap,
+} from 'lucide-react';
 
 export default function Show({ job, events }) {
     const instruction = useForm({ instruction: '' });
@@ -61,7 +81,7 @@ export default function Show({ job, events }) {
 
     return <AppLayout title="Coding Agent Job">
         <Head title={`Agent job #${job.id}`} />
-        <div className="mx-auto max-w-3xl space-y-6 py-6 pb-20">
+        <div className="w-full space-y-6 py-6 pb-20 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
             <div className="flex items-center justify-between">
                 <Link href="/agent/jobs" className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400">
                     <span aria-hidden="true">←</span> Back to all jobs
@@ -71,7 +91,7 @@ export default function Show({ job, events }) {
                         href={`/agent/jobs/${job.id}/monitor`}
                         className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
                     >
-                        <span>📡</span> Live Monitor
+                        <Radio className="h-4 w-4 shrink-0" aria-hidden="true" /> Live Monitor
                     </Link>
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
                         Job #{job.id}
@@ -83,33 +103,33 @@ export default function Show({ job, events }) {
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{job.todo_title}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                     <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 font-mono dark:bg-gray-800">
-                        📁 {job.repository}
+                        <FolderGit2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {job.repository}
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 font-mono text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-                        👤 {job.role || 'developer'} ({job.execution_mode || 'code_write'})
+                        <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {job.role || 'developer'} ({job.execution_mode || 'code_write'})
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 font-mono font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
-                        🧭 Profile: {job.routing_profile || job.workflow?.routing_profile || 'STANDARD'}
+                        <Compass className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Profile: {job.routing_profile || job.workflow?.routing_profile || 'STANDARD'}
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2 py-1 font-medium text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
-                        🤖 {job.model || 'agnes-3-0-flash:free'}
+                        <Bot className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {job.model || 'agnes-3-0-flash:free'}
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                        ⚡ {statusLabel(job.status)}
+                        <Zap className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {statusLabel(job.status)}
                     </span>
                     {job.delivery_stage && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-mono font-semibold text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
-                            🚀 {job.delivery_stage}
+                            <Rocket className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {job.delivery_stage}
                         </span>
                     )}
                     {job.production_revision && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 font-mono text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                            📌 Rev: {String(job.production_revision).slice(0, 10)}
+                            <Pin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Rev: {String(job.production_revision).slice(0, 10)}
                         </span>
                     )}
                     {job.telemetry && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-1 font-mono text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
-                            📊 {job.telemetry.total_tokens ?? 0} tok · {Math.round((job.telemetry.duration_ms ?? 0) / 1000)}s
+                            <BarChart3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {job.telemetry.total_tokens ?? 0} tok · {Math.round((job.telemetry.duration_ms ?? 0) / 1000)}s
                         </span>
                     )}
                 </div>
@@ -131,17 +151,17 @@ export default function Show({ job, events }) {
                             </h2>
                         </div>
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
-                            <span className="animate-spin text-[10px]">⚙️</span> Worker Active · {heartbeatLabel(job.last_heartbeat_at, now)}
+                            <Settings2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Worker Active · {heartbeatLabel(job.last_heartbeat_at, now)}
                         </span>
                     </div>
 
                     {/* Visual 4-Step Stepper */}
                     <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {[
-                            { num: 1, title: 'Setup & Worktree', icon: '📁' },
-                            { num: 2, title: 'Code Generation', icon: '🤖' },
-                            { num: 3, title: 'Automated Tests', icon: '🧪' },
-                            { num: 4, title: 'Pull Request', icon: '🐙' },
+                            { num: 1, title: 'Setup & Worktree', icon: FolderGit2 },
+                            { num: 2, title: 'Code Generation', icon: Bot },
+                            { num: 3, title: 'Automated Tests', icon: FlaskConical },
+                            { num: 4, title: 'Pull Request', icon: GitPullRequest },
                         ].map((step) => {
                             const isCurrent = currentStep === step.num;
                             const isDone = currentStep > step.num;
@@ -157,7 +177,7 @@ export default function Show({ job, events }) {
                                     }`}
                                 >
                                     <div className="flex items-center justify-between text-xs font-semibold">
-                                        <span>{step.icon} Step {step.num}</span>
+                                        <span className="inline-flex items-center gap-1"><step.icon className="h-3.5 w-3.5" aria-hidden="true" /> Step {step.num}</span>
                                         {isDone && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                                         {isCurrent && <span className="animate-pulse text-emerald-600 dark:text-emerald-400 font-bold">● Active</span>}
                                     </div>
@@ -181,7 +201,7 @@ export default function Show({ job, events }) {
             {job.status === 'queued' && (
                 <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
                     <div className="flex items-center gap-2">
-                        <span className="text-lg" aria-hidden="true">⏳</span>
+                        <Clock3 className="h-5 w-5" aria-hidden="true" />
                         <div>
                             <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">Job is Queued</h2>
                             <p className="text-xs text-amber-700 dark:text-amber-400">
@@ -197,7 +217,7 @@ export default function Show({ job, events }) {
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
                     <div className="flex items-center gap-2">
                         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-base text-blue-700 dark:bg-blue-950/60 dark:text-blue-300" aria-hidden="true">
-                            📝
+                            <FileText className="h-4 w-4" aria-hidden="true" />
                         </span>
                         <h2 className="font-semibold text-gray-900 dark:text-gray-100">Job Specification & Instructions</h2>
                     </div>
@@ -208,7 +228,7 @@ export default function Show({ job, events }) {
                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                             title="Copy full markdown prompt to clipboard"
                         >
-                            <span>{copied ? '✓ Copied' : '📋 Copy Prompt'}</span>
+                            <span>{copied ? '✓ Copied' : <><ClipboardList className="h-4 w-4" aria-hidden="true" /> Copy Prompt</>}</span>
                         </button>
                     </div>
                 </div>
@@ -251,7 +271,7 @@ export default function Show({ job, events }) {
             {/* Review Artifacts */}
             {(job.commit_sha || job.test_summary) && <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800">
-                    <span className="text-lg" aria-hidden="true">📦</span>
+                    <Package className="h-5 w-5" aria-hidden="true" />
                     <h2 className="font-semibold text-gray-900 dark:text-gray-100">Review Artifact</h2>
                 </div>
 
@@ -273,8 +293,8 @@ export default function Show({ job, events }) {
                 {job.pr_url && (
                     <div className="pt-1">
                         <a href={job.pr_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300">
-                            <span>🐙 Open GitHub Pull Request</span>
-                            <span aria-hidden="true">↗</span>
+                            <span><GitPullRequest className="h-4 w-4" aria-hidden="true" /> Open GitHub Pull Request</span>
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
                         </a>
                     </div>
                 )}
@@ -354,8 +374,8 @@ export default function Show({ job, events }) {
                 >
                     <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-2 dark:border-gray-800">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                            {event.kind === 'worker_phase' && <span className="text-emerald-600 dark:text-emerald-400" aria-hidden="true">⚡</span>}
-                            {event.kind === 'instruction' && <span aria-hidden="true">💬</span>}
+                            {event.kind === 'worker_phase' && <Zap className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />}
+                            {event.kind === 'instruction' && <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />}
                             {event.kind.replaceAll('_', ' ')}
                         </span>
                         <time className="text-xs text-gray-500">{new Date(event.occurred_at).toLocaleString()}</time>

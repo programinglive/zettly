@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 import { heartbeatLabel, statusLabel } from './jobView';
+import { ExternalLink } from 'lucide-react';
 
 const STEPS = [
     { num: 1, title: 'Setup & Worktree' },
@@ -65,7 +66,7 @@ export default function Monitor({ job, events = [] }) {
         <AppLayout title={`Live Monitor · Job #${job.id}`}>
             <Head title={`Live Monitor · Job #${job.id}`} />
 
-            <div className="mx-auto max-w-4xl space-y-5 py-6 pb-20">
+            <div className="w-full space-y-5 py-6 pb-20 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 {/* Clean Top Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 text-sm">
@@ -245,7 +246,7 @@ export default function Monitor({ job, events = [] }) {
                                 rel="noreferrer"
                                 className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
                             >
-                                Buka Pull Request ↗
+                                Buka Pull Request <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                             </a>
                         )}
                     </div>

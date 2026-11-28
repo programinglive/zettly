@@ -71,7 +71,7 @@ export default function EngineeringIndex({ projects = [] }) {
     return (
         <AppLayout title="Engineering Control Center">
             <Head title="Engineering Control Center" />
-            <div className="w-full px-4 sm:px-6 py-4 space-y-6">
+            <div className="w-full space-y-6 px-4 py-4 sm:px-6 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-lg font-semibold text-gray-900 dark:text-white">

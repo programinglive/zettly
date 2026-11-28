@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { BookOpen, Puzzle, Rocket } from 'lucide-react';
 
 const DOC_BASE_URL = 'https://github.com/programinglive/zettly/blob/main/docs';
 
@@ -9,7 +10,7 @@ const guides = [
         id: 'getting-started',
         title: 'Getting Started',
         summary: 'Set up Zettly locally, sync data, and understand the product fundamentals.',
-        icon: '🚀',
+        icon: Rocket,
         items: [
             {
                 title: 'Installation & Local Setup',
@@ -32,7 +33,7 @@ const guides = [
         id: 'product-guides',
         title: 'Product Guides',
         summary: 'Deep dives into the major experiences shipped with Zettly.',
-        icon: '📘',
+        icon: BookOpen,
         items: [
             {
                 title: 'Organizations',
@@ -60,7 +61,7 @@ const guides = [
         id: 'api-reference',
         title: 'API Reference',
         summary: 'Endpoints, authentication, rate limits, and payload structures for external integrations.',
-        icon: '🧩',
+        icon: Puzzle,
         items: [
             {
                 title: 'REST API Overview',
@@ -85,11 +86,11 @@ export default function Docs() {
     return (
         <AppLayout title="Documentation">
             <Head title="Documentation" />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-12 [&_a]:min-h-[44px] [&_button]:min-h-[44px]">
                 {/* Header */}
                 <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                     <div className="flex-1">
-                        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white leading-[1.1] tracking-tight">
                             Documentation
                         </h1>
                         <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
@@ -164,10 +165,10 @@ export default function Docs() {
                         </aside>
 
                         <section className="space-y-16">
-                            {guides.map(({ id, title, summary, icon, items }) => (
-                                <div key={id} id={id} className="scroll-mt-32 space-y-6 rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+                            {guides.map(({ id, title, summary, icon: Icon, items }) => (
+                                <div key={id} id={id} className="scroll-mt-32 space-y-6 rounded-lg border border-slate-200 bg-white/80 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-2xl dark:bg-indigo-500/20">{icon}</div>
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/20"><Icon className="h-5 w-5" aria-hidden="true" /></div>
                                         <div>
                                             <p className="text-xs uppercase tracking-[0.25em] text-indigo-400">{title}</p>
                                             <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">{summary}</h2>
@@ -178,7 +179,7 @@ export default function Docs() {
                                         {items.map((item) => (
                                             <article
                                                 key={item.title}
-                                                className="group relative flex flex-col rounded-[2.5rem] border border-slate-100 bg-white/90 p-8 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900/90"
+                                                className="group relative flex flex-col rounded-lg border border-slate-100 bg-white/90 p-8 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900/90"
                                             >
                                                 <div className="text-sm font-semibold text-slate-900 dark:text-white">{item.title}</div>
                                                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
@@ -200,10 +201,10 @@ export default function Docs() {
                                 </div>
                             ))}
 
-                            <div className="rounded-[2.5rem] border border-indigo-200 bg-indigo-50/80 p-12 shadow-sm dark:border-indigo-500/40 dark:bg-indigo-500/10">
+                            <div className="rounded-lg border border-indigo-200 bg-indigo-50/80 p-12 shadow-sm dark:border-indigo-500/40 dark:bg-indigo-500/10">
                                 <p className="text-sm uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">Contribute</p>
                                 <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Help us keep the docs evergreen.</h2>
-                                <p className="mt-2 max-w-3xl text-slate-600 dark:text-slate-200">
+                                <p className="mt-2 text-slate-600 dark:text-slate-200">
                                     Documentation lives inside the <code className="rounded bg-white/70 px-2 py-0.5 text-xs font-mono dark:bg-slate-900/60">/docs</code> directory. Submit a PR
                                     with updates, new diagrams, or troubleshooting steps whenever you ship a feature.
                                 </p>
