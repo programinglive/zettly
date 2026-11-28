@@ -132,6 +132,17 @@ function TagChips({ items }) {
     );
 }
 
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-REPORT-001
+ *
+ * @purpose Render a report detail in a full-width fluid container with a calm master-detail layout.
+ *
+ * @hypothesis The narrow max-width wrapper violates ZET-UI-003 by narrowing the report detail on phones and desktops.
+ *
+ * @fix Use DashboardLayout's fluid container and tighter vertical rhythm while keeping the existing compact heading.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function ReportsShow({ report }) {
     const generatedLabel = report.generated_at
         ? `Generated ${new Date(report.generated_at.replace(' ', 'T')).toLocaleString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
@@ -155,7 +166,7 @@ export default function ReportsShow({ report }) {
 
     return (
         <DashboardLayout title={`${KIND_LABELS[report.period_kind] || 'Report'} — Zettly`}>
-            <div className="mx-auto max-w-3xl space-y-6 py-8">
+            <div className="w-full space-y-5 py-6">
                 <Link
                     href="/reports"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 transition-colors hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"

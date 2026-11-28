@@ -29,6 +29,17 @@ import Footer from '../Components/Footer';
 import PwaInstallPrompt from '../Components/PwaInstallPrompt';
 import usePwaMode from '../hooks/usePwaMode';
 
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-APP-LAYOUT-001
+ *
+ * @purpose Keep the shared top navigation fluid and its mobile menu button a 44px touch target.
+ *
+ * @hypothesis The phone menu button was 36px tall, below the mobile-first 44x44px minimum.
+ *
+ * @fix Give the mobile menu button a 44px minimum height and width without changing navigation behavior.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function AppLayout({
     children,
     title,
@@ -488,7 +499,7 @@ export default function AppLayout({
                                         {/* Mobile Menu Button */}
                                         <button
                                             onClick={() => setMobileSidebarOpen(true)}
-                                            className="lg:hidden p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800"
+                                            className="lg:hidden min-h-[44px] min-w-[44px] p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800"
                                         >
                                             <Menu className="w-4 h-4" />
                                         </button>

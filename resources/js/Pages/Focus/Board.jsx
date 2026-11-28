@@ -9,6 +9,17 @@ import { FileText, StickyNote, PenTool, BookOpen } from 'lucide-react';
  * inside it. The payload comes from a single endpoint so the counts and the
  * lists can never disagree.
  */
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-FOCUS-001
+ *
+ * @purpose Render a focus workspace full-width with compact typography and a calm todo list.
+ *
+ * @hypothesis The narrow max-width wrapper, oversized heading and strikethrough titles violate ZET-UI-003.
+ *
+ * @fix Use the AppLayout fluid container, a compact heading and a muted status label instead of strikethrough for completed todos.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function FocusBoard({ focus, counts, todos, notes, drawings, journal }) {
     const [tab, setTab] = useState('todos');
 
@@ -28,8 +39,8 @@ export default function FocusBoard({ focus, counts, todos, notes, drawings, jour
         <AppLayout>
             <Head title={focus?.title ? `${focus.title} — Focus` : 'Focus'} />
 
-            <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
-                <header className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="w-full space-y-5 py-6">
+                <header className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div
                         className="absolute inset-x-0 top-0 h-1"
                         style={{ backgroundColor: focus?.color || '#6366F1' }}
@@ -40,7 +51,7 @@ export default function FocusBoard({ focus, counts, todos, notes, drawings, jour
                             {focus?.status || 'focus'}
                         </span>
                     </div>
-                    <h1 className="mt-3 text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+                    <h1 className="mt-2 text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
                         {focus?.title}
                     </h1>
                     {focus?.description && (
@@ -106,7 +117,7 @@ function TodoList({ items = [] }) {
                     key={todo.id}
                     className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <span className={todo.is_completed ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-200'}>
+                    <span className={todo.is_completed ? 'text-gray-400' : 'text-gray-800 dark:text-gray-200'}>
                         {todo.title}
                     </span>
                     <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">

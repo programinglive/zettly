@@ -28,6 +28,17 @@ const formatDate = (value) => {
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-JOURNAL-001
+ *
+ * @purpose Render the Journal timeline in a full-width fluid container with compact typography.
+ *
+ * @hypothesis The nested narrow max-width wrapper and oversized heading violate ZET-UI-003 and waste horizontal space on phones.
+ *
+ * @fix Rely on DashboardLayout for the fluid container and use a compact heading.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function JournalIndex({ entries, filters = {}, kinds = [], stats = {}, tags = [] }) {
     const rows = entries?.data ?? [];
     const isPaginated = !!entries?.data;
@@ -68,15 +79,15 @@ export default function JournalIndex({ entries, filters = {}, kinds = [], stats 
         <DashboardLayout title="Journal">
             <Head title="Journal" />
 
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="mb-10">
+            <div className="w-full py-6 sm:py-8">
+                <div className="mb-6">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
                         <BookOpen className="w-4 h-4 text-gray-600 dark:text-slate-400" />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-500">
                             Activity log
                         </span>
                     </div>
-                    <h1 className="mt-4 text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+                    <h1 className="mt-3 text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
                         Journal
                     </h1>
                     <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
@@ -96,7 +107,7 @@ export default function JournalIndex({ entries, filters = {}, kinds = [], stats 
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') apply({ q: e.currentTarget.value });
                             }}
-                            className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-500"
+                            className="w-full min-h-[44px] rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-500"
                         />
                     </div>
 
@@ -105,7 +116,7 @@ export default function JournalIndex({ entries, filters = {}, kinds = [], stats 
                         <select
                             value={filters?.kind ?? ''}
                             onChange={(e) => apply({ kind: e.target.value })}
-                            className="rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
+                            className="min-h-[44px] rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-gray-900 dark:text-white"
                         >
                             <option value="">All kinds</option>
                             {kinds.map((k) => (

@@ -11,6 +11,17 @@ import { Drawer, DrawerContent, DrawerClose, DrawerBody, DrawerTitle, DrawerDesc
 
 const KanbanBoard = lazy(() => import('../../Components/KanbanBoard'));
 
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-TODOS-001
+ *
+ * @purpose Render the Todo Board in a full-width fluid container with a compact header.
+ *
+ * @hypothesis The narrow max-width wrapper, oversized heading and 16-unit header margin violate ZET-UI-003.
+ *
+ * @fix Use DashboardLayout's fluid container and a compact, closer-to-content header.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function Board({
     todos = [],
     filters = { tags: [] },
@@ -125,14 +136,14 @@ export default function Board({
             >
                 <Head title="Todo Board" />
                 <div className="min-h-screen pb-48 lg:pb-0">
-                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="w-full py-6">
                         {/* Header */}
-                        <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                        <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <div className="flex-1">
-                                <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+                                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white leading-tight tracking-tight">
                                     Todo Board
                                 </h1>
-                                <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-2xl">
+                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-light leading-relaxed">
                                     Manage priorities and capture new tasks in one place.
                                 </p>
                             </div>

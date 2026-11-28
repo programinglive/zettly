@@ -44,6 +44,17 @@ const isIosDevice = () => {
     return /iphone|ipad|ipod/.test(userAgent);
 };
 
+/**
+ * @zettly-code ZC-ZETTY-UI003-BATCH1-PWA-PROMPT-001
+ *
+ * @purpose Keep the PWA install prompt actions usable with one hand on phones.
+ *
+ * @hypothesis The install and dismiss buttons were 34px tall, below the mobile-first 44x44px minimum.
+ *
+ * @fix Give both actions a 44px minimum height without changing install or dismiss behavior.
+ *
+ * @tests resources/js/__tests__/uiBatch1.test.js
+ */
 export default function PwaInstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [visible, setVisible] = useState(false);
@@ -211,14 +222,14 @@ export default function PwaInstallPrompt() {
                     <button
                         type="button"
                         onClick={handleInstall}
-                        className="flex-1 rounded-full bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
+                        className="flex-1 min-h-[44px] rounded-full bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
                     >
                         Install app
                     </button>
                     <button
                         type="button"
                         onClick={handleDismiss}
-                        className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
+                        className="min-h-[44px] rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
                     >
                         Maybe later
                     </button>
