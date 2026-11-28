@@ -135,6 +135,11 @@
     },
     "overrides": {
         "glob": ">=14.0.2",
-        "minimatch": ">=11.0.1"
+        "minimatch": ">=11.0.1",
+        "standard-version": {
+            "dotgitignore": {
+                "minimatch": "^3.1.2"
+            }
+        }
     }
 }
