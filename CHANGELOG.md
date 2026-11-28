@@ -2,6 +2,106 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.29](https://github.com/programinglive/todo/compare/v1.7.0...v1.10.29) (2026-11-28)
+
+
+### 📝 Documentation
+
+* **zettly-code:** add [@zettly-code](https://github.com/zettly-code) annotation on DashboardController ([50d2750](https://github.com/programinglive/todo/commit/50d27507130b10f41f786fe705d285631a5f2873))
+
+
+### ✨ Features
+
+* **dashboard:** overhaul Today Priority Queue, Focus progress metrics, and Zettly public website ([3d57420](https://github.com/programinglive/todo/commit/3d574207ce6d016471e905c264aa08a04b625e25))
+* **engineering:** add central zettly-code graph cloud sync and dashboard metrics ([96ba34e](https://github.com/programinglive/todo/commit/96ba34e13afd8f0dd77aa34fa4b224fa3702300b))
+* **engineering:** integrate open-source zettly-code into registry and docs ([54bdfbe](https://github.com/programinglive/todo/commit/54bdfbe1c11f8cc40c47cbc5e28014e0c037dd8f))
+* **filters:** enable multi-tag AND intersection across Area, Type, and Source ([66ed3a3](https://github.com/programinglive/todo/commit/66ed3a38840647efeddb82a7d8642fdda6ad168e))
+* **intelligence:** add V1.9 effectiveness measurement loop and guarded autonomous dispatch ([880b21d](https://github.com/programinglive/todo/commit/880b21d21e75b5a8ab65b66b06633de53aa40443))
+* **intelligence:** auto-promote safe high-priority improvements to Pareto Priority Queue ([b7fd85b](https://github.com/programinglive/todo/commit/b7fd85bdedc48bf13f5515e8f7b38b7f101758ad))
+* **notes:** extend Zettelkasten canonical auto-tagging to notes ([2883bb2](https://github.com/programinglive/todo/commit/2883bb298932f9dc08a004a0b2fa07ed9112feff))
+* **notes:** overhaul /notes into calm Zettelkasten knowledge library ([338eae0](https://github.com/programinglive/todo/commit/338eae06073a81ebbd3c218abe84a49f2679d560))
+* **npm:** add 6-hour npm Support [#5040981](https://github.com/programinglive/todo/issues/5040981) monitor with Todo feedback ([7a89ed5](https://github.com/programinglive/todo/commit/7a89ed5736c09ec6bc0d625c559ebaba00a61195))
+* **sentry:** add scheduled 5-minute P0 auto-preemption for erp.beautyworld.co.id ([860567a](https://github.com/programinglive/todo/commit/860567a2c752e4802e7d3afdb04a48dd974e18ae))
+* **sentry:** skip claimed or recently completed issues in P0 sync and expose ai_claim ([91e7195](https://github.com/programinglive/todo/commit/91e719591b25c76072f88e651ab20f184538ff70))
+* **summary:** add canonical Zettelkasten project classifier, CLI, and auto-tagging ([9b90d1a](https://github.com/programinglive/todo/commit/9b90d1a5e54ebf2c3bc0cf0c99ade7c954e5451e))
+* **summary:** add executive summary dashboard with project charts and CLI ([91dfec3](https://github.com/programinglive/todo/commit/91dfec31a6d19ce8a07664541b6c25ccb121cca6))
+* **summary:** make /summary default landing page for authenticated users ([f4b9d89](https://github.com/programinglive/todo/commit/f4b9d898d55b9b70ff3b601d94d00b6fba7549b3))
+* **today:** add human retrospectives, calendar external waiting, and technical reports page ([c61a200](https://github.com/programinglive/todo/commit/c61a200a9f9b7d45a1a78cda6da93bcb7d67f674))
+* **todos:** add email-style master-detail split view and Open-first default ([5dcf809](https://github.com/programinglive/todo/commit/5dcf809e1b05f794cef116903745f14e285c20e9))
+* **todos:** overhaul /todos into calm human-centered task workspace ([d2df330](https://github.com/programinglive/todo/commit/d2df3307625140f143fd945c3cdfa40c2f12d2cb))
+* **ui:** add /notes split view, /todos/{id} 2-col revamp, and ZET-UI-003 ([836390d](https://github.com/programinglive/todo/commit/836390d31efe2e0891a1eecf986c953493704462))
+
+
+### 🧹 Chores
+
+* **engineering:** apply AF-0 formatting fixes and record v2.1 audit baseline ([94f09dd](https://github.com/programinglive/todo/commit/94f09ddb8bf8be967491a09c32683fba5c6e6c14))
+* **engineering:** migrate audit-baseline.json to Finding Identity v2.0 fingerprints ([f103148](https://github.com/programinglive/todo/commit/f10314820077c798c72a86121ba2d9abc2a104bb))
+* **release:** v1.10.0 with post-deploy verification gate ([3ad759a](https://github.com/programinglive/todo/commit/3ad759a27bcc26e930ab84bc59259af903b7e26a))
+* **release:** v1.10.10 ([fe554d6](https://github.com/programinglive/todo/commit/fe554d61d1816e70c827c331476d0c5ca8dca8c5))
+* **release:** v1.10.11 ([b74ba83](https://github.com/programinglive/todo/commit/b74ba83b42874c628ec9d4153dfbdef9dda8c296))
+* **release:** v1.10.12 ([92aedce](https://github.com/programinglive/todo/commit/92aedcea19c53625115914805bc2668536638088))
+* **release:** v1.10.13 ([3bf38ce](https://github.com/programinglive/todo/commit/3bf38ce74a339aff24993e36123d8e2110077bcf))
+* **release:** v1.10.14 ([b6fac31](https://github.com/programinglive/todo/commit/b6fac312a5a92c5e965d47a25d635fb2894c7ef5))
+* **release:** v1.10.15 ([2d7e81a](https://github.com/programinglive/todo/commit/2d7e81abc8c0b0c503f35e8b4c6d810cfeee4893))
+* **release:** v1.10.16 ([789798e](https://github.com/programinglive/todo/commit/789798ed61fcb605a724f38955344c7932796e59))
+* **release:** v1.10.17 ([2d6a8b7](https://github.com/programinglive/todo/commit/2d6a8b7eb9e7596847d8f48b637c3477686505fb))
+* **release:** v1.10.18 ([ab52ee4](https://github.com/programinglive/todo/commit/ab52ee426063622ef7c1f36692951cfb54933aa2))
+* **release:** v1.10.19 ([e0b4412](https://github.com/programinglive/todo/commit/e0b44122d1740a4ee48ca15c5f5acc9878564fd4))
+* **release:** v1.10.2 ([ffaf30f](https://github.com/programinglive/todo/commit/ffaf30f161df5778c545bf7ad84c9169d6bb074c))
+* **release:** v1.10.20 ([e19ba6c](https://github.com/programinglive/todo/commit/e19ba6cd16089ba156c65e1c43791cc49592fbd3))
+* **release:** v1.10.21 ([5e7d9ea](https://github.com/programinglive/todo/commit/5e7d9ea7f5a92551d47a2a26c089852e426faefe))
+* **release:** v1.10.22 ([044f85f](https://github.com/programinglive/todo/commit/044f85f5875c63efa9a55e4423e7ea054e826b24))
+* **release:** v1.10.23 ([e6e09fb](https://github.com/programinglive/todo/commit/e6e09fb9334cc34c286c74a8bc93ce6a1869305d))
+* **release:** v1.10.24 ([7cf9542](https://github.com/programinglive/todo/commit/7cf95420d58ff8bb5485ff91fb2c7b037e86747f))
+* **release:** v1.10.25 ([a3b6998](https://github.com/programinglive/todo/commit/a3b6998cf891c7830e3a84dc58af092e31f11515))
+* **release:** v1.10.26 ([9eab7ec](https://github.com/programinglive/todo/commit/9eab7ec44ddc6b700a4febb7763d2bd44bc05429))
+* **release:** v1.10.27 ([7615111](https://github.com/programinglive/todo/commit/76151119e3a3b5a52ef07d2b28d15e8dc3b9e66e))
+* **release:** v1.10.28 ([5341b2b](https://github.com/programinglive/todo/commit/5341b2b31d4b3fe837edf8ea3d7b86f528844f88))
+* **release:** v1.10.3 ([07a99f7](https://github.com/programinglive/todo/commit/07a99f792ab67d075486a44755df68b078c08825))
+* **release:** v1.10.4 ([5a29572](https://github.com/programinglive/todo/commit/5a29572dd388c86e7aaa44aae2513b1d44e27c5f))
+* **release:** v1.10.5 ([9f0c261](https://github.com/programinglive/todo/commit/9f0c261317d7583bd186e48bbc62cbf7a2c0f15e))
+* **release:** v1.10.6 ([7db9247](https://github.com/programinglive/todo/commit/7db92471b11d7ec8031adcc8990e2d6da122065d))
+* **release:** v1.10.7 ([bae357b](https://github.com/programinglive/todo/commit/bae357bc06257aede6668f412f4d499055e78c49))
+* **release:** v1.10.8 ([1b62191](https://github.com/programinglive/todo/commit/1b6219137f6c33fd9ba680e88d9c0130bcd17a49))
+* **release:** v1.10.9 ([04e7b10](https://github.com/programinglive/todo/commit/04e7b105db8514d09f793c468fd8c5421b1f1356))
+* **release:** v1.8.0 ([0a646d5](https://github.com/programinglive/todo/commit/0a646d581c8c5a504ce1ce2a03bae0138c4f660e))
+* **release:** v1.9.0 ([510b43e](https://github.com/programinglive/todo/commit/510b43eaa0f46838f366417e62237a3048127637))
+* **release:** v1.9.1 ([99e6cdc](https://github.com/programinglive/todo/commit/99e6cdc4fce03560bf7c29176c4ecba3b148168b))
+* **release:** v1.9.2 ([9c5d6c3](https://github.com/programinglive/todo/commit/9c5d6c3d264e8756cb3d303c34e18ee23f0dcb46))
+* **release:** v1.9.3 ([4de891f](https://github.com/programinglive/todo/commit/4de891f5cca5af50785ba21ec2e4318e9e2a3a04))
+* **release:** v1.9.4 ([cb387e7](https://github.com/programinglive/todo/commit/cb387e755448e82dce53cf9296fd104ee752e9e8))
+* **release:** v1.9.5 ([6c89afd](https://github.com/programinglive/todo/commit/6c89afd81ce88665ed8f3fe84d3256475ff15b5f))
+
+
+### ♻️ Refactors
+
+* **tags:** eliminate tipe:other and enforce explicit canonical work types ([e8fa663](https://github.com/programinglive/todo/commit/e8fa6639609c2a711b4f2964a1545cb4eac6870c))
+* **tags:** eliminate vague area:dev tags and add tasks/notes schema spec ([3a04470](https://github.com/programinglive/todo/commit/3a0447025e6798d23cc00c337d3211a226c187ac))
+* **ui:** align batch 1 pages to ZET-UI-003 and mobile-first touch targets ([b94fc06](https://github.com/programinglive/todo/commit/b94fc063e6e9ef08b19e225ce7813e5e448348b0))
+* **ui:** compact ModeToggle and optimize Today page density and UX ([13fd710](https://github.com/programinglive/todo/commit/13fd7103b4cd8a06de3aeb0fb4bd49464ae6301b))
+* **ui:** standardize full-width Notion-style compact layout and typography ([fbaf9cf](https://github.com/programinglive/todo/commit/fbaf9cf2996d16572d2e1a49d4dc1123609488e0))
+* **ui:** unify sidebar text-sm sizing and organize grouped navigation ([ad4dade](https://github.com/programinglive/todo/commit/ad4dade2f6727b30cfc7386a656bae2c65fd85f9))
+
+
+### 🐛 Bug Fixes
+
+* **ci:** disable remote npm cache on self-hosted bw-tools to prevent APAC egress spikes ([ba4373c](https://github.com/programinglive/todo/commit/ba4373c8a24cf00a1a202338b78cb3e39f1afd05))
+* **classify:** inspect archived tasks to normalize legacy tags ([6f03a2e](https://github.com/programinglive/todo/commit/6f03a2e4e26655ed3aaa9dc3a28e2eadc178ec24))
+* **classify:** move typePlan and areaPlan definition before null check ([100491f](https://github.com/programinglive/todo/commit/100491f2407860cdf4d1e6f63f1e9694cf26824d))
+* **classify:** normalize stale tags on unclassified items and add todos regex ([697cc77](https://github.com/programinglive/todo/commit/697cc77caf9dca7fb89f3bf3d66d5e9354daf27f))
+* **dashboard:** keep Today external schedule and retrospective payload strictly bounded ([0815bdf](https://github.com/programinglive/todo/commit/0815bdf3b990647c579da33abd0cabdff97b0d35))
+* **dashboard:** sort Current Work by priority and fix focus progress UX (v1.10.1) ([206605f](https://github.com/programinglive/todo/commit/206605f6989aa13f4128647aa7b9c8335ab1b188))
+* **deps:** scope minimatch override so standard-version release works ([8606a1c](https://github.com/programinglive/todo/commit/8606a1c6dd844bf3cb484f9a6537adc7f282fa8f))
+* **deps:** upgrade google client chain to patched firebase/php-jwt 7 ([5144fda](https://github.com/programinglive/todo/commit/5144fda6f1048a526cab8c0a7eeea63ea0c41fa7))
+* **filters:** scope faceted tags to active view and eliminate tipe:todo ([a639ab6](https://github.com/programinglive/todo/commit/a639ab6d1d36f2bd3280a18c082282471973bbe5))
+* **intelligence:** exclude superseded failed agent jobs and reconcile improvements ([a18f675](https://github.com/programinglive/todo/commit/a18f675973398c4a7e92cdc8356a57e95a219788))
+* **priority:** fix warnings rendering, explain modal fields, and 1-click Today pinning ([639550e](https://github.com/programinglive/todo/commit/639550ef896e17728b6574a92cfdaf0a1b42589d))
+* **sentry:** eager-load DayPlanner todo, guard retrospective user FK, and ignore CLI parse errors ([8aa38c5](https://github.com/programinglive/todo/commit/8aa38c5bc8134ac0825bae55b855abc818b4ce12))
+* **summary:** select description and complete canonical project classification ([3e49737](https://github.com/programinglive/todo/commit/3e4973789b99aec441bfa09bb086f55ba1cd79f2))
+* **test:** update PlaywrightSmokeTest login redirect assertion to summary.index ([cdaa545](https://github.com/programinglive/todo/commit/cdaa54515d3c742d9c81490da9fc0edc597511f3))
+* **ui:** prevent horizontal overflow on tablet viewports with min-w-0 ([61fe7fd](https://github.com/programinglive/todo/commit/61fe7fd72ea86ac6c8d763afe18fda8e72b5be11))
+* **ui:** show version and commit hash in layout and enable PWA autoUpdate ([078f929](https://github.com/programinglive/todo/commit/078f92951139469c0a769898ac3bddd09cbb8751))
+
 ### [1.10.28](https://github.com/programinglive/todo/compare/v1.10.27...v1.10.28) (2026-11-27)
 
 
