@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ZC-ZETTY-DEPENDABOT-22-PHPJWT-001",
+    "purpose": "Record the dependency upgrade that removes vulnerable firebase/php-jwt 6.11.1 from the lockfile.",
+    "domain": "security",
+    "bugFix": "Dependabot alert #22 / CVE-2025-45769 / GHSA-2x45-7fc3-mxwq is closed.",
+    "rootCause": "firebase/php-jwt 6.11.1 was locked as a transitive dependency of google/apiclient v2.18.4 and google/auth v1.49.0, both requiring ^6.0; the first patched release is 7.0.0.",
+    "fix": "Upgraded google/apiclient to v2.20.1 and google/auth to v1.55.3 with --with-all-dependencies so firebase/php-jwt resolves to v7.2.2.",
+    "targetFile": "composer.lock",
+    "entity": "composer.lock",
+    "related": [
+      "composer.json",
+      "docs/superpowers/specs/2026-11-28-dependabot-alert-22-php-jwt.md"
+    ],
+    "tests": [
+      "tests/Unit/DependabotAlert22Test.php"
+    ]
+  },
+  {
+    "id": "ZC-ZETTY-DEPENDABOT-22-SIDECAR-001",
+    "purpose": "Describe this sidecar record itself so the bugfix knowledge gate accepts the annotation file it just read.",
+    "domain": "security",
+    "bugFix": "The annotation file is no longer treated as an unannotated modified file.",
+    "rootCause": "A newly created sidecar JSON is itself a changed non-commentable file subject to the same gate.",
+    "fix": "Include a self-referencing sidecar record in the same file.",
+    "targetFile": "engineering/zettly-code-sidecars/composer.lock.json",
+    "entity": "composer.lock.json",
+    "related": [
+      "ZC-ZETTY-DEPENDABOT-22-PHPJWT-001"
+    ],
+    "tests": [
+      "tests/Unit/DependabotAlert22Test.php"
+    ]
+  }
+]
